@@ -82,9 +82,10 @@ void File::paintEvent(Tui::ZPaintEvent *event)
     QString text;
     for (int y = 0; y < _text.size(); y++) {
         //TODO: Make it optional
-        if (true) {
+        if (this->formatting_characters) {
             text = _text[y] + "¶";
             text.replace(" ","·");
+            text.replace("\t","→");
         } else {
             text = _text[y];
         }
@@ -93,7 +94,9 @@ void File::paintEvent(Tui::ZPaintEvent *event)
             showCursor({_cursorPositionX - _scrollPositionX, _cursorPositionY});
         }
     }
-
+    if (this->formatting_characters) {
+        painter->writeWithColors(0, _text.count(), "♦", fg, bg);
+    }
 }
 
 void File::keyEvent(Tui::ZKeyEvent *event)
@@ -104,7 +107,7 @@ void File::keyEvent(Tui::ZKeyEvent *event)
     }
     if(text.size() && event->modifiers() == 0) {
         if(_text[_cursorPositionY].size() < _cursorPositionX) {
-            _text[_cursorPositionY].resize(_cursorPositionX,' ');
+            _text[_cursorPositionY].resize(_cursorPositionX, ' ');
         }
         _text[_cursorPositionY].insert(_cursorPositionX, text);
         _cursorPositionX += text.size();
@@ -183,7 +186,20 @@ void File::keyEvent(Tui::ZKeyEvent *event)
         }
         ++_cursorPositionY;
         _cursorPositionX = 0;
+        adjustScrollPosition();
         update();
+    } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
+        //TODO: einstellbar machen
+        for (int i=8; i>0; i--) {
+            _text[_cursorPositionY].insert(_cursorPositionX, ' ');
+            ++_cursorPositionX;
+        }
+        adjustScrollPosition();
+        update();
+
+        //TODO:
+        //SHIFT LEFT / SHIFT RIGHT
+
     } else {
         Tui::ZWidget::keyEvent(event);
     }
@@ -229,7 +245,13 @@ Editor::Editor() {
                             { "<m>C</m>opy", "Ctrl-C", "copy", {}},
                             { "<m>P</m>aste", "Ctrl-V", "paste", {}}
 
-                        }},
+                        }
+                      },
+                      { "<m>O</m>ptions", "", {}, {
+                                 { "<m>T</m>ab", "", "Tab", {}},
+                                 { "<m>F</m>ormatting characters", "", "Formatting", {}}
+                             }
+                           },
                       { "Hel<m>p</m>", "", {}, {
                             { "<m>A</m>bout", "", "About", {}}
                         }
@@ -255,6 +277,52 @@ Editor::Editor() {
         }
     );
 
+    QObject::connect(new Tui::ZCommandNotifier("Tab", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            //NEW Window
+            option_tab = new WindowWidget(win);
+            option_tab->setGeometry({20, 2, 40, 8});
+            option_tab->setFocus();
+
+            Button *b1 = new Button(option_tab);
+            //rb1->toggle();
+            b1->setGeometry({30, 5, 6, 7});
+            //rb1->setShortcut("1");
+            b1->setText(" OK");
+
+            Label *l1 = new Label(option_tab);
+            l1->setText("Tab Stops: ");
+            l1->setGeometry({1,2,12,1});
+
+            InputBox *i1 = new InputBox(option_tab);
+            i1->setText((QString)this->tab);
+            i1->setGeometry({15,2,3,1});
+
+            QObject::connect(b1, &Button::clicked, [&]{
+                //option_tab->destroyed();
+                //if(i1->text())
+                option_tab->deleteLater();
+            });
+        }
+    );
+
+
+    QObject::connect(new Tui::ZCommandNotifier("Formatting", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            if (file->formatting_characters)
+                file->formatting_characters = false;
+            else
+                file->formatting_characters = true;
+            update();
+        /*
+            WindowWidget option_formatting = new WindowWidget(win);
+            option_formatting->setGeometry({20, 2, 40, 8});
+            option_formatting->setFocus();
+          */
+
+        }
+    );
+
     win = new WindowWidget(this);
     win->setGeometry({0, 1, 80, 22});
 
@@ -277,7 +345,7 @@ Editor::Editor() {
     //StatusBar Left
     statusBarL = new Label(this);
     statusBarL->setGeometry({0, 23, 50, 1});
-    statusBarL->setText(" Unsave UTF-8");
+    statusBarL->setText(" Unsave UTF-8 Tab "+ (QString)this->tab);
     //Tui::ZPalette p = statusBar->palette();
     p.setColors({
                     { "control.bg", {0, 0xaa, 0xaa}},
@@ -297,9 +365,6 @@ Editor::Editor() {
                 });
     statusBar->setPalette(p);
 
-
-
-
 }
 
 int main(int argc, char **argv) {
@@ -309,6 +374,7 @@ int main(int argc, char **argv) {
     Editor *root = new Editor();
 
     terminal.setMainWidget(root);
+    root->tab = 8;
     root->file->setFocus();
 
     app.exec();

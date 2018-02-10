@@ -30,6 +30,7 @@ public:
 //    void setText(const QString &t);
     int _cursorPositionX = 0;
     int _cursorPositionY = 0;
+    bool formatting_characters = true;
 
 //signals:
 
@@ -55,10 +56,13 @@ public:
     Editor();
 
     WindowWidget *win;
+    WindowWidget *option_tab;
     Label *statusBar;
     Label *statusBarL;
     File *file;
     Label *file_name;
+    int tab = 8;
+
 };
 
 #endif // EDIT_H
