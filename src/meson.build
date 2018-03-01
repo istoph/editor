@@ -1,11 +1,17 @@
 #ide:editable-filelist
 editor_sources = [
   'edit.cpp',
+  'file.cpp',
+  'scrollbar.cpp',
+  'statusbar.cpp',
 ]
 
 #ide:editable-filelist
 editor_headers = [
   'edit.h',
+  'file.h',
+  'scrollbar.h',
+  'statusbar.h',
 ]
 
 executable('editor', editor_sources,
