@@ -4,7 +4,7 @@ Editor::Editor() {
     ensureCommandManager();
 
     Menubar *menu = new Menubar(this);
-    menu->setGeometry({0, 0, 80, 1});
+    //menu->setGeometry({0, 0, 80, 1});
     menu->setItems({
                       { "<m>F</m>ile", "", {}, {
                             { "<m>N</m>ew", "Ctrl-N", "New", {}},
@@ -109,16 +109,17 @@ Editor::Editor() {
     );
 
     win = new WindowWidget(this);
-    win->setGeometry({0, 1, 80, 22});
+    //win->setGeometry({0, 1, 80, 22});
     Tui::ZPalette p = win->palette();
 
     //File
     file = new File(win);
-    file->setGeometry({1,1,78,20});
+    //file->setGeometry({1,1,78,20});
 
-    file_name = new Label(file);
+    file_name = new Label(win);
     file_name->setText(" "+ file->getFilename() +" ");
-    file_name->setGeometry({(78-file_name->text().size())/2, -1, file_name->text().size() +1, 1});
+    file_name->setMaximumSize(file_name->text().size() + 1, 1);
+    //file_name->setGeometry({(78-file_name->text().size())/2, -1, file_name->text().size() +1, 1});
 
     p.setColors({
                     { "control.bg", {0xaa, 0xaa, 0xaa}},
@@ -139,23 +140,35 @@ Editor::Editor() {
 */
 
     StatusBar *s = new StatusBar(this);
-    s->setGeometry({0, 23, 80, 1});
+    //s->setGeometry({0, 23, 80, 1});
     connect(file, &File::cursorPositionChanged, s, &StatusBar::cursorPosition);
     connect(file, &File::scrollPositionChanged, s, &StatusBar::scrollPosition);
 
     ScrollBar *sc = new ScrollBar(win);
     //sc->setGeometry({1,22,78,1});
-    sc->setGeometry({79,1,1,20});
+    //sc->setGeometry({79,1,1,20});
     connect(file, &File::scrollPositionChanged, sc, &ScrollBar::scrollPosition);
     connect(file, &File::textMax, sc, &ScrollBar::textMax);
     sc->displayArea(file->geometry().width(),file->geometry().height());
 
     ScrollBar *scH = new ScrollBar(win);
-    scH->setGeometry({1,21,78,1});
+    //scH->setGeometry({1,21,78,1});
     connect(file, &File::scrollPositionChanged, scH, &ScrollBar::scrollPosition);
     connect(file, &File::textMax, scH, &ScrollBar::textMax);
     scH->displayArea(file->geometry().width(),file->geometry().height());
 
+    WindowLayout *winLayout = new WindowLayout();
+    win->setLayout(winLayout);
+    winLayout->addTopBorderWidget(file_name);
+    winLayout->addRightBorderWidget(sc);
+    winLayout->addBottomBorderWidget(scH);
+    winLayout->addCentralWidget(file);
+
+    VBoxLayout *rootLayout = new VBoxLayout();
+    setLayout(rootLayout);
+    rootLayout->addWidget(menu);
+    rootLayout->addWidget(win);
+    rootLayout->addWidget(s);
 
     //left.paintEvent();
 /*

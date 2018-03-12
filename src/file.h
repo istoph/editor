@@ -32,8 +32,8 @@ signals:
     void textMax(int x, int y);
 
 protected:
-    void paintEvent(Tui::ZPaintEvent *event);
-    void keyEvent(Tui::ZKeyEvent *event);
+    void paintEvent(Tui::ZPaintEvent *event) override;
+    void keyEvent(Tui::ZKeyEvent *event) override;
 
 private:
     void adjustScrollPosition();
