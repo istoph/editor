@@ -9,24 +9,17 @@ public:
     ScrollBar(Tui::ZWidget *parent);
 
 public slots:
-    void cursorPosition(int x, int y);
     void scrollPosition(int x, int y);
-    void textMax(int x, int y);
-    void displayArea(int x, int y);
+    void positonMax(int x, int y);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event);
 
 private:
-    int _cursorPositionX = 0;
-    int _cursorPositionY = 0;
     int _scrollPositionX = 0;
     int _scrollPositionY = 0;
-    int _textMaxX = 0;
-    int _textMaxY = 0;
-    int _displayAreaWidth = 0;
-    int _displayAreaHeight = 0;
-
+    int _positionMaxX = 0;
+    int _positionMaxY = 0;
 };
 
 #endif // SCROLLBAR_H

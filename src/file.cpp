@@ -292,6 +292,6 @@ void File::adjustScrollPosition() {
         if(max < _text[i].count())
             max = _text[i].count();
     }
-    textMax(max,_text.count());
+    textMax(max - geometry().width(),_text.count() - geometry().height());
 
 }

@@ -23,11 +23,11 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
     if (geometry().width() == 1) {
         trackBarSize = this->geometry().height()-2;
         currentPosition = _scrollPositionY;
-        maxPosition = _textMaxY - _displayAreaHeight;
+        maxPosition = _positionMaxY;
     } else {
         trackBarSize = this->geometry().width()-2;
         currentPosition = _scrollPositionX;
-        maxPosition = _textMaxX - _displayAreaWidth;
+        maxPosition = _positionMaxX;
     }
 
     if (maxPosition <= 0) {
@@ -69,10 +69,6 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
         painter->writeWithColors(trackBarSize + 1, 0, "→", controlfg, controlbg);
     }
 }
-void ScrollBar::cursorPosition(int x, int y) {
-    _cursorPositionX = x;
-    _cursorPositionY = y;
-}
 
 void ScrollBar::scrollPosition(int x, int y)
 {
@@ -80,16 +76,10 @@ void ScrollBar::scrollPosition(int x, int y)
     _scrollPositionY = y;
 }
 
-void ScrollBar::textMax(int x, int y)
+void ScrollBar::positonMax(int x, int y)
 {
-    _textMaxX = x;
-    _textMaxY = y;
-}
-
-void ScrollBar::displayArea(int x, int y)
-{
-    _displayAreaWidth = x;
-    _displayAreaHeight = y;
+    _positionMaxX = x;
+    _positionMaxY = y;
 }
 
 /*

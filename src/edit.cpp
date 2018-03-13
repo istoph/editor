@@ -148,14 +148,12 @@ Editor::Editor() {
     //sc->setGeometry({1,22,78,1});
     //sc->setGeometry({79,1,1,20});
     connect(file, &File::scrollPositionChanged, sc, &ScrollBar::scrollPosition);
-    connect(file, &File::textMax, sc, &ScrollBar::textMax);
-    sc->displayArea(file->geometry().width(),file->geometry().height());
+    connect(file, &File::textMax, sc, &ScrollBar::positonMax);
 
     ScrollBar *scH = new ScrollBar(win);
     //scH->setGeometry({1,21,78,1});
     connect(file, &File::scrollPositionChanged, scH, &ScrollBar::scrollPosition);
-    connect(file, &File::textMax, scH, &ScrollBar::textMax);
-    scH->displayArea(file->geometry().width(),file->geometry().height());
+    connect(file, &File::textMax, scH, &ScrollBar::positonMax);
 
     WindowLayout *winLayout = new WindowLayout();
     win->setLayout(winLayout);
