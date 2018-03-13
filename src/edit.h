@@ -22,8 +22,6 @@ public:
 
     WindowWidget *win;
     WindowWidget *option_tab;
-    Label *statusBar;
-    Label *statusBarL;
     File *file;
     Label *file_name;
     int tab = 8;

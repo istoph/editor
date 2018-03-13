@@ -1,6 +1,5 @@
 #include "scrollbar.h"
 
-//▓░
 ScrollBar::ScrollBar(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
 
 }
@@ -81,17 +80,3 @@ void ScrollBar::positonMax(int x, int y)
     _positionMaxX = x;
     _positionMaxY = y;
 }
-
-/*
-void File:ScrollBarTopDown() {
-↑
-▒
-▒
-▒
-█
-↓
-}
-void File:ScrollBarTopDown() {
-←▒▒▒▒▒▒▒▒▒██████→
-}
-*/

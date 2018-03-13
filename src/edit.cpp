@@ -4,7 +4,6 @@ Editor::Editor() {
     ensureCommandManager();
 
     Menubar *menu = new Menubar(this);
-    //menu->setGeometry({0, 0, 80, 1});
     menu->setItems({
                       { "<m>F</m>ile", "", {}, {
                             { "<m>N</m>ew", "Ctrl-N", "New", {}},
@@ -109,49 +108,29 @@ Editor::Editor() {
     );
 
     win = new WindowWidget(this);
-    //win->setGeometry({0, 1, 80, 22});
     Tui::ZPalette p = win->palette();
 
     //File
     file = new File(win);
-    //file->setGeometry({1,1,78,20});
-
     file_name = new Label(win);
     file_name->setText(" "+ file->getFilename() +" ");
     file_name->setMaximumSize(file_name->text().size() + 1, 1);
-    //file_name->setGeometry({(78-file_name->text().size())/2, -1, file_name->text().size() +1, 1});
 
     p.setColors({
                     { "control.bg", {0xaa, 0xaa, 0xaa}},
                     { "control.fg", {0xff, 0xff, 0xff}},
                 });
     file_name->setPalette(p);
-/*
-    //StatusBar Left
-    statusBarL = new Label(this);
-    statusBarL->setGeometry({0, 23, 50, 1});
-    statusBarL->setText(" Unsave UTF-8 Tab "+ (QString)this->tab);
-
-    p.setColors({
-                    { "control.bg", {0, 0xaa, 0xaa}},
-                    { "control.fg", {0xff, 0xff, 0xff}},
-                });
-    statusBarL->setPalette(p);
-*/
 
     StatusBar *s = new StatusBar(this);
-    //s->setGeometry({0, 23, 80, 1});
     connect(file, &File::cursorPositionChanged, s, &StatusBar::cursorPosition);
     connect(file, &File::scrollPositionChanged, s, &StatusBar::scrollPosition);
 
     ScrollBar *sc = new ScrollBar(win);
-    //sc->setGeometry({1,22,78,1});
-    //sc->setGeometry({79,1,1,20});
     connect(file, &File::scrollPositionChanged, sc, &ScrollBar::scrollPosition);
     connect(file, &File::textMax, sc, &ScrollBar::positonMax);
 
     ScrollBar *scH = new ScrollBar(win);
-    //scH->setGeometry({1,21,78,1});
     connect(file, &File::scrollPositionChanged, scH, &ScrollBar::scrollPosition);
     connect(file, &File::textMax, scH, &ScrollBar::positonMax);
 
@@ -168,19 +147,6 @@ Editor::Editor() {
     rootLayout->addWidget(win);
     rootLayout->addWidget(s);
 
-    //left.paintEvent();
-/*
-    //StatusBar Right
-    statusBar = new Label(this);
-    statusBar->setGeometry({50, 23, 30, 1});
-    statusBar->setText("| " + QString::number(file->_cursorPositionY) +":"+ QString::number(file->_cursorPositionX));
-
-    p.setColors({
-                    { "control.bg", {0, 0xaa, 0xaa}},
-                    { "control.fg", {0, 0, 0}},
-                });
-    statusBar->setPalette(p);
-*/
 }
 
 int main(int argc, char **argv) {
