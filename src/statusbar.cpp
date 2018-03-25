@@ -1,7 +1,13 @@
 #include "statusbar.h"
 
 StatusBar::StatusBar(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
-    setMaximumSize(-1, 1);
+    setMaximumSize(Tui::tuiMaxSize, 1);
+    setSizePolicyH(Tui::SizePolicy::Expanding);
+    setSizePolicyV(Tui::SizePolicy::Fixed);
+}
+
+QSize StatusBar::sizeHint() const {
+    return { 20, 1 };
 }
 
 void StatusBar::cursorPosition(int x, int y) {

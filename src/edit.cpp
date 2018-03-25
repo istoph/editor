@@ -108,14 +108,14 @@ Editor::Editor() {
     );
 
     win = new WindowWidget(this);
-    Tui::ZPalette p = win->palette();
 
     //File
     file = new File(win);
-    file_name = new Label(win);
-    file_name->setText(" "+ file->getFilename() +" ");
-    file_name->setMaximumSize(file_name->text().size() + 1, 1);
+    file_name = new TextLine(win);
+    file_name->setText(file->getFilename());
+    file_name->setContentsMargins({1, 0, 1, 0});
 
+    Tui::ZPalette p = file_name->palette();
     p.setColors({
                     { "control.bg", {0xaa, 0xaa, 0xaa}},
                     { "control.fg", {0xff, 0xff, 0xff}},

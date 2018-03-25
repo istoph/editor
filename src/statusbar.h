@@ -8,6 +8,9 @@ class StatusBar : public Tui::ZWidget {
 public:
     StatusBar(Tui::ZWidget *parent);
 
+public:
+    QSize sizeHint() const override;
+
 public slots:
     void cursorPosition(int x, int y);
     void scrollPosition(int x, int y);

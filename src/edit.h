@@ -23,7 +23,7 @@ public:
     WindowWidget *win;
     WindowWidget *option_tab;
     File *file;
-    Label *file_name;
+    TextLine *file_name;
     int tab = 8;
 
 };
