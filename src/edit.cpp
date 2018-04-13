@@ -99,10 +99,10 @@ Editor::Editor() {
 
     QObject::connect(new Tui::ZCommandNotifier("Formatting", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            if (file->formatting_characters)
-                file->formatting_characters = false;
+            if (file->getformatting_characters())
+                file->setFormatting_characters(false);
             else
-                file->formatting_characters = true;
+                file->setFormatting_characters(true);
             update();
         }
     );
@@ -154,7 +154,6 @@ int main(int argc, char **argv) {
     Tui::ZTerminal terminal;
 
     Editor *root = new Editor();
-
     terminal.setMainWidget(root);
 
     if (argc > 1) {
@@ -167,7 +166,7 @@ int main(int argc, char **argv) {
             }
         }
     } else {
-        //TODO path
+        // TODO path
         root->file->setFilename("dokument.txt");
     }
 
@@ -175,6 +174,10 @@ int main(int argc, char **argv) {
     QSettings * qsettings = new QSettings(QDir::homePath()+"/.config/chr", QSettings::IniFormat);
     int tab = qsettings->value("tabsize","4").toInt();
     root->file->setTabsize(tab);
+
+    bool fb = qsettings->value("formatting_characters","1").toBool();
+    root->file->setFormatting_characters(fb);
+
     root->file->setFocus();
 
     app.exec();

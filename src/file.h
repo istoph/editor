@@ -20,13 +20,14 @@ public:
     bool openText();
     bool setTabsize(int tab);
     int getTabsize();
+    bool setFormatting_characters(bool fb);
+    bool getformatting_characters();
 
 public:
 //    QString text() const;
 //    void setText(const QString &t);
     int _cursorPositionX = 0;
     int _cursorPositionY = 0;
-    bool formatting_characters = true;
 
 signals:
     void cursorPositionChanged(int x, int y);
@@ -47,6 +48,7 @@ private:
     int _scrollPositionY = 0;
     int _lastCursorPositionX = -1;
     int _tabsize = 8;
+    bool _formatting_characters = true;
 };
 
 #endif // FILE_H

@@ -73,6 +73,15 @@ int File::getTabsize() {
     return this->_tabsize;
 }
 
+bool File::setFormatting_characters(bool fb) {
+    this->_formatting_characters = fb;
+    return true;
+}
+
+bool File::getformatting_characters() {
+    return _formatting_characters;
+}
+
 void File::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor bg;
     Tui::ZColor fg;
@@ -85,7 +94,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     QString text;
 
     for (int y = _scrollPositionY; y < _text.size(); y++) {
-        if (this->formatting_characters) {
+        if (this->getformatting_characters()) {
             text = _text[y] + "¶";
             text.replace(" ","·");
             text.replace("\t","→");
@@ -97,7 +106,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
             showCursor({_cursorPositionX - _scrollPositionX, _cursorPositionY - _scrollPositionY});
         }
     }
-    if (this->formatting_characters && _scrollPositionX == 0) {
+    if (this->getformatting_characters() && _scrollPositionX == 0) {
         painter->writeWithColors(0, _text.count() -_scrollPositionY, "♦", fg, bg);
     }
 }
