@@ -18,6 +18,8 @@ public:
     bool newText();
     bool saveText();
     bool openText();
+    bool setTabsize(int tab);
+    int getTabsize();
 
 public:
 //    QString text() const;
@@ -44,6 +46,7 @@ private:
     int _scrollPositionX = 0;
     int _scrollPositionY = 0;
     int _lastCursorPositionX = -1;
+    int _tabsize = 8;
 };
 
 #endif // FILE_H

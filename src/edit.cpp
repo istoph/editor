@@ -70,7 +70,7 @@ Editor::Editor() {
             l1->setGeometry({1,2,12,1});
 
             InputBox *i1 = new InputBox(option_tab);
-            i1->setText(QString::number(this->tab));
+            i1->setText(QString::number(file->getTabsize()));
             i1->setGeometry({15,2,3,1});
             i1->setFocus();
 
@@ -81,7 +81,7 @@ Editor::Editor() {
 
             QObject::connect(b1, &Button::clicked, [=]{
                 if(i1->text().toInt() > 0) {
-                    this->tab = i1->text().toInt();
+                    file->setTabsize(i1->text().toInt());
                     option_tab->deleteLater();
                 }
                 //TODO: error message
@@ -171,7 +171,10 @@ int main(int argc, char **argv) {
         root->file->setFilename("dokument.txt");
     }
 
-    root->tab = 8;
+    // Default settings
+    QSettings * qsettings = new QSettings(QDir::homePath()+"/.config/chr", QSettings::IniFormat);
+    int tab = qsettings->value("tabsize","4").toInt();
+    root->file->setTabsize(tab);
     root->file->setFocus();
 
     app.exec();

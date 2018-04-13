@@ -64,8 +64,16 @@ bool File::openText() {
     return false;
 }
 
-void File::paintEvent(Tui::ZPaintEvent *event)
-{
+bool File::setTabsize(int tab) {
+    this->_tabsize = tab;
+    return true;
+}
+
+int File::getTabsize() {
+    return this->_tabsize;
+}
+
+void File::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor bg;
     Tui::ZColor fg;
 
@@ -201,8 +209,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         update();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
-        //TODO: einstellbar machen
-        for (int i=8; i>0; i--) {
+        for (int i=getTabsize(); i>0; i--) {
             _text[_cursorPositionY].insert(_cursorPositionX, ' ');
             ++_cursorPositionX;
         }

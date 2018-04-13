@@ -14,6 +14,9 @@
 #include <scrollbar.h>
 #include <statusbar.h>
 
+#include <QDir>
+#include <QSettings>
+
 class Editor : public Tui::ZRoot {
     Q_OBJECT
 
