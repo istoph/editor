@@ -207,25 +207,40 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         adjustScrollPosition();
         update();
-    } else if(event->key() == Qt::Key_Left && event->modifiers() == 0) {
+    } else if(event->key() == Qt::Key_Left && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
+        }
         if (_cursorPositionX > 0) {
             --_cursorPositionX;
         } else if (_cursorPositionY > 0) {
             _cursorPositionY -= 1;
             _cursorPositionX = _text[_cursorPositionY].size();
         }
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
+        }
         adjustScrollPosition();
         update();
-    } else if(event->key() == Qt::Key_Right && event->modifiers() == 0) {
+    } else if(event->key() == Qt::Key_Right && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
+        }
         if (_cursorPositionX < _text[_cursorPositionY].size()) {
             ++_cursorPositionX;
         } else if (_cursorPositionY + 1 < _text.size()) {
             ++_cursorPositionY;
             _cursorPositionX = 0;
         }
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
+        }
         adjustScrollPosition();
         update();
-    } else if(event->key() == Qt::Key_Down && event->modifiers() == 0) {
+    } else if(event->key() == Qt::Key_Down && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
+        }
         if (_text.size() -1 > _cursorPositionY) {
             ++_cursorPositionY;
         } /* else {
@@ -233,14 +248,23 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             _text.append(QString());
             _cursorPositionX = 0;
         } */
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
+        }
         adjustScrollPosition();
         update();
-    } else if(event->key() == Qt::Key_Up && event->modifiers() == 0) {
+    } else if(event->key() == Qt::Key_Up && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
+        }
         if (_cursorPositionY > 0) {
             --_cursorPositionY;
-            adjustScrollPosition();
-            update();
+         }
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
         }
+        adjustScrollPosition();
+        update();
     } else if(event->key() == Qt::Key_Home && event->modifiers() == 0) {
         _cursorPositionX = 0;
         adjustScrollPosition();
@@ -281,33 +305,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             _text[_cursorPositionY].insert(_cursorPositionX, ' ');
             ++_cursorPositionX;
         }
-        adjustScrollPosition();
-        update();
-
-        //TODO:
-    } else if(event->key() == Qt::Key_Right && event->modifiers() == Qt::ShiftModifier) {
-        select(_cursorPositionX, _cursorPositionY);
-        //TODO: change background color
-        if (_cursorPositionX < _text[_cursorPositionY].size()) {
-            ++_cursorPositionX;
-        } else if (_cursorPositionY + 1 < _text.size()) {
-            ++_cursorPositionY;
-            _cursorPositionX = 0;
-        }
-        select(_cursorPositionX, _cursorPositionY);
-        //_text[_cursorPositionY].insert(_cursorPositionX, '>');
-        adjustScrollPosition();
-        update();
-    } else if(event->key() == Qt::Key_Left && event->modifiers() == Qt::ShiftModifier) {
-        select(_cursorPositionX, _cursorPositionY);
-        if (_cursorPositionX > 0) {
-            --_cursorPositionX;
-        } else if (_cursorPositionY > 0) {
-            _cursorPositionY -= 1;
-            _cursorPositionX = _text[_cursorPositionY].size();
-        }
-        select(_cursorPositionX, _cursorPositionY);
-        //_text[_cursorPositionY].insert(_cursorPositionX, '<');
         adjustScrollPosition();
         update();
     } else {
