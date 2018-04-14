@@ -82,6 +82,34 @@ bool File::getformatting_characters() {
     return _formatting_characters;
 }
 
+void File::select(int x, int y) {
+    if(startSelectX == -1) {
+        startSelectX = x;
+        startSelectY = y;
+    }
+    endSelectX = x;
+    endSelectY = y;
+}
+
+void File::resetSelect() {
+    startSelectX = startSelectY = endSelectX = endSelectY = -1;
+}
+
+bool File::isSelect(int x, int y) {
+    auto startSelect = std::make_pair(startSelectY,startSelectX);
+    auto endSelect = std::make_pair(endSelectY,endSelectX);
+    auto current = std::make_pair(y,x);
+
+    if(startSelect > endSelect) {
+        std::swap(startSelect,endSelect);
+    }
+
+    if(startSelect <= current && current < endSelect) {
+        return true;
+    }
+    return false;
+}
+
 void File::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor bg;
     Tui::ZColor fg;
@@ -102,6 +130,26 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
             text = _text[y];
         }
         painter->writeWithColors(0, y - _scrollPositionY, (text.mid(_scrollPositionX)).toUtf8(), fg, bg);
+
+        for(int x=0; x<=_text[y].size(); x++) {
+            if(isSelect(x,y)) {
+                painter->writeWithColors(x - _scrollPositionX, y - _scrollPositionY, text.mid(x,1), {0x99,0,0}, fg);
+            }
+        }
+
+/*
+        if(startSelectX <= y && endSelectY >= y) {
+            int start = 0;
+            if(startSelectY == y) {
+                start = startSelectX;
+            }
+            int end = text.size();
+            if(endSelectY == y) {
+                end = endSelectY;
+            }
+
+        }
+*/
         if (focus()) {
             showCursor({_cursorPositionX - _scrollPositionX, _cursorPositionY - _scrollPositionY});
         }
@@ -117,6 +165,13 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     QString text = event->text();
     if(event->key() == Qt::Key_Space && event->modifiers() == 0) {
         text = " ";
+    }
+    if(event->modifiers() != Qt::ShiftModifier && (
+            event->key() != Qt::Key_Right || event->key() != Qt::Key_Down ||
+            event->key() != Qt::Key_Left || event->key() != Qt::Key_Up)) {
+        resetSelect();
+        adjustScrollPosition();
+        update();
     }
     if(text.size() && event->modifiers() == 0) {
         if(_text[_cursorPositionY].size() < _cursorPositionX) {
@@ -155,17 +210,21 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if(event->key() == Qt::Key_Left && event->modifiers() == 0) {
         if (_cursorPositionX > 0) {
             --_cursorPositionX;
-            //_lastScrollPosition = _cursorPositionX;
-            adjustScrollPosition();
-            update();
+        } else if (_cursorPositionY > 0) {
+            _cursorPositionY -= 1;
+            _cursorPositionX = _text[_cursorPositionY].size();
         }
+        adjustScrollPosition();
+        update();
     } else if(event->key() == Qt::Key_Right && event->modifiers() == 0) {
-        //if (_cursorPositionX < _text[_cursorPositionY].size()) {
+        if (_cursorPositionX < _text[_cursorPositionY].size()) {
             ++_cursorPositionX;
-            //_lastScrollPosition = _cursorPositionX;
-            adjustScrollPosition();
-            update();
-        //}
+        } else if (_cursorPositionY + 1 < _text.size()) {
+            ++_cursorPositionY;
+            _cursorPositionX = 0;
+        }
+        adjustScrollPosition();
+        update();
     } else if(event->key() == Qt::Key_Down && event->modifiers() == 0) {
         if (_text.size() -1 > _cursorPositionY) {
             ++_cursorPositionY;
@@ -226,10 +285,29 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         update();
 
         //TODO:
-        //SHIFT LEFT / SHIFT RIGHT
-
+    } else if(event->key() == Qt::Key_Right && event->modifiers() == Qt::ShiftModifier) {
+        select(_cursorPositionX, _cursorPositionY);
+        //TODO: change background color
+        if (_cursorPositionX < _text[_cursorPositionY].size()) {
+            ++_cursorPositionX;
+        } else if (_cursorPositionY + 1 < _text.size()) {
+            ++_cursorPositionY;
+            _cursorPositionX = 0;
+        }
+        select(_cursorPositionX, _cursorPositionY);
+        //_text[_cursorPositionY].insert(_cursorPositionX, '>');
+        adjustScrollPosition();
+        update();
     } else if(event->key() == Qt::Key_Left && event->modifiers() == Qt::ShiftModifier) {
-        _text[_cursorPositionY].insert(_cursorPositionX, '<');
+        select(_cursorPositionX, _cursorPositionY);
+        if (_cursorPositionX > 0) {
+            --_cursorPositionX;
+        } else if (_cursorPositionY > 0) {
+            _cursorPositionY -= 1;
+            _cursorPositionX = _text[_cursorPositionY].size();
+        }
+        select(_cursorPositionX, _cursorPositionY);
+        //_text[_cursorPositionY].insert(_cursorPositionX, '<');
         adjustScrollPosition();
         update();
     } else {

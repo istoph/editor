@@ -22,6 +22,10 @@ public:
     int getTabsize();
     bool setFormatting_characters(bool fb);
     bool getformatting_characters();
+    void select(int x, int y);
+    void resetSelect();
+    void getSelect(bool start, int &x, int &y);
+    bool isSelect(int x, int y);
 
 public:
 //    QString text() const;
@@ -49,6 +53,10 @@ private:
     int _lastCursorPositionX = -1;
     int _tabsize = 8;
     bool _formatting_characters = true;
+    int startSelectX = -1;
+    int startSelectY = -1;
+    int endSelectX = -1;
+    int endSelectY = -1;
 };
 
 #endif // FILE_H
