@@ -12,6 +12,7 @@
 
 #include <file.h>
 #include <scrollbar.h>
+#include <searchdialog.h>
 #include <statusbar.h>
 
 #include <QDir>

@@ -3,6 +3,7 @@ editor_sources = [
   'edit.cpp',
   'file.cpp',
   'scrollbar.cpp',
+  'searchdialog.cpp',
   'statusbar.cpp',
 ]
 
@@ -11,6 +12,7 @@ editor_headers = [
   'edit.h',
   'file.h',
   'scrollbar.h',
+  'searchdialog.h',
   'statusbar.h',
 ]
 

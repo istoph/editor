@@ -18,8 +18,9 @@ Editor::Editor() {
 
                             { "Cu<m>t</m>", "Ctrl-X", "cut", {}},
                             { "<m>C</m>opy", "Ctrl-C", "copy", {}},
-                            { "<m>P</m>aste", "Ctrl-V", "paste", {}}
-
+                            { "<m>P</m>aste", "Ctrl-V", "paste", {}},
+                            {},
+                            { "<m>S</m>earch...", "Ctrl-F", "search", {}}
                         }
                       },
                       { "<m>O</m>ptions", "", {}, {
@@ -146,6 +147,11 @@ Editor::Editor() {
     rootLayout->addWidget(menu);
     rootLayout->addWidget(win);
     rootLayout->addWidget(s);
+
+    SearchDialog* searchDlg = new SearchDialog(this, file);
+
+    QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
+                     searchDlg, &SearchDialog::open);
 
 }
 
