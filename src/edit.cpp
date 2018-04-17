@@ -58,7 +58,7 @@ Editor::Editor() {
 
             QObject::connect(b1, &Button::clicked, [=]{
                 file->setFilename(ib1->text());
-                file_name->setText(file->getFilename());
+                win->setWindowTitle(file->getFilename());
                 // TODO: resize file_name
                 file->openText();
                 file_open->deleteLater();
@@ -133,16 +133,7 @@ Editor::Editor() {
 
     //File
     file = new File(win);
-    file_name = new TextLine(win);
-    file_name->setText(file->getFilename());
-    file_name->setContentsMargins({1, 0, 1, 0});
-
-    Tui::ZPalette p = file_name->palette();
-    p.setColors({
-                    { "control.bg", {0xaa, 0xaa, 0xaa}},
-                    { "control.fg", {0xff, 0xff, 0xff}},
-                });
-    file_name->setPalette(p);
+    win->setWindowTitle(file->getFilename());
 
     StatusBar *s = new StatusBar(this);
     connect(file, &File::cursorPositionChanged, s, &StatusBar::cursorPosition);
@@ -158,7 +149,6 @@ Editor::Editor() {
 
     WindowLayout *winLayout = new WindowLayout();
     win->setLayout(winLayout);
-    winLayout->addTopBorderWidget(file_name);
     winLayout->addRightBorderWidget(sc);
     winLayout->addBottomBorderWidget(scH);
     winLayout->addCentralWidget(file);
