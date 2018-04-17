@@ -41,8 +41,29 @@ Editor::Editor() {
     );
 
     QObject::connect(new Tui::ZCommandNotifier("Open", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            file->openText();
+    [&] {
+            file_open = new Dialog(this);
+            file_open->setGeometry({20, 2, 40, 8});
+            file_open->setFocus();
+
+            InputBox *ib1 = new InputBox(file_open);
+            ib1->setText("dokument.txt");
+            ib1->setGeometry({3,2,30,1});
+            ib1->setFocus();
+
+            Button *b1 = new Button(file_open);
+            b1->setGeometry({25, 5, 8, 7});
+            b1->setText(" OK");
+            b1->setDefault(true);
+
+            QObject::connect(b1, &Button::clicked, [=]{
+                file->setFilename(ib1->text());
+                file_name->setText(file->getFilename());
+                // TODO: resize file_name
+                file->openText();
+                file_open->deleteLater();
+                // TODO: error message
+            });
         }
     );
 

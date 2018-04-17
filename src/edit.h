@@ -26,6 +26,7 @@ public:
 
     WindowWidget *win;
     WindowWidget *option_tab;
+    WindowWidget *file_open;
     File *file;
     TextLine *file_name;
     int tab = 8;
