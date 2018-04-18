@@ -27,6 +27,11 @@ public:
     void getSelect(bool start, int &x, int &y);
     bool isSelect(int x, int y);
 
+    void cut();
+    void copy();
+    void paste();
+    bool isInsertable();
+
 public:
 //    QString text() const;
 //    void setText(const QString &t);

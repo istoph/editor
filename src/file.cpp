@@ -64,6 +64,54 @@ bool File::openText() {
     return false;
 }
 
+void File::cut()
+{
+    _clipboard = "";
+    for(int y = 0; y < _text.size();y++) {
+        int xx=0;
+        for (int x = 0; x < _text[y].size(); x++) {
+            if(isSelect(x,y)) {
+                // TODO: hier wird nicht richtig gezählt
+                _clipboard += _text[y].mid(x - xx,1);
+                _text[y].remove(x - xx++, 1);
+            }
+        }
+    }
+    resetSelect();
+    _cursorPositionX -= _clipboard.size() +1;
+    adjustScrollPosition();
+    update();
+}
+
+void File::copy()
+{
+    _clipboard = "";
+    for(int y = 0; y < _text.size();y++) {
+        for (int x = 0; x < _text[y].size(); x++) {
+            if(isSelect(x,y)) {
+                _clipboard += _text[y].mid(x,1);
+            }
+        }
+    }
+}
+
+void File::paste()
+{
+    _text[_cursorPositionY].insert(_cursorPositionX, _clipboard);
+    // TODO: check multiline
+    _cursorPositionX += _clipboard.size();
+    adjustScrollPosition();
+    update();
+}
+
+bool File::isInsertable()
+{
+    if (_clipboard != "") {
+        return true;
+    }
+    return false;
+}
+
 bool File::setTabsize(int tab) {
     this->_tabsize = tab;
     return true;
@@ -335,39 +383,18 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         adjustScrollPosition();
         update();
-    } else if (event->text() == "c" && event->modifiers() == Qt::ControlModifier){
+    } else if (event->text() == "c" && event->modifiers() == Qt::ControlModifier ||
+               event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) {
         //STRG + C // Strg+Einfg
-        _clipboard = "";
-        for(int y = 0; y < _text.size();y++) {
-            for (int x = 0; x < _text[y].size(); x++) {
-                if(isSelect(x,y)) {
-                    _clipboard += _text[y].mid(x,1);
-                }
-            }
-        }
-    } else if (event->text() == "v" && event->modifiers() == Qt::ControlModifier){
+        this->copy();
+    } else if (event->text() == "v" && event->modifiers() == Qt::ControlModifier ||
+               event->key() == Qt::Key_Enter && event->modifiers() == Qt::ShiftModifier) {
         //STRG + V // Umschalt+Einfg
-        _text[_cursorPositionY].insert(_cursorPositionX, _clipboard);
-        // TODO: check multiline
-        _cursorPositionX += _clipboard.size();
-        adjustScrollPosition();
-        update();
-    } else if (event->text() == "x" && event->modifiers() == Qt::ControlModifier){
+        this->paste();
+    } else if (event->text() == "x" && event->modifiers() == Qt::ControlModifier ||
+               event->key() == Qt::Key_Delete && event->modifiers() == Qt::ShiftModifier) {
         //STRG + X // Umschalt+Entf
-        _clipboard = "";
-        for(int y = 0; y < _text.size();y++) {
-            int xx=0;
-            for (int x = 0; x < _text[y].size(); x++) {
-                if(isSelect(x,y)) {
-                    _clipboard += _text[y].mid(x - xx,1);
-                    _text[y].remove(x - xx++, 1);
-                }
-            }
-        }
-        resetSelect();
-        _cursorPositionX -= _clipboard.size() +1;
-        adjustScrollPosition();
-        update();
+        this->cut();
     } else {
         Tui::ZWidget::keyEvent(event);
     }

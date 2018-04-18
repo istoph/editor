@@ -16,9 +16,9 @@ Editor::Editor() {
                       },
                       { "<m>E</m>dit", "", "", {
 
-                            { "Cu<m>t</m>", "Ctrl-X", "cut", {}},
-                            { "<m>C</m>opy", "Ctrl-C", "copy", {}},
-                            { "<m>P</m>aste", "Ctrl-V", "paste", {}},
+                            { "Cu<m>t</m>", "Ctrl-X", "Cut", {}},
+                            { "<m>C</m>opy", "Ctrl-C", "Copy", {}},
+                            { "<m>P</m>aste", "Ctrl-V", "Paste", {}},
                             {},
                             { "<m>S</m>earch...", "Ctrl-F", "search", {}}
                         }
@@ -76,6 +76,21 @@ Editor::Editor() {
     QObject::connect(new Tui::ZCommandNotifier("Quit", this), &Tui::ZCommandNotifier::activated,
          [&] {
             QCoreApplication::instance()->quit();
+        }
+    );
+    QObject::connect(new Tui::ZCommandNotifier("Cut", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            file->cut();
+        }
+    );
+    QObject::connect(new Tui::ZCommandNotifier("Copy", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            file->copy();
+        }
+    );
+    QObject::connect(new Tui::ZCommandNotifier("Paste", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            file->paste();
         }
     );
 
