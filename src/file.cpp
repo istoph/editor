@@ -166,10 +166,25 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     if(event->key() == Qt::Key_Space && event->modifiers() == 0) {
         text = " ";
     }
-    if(event->modifiers() != Qt::ShiftModifier && (
-            event->key() != Qt::Key_Right || event->key() != Qt::Key_Down ||
-            event->key() != Qt::Key_Left || event->key() != Qt::Key_Up ||
-            event->key() != Qt::Key_Home || event->key() != Qt::Key_End) ) {
+    if ( (
+            event->modifiers() != Qt::ShiftModifier &&
+            (
+                event->key() != Qt::Key_Right ||
+                event->key() != Qt::Key_Down ||
+                event->key() != Qt::Key_Left ||
+                event->key() != Qt::Key_Up ||
+                event->key() != Qt::Key_Home ||
+                event->key() != Qt::Key_End
+            )
+        ) && (
+            event->modifiers() != Qt::ControlModifier &&
+            (
+                event->text() != "x" ||
+                event->text() != "c" ||
+                event->text() != "v"
+            )
+       ) ) {
+
         resetSelect();
         adjustScrollPosition();
         update();
@@ -318,6 +333,39 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             _text[_cursorPositionY].insert(_cursorPositionX, ' ');
             ++_cursorPositionX;
         }
+        adjustScrollPosition();
+        update();
+    } else if (event->text() == "c" && event->modifiers() == Qt::ControlModifier){
+        //STRG + C // Strg+Einfg
+        _clipboard = "";
+        for(int y = 0; y < _text.size();y++) {
+            for (int x = 0; x < _text[y].size(); x++) {
+                if(isSelect(x,y)) {
+                    _clipboard += _text[y].mid(x,1);
+                }
+            }
+        }
+    } else if (event->text() == "v" && event->modifiers() == Qt::ControlModifier){
+        //STRG + V // Umschalt+Einfg
+        _text[_cursorPositionY].insert(_cursorPositionX, _clipboard);
+        // TODO: check multiline
+        _cursorPositionX += _clipboard.size();
+        adjustScrollPosition();
+        update();
+    } else if (event->text() == "x" && event->modifiers() == Qt::ControlModifier){
+        //STRG + X // Umschalt+Entf
+        _clipboard = "";
+        for(int y = 0; y < _text.size();y++) {
+            int xx=0;
+            for (int x = 0; x < _text[y].size(); x++) {
+                if(isSelect(x,y)) {
+                    _clipboard += _text[y].mid(x - xx,1);
+                    _text[y].remove(x - xx++, 1);
+                }
+            }
+        }
+        resetSelect();
+        _cursorPositionX -= _clipboard.size() +1;
         adjustScrollPosition();
         update();
     } else {
