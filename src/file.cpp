@@ -158,6 +158,21 @@ bool File::isSelect(int x, int y) {
     return false;
 }
 
+void File::setOverwrite()
+{
+    // TODO: change courser modus _ []
+   if(isOverwrite()) {
+        this->overwrite = false;
+    } else {
+        this->overwrite = true;
+    }
+}
+
+bool File::isOverwrite()
+{
+    return this->overwrite;
+}
+
 void File::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor bg;
     Tui::ZColor fg;
@@ -241,7 +256,11 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if(_text[_cursorPositionY].size() < _cursorPositionX) {
             _text[_cursorPositionY].resize(_cursorPositionX, ' ');
         }
-        _text[_cursorPositionY].insert(_cursorPositionX, text);
+        if (isOverwrite()) {
+            _text[_cursorPositionY].replace(_cursorPositionX,text.size(), text);
+        } else {
+            _text[_cursorPositionY].insert(_cursorPositionX, text);
+        }
         _cursorPositionX += text.size();
         adjustScrollPosition();
         update();

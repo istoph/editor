@@ -26,6 +26,8 @@ public:
     void resetSelect();
     void getSelect(bool start, int &x, int &y);
     bool isSelect(int x, int y);
+    void setOverwrite();
+    bool isOverwrite();
 
     void cut();
     void copy();
@@ -64,6 +66,7 @@ private:
     int endSelectY = -1;
     QString _clipboard;
     //QVector<QString> _clipboard;
+    bool overwrite = false;
 };
 
 #endif // FILE_H
