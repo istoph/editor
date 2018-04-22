@@ -26,8 +26,8 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     auto *painter = event->painter();
     painter->clear({0, 0, 0}, {0, 0xaa, 0xaa});
 
-    QString text = "| " + QString::number(_cursorPositionY) +":"+ QString::number(_cursorPositionX) + " | "+
-            QString::number(_scrollPositionY) +":"+ QString::number(_scrollPositionX);
+    QString text = "| " + QString::number(_cursorPositionY +1) +":"+ QString::number(_cursorPositionX +1) + " | "+
+            QString::number(_scrollPositionY +1)  +":"+ QString::number(_scrollPositionX +1);
 
     painter->writeWithColors(50, 0, text.toUtf8(), {0, 0, 0}, {0, 0xaa, 0xaa});
 }
