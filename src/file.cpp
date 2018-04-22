@@ -173,6 +173,14 @@ bool File::isSelect(int x, int y) {
     return false;
 }
 
+bool File::isSelect()
+{
+    if (startSelectX != -1) {
+        return true;
+    }
+    return false;
+}
+
 void File::setOverwrite()
 {
     // TODO: change courser modus _ []
@@ -244,6 +252,17 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     if(event->key() == Qt::Key_Space && event->modifiers() == 0) {
         text = " ";
     }
+    if (isSelect() && (
+                event->key() != Qt::Key_Right ||
+                event->key() != Qt::Key_Down ||
+                event->key() != Qt::Key_Left ||
+                event->key() != Qt::Key_Up ||
+                event->key() != Qt::Key_Home ||
+                event->key() != Qt::Key_End ||
+                event->modifiers() != Qt::ControlModifier
+                ) ) {
+        //Markierte Zeichen Löschen
+    }
     if ( (
             event->modifiers() != Qt::ShiftModifier &&
             (
@@ -253,6 +272,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 event->key() != Qt::Key_Up ||
                 event->key() != Qt::Key_Home ||
                 event->key() != Qt::Key_End
+                // TODO: bild up/down
             )
         ) && (
             event->modifiers() != Qt::ControlModifier &&

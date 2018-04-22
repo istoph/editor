@@ -27,6 +27,7 @@ public:
     void resetSelect();
     void getSelect(bool start, int &x, int &y);
     bool isSelect(int x, int y);
+    bool isSelect();
     void setOverwrite();
     bool isOverwrite();
 
