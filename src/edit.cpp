@@ -20,7 +20,9 @@ Editor::Editor() {
                             { "<m>C</m>opy", "Ctrl-C", "Copy", {}},
                             { "<m>P</m>aste", "Ctrl-V", "Paste", {}},
                             {},
-                            { "<m>S</m>earch...", "Ctrl-F", "search", {}}
+                            { "<m>S</m>earch...", "Ctrl-F", "Search", {}},
+                            {},
+                            { "<m>G</m>oto line", "Ctrl-G", "Gotoline", {}}
                         }
                       },
                       { "<m>O</m>ptions", "", {}, {
@@ -91,6 +93,35 @@ Editor::Editor() {
     QObject::connect(new Tui::ZCommandNotifier("Paste", this), &Tui::ZCommandNotifier::activated,
          [&] {
             file->paste();
+        }
+    );
+    QObject::connect(new Tui::ZCommandNotifier("Gotoline", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            file_goto_line = new Dialog(this);
+            file_goto_line->setGeometry({20, 2, 40, 8});
+            file_goto_line->focus();
+
+            Label *l1 = new Label(file_goto_line);
+            l1->setText("Goto line: ");
+            l1->setGeometry({1,2,12,1});
+
+            InputBox *i1 = new InputBox(file_goto_line);
+            i1->setGeometry({15,2,3,1});
+            i1->setFocus();
+
+            Button *b1 = new Button(file_goto_line);
+            b1->setGeometry({15, 5, 7, 7});
+            b1->setText(" OK");
+            b1->setDefault(true);
+
+            QObject::connect(b1, &Button::clicked, [=]{
+                if(i1->text().toInt() >= 0) {
+                    file->gotoline(i1->text().toInt());
+                    file_goto_line->deleteLater();
+                }
+                //TODO: error message
+            });
+
         }
     );
 

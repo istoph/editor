@@ -18,6 +18,7 @@ public:
     bool newText();
     bool saveText();
     bool openText();
+    void gotoline(int y);
     bool setTabsize(int tab);
     int getTabsize();
     bool setFormatting_characters(bool fb);

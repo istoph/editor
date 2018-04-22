@@ -112,6 +112,21 @@ bool File::isInsertable()
     return false;
 }
 
+void File::gotoline(int y)
+{
+    _cursorPositionX = 0;
+    if(y <= 0) {
+        _cursorPositionY = 0;
+    } else if (_text.size() < y) {
+        _cursorPositionY = _text.size() -1;
+    } else {
+        _cursorPositionY = y -1;
+    }
+    adjustScrollPosition();
+    update();
+    this->focus(); // TODO: fix it ;)
+}
+
 bool File::setTabsize(int tab) {
     this->_tabsize = tab;
     return true;

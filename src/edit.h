@@ -27,6 +27,7 @@ public:
     WindowWidget *win;
     WindowWidget *option_tab;
     WindowWidget *file_open;
+    WindowWidget *file_goto_line;
     File *file;
     int tab = 8;
 
