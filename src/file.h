@@ -18,6 +18,10 @@ public:
     bool newText();
     bool saveText();
     bool openText();
+    void cut();
+    void copy();
+    void paste();
+    bool isInsertable();
     void gotoline(int y);
     bool setTabsize(int tab);
     int getTabsize();
@@ -31,10 +35,6 @@ public:
     void setOverwrite();
     bool isOverwrite();
 
-    void cut();
-    void copy();
-    void paste();
-    bool isInsertable();
 
 public:
 //    QString text() const;

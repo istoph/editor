@@ -8,7 +8,7 @@ Editor::Editor() {
                       { "<m>F</m>ile", "", {}, {
                             { "<m>N</m>ew", "Ctrl-N", "New", {}},
                             { "<m>O</m>pen...", "Ctrl-O", "Open", {}},
-                            { "<m>S</m>ave", "Ctrl-S", "Save", {}},
+                            { "<m>S</m>ave", "Ctrl-s", "Save", {}},
                             { "Save <m>a</m>s...", "Ctrl-S", "SaveAs", {}},
                             {},
                             { "E<m>x</m>it", "Ctrl-Q", "Quit", {}}
@@ -218,6 +218,12 @@ int main(int argc, char **argv) {
 
     Editor *root = new Editor();
     terminal.setMainWidget(root);
+
+    //QCommandLineParser parser;
+    // TODO:
+    // +nn go to line nn
+    // -c config file (default ~/.config/chr)
+    //
 
     if (argc > 1) {
         root->file->setFilename(argv[1]);
