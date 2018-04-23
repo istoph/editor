@@ -314,11 +314,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             _text[_cursorPositionY].remove(_cursorPositionX -1, 1);
             _cursorPositionX -= 1;
         } else if (_cursorPositionY > 0) {
+            _cursorPositionX = _text[_cursorPositionY -1].size();
             _text[_cursorPositionY -1] += _text[_cursorPositionY];
             _text.removeAt(_cursorPositionY);
             --_cursorPositionY;
-            _cursorPositionX = _text[_cursorPositionY].size();
-            //FIX POSITION
         }
         adjustScrollPosition();
         update();
