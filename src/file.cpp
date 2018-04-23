@@ -136,6 +136,16 @@ int File::getTabsize() {
     return this->_tabsize;
 }
 
+void File::setTabOption(bool tab)
+{
+    this->_tabOption = tab;
+}
+
+bool File::getTabOption()
+{
+    return this->_tabOption;
+}
+
 bool File::setFormatting_characters(bool fb) {
     this->_formatting_characters = fb;
     return true;
@@ -431,8 +441,13 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         update();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
-        for (int i=getTabsize(); i>0; i--) {
-            _text[_cursorPositionY].insert(_cursorPositionX, ' ');
+        if(this->getTabOption()) {
+            for (int i=getTabsize(); i>0; i--) {
+                _text[_cursorPositionY].insert(_cursorPositionX, ' ');
+                ++_cursorPositionX;
+            }
+        } else {
+            _text[_cursorPositionY].insert(_cursorPositionX, '\t');
             ++_cursorPositionX;
         }
         adjustScrollPosition();

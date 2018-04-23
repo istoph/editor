@@ -25,6 +25,8 @@ public:
     void gotoline(int y);
     bool setTabsize(int tab);
     int getTabsize();
+    void setTabOption(bool tab);
+    bool getTabOption();
     bool setFormatting_characters(bool fb);
     bool getformatting_characters();
     void select(int x, int y);
@@ -61,6 +63,7 @@ private:
     int _scrollPositionY = 0;
     int _lastCursorPositionX = -1;
     int _tabsize = 8;
+    bool _tabOption = true;
     bool _formatting_characters = true;
     int startSelectX = -1;
     int startSelectY = -1;
