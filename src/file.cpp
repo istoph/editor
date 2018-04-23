@@ -68,17 +68,13 @@ void File::cut()
 {
     _clipboard = "";
     for(int y = 0; y < _text.size();y++) {
-        int xx=0;
         for (int x = 0; x < _text[y].size(); x++) {
             if(isSelect(x,y)) {
-                // TODO: hier wird nicht richtig gezählt
-                _clipboard += _text[y].mid(x - xx,1);
-                _text[y].remove(x - xx++, 1);
+                _clipboard += _text[y].mid(x,1);
             }
         }
     }
-    resetSelect();
-    _cursorPositionX -= _clipboard.size() +1;
+    delSelect();
     adjustScrollPosition();
     update();
 }
@@ -191,6 +187,39 @@ bool File::isSelect()
     return false;
 }
 
+bool File::delSelect()
+{
+    if(!isSelect()) {
+        return false;
+    }
+
+    int size = 0;
+    for(int y=_text.size() - 1; y >= 0 ;y--) {
+        for (int x=_text[y].size() -1; x >= 0; x--) {
+            if(isSelect(x,y)) {
+                _text[y].remove(x,1);
+                if(x == 0) {
+                    if(y>0) {
+                        size = _text[y -1].size();
+                        _text[y -1] += _text[y];
+                        _text.removeAt(y);
+                        y--;
+                        x=size;
+                    } else {
+                        _text.removeAt(0);
+                    }
+                }
+                _cursorPositionY = y;
+                _cursorPositionX = x;
+            }
+        }
+    }
+    resetSelect();
+    return true;
+}
+
+
+
 void File::setOverwrite()
 {
     // TODO: change courser modus _ []
@@ -262,16 +291,21 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     if(event->key() == Qt::Key_Space && event->modifiers() == 0) {
         text = " ";
     }
-    if (isSelect() && (
-                event->key() != Qt::Key_Right ||
-                event->key() != Qt::Key_Down ||
-                event->key() != Qt::Key_Left ||
-                event->key() != Qt::Key_Up ||
-                event->key() != Qt::Key_Home ||
-                event->key() != Qt::Key_End ||
-                event->modifiers() != Qt::ControlModifier
-                ) ) {
+    if (isSelect() &&
+            event->key() != Qt::Key_Right &&
+            event->key() != Qt::Key_Down &&
+            event->key() != Qt::Key_Left &&
+            event->key() != Qt::Key_Up &&
+            event->key() != Qt::Key_Home &&
+            event->key() != Qt::Key_End &&
+            // TODO: bild up/down
+            event->modifiers() != Qt::ControlModifier
+            ) {
         //Markierte Zeichen Löschen
+        this->delSelect();
+        resetSelect();
+        adjustScrollPosition();
+        update();
     }
     if ( (
             event->modifiers() != Qt::ShiftModifier &&

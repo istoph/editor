@@ -34,6 +34,7 @@ public:
     void getSelect(bool start, int &x, int &y);
     bool isSelect(int x, int y);
     bool isSelect();
+    bool delSelect();
     void setOverwrite();
     bool isOverwrite();
 
