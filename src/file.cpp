@@ -74,31 +74,47 @@ void File::cut()
 
 void File::copy()
 {
-    _clipboard = "";
+    _clipboard.clear();
+    _clipboard.append("");
     for(int y = 0; y < _text.size();y++) {
         for (int x = 0; x < _text[y].size(); x++) {
             if(isSelect(x,y)) {
-                _clipboard += _text[y].mid(x,1);
+                _clipboard.back() += _text[y].mid(x,1);
             }
+        }
+        if(isSelect(_text[y].size(),y)) {
+            _clipboard.append("");
         }
     }
 }
 
 void File::paste()
 {
-    _text[_cursorPositionY].insert(_cursorPositionX, _clipboard);
-    // TODO: check multiline
-    _cursorPositionX += _clipboard.size();
+    for (int i=0; i<_clipboard.size(); i++) {
+        _text[_cursorPositionY].insert(_cursorPositionX, _clipboard[i]);
+        _cursorPositionX += _clipboard[i].size();
+        if(i+1<_clipboard.size()) {
+            insertLinebreak();
+        }
+    }
     adjustScrollPosition();
     update();
 }
 
 bool File::isInsertable()
 {
-    if (_clipboard != "") {
-        return true;
+    return !_clipboard.isEmpty();
+}
+
+void File::insertLinebreak()
+{
+    _text.insert(_cursorPositionY + 1,QString());
+    if (_text[_cursorPositionY].size() > _cursorPositionX) {
+        _text[_cursorPositionY + 1] = _text[_cursorPositionY].mid(_cursorPositionX);
+        _text[_cursorPositionY].resize(_cursorPositionX);
     }
-    return false;
+    _cursorPositionX=0;
+    _cursorPositionY++;
 }
 
 void File::gotoline(int y)
@@ -457,13 +473,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         update();
     } else if(event->key() == Qt::Key_Enter && event->modifiers() == 0) {
-        _text.insert(_cursorPositionY + 1,QString());
-        if (_text[_cursorPositionY].size() > _cursorPositionX) {
-            _text[_cursorPositionY + 1] = _text[_cursorPositionY].mid(_cursorPositionX);
-            _text[_cursorPositionY].resize(_cursorPositionX);
-        }
-        ++_cursorPositionY;
-        _cursorPositionX = 0;
+        insertLinebreak();
         adjustScrollPosition();
         update();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {

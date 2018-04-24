@@ -22,6 +22,7 @@ public:
     void copy();
     void paste();
     bool isInsertable();
+    void insertLinebreak();
     void gotoline(int y);
     bool setTabsize(int tab);
     int getTabsize();
@@ -70,8 +71,7 @@ private:
     int startSelectY = -1;
     int endSelectX = -1;
     int endSelectY = -1;
-    QString _clipboard;
-    //QVector<QString> _clipboard;
+    QVector<QString> _clipboard;
     bool overwrite = false;
 };
 
