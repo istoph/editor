@@ -66,14 +66,7 @@ bool File::openText() {
 
 void File::cut()
 {
-    _clipboard = "";
-    for(int y = 0; y < _text.size();y++) {
-        for (int x = 0; x < _text[y].size(); x++) {
-            if(isSelect(x,y)) {
-                _clipboard += _text[y].mid(x,1);
-            }
-        }
-    }
+    copy();
     delSelect();
     adjustScrollPosition();
     update();
