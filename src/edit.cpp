@@ -136,7 +136,7 @@ Editor::Editor() {
 
             RadioButton *r1 = new RadioButton(option_tab);
             r1->setGeometry({1, 2, 12, 1});
-            r1->setMarkup("<m>T</m>ap");
+            r1->setMarkup("<m>T</m>ab");
             // TODO: onSelect i1 und b1->setEnabled(false);
             r1->setChecked(!file->getTabOption());
 
