@@ -220,7 +220,7 @@ bool File::delSelect()
 
 
 
-void File::setOverwrite()
+void File::toggleOverwrite()
 {
     // TODO: change courser modus _ []
    if(isOverwrite()) {
