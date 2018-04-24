@@ -501,6 +501,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         //STRG + s
         // TODO: wurde noch nicht gespeichert: dialog öffnen
         this->saveText();
+    } else if (event->key() == Qt::Key_Insert && event->modifiers() == 0) {
+        this->toggleOverwrite();
     } else {
         Tui::ZWidget::keyEvent(event);
     }
