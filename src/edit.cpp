@@ -227,34 +227,82 @@ Editor::Editor() {
 }
 
 int main(int argc, char **argv) {
-    QCoreApplication app(argc, argv);
-    Tui::ZTerminal terminal;
 
+    QCoreApplication app(argc, argv);
+    QCoreApplication::setApplicationName("chr");
+    QCoreApplication::setApplicationVersion("0.1");
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription("chr.edit");
+    parser.addHelpOption();
+    parser.addVersionOption();
+
+    // Line Number
+    QCommandLineOption numberOption({"n","number"},
+                                    QCoreApplication::translate("main", "The cursor will be positioned on line \"num\".  If \"num\" is missing, the cursor will be positioned on the last line."),
+                                    QCoreApplication::translate("main", "num"));
+
+    parser.addOption(numberOption);
+
+    // Big Files
+    QCommandLineOption bigOption("b",QCoreApplication::translate("main", "Open bigger files then 1MB"));
+    parser.addOption(bigOption);
+
+    // Config File
+    QCommandLineOption configOption({"c","config"},
+                                    QCoreApplication::translate("main", "The config file"),
+                                    QCoreApplication::translate("main", "config"));
+
+    parser.addOption(configOption);
+
+    // Dokument
+    parser.addPositionalArgument("file", QCoreApplication::translate("main", "The file to open."));
+    parser.process(app);
+
+    parser.parse(QCoreApplication::arguments());
+    const QStringList args = parser.positionalArguments();
+    QTextStream out(stdout);
+
+    // START EDITOR
+    Tui::ZTerminal terminal;
     Editor *root = new Editor();
     terminal.setMainWidget(root);
 
-    //QCommandLineParser parser;
-    // TODO:
-    // +nn go to line nn
-    // -c config file (default ~/.config/chr)
-    //
-
-    if (argc > 1) {
-        root->file->setFilename(argv[1]);
-        QFileInfo datei(argv[1]);
+    if(!args.isEmpty()) {
+        QFileInfo datei(args.first());
         if(datei.isReadable()) {
-            if(!root->file->openText()) {
-                //qFatal() << "Error to open file";
-                return 1;
+            if(datei.size() > 10240 && !parser.isSet(bigOption)) {
+                //TODO: warn dialog
+                out << "The file is bigger then 1MB. Pleas start with -b for big files.";
+                return 0;
             }
+            root->file->setFilename(args.first());
+            root->file->openText();
+        } else {
+            out << "The file: "+ args.first() +" is not exists";
+            return 1;
         }
     } else {
         // TODO path
         root->file->setFilename("dokument.txt");
     }
 
+    if(parser.isSet(numberOption)) {
+        //out << parser.value(numberOption);
+        root->file->gotoline(parser.value(numberOption).toInt());
+    }
+
+    // READ CONFIG FILE AND SET DEFAULT OPTIONS
+    QString configDir = "";
+    if(parser.isSet(configOption)) {
+        configDir = parser.value(configOption);
+    } else {
+        //default
+        configDir = QDir::homePath() +"/.config/chr";
+    }
+
     // Default settings
-    QSettings * qsettings = new QSettings(QDir::homePath()+"/.config/chr", QSettings::IniFormat);
+    QSettings * qsettings = new QSettings(configDir, QSettings::IniFormat);
     int tabsize = qsettings->value("tabsize","4").toInt();
     root->file->setTabsize(tabsize);
 

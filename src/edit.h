@@ -17,6 +17,8 @@
 
 #include <QDir>
 #include <QSettings>
+#include <QTextStream>
+#include <QCommandLineParser>
 
 class Editor : public Tui::ZRoot {
     Q_OBJECT
