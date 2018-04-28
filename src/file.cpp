@@ -204,18 +204,16 @@ bool File::delSelect()
 
     int size = 0;
     for(int y=_text.size() - 1; y >= 0 ;y--) {
-        for (int x=_text[y].size() -1; x >= 0; x--) {
+        for (int x=_text[y].size(); x >= 0; x--) {
             if(isSelect(x,y)) {
                 _text[y].remove(x,1);
                 if(x == 0) {
-                    if(y>0) {
+                    if(y>0 && isSelect(_text[y-1].size(),y-1)) {
                         size = _text[y -1].size();
                         _text[y -1] += _text[y];
                         _text.removeAt(y);
                         y--;
                         x=size;
-                    } else {
-                        _text.removeAt(0);
                     }
                 }
                 _cursorPositionY = y;
@@ -226,8 +224,6 @@ bool File::delSelect()
     resetSelect();
     return true;
 }
-
-
 
 void File::toggleOverwrite()
 {
