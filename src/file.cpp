@@ -568,6 +568,13 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         select(_text[_text.size()-1].size(),_text.size());
         adjustScrollPosition();
         update();
+    } else if (event->text() == "k" && event->modifiers() == Qt::ControlModifier) {
+        //STRG + k //cut and copy line
+        resetSelect();
+        select(0,_cursorPositionY);
+        select(_text[_cursorPositionY].size(),_cursorPositionY);
+        //select(0,_cursorPositionY +1);
+        this->cut();
     } else if (event->key() == Qt::Key_Insert && event->modifiers() == 0) {
         this->toggleOverwrite();
     } else {
