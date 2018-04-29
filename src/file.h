@@ -38,13 +38,15 @@ public:
     bool delSelect();
     void toggleOverwrite();
     bool isOverwrite();
-
+    void undo();
+    //void redo();
 
 public:
 //    QString text() const;
 //    void setText(const QString &t);
     int _cursorPositionX = 0;
     int _cursorPositionY = 0;
+    bool unsave = false;
 
 signals:
     void cursorPositionChanged(int x, int y);
@@ -57,7 +59,13 @@ protected:
 
 private:
     void adjustScrollPosition();
+    void saveUndoStep();
     QString filename;
+    struct UndoStep {
+        QVector<QString> text;
+        int cursorPositionX;
+        int cursorPositionY;
+    };
 
 private:
     QVector<QString> _text;
@@ -73,6 +81,7 @@ private:
     int endSelectY = -1;
     QVector<QString> _clipboard;
     bool overwrite = false;
+    QVector<UndoStep> _undoSteps;
 };
 
 #endif // FILE_H

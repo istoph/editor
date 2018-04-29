@@ -240,6 +240,24 @@ bool File::isOverwrite()
     return this->overwrite;
 }
 
+void File::undo() {
+    if(_undoSteps.isEmpty()) {
+        return;
+    }
+
+    _text = _undoSteps.back().text;
+    _cursorPositionX = _undoSteps.back().cursorPositionX;
+    _cursorPositionY = _undoSteps.back().cursorPositionY;
+    adjustScrollPosition();
+    update();
+    _undoSteps.removeLast(); //TODO verschibe in redo
+}
+
+void File::saveUndoStep() {
+    _undoSteps.append({ _text, _cursorPositionX, _cursorPositionY});
+}
+
+
 void File::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor bg;
     Tui::ZColor fg;
@@ -295,6 +313,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     QString text = event->text();
     if(event->key() == Qt::Key_Space && event->modifiers() == 0) {
         text = " ";
+        saveUndoStep();
     }
     if (isSelect() &&
             event->key() != Qt::Key_Right &&
@@ -348,6 +367,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         _cursorPositionX += text.size();
         adjustScrollPosition();
         update();
+        //saveUndoStep();
     } else if(event->key() == Qt::Key_Backspace && event->modifiers() == 0) {
         if (_cursorPositionX > 0) {
             _text[_cursorPositionY].remove(_cursorPositionX -1, 1);
@@ -506,6 +526,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         update();
     } else if(event->key() == Qt::Key_Enter && event->modifiers() == 0) {
         insertLinebreak();
+        saveUndoStep();
         adjustScrollPosition();
         update();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
@@ -538,6 +559,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         //STRG + s
         // TODO: wurde noch nicht gespeichert: dialog öffnen
         this->saveText();
+    } else if (event->text() == "z" && event->modifiers() == Qt::ControlModifier) {
+        //STRG + z
+        this->undo();
     } else if (event->text() == "a" && event->modifiers() == Qt::ControlModifier) {
         //STRG + a
         select(0,0);

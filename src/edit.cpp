@@ -38,6 +38,9 @@ Editor::Editor() {
 
     QObject::connect(new Tui::ZCommandNotifier("New", this), &Tui::ZCommandNotifier::activated,
          [&] {
+            if(file->unsave) {
+                //TODO: save as dialog
+            }
             file->newText();
         }
     );
