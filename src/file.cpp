@@ -328,10 +328,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             (
                 event->text() != "x" ||
                 event->text() != "c" ||
-                event->text() != "v"
+                event->text() != "v" ||
+                event->text() != "a"
             )
-       ) ) {
-
+        ) ) {
         resetSelect();
         adjustScrollPosition();
         update();
@@ -484,22 +484,28 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         adjustScrollPosition();
         update();
-    } else if (event->text() == "c" && event->modifiers() == Qt::ControlModifier ||
-               event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) {
+    } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
+               (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {
         //STRG + C // Strg+Einfg
         this->copy();
-    } else if (event->text() == "v" && event->modifiers() == Qt::ControlModifier ||
-               event->key() == Qt::Key_Enter && event->modifiers() == Qt::ShiftModifier) {
+    } else if ((event->text() == "v" && event->modifiers() == Qt::ControlModifier) ||
+               (event->key() == Qt::Key_Enter && event->modifiers() == Qt::ShiftModifier)) {
         //STRG + V // Umschalt+Einfg
         this->paste();
-    } else if (event->text() == "x" && event->modifiers() == Qt::ControlModifier ||
-               event->key() == Qt::Key_Delete && event->modifiers() == Qt::ShiftModifier) {
+    } else if ((event->text() == "x" && event->modifiers() == Qt::ControlModifier) ||
+               (event->key() == Qt::Key_Delete && event->modifiers() == Qt::ShiftModifier)) {
         //STRG + X // Umschalt+Entf
         this->cut();
     } else if (event->text() == "s" && event->modifiers() == Qt::ControlModifier) {
         //STRG + s
         // TODO: wurde noch nicht gespeichert: dialog öffnen
         this->saveText();
+    } else if (event->text() == "a" && event->modifiers() == Qt::ControlModifier) {
+        //STRG + a
+        select(0,0);
+        select(_text[_text.size()-1].size(),_text.size());
+        adjustScrollPosition();
+        update();
     } else if (event->key() == Qt::Key_Insert && event->modifiers() == 0) {
         this->toggleOverwrite();
     } else {
