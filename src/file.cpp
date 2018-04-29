@@ -451,20 +451,56 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         adjustScrollPosition();
         update();
-    } else if(event->key() == Qt::Key_PageDown && event->modifiers() == 0) {
+    } else if(event->key() == Qt::Key_PageDown && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
+        }
         if (_text.size() > _cursorPositionY + height) {
             _cursorPositionY += height;
         } else {
             _cursorPositionY = _text.size() -1;
         }
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
+        }
         adjustScrollPosition();
         update();
-    } else if(event->key() == Qt::Key_PageUp && event->modifiers() == 0) {
+    } else if(event->key() == Qt::Key_PageDown && ( event->modifiers() == Qt::ControlModifier ||
+              (event->modifiers() == Qt::ControlModifier && event->modifiers() == Qt::ControlModifier) ) ) {
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
+        }
+        _cursorPositionX = 1;
+        _cursorPositionY = 1;
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
+        }
+        adjustScrollPosition();
+        update();
+    } else if(event->key() == Qt::Key_PageUp && (event->modifiers() == Qt::ControlModifier ||
+              (event->modifiers() == Qt::ControlModifier || event->modifiers() == Qt::ControlModifier) ) ) {
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
+        }
+        _cursorPositionX = _text[_text.size() -1].size();
+        _cursorPositionY = _text.size();
+        if(event->modifiers() == Qt::ShiftModifier) {
+          select(_cursorPositionX, _cursorPositionY);
+        }
+        adjustScrollPosition();
+        update();
+    } else if(event->key() == Qt::Key_PageUp && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
+        }
         if (_cursorPositionY > height) {
             _cursorPositionY += -height;
         } else {
             _cursorPositionY = 0;
             _scrollPositionY = 0;
+        }
+        if(event->modifiers() == Qt::ShiftModifier) {
+            select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
         update();
@@ -474,7 +510,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         update();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
         if(this->getTabOption()) {
-            for (int i=getTabsize(); i>0; i--) {
+            for (int i=0; i<getTabsize(); i++) {
+                if(_cursorPositionX % getTabsize() == 0 && i != 0)
+                    break;
                 _text[_cursorPositionY].insert(_cursorPositionX, ' ');
                 ++_cursorPositionX;
             }
