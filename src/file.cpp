@@ -50,7 +50,6 @@ bool File::saveText() {
 }
 
 bool File::openText() {
-
     QFile file(this->filename);
     if (file.open(QIODevice::ReadOnly)) {
         _text.clear();
@@ -64,16 +63,14 @@ bool File::openText() {
     return false;
 }
 
-void File::cut()
-{
+void File::cut() {
     copy();
     delSelect();
     adjustScrollPosition();
     update();
 }
 
-void File::copy()
-{
+void File::copy() {
     _clipboard.clear();
     _clipboard.append("");
     for(int y = 0; y < _text.size();y++) {
@@ -88,8 +85,7 @@ void File::copy()
     }
 }
 
-void File::paste()
-{
+void File::paste() {
     for (int i=0; i<_clipboard.size(); i++) {
         _text[_cursorPositionY].insert(_cursorPositionX, _clipboard[i]);
         _cursorPositionX += _clipboard[i].size();
@@ -101,13 +97,11 @@ void File::paste()
     update();
 }
 
-bool File::isInsertable()
-{
+bool File::isInsertable() {
     return !_clipboard.isEmpty();
 }
 
-void File::insertLinebreak()
-{
+void File::insertLinebreak() {
     _text.insert(_cursorPositionY + 1,QString());
     if (_text[_cursorPositionY].size() > _cursorPositionX) {
         _text[_cursorPositionY + 1] = _text[_cursorPositionY].mid(_cursorPositionX);
@@ -117,8 +111,7 @@ void File::insertLinebreak()
     _cursorPositionY++;
 }
 
-void File::gotoline(int y)
-{
+void File::gotoline(int y) {
     _cursorPositionX = 0;
     if(y <= 0) {
         _cursorPositionY = 0;
@@ -141,13 +134,11 @@ int File::getTabsize() {
     return this->_tabsize;
 }
 
-void File::setTabOption(bool tab)
-{
+void File::setTabOption(bool tab) {
     this->_tabOption = tab;
 }
 
-bool File::getTabOption()
-{
+bool File::getTabOption() {
     return this->_tabOption;
 }
 
@@ -188,16 +179,14 @@ bool File::isSelect(int x, int y) {
     return false;
 }
 
-bool File::isSelect()
-{
+bool File::isSelect() {
     if (startSelectX != -1) {
         return true;
     }
     return false;
 }
 
-bool File::delSelect()
-{
+bool File::delSelect() {
     if(!isSelect()) {
         return false;
     }
@@ -225,8 +214,7 @@ bool File::delSelect()
     return true;
 }
 
-void File::toggleOverwrite()
-{
+void File::toggleOverwrite() {
     // TODO: change courser modus _ []
    if(isOverwrite()) {
         this->overwrite = false;
@@ -235,8 +223,7 @@ void File::toggleOverwrite()
     }
 }
 
-bool File::isOverwrite()
-{
+bool File::isOverwrite() {
     return this->overwrite;
 }
 
