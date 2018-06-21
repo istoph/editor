@@ -316,6 +316,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             event->key() != Qt::Key_Up &&
             event->key() != Qt::Key_Home &&
             event->key() != Qt::Key_End &&
+            event->key() != Qt::Key_PageUp &&
+            event->key() != Qt::Key_PageDown &&
             // TODO: bild up/down
             event->modifiers() != Qt::ControlModifier
             ) {
@@ -333,7 +335,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 event->key() != Qt::Key_Left ||
                 event->key() != Qt::Key_Up ||
                 event->key() != Qt::Key_Home ||
-                event->key() != Qt::Key_End
+                event->key() != Qt::Key_End ||
+                event->key() != Qt::Key_PageUp ||
+                event->key() != Qt::Key_PageDown
                 // TODO: bild up/down
             )
         ) && (
