@@ -54,7 +54,18 @@ Editor::Editor() {
 
     QObject::connect(new Tui::ZCommandNotifier("Quit", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            QCoreApplication::instance()->quit();
+            QuitDialog *quitDialog = new QuitDialog(this, file->getFilename());
+            QObject::connect(quitDialog, &QuitDialog::exitSelected, [=]{
+                file->saveText();
+                QCoreApplication::instance()->quit();
+            });
+
+            QObject::connect(quitDialog, &QuitDialog::saveSelected, [=]{
+                QCoreApplication::instance()->quit();
+            });
+            QObject::connect(quitDialog, &QuitDialog::rejected, [=]{
+                delete quitDialog;
+            });
         }
     );
     QObject::connect(new Tui::ZCommandNotifier("Cut", this), &Tui::ZCommandNotifier::activated,

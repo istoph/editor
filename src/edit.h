@@ -12,6 +12,7 @@
 
 #include <file.h>
 #include <opendialog.h>
+#include <quitdialog.h>
 #include <scrollbar.h>
 #include <searchdialog.h>
 #include <statusbar.h>

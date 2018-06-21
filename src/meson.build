@@ -6,6 +6,7 @@ editor_sources = [
   'scrollbar.cpp',
   'searchdialog.cpp',
   'statusbar.cpp',
+  'quitdialog.cpp',
 ]
 
 #ide:editable-filelist
@@ -16,6 +17,7 @@ editor_headers = [
   'scrollbar.h',
   'searchdialog.h',
   'statusbar.h',
+  'quitdialog.h',
 ]
 
 executable('editor', editor_sources,
