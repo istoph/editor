@@ -20,6 +20,7 @@ Editor::Editor() {
                             { "<m>C</m>opy", "Ctrl-C", "Copy", {}},
                             { "<m>P</m>aste", "Ctrl-V", "Paste", {}},
                             { "Select <m>a</m>ll", "Ctrl-A", "selectall", {}},
+                            { "Cut Line", "Ctrl-K", "cutline", {}},
                             {},
                             { "<m>S</m>earch...", "Ctrl-F", "Search", {}},
                             {},
@@ -86,6 +87,11 @@ Editor::Editor() {
     QObject::connect(new Tui::ZCommandNotifier("selectall", this), &Tui::ZCommandNotifier::activated,
          [&] {
             file->selectAll();
+        }
+    );
+    QObject::connect(new Tui::ZCommandNotifier("cutline", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            file->cutline();
         }
     );
     QObject::connect(new Tui::ZCommandNotifier("Gotoline", this), &Tui::ZCommandNotifier::activated,

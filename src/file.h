@@ -19,6 +19,7 @@ public:
     bool saveText();
     bool openText();
     void cut();
+    void cutline();
     void copy();
     void paste();
     bool isInsertable();

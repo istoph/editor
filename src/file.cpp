@@ -70,6 +70,14 @@ void File::cut() {
     update();
 }
 
+void File::cutline() {
+    resetSelect();
+    select(0,_cursorPositionY);
+    select(_text[_cursorPositionY].size(),_cursorPositionY);
+    //select(0,_cursorPositionY +1);
+    this->cut();
+}
+
 void File::copy() {
     _clipboard.clear();
     _clipboard.append("");
@@ -565,11 +573,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         selectAll();
     } else if (event->text() == "k" && event->modifiers() == Qt::ControlModifier) {
         //STRG + k //cut and copy line
-        resetSelect();
-        select(0,_cursorPositionY);
-        select(_text[_cursorPositionY].size(),_cursorPositionY);
-        //select(0,_cursorPositionY +1);
-        this->cut();
+        this->cutline();
     } else if (event->key() == Qt::Key_Insert && event->modifiers() == 0) {
         this->toggleOverwrite();
     } else {
