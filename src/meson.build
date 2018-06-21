@@ -2,6 +2,7 @@
 editor_sources = [
   'edit.cpp',
   'file.cpp',
+  'opendialog.cpp',
   'scrollbar.cpp',
   'searchdialog.cpp',
   'statusbar.cpp',
@@ -11,6 +12,7 @@ editor_sources = [
 editor_headers = [
   'edit.h',
   'file.h',
+  'opendialog.h',
   'scrollbar.h',
   'searchdialog.h',
   'statusbar.h',

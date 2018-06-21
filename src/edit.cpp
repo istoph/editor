@@ -45,33 +45,6 @@ Editor::Editor() {
         }
     );
 
-    QObject::connect(new Tui::ZCommandNotifier("Open", this), &Tui::ZCommandNotifier::activated,
-    [&] {
-            file_open = new Dialog(this);
-            file_open->setGeometry({20, 2, 40, 8});
-            file_open->setFocus();
-
-            InputBox *ib1 = new InputBox(file_open);
-            ib1->setText("dokument.txt");
-            ib1->setGeometry({3,2,30,1});
-            ib1->setFocus();
-
-            Button *b1 = new Button(file_open);
-            b1->setGeometry({25, 5, 8, 7});
-            b1->setText(" OK");
-            b1->setDefault(true);
-
-            QObject::connect(b1, &Button::clicked, [=]{
-                file->setFilename(ib1->text());
-                win->setWindowTitle(file->getFilename());
-                // TODO: resize file_name
-                file->openText();
-                file_open->deleteLater();
-                // TODO: error message
-            });
-        }
-    );
-
     QObject::connect(new Tui::ZCommandNotifier("Save", this), &Tui::ZCommandNotifier::activated,
          [&] {
             file->saveText();
@@ -227,8 +200,19 @@ Editor::Editor() {
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
                      searchDlg, &SearchDialog::open);
 
+    QObject::connect(new Tui::ZCommandNotifier("Open", this), &Tui::ZCommandNotifier::activated,
+                     this, &Editor::openFileDialog);
 }
 
+void Editor::openFile(QString filename) {
+    file->setFilename(filename);
+    win->setWindowTitle(filename);
+    file->openText();
+}
+void Editor::openFileDialog() {
+    OpenDialog * openDialog = new OpenDialog(this);
+    connect(openDialog, &OpenDialog::fileSelected, this, &Editor::openFile);
+}
 int main(int argc, char **argv) {
 
     QCoreApplication app(argc, argv);

@@ -11,6 +11,7 @@
 #include <testtui_lib.h>
 
 #include <file.h>
+#include <opendialog.h>
 #include <scrollbar.h>
 #include <searchdialog.h>
 #include <statusbar.h>
@@ -32,6 +33,13 @@ public:
     WindowWidget *file_goto_line;
     File *file;
     int tab = 8;
+
+
+public slots:
+    void openFile(QString filename);
+
+private:
+    void openFileDialog();
 
 };
 
