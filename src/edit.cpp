@@ -266,8 +266,7 @@ int main(int argc, char **argv) {
             root->file->setFilename(args.first());
             root->file->openText();
         } else {
-            out << "The file: "+ args.first() +" is not exists";
-            return 1;
+            root->file->setFilename(args.first());
         }
     } else {
         // TODO path
