@@ -219,12 +219,15 @@ Editor::Editor() {
     rootLayout->addWidget(s);
 
     SearchDialog* searchDlg = new SearchDialog(this, file);
-
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
                      searchDlg, &SearchDialog::open);
 
     QObject::connect(new Tui::ZCommandNotifier("Open", this), &Tui::ZCommandNotifier::activated,
                      this, &Editor::openFileDialog);
+
+    QObject::connect(new Tui::ZCommandNotifier("SaveAs", this), &Tui::ZCommandNotifier::activated,
+                     this, &Editor::saveFileDialog);
+
 }
 
 void Editor::openFile(QString filename) {
@@ -232,10 +235,24 @@ void Editor::openFile(QString filename) {
     win->setWindowTitle(filename);
     file->openText();
 }
+void Editor::saveFile(QString filename)
+{
+    file->setFilename(filename);
+    win->setWindowTitle(filename);
+    file->saveText();
+    win->update();
+}
 void Editor::openFileDialog() {
     OpenDialog * openDialog = new OpenDialog(this);
     connect(openDialog, &OpenDialog::fileSelected, this, &Editor::openFile);
 }
+
+void Editor::saveFileDialog()
+{
+    SaveDialog * saveDialog = new SaveDialog(this);
+    connect(saveDialog, &SaveDialog::fileSelected, this, &Editor::saveFile);
+}
+
 int main(int argc, char **argv) {
 
     QCoreApplication app(argc, argv);

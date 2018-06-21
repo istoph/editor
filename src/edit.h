@@ -12,6 +12,7 @@
 
 #include <file.h>
 #include <opendialog.h>
+#include <savedialog.h>
 #include <quitdialog.h>
 #include <scrollbar.h>
 #include <searchdialog.h>
@@ -38,9 +39,11 @@ public:
 
 public slots:
     void openFile(QString filename);
+    void saveFile(QString filename);
 
 private:
     void openFileDialog();
+    void saveFileDialog();
 
 };
 
