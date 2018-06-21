@@ -186,6 +186,13 @@ bool File::isSelect() {
     return false;
 }
 
+void File::selectAll() {
+    select(0,0);
+    select(_text[_text.size()-1].size(),_text.size());
+    adjustScrollPosition();
+    update();
+}
+
 bool File::delSelect() {
     if(!isSelect()) {
         return false;
@@ -551,10 +558,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         this->undo();
     } else if (event->text() == "a" && event->modifiers() == Qt::ControlModifier) {
         //STRG + a
-        select(0,0);
-        select(_text[_text.size()-1].size(),_text.size());
-        adjustScrollPosition();
-        update();
+        selectAll();
     } else if (event->text() == "k" && event->modifiers() == Qt::ControlModifier) {
         //STRG + k //cut and copy line
         resetSelect();
