@@ -233,6 +233,8 @@ Editor::Editor() {
 void Editor::openFile(QString filename) {
     file->setFilename(filename);
     win->setWindowTitle(filename);
+    //reset couser position
+    file->newText();
     file->openText();
 }
 void Editor::saveFile(QString filename)
