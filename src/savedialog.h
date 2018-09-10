@@ -19,9 +19,15 @@ signals:
 
 private:
     void filenameChanged(QString filename);
-    InputBox *filenameText = nullptr;
-    Button *okButton = nullptr;
+    void userInput(QString filename);
 
+private:
+    InputBox *filenameText = nullptr;
+    ListView *folder = nullptr;
+    Button *okButton = nullptr;
+    QDir dir;
+
+    void refreshFolder();
 };
 
 #endif // SAVEDIALOG_H

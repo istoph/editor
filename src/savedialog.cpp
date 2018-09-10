@@ -1,20 +1,50 @@
 #include "savedialog.h"
 
+void SaveDialog::refreshFolder()
+{
+    QStringList items;
+    QFileInfoList list = dir.entryInfoList();
+    dir.setFilter(QDir::AllEntries);
+    for (int i = 0; i < list.size(); ++i) {
+        QFileInfo fileInfo = list.at(i);
+        if(fileInfo.fileName() != ".") {
+            if(fileInfo.isDir()) {
+                items.append(fileInfo.fileName()+"/");
+            } else {
+                items.append(fileInfo.fileName());
+            }
+        }
+    }
+    folder->setItems(items);
+}
+
 SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
 
     setVisible(false);
     setContentsMargins({ 1, 1, 2, 1});
 
-    setGeometry({20, 2, 40, 8});
+    setGeometry({20, 2, 40, 14});
     setWindowTitle("Save as...");
 
+    //TODO: inputbox multi line
+    //TODO: inputbox file up/donw
+    //TODO: inputbox enter to filenameText
+    folder = new ListView(this);
+    folder->setGeometry({3,2,34,6});
+    folder->setFocus();
+
+    connect(folder, &ListView::enterPressed, [this](int selected){
+        userInput(folder->items()[selected]);
+    });
+    refreshFolder();
+
     filenameText = new InputBox(this);
-    filenameText->setGeometry({3,2,30,1});
+    filenameText->setGeometry({3,9,34,1});
     //filenameText->setText(file.getFilename());
-    filenameText->setFocus();
+    //filenameText->setFocus();
 
     okButton = new Button(this);
-    okButton->setGeometry({25, 5, 8, 7});
+    okButton->setGeometry({29, 11, 8, 7});
     okButton->setText("OK");
     okButton->setDefault(true);
 
@@ -56,4 +86,11 @@ void SaveDialog::filenameChanged(QString filename) {
         }
     }
     okButton->setEnabled(ok);
+}
+
+void SaveDialog::userInput(QString filename) {
+    if(QFileInfo(dir.filePath(filename)).isDir()) {
+        dir.setPath(dir.filePath(filename));
+        refreshFolder();
+    }
 }
