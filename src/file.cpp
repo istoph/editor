@@ -429,12 +429,15 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         adjustScrollPosition();
         update();
-    } else if(event->key() == Qt::Key_Left && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
-        if(event->modifiers() == Qt::ShiftModifier) {
+    } else if(event->key() == Qt::Key_Left && (event->modifiers() & ~(Qt::ShiftModifier | Qt::ControlModifier)) == 0) {
+        if(event->modifiers() & Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
         if (_cursorPositionX > 0) {
-            --_cursorPositionX;
+            TextLayout lay(terminal()->textMetrics(), _text[_cursorPositionY]);
+            lay.doLayout(rect().width());
+            auto mode = event->modifiers() & Qt::ControlModifier ? TextLayout::SkipWords : TextLayout::SkipCharacters;
+            _cursorPositionX = lay.previousCursorPosition(_cursorPositionX, mode);
         } else if (_cursorPositionY > 0) {
             _cursorPositionY -= 1;
             _cursorPositionX = _text[_cursorPositionY].size();
@@ -444,12 +447,15 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         adjustScrollPosition();
         update();
-    } else if(event->key() == Qt::Key_Right && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
-        if(event->modifiers() == Qt::ShiftModifier) {
+    } else if(event->key() == Qt::Key_Right && (event->modifiers() & ~(Qt::ShiftModifier | Qt::ControlModifier)) == 0) {
+        if(event->modifiers() & Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
         if (_cursorPositionX < _text[_cursorPositionY].size()) {
-            ++_cursorPositionX;
+            TextLayout lay(terminal()->textMetrics(), _text[_cursorPositionY]);
+            lay.doLayout(rect().width());
+            auto mode = event->modifiers() & Qt::ControlModifier ? TextLayout::SkipWords : TextLayout::SkipCharacters;
+            _cursorPositionX = lay.nextCursorPosition(_cursorPositionX, mode);
         } else if (_cursorPositionY + 1 < _text.size()) {
             ++_cursorPositionY;
             _cursorPositionX = 0;
