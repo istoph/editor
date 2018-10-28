@@ -29,7 +29,8 @@ Editor::Editor() {
                       },
                       { "<m>O</m>ptions", "", {}, {
                                  { "<m>T</m>ab", "", "Tab", {}},
-                                 { "<m>F</m>ormatting characters", "", "Formatting", {}}
+                                 { "<m>F</m>ormatting characters", "", "Formatting", {}},
+                                 { "<m>W</m>rap long lines", "", "Wrap", {}}
                              }
                            },
                       { "Hel<m>p</m>", "", {}, {
@@ -185,6 +186,13 @@ Editor::Editor() {
             else
                 file->setFormatting_characters(true);
             update();
+        }
+    );
+
+
+    QObject::connect(new Tui::ZCommandNotifier("Wrap", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            file->setWrapOption(!file->getWrapOption());
         }
     );
 

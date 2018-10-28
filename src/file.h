@@ -31,6 +31,8 @@ public:
     bool getTabOption();
     bool setFormatting_characters(bool fb);
     bool getformatting_characters();
+    void setWrapOption(bool wrap);
+    bool getWrapOption();
     void select(int x, int y);
     void resetSelect();
     void getSelect(bool start, int &x, int &y);
@@ -76,6 +78,7 @@ private:
     int _lastCursorPositionX = -1;
     int _tabsize = 8;
     bool _tabOption = true;
+    bool _wrapOption = false;
     bool _formatting_characters = true;
     int startSelectX = -1;
     int startSelectY = -1;

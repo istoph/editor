@@ -159,6 +159,18 @@ bool File::getformatting_characters() {
     return _formatting_characters;
 }
 
+void File::setWrapOption(bool wrap) {
+    _wrapOption = wrap;
+    if (_wrapOption) {
+        _scrollPositionX = 0;
+    }
+    update();
+}
+
+bool File::getWrapOption() {
+    return _wrapOption;
+}
+
 void File::select(int x, int y) {
     if(startSelectX == -1) {
         startSelectX = x;
@@ -269,43 +281,61 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 
     auto *painter = event->painter();
     painter->clear(fg, bg);
-    QString text;
 
-    for (int y = _scrollPositionY; y < _text.size(); y++) {
-        if (this->getformatting_characters()) {
-            text = _text[y] + "¶";
-            text.replace(" ","·");
-            text.replace("\t","→");
-        } else {
-            text = _text[y];
-        }
-        painter->writeWithColors(0, y - _scrollPositionY, (text.mid(_scrollPositionX)).toUtf8(), fg, bg);
-
-        for(int x=0; x<=_text[y].size(); x++) {
-            if(isSelect(x,y)) {
-                painter->writeWithColors(x - _scrollPositionX, y - _scrollPositionY, text.mid(x,1), {0x99,0,0}, fg);
-            }
-        }
-
-/*
-        if(startSelectX <= y && endSelectY >= y) {
-            int start = 0;
-            if(startSelectY == y) {
-                start = startSelectX;
-            }
-            int end = text.size();
-            if(endSelectY == y) {
-                end = endSelectY;
-            }
-
-        }
-*/
-        if (focus()) {
-            showCursor({_cursorPositionX - _scrollPositionX, _cursorPositionY - _scrollPositionY});
-        }
+    ZTextOption option;
+    option.setWrapMode(_wrapOption ? ZTextOption::WrapAnywhere : ZTextOption::NoWrap);
+    option.setTabStopDistance(_tabsize);
+    if (getformatting_characters()) {
+        option.setFlags(ZTextOption::ShowTabsAndSpaces);
     }
-    if (this->getformatting_characters() && _scrollPositionX == 0) {
-        painter->writeWithColors(0, _text.count() -_scrollPositionY, "♦", fg, bg);
+
+    auto startSelect = std::make_pair(startSelectY,startSelectX);
+    auto endSelect = std::make_pair(endSelectY,endSelectX);
+    if(startSelect > endSelect) {
+        std::swap(startSelect,endSelect);
+    }
+    QVector<TextLayout::FormatRange> selections;
+    TextStyle selected{{0x99,0,0}, fg};
+
+    int y = 0;
+    for (int line = _scrollPositionY; y < rect().height() && line < _text.size(); line++) {
+        TextLayout lay(terminal()->textMetrics(), _text[line]);
+        lay.setTextOption(option);
+        lay.doLayout(rect().width());
+        //selection
+        selections.clear();
+        if (line > startSelect.first && line < endSelect.first) {
+            // whole line
+            selections.append(TextLayout::FormatRange{0, _text[line].size(), selected});
+        } else if (line > startSelect.first && line == endSelect.first) {
+            // selection ends on this line
+            selections.append(TextLayout::FormatRange{0, endSelect.second, selected});
+        } else if (line == startSelect.first && line < endSelect.first) {
+            // selection starts on this line
+            selections.append(TextLayout::FormatRange{startSelect.second, _text[line].size() - startSelect.second, selected});
+        } else if (line == startSelect.first && line == endSelect.first) {
+            // selection is contained in this line
+            selections.append(TextLayout::FormatRange{startSelect.second, endSelect.second - startSelect.second, selected});
+        }
+
+        lay.draw(*painter, {-_scrollPositionX, y}, fg, bg, selections);
+        if (getformatting_characters()) {
+            TextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
+            if (isSelect(_text[line].size(), line)) {
+                painter->writeWithColors(0 + lastLine.width(), y + lastLine.y(), QStringLiteral("¶"), selected.foregroundColor(), selected.backgroundColor());
+            } else {
+                painter->writeWithColors(0 + lastLine.width(), y + lastLine.y(), QStringLiteral("¶"), Tui::Colors::red, bg);
+            }
+        }
+        if (_cursorPositionY == line) {
+            if (focus()) {
+                lay.showCursor(*painter, {-_scrollPositionX, y}, _cursorPositionX);
+            }
+        }
+        y += lay.lineCount();
+    }
+    if (y < rect().height() && this->getformatting_characters() && _scrollPositionX == 0) {
+        painter->writeWithColors(0, y, "♦", Tui::Colors::red, bg);
     }
 }
 
@@ -583,15 +613,17 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
 void File::adjustScrollPosition() {
     //x
-    if (_cursorPositionX - _scrollPositionX >= geometry().width()) {
-         _scrollPositionX = _cursorPositionX - geometry().width() + 1;
-    }
-    if (_cursorPositionX > 0) {
-        if (_cursorPositionX - _scrollPositionX < 1) {
-            _scrollPositionX = _cursorPositionX - 1;
+    if (!_wrapOption) {
+        if (_cursorPositionX - _scrollPositionX >= geometry().width()) {
+             _scrollPositionX = _cursorPositionX - geometry().width() + 1;
         }
-    } else {
-        _scrollPositionX = 0;
+        if (_cursorPositionX > 0) {
+            if (_cursorPositionX - _scrollPositionX < 1) {
+                _scrollPositionX = _cursorPositionX - 1;
+            }
+        } else {
+            _scrollPositionX = 0;
+        }
     }
 
     //y
