@@ -613,7 +613,7 @@ void File::adjustScrollPosition() {
         //_lastScrollPosition = _cursorPositionX;
         _cursorPositionX = _text[_cursorPositionY].size();
 
-
+    // TODO: das wird vermutlich nicht verwendet :(
     } else if (_cursorPositionX < _lastCursorPositionX) {
         if (_text[_cursorPositionY].size() < _lastCursorPositionX) {
             _cursorPositionX = _text[_cursorPositionY].size();
