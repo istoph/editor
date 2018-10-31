@@ -322,9 +322,9 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         if (getformatting_characters()) {
             TextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
             if (isSelect(_text[line].size(), line)) {
-                painter->writeWithColors(0 + lastLine.width(), y + lastLine.y(), QStringLiteral("¶"), selected.foregroundColor(), selected.backgroundColor());
+                painter->writeWithColors(-_scrollPositionX + lastLine.width(), y + lastLine.y(), QStringLiteral("¶"), selected.foregroundColor(), selected.backgroundColor());
             } else {
-                painter->writeWithColors(0 + lastLine.width(), y + lastLine.y(), QStringLiteral("¶"), Tui::Colors::red, bg);
+                painter->writeWithColors(-_scrollPositionX + lastLine.width(), y + lastLine.y(), QStringLiteral("¶"), Tui::Colors::darkGray, bg);
             }
         }
         if (_cursorPositionY == line) {
@@ -335,7 +335,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         y += lay.lineCount();
     }
     if (y < rect().height() && this->getformatting_characters() && _scrollPositionX == 0) {
-        painter->writeWithColors(0, y, "♦", Tui::Colors::red, bg);
+        painter->writeWithColors(0, y, "♦", Tui::Colors::darkGray, bg);
     }
 }
 
