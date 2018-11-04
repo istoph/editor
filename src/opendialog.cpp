@@ -78,11 +78,17 @@ void OpenDialog::filenameChanged(QString filename) {
 }
 
 void OpenDialog::userInput(QString filename) {
-    if(QFileInfo(dir.filePath(filename)).isDir()) {
+    QString tmp = filename.left(filename.size()-1);
+    if(QFileInfo(dir.filePath(filename)).isDir() && QFileInfo(dir.filePath(tmp)).isSymLink()) {
+       dir.setPath(dir.filePath(QFileInfo(dir.filePath(tmp)).readLink()));
+       dir.makeAbsolute();
+       refreshFolder();
+    } else if(QFileInfo(dir.filePath(filename)).isDir()) {
         dir.setPath(dir.filePath(filename));
+        dir.makeAbsolute();
         refreshFolder();
     } else {
-        fileSelected(filename);
+        fileSelected(dir.filePath(filename));
         deleteLater();
     }
 }
