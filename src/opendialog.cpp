@@ -11,7 +11,11 @@ void OpenDialog::refreshFolder()
     for (int i = 0; i < list.size(); ++i) {
         QFileInfo fileInfo = list.at(i);
         if(fileInfo.fileName() != ".") {
-            if(fileInfo.isDir()) {
+            if(fileInfo.fileName() == "..") {
+                if(dir.path() != "/") {
+                    items.append("../");
+                }
+            } else if(fileInfo.isDir()) {
                 items.append(fileInfo.fileName()+"/");
             } else {
                 items.append(fileInfo.fileName());
