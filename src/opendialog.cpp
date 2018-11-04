@@ -5,6 +5,9 @@ void OpenDialog::refreshFolder()
     QStringList items;
     QFileInfoList list = dir.entryInfoList();
     dir.setFilter(QDir::AllEntries);
+
+    //TODO: das abschneiden muss das Lable machen ;)
+    curentPath->setText(dir.absolutePath().right(33));
     for (int i = 0; i < list.size(); ++i) {
         QFileInfo fileInfo = list.at(i);
         if(fileInfo.fileName() != ".") {
@@ -20,11 +23,16 @@ void OpenDialog::refreshFolder()
 
 OpenDialog::OpenDialog(Tui::ZWidget *parent) : Dialog(parent) {
 
+    dir.makeAbsolute();
+
     setVisible(false);
     setContentsMargins({ 1, 1, 2, 1});
 
     setGeometry({20, 2, 40, 14});
     setWindowTitle("File Open");
+
+    curentPath = new Label(this);
+    curentPath->setGeometry({3,1,34,1});
 
     folder = new ListView(this);
     folder->setGeometry({3,2,34,8});

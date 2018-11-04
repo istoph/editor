@@ -23,6 +23,7 @@ private:
     void userInput(QString filename);
 
 private:
+    Label *curentPath = nullptr;
     InputBox *filenameText = nullptr;
     ListView *folder = nullptr;
     Button *okButton = nullptr;
