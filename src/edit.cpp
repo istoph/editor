@@ -58,11 +58,11 @@ Editor::Editor() {
          [&] {
             QuitDialog *quitDialog = new QuitDialog(this, file->getFilename());
             QObject::connect(quitDialog, &QuitDialog::exitSelected, [=]{
-                file->saveText();
                 QCoreApplication::instance()->quit();
             });
 
             QObject::connect(quitDialog, &QuitDialog::saveSelected, [=]{
+                file->saveText();
                 QCoreApplication::instance()->quit();
             });
             QObject::connect(quitDialog, &QuitDialog::rejected, [=]{
