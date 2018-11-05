@@ -1,7 +1,6 @@
 #include "savedialog.h"
 
-void SaveDialog::refreshFolder()
-{
+void SaveDialog::refreshFolder() {
     QStringList items;
     QFileInfoList list = dir.entryInfoList();
     dir.setFilter(QDir::AllEntries);
@@ -57,14 +56,12 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
     setVisible(true);
 }
 
-
 void SaveDialog::saveFile() {
     fileSelected(filenameText->text());
     deleteLater();
-//file->unsave
+    //file->unsave
     //File::saveText()
 }
-
 
 void SaveDialog::filenameChanged(QString filename) {
     QFileInfo datei(filename);
