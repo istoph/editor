@@ -356,7 +356,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             event->key() != Qt::Key_End &&
             event->key() != Qt::Key_PageUp &&
             event->key() != Qt::Key_PageDown &&
-            // TODO: bild up/down
+            event->key() != Qt::Key_Escape &&
             event->modifiers() != Qt::ControlModifier
             ) {
         //Markierte Zeichen Löschen
@@ -376,7 +376,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 event->key() != Qt::Key_End ||
                 event->key() != Qt::Key_PageUp ||
                 event->key() != Qt::Key_PageDown
-                // TODO: bild up/down
             )
         ) && (
             event->modifiers() != Qt::ControlModifier &&
