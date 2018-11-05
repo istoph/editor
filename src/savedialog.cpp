@@ -89,5 +89,8 @@ void SaveDialog::userInput(QString filename) {
     if(QFileInfo(dir.filePath(filename)).isDir()) {
         dir.setPath(dir.filePath(filename));
         refreshFolder();
+    } else {
+        filenameText->setText(filename);
+        filenameText->setFocus();
     }
 }
