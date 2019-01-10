@@ -72,7 +72,7 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent) : Dialog(parent) {
 void OpenDialog::open() {
     // TODO: error message
     //fileSelected(filenameText->text());
-    fileSelected(folder->getItems());
+    fileSelected(folder->currentItem());
     deleteLater();
 }
 
