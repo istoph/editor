@@ -21,12 +21,11 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type) : Di
     setWindowTitle(title);
     //setMinimumSize(50,8);
 
-    setContentsMargins({ 1, 1, 0, 1});
-
-    WindowLayout *wl = new WindowLayout();
-    setLayout(wl);
+    setContentsMargins({ 1, 1, 1, 1});
 
     VBoxLayout *vbox = new VBoxLayout();
+    setLayout(vbox);
+    vbox->setSpacing(1);
 
     //Lable
     Label *l1 = new Label(this);
@@ -54,10 +53,7 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type) : Di
     bSave->setFocus();
     hbox->addWidget(bSave);
     vbox->add(hbox);
-    wl->addCentral(vbox);
 
-    int b = std::max(48,mainLable.length()+6);
-    setGeometry({std::max(1, (80/2 - b / 2)), 3, b , 8});
     QObject::connect(bCancle, &Button::clicked, this, &ConfirmSave::rejected);
     QObject::connect(bDiscard, &Button::clicked, this, &ConfirmSave::exitSelected);
     QObject::connect(bSave, &Button::clicked, this, &ConfirmSave::saveSelected);
