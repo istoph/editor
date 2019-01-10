@@ -1,4 +1,5 @@
 #include "edit.h"
+#include "tabdialog.h"
 
 Editor::Editor() {
     ensureCommandManager();
@@ -126,56 +127,8 @@ Editor::Editor() {
     );
 
     QObject::connect(new Tui::ZCommandNotifier("Tab", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            //NEW Window
-            option_tab = new Dialog(this);
-            option_tab->setGeometry({20, 3, 40, 9});
-            option_tab->setFocus();
-            option_tab->setWindowTitle("Formatting Tab");
-            //option_tab->setPaletteClass({"window","cyan"});
-
-            RadioButton *r1 = new RadioButton(option_tab);
-            r1->setGeometry({1, 2, 12, 1});
-            r1->setMarkup("<m>T</m>ab");
-            // TODO: onSelect i1 und b1->setEnabled(false);
-            r1->setChecked(!file->getTabOption());
-
-            RadioButton *r2 = new RadioButton(option_tab);
-            r2->setGeometry({12, 2, 12, 1});
-            r2->setMarkup("<m>B</m>lank");
-            r2->setChecked(file->getTabOption());
-
-            Label *l1 = new Label(option_tab);
-            l1->setText("Tab Stops: ");
-            l1->setGeometry({1,4,12,1});
-
-            InputBox *i1 = new InputBox(option_tab);
-            i1->setText(QString::number(file->getTabsize()));
-            i1->setGeometry({15,4,6,1});
-            i1->setFocus();
-            i1->setEnabled(false);
-
-            Button *b1 = new Button(option_tab);
-            b1->setGeometry({15, 6, 6, 7});
-            b1->setText("OK");
-            b1->setDefault(true);
-
-            QObject::connect(b1, &Button::clicked, [=]{
-                if(i1->text().toInt() > 0) {
-                    file->setTabOption(r2->checked());
-                    file->setTabsize(i1->text().toInt());
-                    option_tab->deleteLater();
-                }
-                //TODO: error message
-            });
-
-            Button *cancel = new Button(option_tab);
-            cancel->setText("Cancel");
-            cancel->setGeometry({28,6,10,7});
-
-            QObject::connect(cancel, &Button::clicked, [=]{
-                option_tab->deleteLater();
-            });
+        [&] {
+            new TabDialog(file, this);
         }
     );
 

@@ -7,6 +7,7 @@ editor_sources = [
   'scrollbar.cpp',
   'searchdialog.cpp',
   'statusbar.cpp',
+  'tabdialog.cpp',
   'quitdialog.cpp',
 ]
 
@@ -19,6 +20,7 @@ editor_headers = [
   'scrollbar.h',
   'searchdialog.h',
   'statusbar.h',
+  'tabdialog.h',
   'quitdialog.h',
 ]
 
