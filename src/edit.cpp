@@ -44,8 +44,23 @@ Editor::Editor() {
          [&] {
             if(file->modified) {
                 //TODO: save as dialog
+                ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::New);
+                QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
+                    file->newText();
+                    delete confirmDialog;
+                });
+
+                QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
+                    file->saveText();
+                    file->newText();
+                    delete confirmDialog;
+                });
+                QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
+                    delete confirmDialog;
+                });
+            } else {
+                file->newText();
             }
-            file->newText();
         }
     );
 
@@ -57,18 +72,21 @@ Editor::Editor() {
 
     QObject::connect(new Tui::ZCommandNotifier("Quit", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            QuitDialog *quitDialog = new QuitDialog(this, file->getFilename());
-            QObject::connect(quitDialog, &QuitDialog::exitSelected, [=]{
+            if(file->modified) {
+                ConfirmSave *quitDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Quit);
+                QObject::connect(quitDialog, &ConfirmSave::exitSelected, [=]{
+                    QCoreApplication::instance()->quit();
+                });
+                QObject::connect(quitDialog, &ConfirmSave::saveSelected, [=]{
+                    file->saveText();
+                    QCoreApplication::instance()->quit();
+                });
+                QObject::connect(quitDialog, &ConfirmSave::rejected, [=]{
+                    delete quitDialog;
+                });
+            } else {
                 QCoreApplication::instance()->quit();
-            });
-
-            QObject::connect(quitDialog, &QuitDialog::saveSelected, [=]{
-                file->saveText();
-                QCoreApplication::instance()->quit();
-            });
-            QObject::connect(quitDialog, &QuitDialog::rejected, [=]{
-                delete quitDialog;
-            });
+            }
         }
     );
     QObject::connect(new Tui::ZCommandNotifier("Cut", this), &Tui::ZCommandNotifier::activated,

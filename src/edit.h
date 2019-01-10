@@ -13,7 +13,7 @@
 #include <file.h>
 #include <opendialog.h>
 #include <savedialog.h>
-#include <quitdialog.h>
+#include <confirmsave.h>
 #include <scrollbar.h>
 #include <searchdialog.h>
 #include <statusbar.h>

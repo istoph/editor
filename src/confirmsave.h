@@ -4,11 +4,13 @@
 #include <testtui_lib.h>
 #include <file.h>
 
-class QuitDialog : public Dialog
+class ConfirmSave : public Dialog
 {
+public:
+    enum Type { New, Open, Quit };
     Q_OBJECT
 public:
-    explicit QuitDialog(Tui::ZWidget *parent, QString filename);
+    explicit ConfirmSave(Tui::ZWidget *parent, QString filename, Type type);
 
 signals:
     void saveSelected();

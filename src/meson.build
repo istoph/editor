@@ -1,5 +1,6 @@
 #ide:editable-filelist
 editor_sources = [
+  'confirmsave.cpp',
   'edit.cpp',
   'file.cpp',
   'opendialog.cpp',
@@ -8,11 +9,11 @@ editor_sources = [
   'searchdialog.cpp',
   'statusbar.cpp',
   'tabdialog.cpp',
-  'quitdialog.cpp',
 ]
 
 #ide:editable-filelist
 editor_headers = [
+  'confirmsave.h',
   'edit.h',
   'file.h',
   'opendialog.h',
@@ -21,7 +22,6 @@ editor_headers = [
   'searchdialog.h',
   'statusbar.h',
   'tabdialog.h',
-  'quitdialog.h',
 ]
 
 executable('editor', editor_sources,
