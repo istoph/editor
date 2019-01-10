@@ -17,6 +17,7 @@ public:
     QString getFilename();
     bool newText();
     bool saveText();
+    void setModified(bool mod);
     bool openText();
     void cut();
     void cutline();
@@ -50,12 +51,13 @@ public:
 //    void setText(const QString &t);
     int _cursorPositionX = 0;
     int _cursorPositionY = 0;
-    bool unsave = false;
+    bool modified = true;
 
 signals:
     void cursorPositionChanged(int x, int y);
     void scrollPositionChanged(int x, int y);
     void textMax(int x, int y);
+    void modifiedChanged(bool modified);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event) override;

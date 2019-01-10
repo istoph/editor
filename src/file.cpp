@@ -31,6 +31,7 @@ bool File::newText() {
     _cursorPositionX = 0;
     _cursorPositionY = 0;
     update();
+    setModified(false);
     return true;
 }
 
@@ -43,10 +44,16 @@ bool File::saveText() {
             stream << text << endl;
         }
         file.close();
+        setModified(false);
         return true;
     }
     //TODO vernünfiges error Händling
     return false;
+}
+
+void File::setModified(bool mod) {
+    this->modified = mod;
+    modifiedChanged(mod);
 }
 
 bool File::openText() {
@@ -58,6 +65,7 @@ bool File::openText() {
            _text.append(in.readLine());
         }
         file.close();
+        setModified(false);
         return true;
     }
     return false;
@@ -76,6 +84,7 @@ void File::cutline() {
     select(_text[_cursorPositionY].size(),_cursorPositionY);
     //select(0,_cursorPositionY +1);
     this->cut();
+    setModified(true);
 }
 
 void File::copy() {
@@ -102,6 +111,7 @@ void File::paste() {
         }
     }
     adjustScrollPosition();
+    setModified(true);
     update();
 }
 
@@ -402,6 +412,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         _cursorPositionX += text.size();
         adjustScrollPosition();
         update();
+        setModified(true);
         //saveUndoStep();
     } else if(event->key() == Qt::Key_Backspace && event->modifiers() == 0) {
         if (_cursorPositionX > 0) {
@@ -414,6 +425,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             --_cursorPositionY;
         }
         adjustScrollPosition();
+        setModified(true);
         update();
     } else if(event->key() == Qt::Key_Delete && event->modifiers() == 0) {
         if(_text[_cursorPositionY].size() > _cursorPositionX) {
@@ -427,6 +439,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             _text.removeAt(_cursorPositionY +1);
         }
         adjustScrollPosition();
+        setModified(true);
         update();
     } else if(event->key() == Qt::Key_Left && (event->modifiers() & ~(Qt::ShiftModifier | Qt::ControlModifier)) == 0) {
         if(event->modifiers() & Qt::ShiftModifier) {
@@ -569,6 +582,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         insertLinebreak();
         saveUndoStep();
         adjustScrollPosition();
+        setModified(true);
         update();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
         if(this->getTabOption()) {
@@ -583,6 +597,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             ++_cursorPositionX;
         }
         adjustScrollPosition();
+        setModified(true);
         update();
     } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {

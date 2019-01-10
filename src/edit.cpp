@@ -42,7 +42,7 @@ Editor::Editor() {
 
     QObject::connect(new Tui::ZCommandNotifier("New", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            if(file->unsave) {
+            if(file->modified) {
                 //TODO: save as dialog
             }
             file->newText();
@@ -158,6 +158,7 @@ Editor::Editor() {
     StatusBar *s = new StatusBar(this);
     connect(file, &File::cursorPositionChanged, s, &StatusBar::cursorPosition);
     connect(file, &File::scrollPositionChanged, s, &StatusBar::scrollPosition);
+    connect(file, &File::modifiedChanged, s, &StatusBar::setModified);
 
     ScrollBar *sc = new ScrollBar(win);
     connect(file, &File::scrollPositionChanged, sc, &ScrollBar::scrollPosition);

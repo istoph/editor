@@ -15,10 +15,13 @@ void StatusBar::cursorPosition(int x, int y) {
     _cursorPositionY = y;
 }
 
-void StatusBar::scrollPosition(int x, int y)
-{
+void StatusBar::scrollPosition(int x, int y) {
     _scrollPositionX = x;
     _scrollPositionY = y;
+}
+
+void StatusBar::setModified(bool save) {
+    this->modified = save;
 }
 
 void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
@@ -26,8 +29,12 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     auto *painter = event->painter();
     painter->clear({0, 0, 0}, {0, 0xaa, 0xaa});
 
-    QString text = "| " + QString::number(_cursorPositionY +1) +":"+ QString::number(_cursorPositionX +1) + " | "+
-            QString::number(_scrollPositionY +1)  +":"+ QString::number(_scrollPositionX +1);
+    QString text;
+    if(this->modified) {
+        text += "";
+    }
+    text += " | " + QString::number(_cursorPositionY +1) +":"+ QString::number(_cursorPositionX +1);
+    text += " | " + QString::number(_scrollPositionY +1)  +":"+ QString::number(_scrollPositionX +1);
 
     painter->writeWithColors(50, 0, text.toUtf8(), {0, 0, 0}, {0, 0xaa, 0xaa});
 }
