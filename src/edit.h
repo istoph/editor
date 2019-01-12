@@ -17,6 +17,7 @@
 #include <scrollbar.h>
 #include <searchdialog.h>
 #include <statusbar.h>
+#include <gotoline.h>
 
 #include <QDir>
 #include <QSettings>
