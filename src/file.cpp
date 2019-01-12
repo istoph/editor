@@ -32,6 +32,7 @@ bool File::newText() {
     _cursorPositionY = 0;
     update();
     setModified(false);
+    newfile = true;
     return true;
 }
 
@@ -45,6 +46,7 @@ bool File::saveText() {
         }
         file.close();
         setModified(false);
+        newfile = false;
         return true;
     }
     //TODO vernünfiges error Händling
@@ -66,6 +68,7 @@ bool File::openText() {
         }
         file.close();
         setModified(false);
+        newfile = false;
         return true;
     }
     return false;

@@ -43,7 +43,6 @@ Editor::Editor() {
     QObject::connect(new Tui::ZCommandNotifier("New", this), &Tui::ZCommandNotifier::activated,
          [&] {
             if(file->modified) {
-                //TODO: save as dialog
                 ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::New);
                 QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
                     file->newText();
@@ -51,7 +50,7 @@ Editor::Editor() {
                 });
 
                 QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
-                    file->saveText();
+                    Editor::saveOrSaveas();
                     file->newText();
                     delete confirmDialog;
                 });
@@ -74,7 +73,7 @@ Editor::Editor() {
                 });
 
                 QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
-                    file->saveText();
+                    Editor::saveOrSaveas();
                     delete confirmDialog;
                     Editor::openFileDialog();
                 });
@@ -89,10 +88,7 @@ Editor::Editor() {
     );
 
     QObject::connect(new Tui::ZCommandNotifier("Save", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            file->saveText();
-        }
-    );
+                    this, &Editor::saveOrSaveas);
 
     QObject::connect(new Tui::ZCommandNotifier("SaveAs", this), &Tui::ZCommandNotifier::activated,
                      this, &Editor::saveFileDialog);
@@ -106,7 +102,7 @@ Editor::Editor() {
                 });
 
                 QObject::connect(quitDialog, &ConfirmSave::saveSelected, [=]{
-                    file->saveText();
+                    saveOrSaveas();
                     QCoreApplication::instance()->quit();
                 });
 
@@ -257,6 +253,14 @@ void Editor::saveFileDialog()
 {
     SaveDialog * saveDialog = new SaveDialog(this);
     connect(saveDialog, &SaveDialog::fileSelected, this, &Editor::saveFile);
+}
+
+void Editor::saveOrSaveas() {
+    if (file->newfile) {
+        Editor::saveFileDialog();
+    } else {
+        file->saveText();
+    }
 }
 
 int main(int argc, char **argv) {

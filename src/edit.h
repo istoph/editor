@@ -44,6 +44,7 @@ public slots:
 private:
     void openFileDialog();
     void saveFileDialog();
+    void saveOrSaveas();
 
 };
 
