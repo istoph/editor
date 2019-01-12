@@ -3,39 +3,59 @@
 
 TabDialog::TabDialog(File *file, Tui::ZWidget *parent) : Dialog(parent) {
 
-    setGeometry({20, 3, 40, 9});
     setFocus();
     setWindowTitle("Formatting Tab");
     //setPaletteClass({"window","cyan"});
+    setContentsMargins({ 1, 1, 1, 1});
+
+    VBoxLayout *vbox = new VBoxLayout();
+    setLayout(vbox);
+    vbox->setSpacing(1);
+
+    HBoxLayout* hbox1 = new HBoxLayout();
 
     RadioButton *r1 = new RadioButton(this);
-    r1->setGeometry({1, 2, 12, 1});
     r1->setMarkup("<m>T</m>ab");
     // TODO: onSelect i1 und b1->setEnabled(false);
     r1->setChecked(!file->getTabOption());
+    hbox1->addWidget(r1);
 
     RadioButton *r2 = new RadioButton(this);
-    r2->setGeometry({12, 2, 12, 1});
     r2->setMarkup("<m>B</m>lank");
     r2->setChecked(file->getTabOption());
+    hbox1->addWidget(r2);
+
+    vbox->add(hbox1);
+    vbox->addStretch();
+
+    HBoxLayout* hbox2 = new HBoxLayout();
 
     Label *l1 = new Label(this);
     l1->setText("Tab Stops: ");
-    l1->setGeometry({1,4,12,1});
+    hbox2->addWidget(l1);
 
     InputBox *i1 = new InputBox(this);
     i1->setText(QString::number(file->getTabsize()));
-    i1->setGeometry({15,4,6,1});
     i1->setFocus();
-
     i1->setEnabled(true);
+    hbox2->addWidget(i1);
 
-    Button *b1 = new Button(this);
-    b1->setGeometry({15, 6, 6, 7});
-    b1->setText("OK");
-    b1->setDefault(true);
+    vbox->add(hbox2);
 
-    QObject::connect(b1, &Button::clicked, [=]{
+    HBoxLayout* hbox3 = new HBoxLayout();
+
+    Button *cancelButton = new Button(this);
+    cancelButton->setText("Cancel");
+    hbox3->addWidget(cancelButton);
+
+    Button *okButton = new Button(this);
+    okButton->setText("OK");
+    okButton->setDefault(true);
+    hbox3->addWidget(okButton);
+
+    vbox->add(hbox3);
+
+    QObject::connect(okButton, &Button::clicked, [=]{
         if(i1->text().toInt() > 0) {
             file->setTabOption(r2->checked());
             file->setTabsize(i1->text().toInt());
@@ -44,11 +64,7 @@ TabDialog::TabDialog(File *file, Tui::ZWidget *parent) : Dialog(parent) {
         //TODO: error message
     });
 
-    Button *cancel = new Button(this);
-    cancel->setText("Cancel");
-    cancel->setGeometry({28,6,10,7});
-
-    QObject::connect(cancel, &Button::clicked, [=]{
+    QObject::connect(cancelButton, &Button::clicked, [=]{
         deleteLater();
     });
 }
