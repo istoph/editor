@@ -64,11 +64,38 @@ Editor::Editor() {
         }
     );
 
+    QObject::connect(new Tui::ZCommandNotifier("Open", this), &Tui::ZCommandNotifier::activated,
+        [&] {
+            if(file->modified) {
+                ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Open);
+                QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
+                    delete confirmDialog;
+                    Editor::openFileDialog();
+                });
+
+                QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
+                    file->saveText();
+                    delete confirmDialog;
+                    Editor::openFileDialog();
+                });
+
+                QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
+                    delete confirmDialog;
+                });
+            } else {
+                Editor::openFileDialog();
+            }
+        }
+    );
+
     QObject::connect(new Tui::ZCommandNotifier("Save", this), &Tui::ZCommandNotifier::activated,
          [&] {
             file->saveText();
         }
     );
+
+    QObject::connect(new Tui::ZCommandNotifier("SaveAs", this), &Tui::ZCommandNotifier::activated,
+                     this, &Editor::saveFileDialog);
 
     QObject::connect(new Tui::ZCommandNotifier("Quit", this), &Tui::ZCommandNotifier::activated,
          [&] {
@@ -77,10 +104,12 @@ Editor::Editor() {
                 QObject::connect(quitDialog, &ConfirmSave::exitSelected, [=]{
                     QCoreApplication::instance()->quit();
                 });
+
                 QObject::connect(quitDialog, &ConfirmSave::saveSelected, [=]{
                     file->saveText();
                     QCoreApplication::instance()->quit();
                 });
+
                 QObject::connect(quitDialog, &ConfirmSave::rejected, [=]{
                     delete quitDialog;
                 });
@@ -202,11 +231,6 @@ Editor::Editor() {
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
                      searchDlg, &SearchDialog::open);
 
-    QObject::connect(new Tui::ZCommandNotifier("Open", this), &Tui::ZCommandNotifier::activated,
-                     this, &Editor::openFileDialog);
-
-    QObject::connect(new Tui::ZCommandNotifier("SaveAs", this), &Tui::ZCommandNotifier::activated,
-                     this, &Editor::saveFileDialog);
 
 }
 
