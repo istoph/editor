@@ -10,14 +10,14 @@
 
 #include <testtui_lib.h>
 
-#include <file.h>
-#include <opendialog.h>
-#include <savedialog.h>
-#include <confirmsave.h>
-#include <scrollbar.h>
-#include <searchdialog.h>
-#include <statusbar.h>
-#include <gotoline.h>
+#include "file.h"
+#include "opendialog.h"
+#include "savedialog.h"
+#include "confirmsave.h"
+#include "scrollbar.h"
+#include "searchdialog.h"
+#include "statusbar.h"
+#include "gotoline.h"
 
 #include <QDir>
 #include <QSettings>

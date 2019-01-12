@@ -2,7 +2,8 @@
 #define GOTOLINE_H
 
 #include <testtui_lib.h>
-#include <file.h>
+
+#include "file.h"
 
 class GotoLine : public Dialog
 {

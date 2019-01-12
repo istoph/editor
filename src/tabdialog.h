@@ -1,8 +1,9 @@
 #ifndef TABDIALOG_H
 #define TABDIALOG_H
 
-#include "file.h"
 #include <testtui_lib.h>
+
+#include "file.h"
 
 class TabDialog : public Dialog {
 public:
