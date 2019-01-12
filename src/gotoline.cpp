@@ -1,5 +1,4 @@
 #include "gotoline.h"
-#include <file.h>
 
 GotoLine::GotoLine(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
