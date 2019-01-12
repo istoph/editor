@@ -284,7 +284,6 @@ void File::saveUndoStep() {
     _undoSteps.append({ _text, _cursorPositionX, _cursorPositionY});
 }
 
-
 void File::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor bg;
     Tui::ZColor fg;

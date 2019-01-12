@@ -237,8 +237,7 @@ void Editor::openFile(QString filename) {
     file->setFilename(filename);
     file->openText();
 }
-void Editor::saveFile(QString filename)
-{
+void Editor::saveFile(QString filename) {
     file->setFilename(filename);
     win->setWindowTitle(filename);
     file->saveText();
@@ -249,8 +248,7 @@ void Editor::openFileDialog() {
     connect(openDialog, &OpenDialog::fileSelected, this, &Editor::openFile);
 }
 
-void Editor::saveFileDialog()
-{
+void Editor::saveFileDialog() {
     SaveDialog * saveDialog = new SaveDialog(this);
     connect(saveDialog, &SaveDialog::fileSelected, this, &Editor::saveFile);
 }
