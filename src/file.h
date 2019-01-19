@@ -52,7 +52,7 @@ public:
     int _cursorPositionX = 0;
     int _cursorPositionY = 0;
     bool modified = true;
-    bool newfile;
+    bool newfile = true;
 
 signals:
     void cursorPositionChanged(int x, int y);

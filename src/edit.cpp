@@ -45,20 +45,20 @@ Editor::Editor() {
             if(file->modified) {
                 ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::New);
                 QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
-                    file->newText();
+                    newFile();
                     delete confirmDialog;
                 });
 
                 QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
                     Editor::saveOrSaveas();
-                    file->newText();
+                    newFile();
                     delete confirmDialog;
                 });
                 QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
                     delete confirmDialog;
                 });
             } else {
-                file->newText();
+                newFile();
             }
         }
     );
@@ -202,8 +202,12 @@ Editor::Editor() {
     SearchDialog* searchDlg = new SearchDialog(this, file);
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
                      searchDlg, &SearchDialog::open);
+}
 
-
+void Editor::newFile(QString filename) {
+    win->setWindowTitle(filename);
+    file->newText();
+    file->setFilename(filename);
 }
 
 void Editor::openFile(QString filename) {
@@ -287,14 +291,10 @@ int main(int argc, char **argv) {
                 out << "The file is bigger then 1MB. Pleas start with -b for big files.";
                 return 0;
             }
-            root->file->setFilename(args.first());
-            root->file->openText();
-        } else {
-            root->file->setFilename(args.first());
         }
+        root->openFile(datei.absoluteFilePath());
     } else {
-        // TODO path
-        root->file->setFilename("dokument.txt");
+        root->newFile();
     }
 
     if(parser.isSet(numberOption)) {
