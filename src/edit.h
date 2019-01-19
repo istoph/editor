@@ -47,7 +47,7 @@ private:
     void openFileDialog();
     void saveFileDialog();
     void saveOrSaveas();
-
+    void quit();
 };
 
 #endif // EDIT_H

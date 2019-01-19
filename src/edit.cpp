@@ -94,26 +94,8 @@ Editor::Editor() {
                      this, &Editor::saveFileDialog);
 
     QObject::connect(new Tui::ZCommandNotifier("Quit", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            if(file->modified) {
-                ConfirmSave *quitDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Quit);
-                QObject::connect(quitDialog, &ConfirmSave::exitSelected, [=]{
-                    QCoreApplication::instance()->quit();
-                });
+                     this, &Editor::quit);
 
-                QObject::connect(quitDialog, &ConfirmSave::saveSelected, [=]{
-                    saveOrSaveas();
-                    QCoreApplication::instance()->quit();
-                });
-
-                QObject::connect(quitDialog, &ConfirmSave::rejected, [=]{
-                    delete quitDialog;
-                });
-            } else {
-                QCoreApplication::instance()->quit();
-            }
-        }
-    );
     QObject::connect(new Tui::ZCommandNotifier("Cut", this), &Tui::ZCommandNotifier::activated,
          [&] {
             file->cut();
@@ -238,6 +220,32 @@ void Editor::saveOrSaveas() {
         Editor::saveFileDialog();
     } else {
         file->saveText();
+    }
+}
+
+void Editor::quit() {
+    if(file->modified) {
+        ConfirmSave *quitDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Quit);
+
+        QObject::connect(quitDialog, &ConfirmSave::exitSelected, [=]{
+            QCoreApplication::instance()->quit();
+        });
+
+        QObject::connect(quitDialog, &ConfirmSave::saveSelected, [=]{
+            quitDialog->deleteLater();
+            SaveDialog *q = saveOrSaveas();
+            if (q) {
+                connect(q, &SaveDialog::fileSelected, QCoreApplication::instance(), &QCoreApplication::quit);
+            } else {
+                QCoreApplication::instance()->quit();
+            }
+        });
+
+        QObject::connect(quitDialog, &ConfirmSave::rejected, [=]{
+            quitDialog->deleteLater();
+        });
+    } else {
+        QCoreApplication::instance()->quit();
     }
 }
 
