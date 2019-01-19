@@ -210,16 +210,19 @@ void Editor::openFileDialog() {
     connect(openDialog, &OpenDialog::fileSelected, this, &Editor::openFile);
 }
 
-void Editor::saveFileDialog() {
+SaveDialog * Editor::saveFileDialog() {
     SaveDialog * saveDialog = new SaveDialog(this);
     connect(saveDialog, &SaveDialog::fileSelected, this, &Editor::saveFile);
+    return saveDialog;
 }
 
-void Editor::saveOrSaveas() {
+SaveDialog * Editor::saveOrSaveas() {
     if (file->newfile) {
-        Editor::saveFileDialog();
+        SaveDialog *q = saveFileDialog();
+        return q;
     } else {
         file->saveText();
+        return nullptr;
     }
 }
 
