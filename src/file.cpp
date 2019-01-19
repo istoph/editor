@@ -62,12 +62,16 @@ bool File::openText() {
     QFile file(this->filename);
     if (file.open(QIODevice::ReadOnly)) {
         _text.clear();
+        setModified(false);
         QTextStream in(&file);
         while (!in.atEnd()) {
            _text.append(in.readLine());
         }
+        if (_text.isEmpty()) {
+            _text.append("");
+            setModified(true);
+        }
         file.close();
-        setModified(false);
         newfile = false;
         return true;
     }
