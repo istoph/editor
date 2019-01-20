@@ -256,7 +256,7 @@ int main(int argc, char **argv) {
 
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName("chr");
-    QCoreApplication::setApplicationVersion("0.1");
+    QCoreApplication::setApplicationVersion("%VERSION%");
 
     QCommandLineParser parser;
     parser.setApplicationDescription("chr.edit");
