@@ -274,6 +274,10 @@ int main(int argc, char **argv) {
     QCommandLineOption bigOption("b",QCoreApplication::translate("main", "Open bigger files then 1MB"));
     parser.addOption(bigOption);
 
+    // Wrap Lines
+    QCommandLineOption wraplines("w",QCoreApplication::translate("main", "Wrap log lines"));
+    parser.addOption(wraplines);
+
     // Config File
     QCommandLineOption configOption({"c","config"},
                                     QCoreApplication::translate("main", "The config file"),
@@ -315,6 +319,13 @@ int main(int argc, char **argv) {
     root->file->setFormatting_characters(fb);
 
     bool bigfile = qsettings->value("bigfile", "false").toBool();
+
+    bool wl = qsettings->value("wrap_lines","false").toBool();
+    if(wl || parser.isSet(wraplines)) {
+        root->file->setWrapOption(true);
+    } else {
+        root->file->setWrapOption(false);
+    }
 
     // OPEN FILE
     if(!args.isEmpty()) {
