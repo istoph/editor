@@ -294,25 +294,6 @@ int main(int argc, char **argv) {
     Editor *root = new Editor();
     terminal.setMainWidget(root);
 
-    if(!args.isEmpty()) {
-        QFileInfo datei(args.first());
-        if(datei.isReadable()) {
-            if(datei.size() > 10240 && !parser.isSet(bigOption)) {
-                //TODO: warn dialog
-                out << "The file is bigger then 1MB. Pleas start with -b for big files.";
-                return 0;
-            }
-        }
-        root->openFile(datei.absoluteFilePath());
-    } else {
-        root->newFile();
-    }
-
-    if(parser.isSet(numberOption)) {
-        //out << parser.value(numberOption);
-        root->file->gotoline(parser.value(numberOption).toInt());
-    }
-
     // READ CONFIG FILE AND SET DEFAULT OPTIONS
     QString configDir = "";
     if(parser.isSet(configOption)) {
@@ -332,6 +313,28 @@ int main(int argc, char **argv) {
 
     bool fb = qsettings->value("formatting_characters","1").toBool();
     root->file->setFormatting_characters(fb);
+
+    bool bigfile = qsettings->value("bigfile", "false").toBool();
+
+    // OPEN FILE
+    if(!args.isEmpty()) {
+        QFileInfo datei(args.first());
+        if(datei.isReadable()) {
+            if(datei.size() > 10240 && !parser.isSet(bigOption) && !bigfile) {
+                //TODO: warn dialog
+                out << "The file is bigger then 1MB. Pleas start with -b for big files.\n";
+                return 0;
+            }
+        }
+        root->openFile(datei.absoluteFilePath());
+    } else {
+        root->newFile();
+    }
+
+    //Goto Line
+    if(parser.isSet(numberOption)) {
+        root->file->gotoline(parser.value(numberOption).toInt());
+    }
 
     root->file->setFocus();
 
