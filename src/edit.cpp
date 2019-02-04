@@ -321,11 +321,7 @@ int main(int argc, char **argv) {
     bool bigfile = qsettings->value("bigfile", "false").toBool();
 
     bool wl = qsettings->value("wrap_lines","false").toBool();
-    if(wl || parser.isSet(wraplines)) {
-        root->file->setWrapOption(true);
-    } else {
-        root->file->setWrapOption(false);
-    }
+    root->file->setWrapOption(wl || parser.isSet(wraplines));
 
     // OPEN FILE
     if(!args.isEmpty()) {
