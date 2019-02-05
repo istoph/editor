@@ -617,10 +617,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                (event->key() == Qt::Key_Delete && event->modifiers() == Qt::ShiftModifier)) {
         //STRG + X // Umschalt+Entf
         this->cut();
-    } else if (event->text() == "s" && event->modifiers() == Qt::ControlModifier) {
-        //STRG + s
-        // TODO: wurde noch nicht gespeichert: dialog öffnen
-        this->saveText();
     } else if (event->text() == "z" && event->modifiers() == Qt::ControlModifier) {
         //STRG + z
         this->undo();

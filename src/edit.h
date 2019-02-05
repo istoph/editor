@@ -37,6 +37,8 @@ public:
     File *file;
     int tab = 8;
 
+protected:
+   void keyEvent(Tui::ZKeyEvent *event) override;
 
 public slots:
     void newFile(QString filename = "dokument.txt");

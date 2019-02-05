@@ -12,11 +12,10 @@ Editor::Editor() {
                             { "<m>S</m>ave", "Ctrl-s", "Save", {}},
                             { "Save <m>a</m>s...", "Ctrl-S", "SaveAs", {}},
                             {},
-                            { "E<m>x</m>it", "Ctrl-Q", "Quit", {}}
+                            { "<m>Q</m>uit", "Ctrl-q", "Quit", {}}
                         }
                       },
                       { "<m>E</m>dit", "", "", {
-
                             { "Cu<m>t</m>", "Ctrl-X", "Cut", {}},
                             { "<m>C</m>opy", "Ctrl-C", "Copy", {}},
                             { "<m>P</m>aste", "Ctrl-V", "Paste", {}},
@@ -184,6 +183,21 @@ Editor::Editor() {
     SearchDialog* searchDlg = new SearchDialog(this, file);
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
                      searchDlg, &SearchDialog::open);
+}
+
+void Editor::keyEvent(Tui::ZKeyEvent *event) {
+    if (event->text() == "s" && event->modifiers() == Qt::ControlModifier) {
+        //STRG + s
+        Editor::saveOrSaveas();
+    }else if (event->text() == "q" && event->modifiers() == Qt::ControlModifier) {
+        //STRG + q
+        Editor::quit();
+    } else if (event->text() == "f" && event->modifiers() == Qt::ControlModifier) {
+        //STRG + f
+        // TODO: open serch dialog
+    } else {
+        Tui::ZWidget::keyEvent(event);
+    }
 }
 
 void Editor::newFile(QString filename) {
