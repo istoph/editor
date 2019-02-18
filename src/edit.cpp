@@ -196,7 +196,7 @@ void Editor::keyEvent(Tui::ZKeyEvent *event) {
         //STRG + f
         // TODO: open serch dialog
     } else {
-        Tui::ZWidget::keyEvent(event);
+        Tui::ZRoot::keyEvent(event);
     }
 }
 
