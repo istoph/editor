@@ -1,5 +1,7 @@
 #include "edit.h"
 #include "tabdialog.h"
+#include <QLoggingCategory>
+#include <Tui/ZSimpleFileLogger.h>
 
 Editor::Editor() {
     ensureCommandManager();
@@ -331,6 +333,14 @@ int main(int argc, char **argv) {
 
     bool wl = qsettings->value("wrap_lines","false").toBool();
     root->file->setWrapOption(wl || parser.isSet(wraplines));
+
+    QString logfile = qsettings->value("logfile", "").toString();
+    if (logfile.isEmpty()) {
+        QLoggingCategory::defaultCategory()->setEnabled(QtDebugMsg, false);
+    } else {
+        Tui::ZSimpleFileLogger::install(logfile);
+    }
+    qDebug("chr starting");
 
     // OPEN FILE
     if(!args.isEmpty()) {
