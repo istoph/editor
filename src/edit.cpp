@@ -291,9 +291,8 @@ int main(int argc, char **argv) {
 
     // Config File
     QCommandLineOption configOption({"c","config"},
-                                    QCoreApplication::translate("main", "The config file"),
+                                    QCoreApplication::translate("main", "Load customized config file. The default if it exist is ~/.config/chr"),
                                     QCoreApplication::translate("main", "config"));
-
     parser.addOption(configOption);
 
     // Dokument
