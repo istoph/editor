@@ -260,6 +260,7 @@ bool File::delSelect() {
 
 void File::toggleOverwrite() {
     // TODO: change courser modus _ []
+    // TODO: messages to statusbar
    if(isOverwrite()) {
         this->overwrite = false;
     } else {
