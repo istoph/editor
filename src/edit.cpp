@@ -346,7 +346,7 @@ int main(int argc, char **argv) {
     int lineNumber = 0;
     if(!args.isEmpty()) {
         QStringList p = args;
-        if (p.first()[0] == "+") {
+        if (p.first().mid(0,1) == "+") {
             QString n = p.first().mid(1);
             lineNumber = n.toInt();
             p.removeFirst();
