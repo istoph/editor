@@ -294,7 +294,8 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor fg;
 
     bg = getColor("control.bg");
-    fg = getColor("control.fg");
+    //fg = getColor("control.fg");
+    fg = {0xff, 0xff, 0xff};
 
     auto *painter = event->painter();
     painter->clear(fg, bg);
@@ -312,9 +313,9 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         std::swap(startSelect,endSelect);
     }
     QVector<TextLayout::FormatRange> selections;
-    TextStyle selected{{0x99,0,0}, fg};
     TextStyle base{fg, bg};
     TextStyle formatingChar{Tui::Colors::darkGray, bg};
+    TextStyle selected{Tui::Colors::darkGray,fg,Tui::ZPainter::Attribute::Bold};
     TextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
 
     int y = 0;
