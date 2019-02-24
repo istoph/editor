@@ -343,8 +343,15 @@ int main(int argc, char **argv) {
     qDebug("chr starting");
 
     // OPEN FILE
+    int lineNumber = 0;
     if(!args.isEmpty()) {
-        QFileInfo datei(args.first());
+        QStringList p = args;
+        if (p.first()[0] == "+") {
+            QString n = p.first().mid(1);
+            lineNumber = n.toInt();
+            p.removeFirst();
+        }
+        QFileInfo datei(p.first());
         if(datei.isReadable()) {
             if(datei.size() > 10240 && !parser.isSet(bigOption) && !bigfile) {
                 //TODO: warn dialog
@@ -358,7 +365,9 @@ int main(int argc, char **argv) {
     }
 
     //Goto Line
-    if(parser.isSet(numberOption)) {
+    if (lineNumber > 0) {
+        root->file->gotoline(lineNumber);
+    } else if(parser.isSet(numberOption)) {
         root->file->gotoline(parser.value(numberOption).toInt());
     }
 
