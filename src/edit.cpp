@@ -9,8 +9,8 @@ Editor::Editor() {
                       { "<m>F</m>ile", "", {}, {
                             { "<m>N</m>ew", "Ctrl-N", "New", {}},
                             { "<m>O</m>pen...", "Ctrl-O", "Open", {}},
-                            { "<m>S</m>ave", "Ctrl-s", "Save", {}},
-                            { "Save <m>a</m>s...", "Ctrl-S", "SaveAs", {}},
+                            { "<m>S</m>ave", "Ctrl-S", "Save", {}},
+                            { "Save <m>a</m>s...", "Ctrl-Shift-S", "SaveAs", {}},
                             {},
                             { "<m>Q</m>uit", "Ctrl-q", "Quit", {}}
                         }
@@ -87,12 +87,22 @@ Editor::Editor() {
         }
     );
 
+    //SAVE
+    connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("s"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+            this, &Editor::saveOrSaveas);
     QObject::connect(new Tui::ZCommandNotifier("Save", this), &Tui::ZCommandNotifier::activated,
                     this, &Editor::saveOrSaveas);
 
+    //SAVE AS
+    //shortcut dose not work in vte, konsole, ...
+    connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("S"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+            this, &Editor::saveFileDialog);
     QObject::connect(new Tui::ZCommandNotifier("SaveAs", this), &Tui::ZCommandNotifier::activated,
                      this, &Editor::saveFileDialog);
 
+    //QUIT
+    connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("q"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+            this, &Editor::quit);
     QObject::connect(new Tui::ZCommandNotifier("Quit", this), &Tui::ZCommandNotifier::activated,
                      this, &Editor::quit);
 
@@ -183,21 +193,6 @@ Editor::Editor() {
     SearchDialog* searchDlg = new SearchDialog(this, file);
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
                      searchDlg, &SearchDialog::open);
-}
-
-void Editor::keyEvent(Tui::ZKeyEvent *event) {
-    if (event->text() == "s" && event->modifiers() == Qt::ControlModifier) {
-        //STRG + s
-        Editor::saveOrSaveas();
-    }else if (event->text() == "q" && event->modifiers() == Qt::ControlModifier) {
-        //STRG + q
-        Editor::quit();
-    } else if (event->text() == "f" && event->modifiers() == Qt::ControlModifier) {
-        //STRG + f
-        // TODO: open serch dialog
-    } else {
-        Tui::ZRoot::keyEvent(event);
-    }
 }
 
 void Editor::newFile(QString filename) {
