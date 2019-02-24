@@ -47,14 +47,14 @@ Editor::Editor() {
             if(file->modified) {
                 ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::New);
                 QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
-                    newFile();
                     delete confirmDialog;
+                    newFile();
                 });
 
                 QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
-                    Editor::saveOrSaveas();
-                    newFile();
+                    saveOrSaveas();
                     delete confirmDialog;
+                    newFile();
                 });
                 QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
                     delete confirmDialog;
@@ -71,20 +71,20 @@ Editor::Editor() {
                 ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Open);
                 QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
                     delete confirmDialog;
-                    Editor::openFileDialog();
+                    openFileDialog();
                 });
 
                 QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
-                    Editor::saveOrSaveas();
+                    saveOrSaveas();
                     delete confirmDialog;
-                    Editor::openFileDialog();
+                    openFileDialog();
                 });
 
                 QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
                     delete confirmDialog;
                 });
             } else {
-                Editor::openFileDialog();
+                openFileDialog();
             }
         }
     );
