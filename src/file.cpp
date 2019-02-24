@@ -312,6 +312,9 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     }
     QVector<TextLayout::FormatRange> selections;
     TextStyle selected{{0x99,0,0}, fg};
+    TextStyle base{fg, bg};
+    TextStyle formatingChar{Tui::Colors::darkGray, bg};
+    TextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
 
     int y = 0;
     for (int line = _scrollPositionY; y < rect().height() && line < _text.size(); line++) {
@@ -322,25 +325,27 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         selections.clear();
         if (line > startSelect.first && line < endSelect.first) {
             // whole line
-            selections.append(TextLayout::FormatRange{0, _text[line].size(), selected});
+            selections.append(TextLayout::FormatRange{0, _text[line].size(), selected, selectedFormatingChar});
         } else if (line > startSelect.first && line == endSelect.first) {
             // selection ends on this line
-            selections.append(TextLayout::FormatRange{0, endSelect.second, selected});
+            selections.append(TextLayout::FormatRange{0, endSelect.second, selected, selectedFormatingChar});
         } else if (line == startSelect.first && line < endSelect.first) {
             // selection starts on this line
-            selections.append(TextLayout::FormatRange{startSelect.second, _text[line].size() - startSelect.second, selected});
+            selections.append(TextLayout::FormatRange{startSelect.second, _text[line].size() - startSelect.second, selected, selectedFormatingChar});
         } else if (line == startSelect.first && line == endSelect.first) {
             // selection is contained in this line
-            selections.append(TextLayout::FormatRange{startSelect.second, endSelect.second - startSelect.second, selected});
+            selections.append(TextLayout::FormatRange{startSelect.second, endSelect.second - startSelect.second, selected, selectedFormatingChar});
         }
 
-        lay.draw(*painter, {-_scrollPositionX, y}, fg, bg, selections);
+        lay.draw(*painter, {-_scrollPositionX, y}, base, &formatingChar, selections);
         if (getformatting_characters()) {
             TextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
             if (isSelect(_text[line].size(), line)) {
-                painter->writeWithColors(-_scrollPositionX + lastLine.width(), y + lastLine.y(), QStringLiteral("¶"), selected.foregroundColor(), selected.backgroundColor());
+                painter->writeWithAttributes(-_scrollPositionX + lastLine.width(), y + lastLine.y(), QStringLiteral("¶"),
+                                             selectedFormatingChar.foregroundColor(), selectedFormatingChar.backgroundColor(), selectedFormatingChar.attributes());
             } else {
-                painter->writeWithColors(-_scrollPositionX + lastLine.width(), y + lastLine.y(), QStringLiteral("¶"), Tui::Colors::darkGray, bg);
+                painter->writeWithAttributes(-_scrollPositionX + lastLine.width(), y + lastLine.y(), QStringLiteral("¶"),
+                                             formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
             }
         }
         if (_cursorPositionY == line) {
@@ -351,7 +356,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         y += lay.lineCount();
     }
     if (y < rect().height() && this->getformatting_characters() && _scrollPositionX == 0) {
-        painter->writeWithColors(0, y, "♦", Tui::Colors::darkGray, bg);
+        painter->writeWithAttributes(0, y, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
     }
 }
 
