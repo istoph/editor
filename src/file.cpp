@@ -60,6 +60,7 @@ void File::setModified(bool mod) {
 
 bool File::openText() {
     QFile file(this->filename);
+    newfile = false;
     if (file.open(QIODevice::ReadOnly)) {
         _text.clear();
         setModified(false);
@@ -72,7 +73,6 @@ bool File::openText() {
             setModified(true);
         }
         file.close();
-        newfile = false;
         return true;
     }
     return false;
