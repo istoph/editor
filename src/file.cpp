@@ -2,12 +2,14 @@
 
 File::File() {
     setFocusPolicy(Qt::StrongFocus);
+    setCursorStyle(Tui::CursorStyle::Bar);
     //_text.append(QString());
     newText();
 }
 
 File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setFocusPolicy(Qt::StrongFocus);
+    setCursorStyle(Tui::CursorStyle::Bar);
     //_text.append(QString());
     newText();
 }
@@ -262,9 +264,11 @@ void File::toggleOverwrite() {
     // TODO: change courser modus _ []
     // TODO: messages to statusbar
    if(isOverwrite()) {
-        this->overwrite = false;
+       this->overwrite = false;
+       setCursorStyle(Tui::CursorStyle::Bar);
     } else {
-        this->overwrite = true;
+       this->overwrite = true;
+       setCursorStyle(Tui::CursorStyle::Underline);
     }
 }
 
