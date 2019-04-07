@@ -10,6 +10,7 @@ File::File() {
 File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setFocusPolicy(Qt::StrongFocus);
     setCursorStyle(Tui::CursorStyle::Bar);
+    setCursorColor(255, 255, 255);
     //_text.append(QString());
     newText();
 }
