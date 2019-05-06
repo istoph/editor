@@ -639,6 +639,20 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         //STRG + k //cut and copy line
         this->cutline();
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Up) {
+        // Fenster hoch Scrolen
+        if (_scrollPositionY > 0) {
+            --_scrollPositionY;
+        }
+        adjustScrollPosition();
+        update();
+    } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Down) {
+        // Fenster runter Scrolen
+        if (_text.size() -1 > _scrollPositionY) {
+            ++_scrollPositionY;
+        }
+        adjustScrollPosition();
+        update();
+    } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Up) {
         //Zeilen verschiben
 
         //Nich markierte Zeile verschiben
@@ -666,7 +680,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             adjustScrollPosition();
             update();
         }
-    } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Down) {
+    } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Down) {
         //Zeilen verschiben
 
         //Nich markierte Zeile verschiben
