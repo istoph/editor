@@ -638,6 +638,62 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if (event->text() == "k" && event->modifiers() == Qt::ControlModifier) {
         //STRG + k //cut and copy line
         this->cutline();
+    } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Up) {
+        //Zeilen verschiben
+
+        //Nich markierte Zeile verschiben
+        if(!isSelect()) {
+            startSelectY = endSelectY = _cursorPositionY;
+        }
+        if(startSelectY > 0) {
+            //Zeilen Markieren
+            startSelectX = 0;
+            endSelectX = _text[endSelectY].size();
+
+            //Nach oben verschieben
+            _text.insert(endSelectY + 1, _text[startSelectY -1]);
+            _text.remove(startSelectY -1);
+
+            //Courser nachzeihen
+            if (_cursorPositionY > 0) {
+                --_cursorPositionY;
+            }
+
+            //Markirung Nachziehen
+            startSelectY -= 1;
+            endSelectY -= 1;
+            setModified(true);
+            adjustScrollPosition();
+            update();
+        }
+    } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Down) {
+        //Zeilen verschiben
+
+        //Nich markierte Zeile verschiben
+        if(!isSelect()) {
+            startSelectY = endSelectY = _cursorPositionY;
+        }
+        if(endSelectY + 1 < _text.size()) {
+            //Zeilen Markieren
+            startSelectX = 0;
+            endSelectX = _text[endSelectY].size();
+
+            //Nach unten verschieben
+            _text.insert(startSelectY, _text[endSelectY + 1]);
+            _text.remove(endSelectY +2);
+
+            //Courser nachzeihen
+            if (_cursorPositionY < _text.size()) {
+                ++_cursorPositionY;
+            }
+
+            //Markirung Nachziehen
+            startSelectY += 1;
+            endSelectY += 1;
+            setModified(true);
+            adjustScrollPosition();
+            update();
+        }
     } else if (event->key() == Qt::Key_Insert && event->modifiers() == 0) {
         this->toggleOverwrite();
     } else {
