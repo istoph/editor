@@ -266,10 +266,10 @@ void File::toggleOverwrite() {
     // TODO: messages to statusbar
    if(isOverwrite()) {
        this->overwrite = false;
-       setCursorStyle(Tui::CursorStyle::Bar);
+       setCursorStyle(Tui::CursorStyle::Underline);
     } else {
        this->overwrite = true;
-       setCursorStyle(Tui::CursorStyle::Underline);
+       setCursorStyle(Tui::CursorStyle::Block);
     }
 }
 

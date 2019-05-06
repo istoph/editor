@@ -371,6 +371,7 @@ int main(int argc, char **argv) {
     }
 
     root->file->setFocus();
+    root->file->setCursorStyle(Tui::CursorStyle::Underline);
 
     app.exec();
     return 0;
