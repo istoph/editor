@@ -517,7 +517,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         if (_cursorPositionY > 0) {
             --_cursorPositionY;
-         }
+        }
         if(event->modifiers() == Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
