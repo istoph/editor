@@ -389,9 +389,22 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             event->modifiers() != Qt::ControlModifier
             ) {
         //Markierte Zeichen Löschen
-        this->delSelect();
+        delSelect();
         resetSelect();
         adjustScrollPosition();
+        update();
+    } else if(event->key() == Qt::Key_Backspace && event->modifiers() == 0) {
+        if (_cursorPositionX > 0) {
+            _text[_cursorPositionY].remove(_cursorPositionX -1, 1);
+            _cursorPositionX -= 1;
+        } else if (_cursorPositionY > 0) {
+            _cursorPositionX = _text[_cursorPositionY -1].size();
+            _text[_cursorPositionY -1] += _text[_cursorPositionY];
+            _text.removeAt(_cursorPositionY);
+            --_cursorPositionY;
+        }
+        adjustScrollPosition();
+        setModified(true);
         update();
     }
     if ( (
@@ -439,19 +452,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         update();
         setModified(true);
         //saveUndoStep();
-    } else if(event->key() == Qt::Key_Backspace && event->modifiers() == 0) {
-        if (_cursorPositionX > 0) {
-            _text[_cursorPositionY].remove(_cursorPositionX -1, 1);
-            _cursorPositionX -= 1;
-        } else if (_cursorPositionY > 0) {
-            _cursorPositionX = _text[_cursorPositionY -1].size();
-            _text[_cursorPositionY -1] += _text[_cursorPositionY];
-            _text.removeAt(_cursorPositionY);
-            --_cursorPositionY;
-        }
-        adjustScrollPosition();
-        setModified(true);
-        update();
     } else if(event->key() == Qt::Key_Delete && event->modifiers() == 0) {
         if(_text[_cursorPositionY].size() > _cursorPositionX) {
             _text[_cursorPositionY].remove(_cursorPositionX, 1);
