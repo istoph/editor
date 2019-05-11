@@ -467,7 +467,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         setModified(true);
         //saveUndoStep();
     } else if(event->key() == Qt::Key_Left && (event->modifiers() & ~(Qt::ShiftModifier | Qt::ControlModifier)) == 0) {
-        if(event->modifiers() == Qt::ShiftModifier) {
+        if(event->modifiers() & Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
         if (_cursorPositionX > 0) {
@@ -479,13 +479,13 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             _cursorPositionY -= 1;
             _cursorPositionX = _text[_cursorPositionY].size();
         }
-        if(event->modifiers() == Qt::ShiftModifier) {
+        if(event->modifiers() & Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
         update();
     } else if(event->key() == Qt::Key_Right && (event->modifiers() & ~(Qt::ShiftModifier | Qt::ControlModifier)) == 0) {
-        if(event->modifiers() == Qt::ShiftModifier) {
+        if(event->modifiers() & Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
         if (_cursorPositionX < _text[_cursorPositionY].size()) {
@@ -497,7 +497,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             ++_cursorPositionY;
             _cursorPositionX = 0;
         }
-        if(event->modifiers() == Qt::ShiftModifier) {
+        if(event->modifiers() & Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
