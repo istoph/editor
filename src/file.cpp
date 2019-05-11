@@ -406,6 +406,20 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         setModified(true);
         update();
+    } else if(event->key() == Qt::Key_Delete && event->modifiers() == 0) {
+        if(_text[_cursorPositionY].size() > _cursorPositionX) {
+            _text[_cursorPositionY].remove(_cursorPositionX, 1);
+
+        } else if(_text.count() > _cursorPositionY +1) {
+            if(_text[_cursorPositionY].size() < _cursorPositionX) {
+                _text[_cursorPositionY].resize(_cursorPositionX,' ');
+            }
+            _text[_cursorPositionY] += _text[_cursorPositionY + 1];
+            _text.removeAt(_cursorPositionY +1);
+        }
+        adjustScrollPosition();
+        setModified(true);
+        update();
     }
     if ( (
             event->modifiers() != Qt::ShiftModifier &&
@@ -452,20 +466,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         update();
         setModified(true);
         //saveUndoStep();
-    } else if(event->key() == Qt::Key_Delete && event->modifiers() == 0) {
-        if(_text[_cursorPositionY].size() > _cursorPositionX) {
-            _text[_cursorPositionY].remove(_cursorPositionX, 1);
-
-        } else if(_text.count() > _cursorPositionY +1) {
-            if(_text[_cursorPositionY].size() < _cursorPositionX) {
-                _text[_cursorPositionY].resize(_cursorPositionX,' ');
-            }
-            _text[_cursorPositionY] += _text[_cursorPositionY + 1];
-            _text.removeAt(_cursorPositionY +1);
-        }
-        adjustScrollPosition();
-        setModified(true);
-        update();
     } else if(event->key() == Qt::Key_Left && (event->modifiers() & ~(Qt::ShiftModifier | Qt::ControlModifier)) == 0) {
         if(event->modifiers() == Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
