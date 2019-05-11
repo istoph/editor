@@ -544,8 +544,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
             select(_cursorPositionX, _cursorPositionY);
         }
-        _cursorPositionY = 0;
-        _scrollPositionY = 0;
+        _cursorPositionY = _cursorPositionX = _scrollPositionY = 0;
         if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
             select(_cursorPositionX, _cursorPositionY);
         }
