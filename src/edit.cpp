@@ -342,7 +342,7 @@ int main(int argc, char **argv) {
     qDebug("chr starting");
 
     // OPEN FILE
-    int lineNumber, lineChar = 0;
+    int lineNumber = 0, lineChar = 0;
     if(!args.isEmpty()) {
         QStringList p = args;
         if (p.first().mid(0,1) == "+") {
@@ -373,7 +373,15 @@ int main(int argc, char **argv) {
     if (lineNumber > 0 || lineChar > 0) {
         root->file->gotoline(lineNumber,lineChar);
     } else if(parser.isSet(numberOption)) {
-        root->file->gotoline(parser.value(numberOption).toInt());
+        QString n = parser.value(numberOption);
+        QStringList list1 = n.split(',');
+        if(list1.count()>0) {
+            lineNumber = list1[0].toInt();
+        }
+        if(list1.count()>1) {
+            lineChar = list1[1].toInt() -1;
+        }
+        root->file->gotoline(lineNumber,lineChar);
     }
 
     root->file->setFocus();
