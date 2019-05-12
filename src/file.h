@@ -25,7 +25,7 @@ public:
     void paste();
     bool isInsertable();
     void insertLinebreak();
-    void gotoline(int y);
+    void gotoline(int y=0, int x=0);
     bool setTabsize(int tab);
     int getTabsize();
     void setTabOption(bool tab);

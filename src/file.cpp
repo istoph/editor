@@ -139,7 +139,7 @@ void File::insertLinebreak() {
     _cursorPositionY++;
 }
 
-void File::gotoline(int y) {
+void File::gotoline(int y, int x) {
     _cursorPositionX = 0;
     if(y <= 0) {
         _cursorPositionY = 0;
@@ -148,6 +148,14 @@ void File::gotoline(int y) {
     } else {
         _cursorPositionY = y -1;
     }
+    if(x <= 0) {
+        _cursorPositionX = 0;
+    } else if (_text[_cursorPositionY].size() < x) {
+        _cursorPositionX = _text[_cursorPositionY].size() -1;
+    } else {
+        _cursorPositionX = x;
+    }
+
     adjustScrollPosition();
     update();
     this->focus(); // TODO: fix it ;)

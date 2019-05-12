@@ -342,12 +342,18 @@ int main(int argc, char **argv) {
     qDebug("chr starting");
 
     // OPEN FILE
-    int lineNumber = 0;
+    int lineNumber, lineChar = 0;
     if(!args.isEmpty()) {
         QStringList p = args;
         if (p.first().mid(0,1) == "+") {
             QString n = p.first().mid(1);
-            lineNumber = n.toInt();
+            QStringList list1 = n.split(',');
+            if(list1.count()>0) {
+                lineNumber = list1[0].toInt();
+            }
+            if(list1.count()>1) {
+                lineChar = list1[1].toInt() -1;
+            }
             p.removeFirst();
         }
         QFileInfo datei(p.first());
@@ -364,8 +370,8 @@ int main(int argc, char **argv) {
     }
 
     //Goto Line
-    if (lineNumber > 0) {
-        root->file->gotoline(lineNumber);
+    if (lineNumber > 0 || lineChar > 0) {
+        root->file->gotoline(lineNumber,lineChar);
     } else if(parser.isSet(numberOption)) {
         root->file->gotoline(parser.value(numberOption).toInt());
     }
