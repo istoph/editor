@@ -753,6 +753,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 }
 
 void File::adjustScrollPosition() {
+    TextLayout lay(terminal()->textMetrics(), _text[_cursorPositionY]);
+    lay.doLayout(rect().width());
+    int cursorColumn = lay.lineAt(0).cursorToX(_cursorPositionX, TextLineRef::Leading);
+
     //x
     if (!_wrapOption) {
         if (_cursorPositionX - _scrollPositionX >= geometry().width()) {
@@ -815,8 +819,8 @@ void File::adjustScrollPosition() {
         }
         */
 
-
-    cursorPositionChanged(_cursorPositionX, _cursorPositionY);
+    int _utf8PositionX = _text[_cursorPositionY].left(_cursorPositionX).toUtf8().size();
+    cursorPositionChanged(cursorColumn, _utf8PositionX, _cursorPositionY);
     scrollPositionChanged(_scrollPositionX, _scrollPositionY);
 
     //TODO: make it faster

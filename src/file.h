@@ -55,7 +55,7 @@ public:
     bool newfile = true;
 
 signals:
-    void cursorPositionChanged(int x, int y);
+    void cursorPositionChanged(int x, int utf8x, int y);
     void scrollPositionChanged(int x, int y);
     void textMax(int x, int y);
     void modifiedChanged(bool modified);

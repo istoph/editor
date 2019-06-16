@@ -10,8 +10,9 @@ QSize StatusBar::sizeHint() const {
     return { 20, 1 };
 }
 
-void StatusBar::cursorPosition(int x, int y) {
+void StatusBar::cursorPosition(int x, int utf8x, int y) {
     _cursorPositionX = x;
+    _utf8PositionX = utf8x;
     _cursorPositionY = y;
 }
 
@@ -33,8 +34,11 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     if(this->modified) {
         text += "";
     }
-    text += " | " + QString::number(_cursorPositionY +1) +":"+ QString::number(_cursorPositionX +1);
-    text += " | " + QString::number(_scrollPositionY +1)  +":"+ QString::number(_scrollPositionX +1);
+    text += " | UTF-8 " + QString::number(_cursorPositionY +1) + ":" + QString::number(_utf8PositionX +1);
+    if (_utf8PositionX != _cursorPositionX) {
+        text += "-" + QString::number(_cursorPositionX +1);
+    }
+    text += " | " + QString::number(_scrollPositionY +1)  + ":" + QString::number(_scrollPositionX +1);
 
     painter->writeWithColors(50, 0, text.toUtf8(), {0, 0, 0}, {0, 0xaa, 0xaa});
 }
