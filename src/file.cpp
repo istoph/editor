@@ -529,11 +529,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         if (_text.size() -1 > _cursorPositionY) {
             ++_cursorPositionY;
-        } /* else {
-            ++_cursorPositionY;
-            _text.append(QString());
-            _cursorPositionX = 0;
-        } */
+        } else {
+            ++_scrollPositionY;
+        }
         if(event->modifiers() == Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
