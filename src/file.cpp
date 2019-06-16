@@ -753,18 +753,22 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 }
 
 void File::adjustScrollPosition() {
+    ZTextOption option;
+    option.setWrapMode(ZTextOption::NoWrap);
+    option.setTabStopDistance(_tabsize);
     TextLayout lay(terminal()->textMetrics(), _text[_cursorPositionY]);
+    lay.setTextOption(option);
     lay.doLayout(rect().width());
     int cursorColumn = lay.lineAt(0).cursorToX(_cursorPositionX, TextLineRef::Leading);
 
     //x
     if (!_wrapOption) {
-        if (_cursorPositionX - _scrollPositionX >= geometry().width()) {
-             _scrollPositionX = _cursorPositionX - geometry().width() + 1;
+        if (cursorColumn - _scrollPositionX >= geometry().width()) {
+             _scrollPositionX = cursorColumn - geometry().width() + 1;
         }
-        if (_cursorPositionX > 0) {
-            if (_cursorPositionX - _scrollPositionX < 1) {
-                _scrollPositionX = _cursorPositionX - 1;
+        if (cursorColumn > 0) {
+            if (cursorColumn - _scrollPositionX < 1) {
+                _scrollPositionX = cursorColumn - 1;
             }
         } else {
             _scrollPositionX = 0;
