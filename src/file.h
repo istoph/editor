@@ -45,6 +45,8 @@ public:
     bool isOverwrite();
     void undo();
     //void redo();
+    void deletePreviousCharacterOrWord(TextLayout::CursorMode mode);
+    void deleteNextCharacterOrWord(TextLayout::CursorMode mode);
 
 public:
 //    QString text() const;

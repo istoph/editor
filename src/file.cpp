@@ -377,6 +377,36 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     }
 }
 
+void File::deletePreviousCharacterOrWord(TextLayout::CursorMode mode) {
+    if (_cursorPositionX > 0) {
+        TextLayout lay(terminal()->textMetrics(), _text[_cursorPositionY]);
+        lay.doLayout(rect().width());
+        int leftBoundary = lay.previousCursorPosition(_cursorPositionX, mode);
+        _text[_cursorPositionY].remove(leftBoundary, _cursorPositionX - leftBoundary);
+        _cursorPositionX = leftBoundary;
+    } else if (_cursorPositionY > 0) {
+        _cursorPositionX = _text[_cursorPositionY -1].size();
+        _text[_cursorPositionY -1] += _text[_cursorPositionY];
+        _text.removeAt(_cursorPositionY);
+        --_cursorPositionY;
+    }
+}
+
+void File::deleteNextCharacterOrWord(TextLayout::CursorMode mode) {
+    if(_text[_cursorPositionY].size() > _cursorPositionX) {
+        TextLayout lay(terminal()->textMetrics(), _text[_cursorPositionY]);
+        lay.doLayout(rect().width());
+        int rightBoundary = lay.nextCursorPosition(_cursorPositionX, mode);
+        _text[_cursorPositionY].remove(_cursorPositionX, rightBoundary - _cursorPositionX);
+    } else if(_text.count() > _cursorPositionY +1) {
+        if(_text[_cursorPositionY].size() < _cursorPositionX) {
+            _text[_cursorPositionY].resize(_cursorPositionX,' ');
+        }
+        _text[_cursorPositionY] += _text[_cursorPositionY + 1];
+        _text.removeAt(_cursorPositionY +1);
+    }
+}
+
 void File::keyEvent(Tui::ZKeyEvent *event) {
     int height = 19; //Windows size
 
@@ -402,30 +432,13 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         resetSelect();
         adjustScrollPosition();
         update();
-    } else if(event->key() == Qt::Key_Backspace && event->modifiers() == 0) {
-        if (_cursorPositionX > 0) {
-            _text[_cursorPositionY].remove(_cursorPositionX -1, 1);
-            _cursorPositionX -= 1;
-        } else if (_cursorPositionY > 0) {
-            _cursorPositionX = _text[_cursorPositionY -1].size();
-            _text[_cursorPositionY -1] += _text[_cursorPositionY];
-            _text.removeAt(_cursorPositionY);
-            --_cursorPositionY;
-        }
+    } else if(event->key() == Qt::Key_Backspace && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier)) {
+        deletePreviousCharacterOrWord(event->modifiers() & Qt::ControlModifier ? TextLayout::SkipWords : TextLayout::SkipCharacters);
         adjustScrollPosition();
         setModified(true);
         update();
-    } else if(event->key() == Qt::Key_Delete && event->modifiers() == 0) {
-        if(_text[_cursorPositionY].size() > _cursorPositionX) {
-            _text[_cursorPositionY].remove(_cursorPositionX, 1);
-
-        } else if(_text.count() > _cursorPositionY +1) {
-            if(_text[_cursorPositionY].size() < _cursorPositionX) {
-                _text[_cursorPositionY].resize(_cursorPositionX,' ');
-            }
-            _text[_cursorPositionY] += _text[_cursorPositionY + 1];
-            _text.removeAt(_cursorPositionY +1);
-        }
+    } else if(event->key() == Qt::Key_Delete && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier)) {
+        deleteNextCharacterOrWord(event->modifiers() & Qt::ControlModifier ? TextLayout::SkipWords : TextLayout::SkipCharacters);
         adjustScrollPosition();
         setModified(true);
         update();
@@ -465,11 +478,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if(_text[_cursorPositionY].size() < _cursorPositionX) {
             _text[_cursorPositionY].resize(_cursorPositionX, ' ');
         }
-        if (isOverwrite()) {
-            _text[_cursorPositionY].replace(_cursorPositionX,text.size(), text);
-        } else {
-            _text[_cursorPositionY].insert(_cursorPositionX, text);
+        if (isOverwrite() && _text[_cursorPositionY].size() > _cursorPositionX) {
+            deleteNextCharacterOrWord(TextLayout::SkipCharacters);
         }
+        _text[_cursorPositionY].insert(_cursorPositionX, text);
         _cursorPositionX += text.size();
         adjustScrollPosition();
         update();
