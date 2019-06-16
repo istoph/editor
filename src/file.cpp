@@ -192,6 +192,7 @@ void File::setWrapOption(bool wrap) {
     if (_wrapOption) {
         _scrollPositionX = 0;
     }
+    adjustScrollPosition();
     update();
 }
 
