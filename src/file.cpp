@@ -30,11 +30,16 @@ bool File::newText() {
     //TODO: ask if save
     _text.clear();
     _text.append(QString());
+    _undoSteps.clear();
+    _currentUndoStep = -1;
+    _collapseUndoStep = false;
     _scrollPositionX = 0;
     _cursorPositionX = 0;
     _cursorPositionY = 0;
+    saveUndoStep();
+    _savedUndoStep = _currentUndoStep;
+    modifiedChanged(false);
     update();
-    setModified(false);
     newfile = true;
     return true;
 }
@@ -48,7 +53,9 @@ bool File::saveText() {
             stream << text << endl;
         }
         file.close();
-        setModified(false);
+        saveUndoStep();
+        _savedUndoStep = _currentUndoStep;
+        modifiedChanged(false);
         newfile = false;
         return true;
     }
@@ -56,26 +63,26 @@ bool File::saveText() {
     return false;
 }
 
-void File::setModified(bool mod) {
-    this->modified = mod;
-    modifiedChanged(mod);
-}
-
 bool File::openText() {
     QFile file(this->filename);
     newfile = false;
     if (file.open(QIODevice::ReadOnly)) {
         _text.clear();
-        setModified(false);
         QTextStream in(&file);
         while (!in.atEnd()) {
            _text.append(in.readLine());
         }
+        file.close();
+        _undoSteps.clear();
+        _currentUndoStep = -1;
         if (_text.isEmpty()) {
             _text.append("");
-            setModified(true);
+            saveUndoStep();
+            _savedUndoStep = -1;
+        } else {
+            saveUndoStep();
+            _savedUndoStep = _currentUndoStep;
         }
-        file.close();
         return true;
     }
     return false;
@@ -93,8 +100,8 @@ void File::cutline() {
     select(0,_cursorPositionY);
     select(_text[_cursorPositionY].size(),_cursorPositionY);
     //select(0,_cursorPositionY +1);
-    this->cut();
-    setModified(true);
+    cut();
+    saveUndoStep();
 }
 
 void File::copy() {
@@ -121,7 +128,7 @@ void File::paste() {
         }
     }
     adjustScrollPosition();
-    setModified(true);
+    saveUndoStep();
     update();
 }
 
@@ -137,6 +144,7 @@ void File::insertLinebreak() {
     }
     _cursorPositionX=0;
     _cursorPositionY++;
+    saveUndoStep();
 }
 
 void File::gotoline(int y, int x) {
@@ -268,6 +276,7 @@ bool File::delSelect() {
         }
     }
     resetSelect();
+    saveUndoStep();
     return true;
 }
 
@@ -292,16 +301,53 @@ void File::undo() {
         return;
     }
 
-    _text = _undoSteps.back().text;
-    _cursorPositionX = _undoSteps.back().cursorPositionX;
-    _cursorPositionY = _undoSteps.back().cursorPositionY;
+    if (_currentUndoStep == 0) {
+        return;
+    }
+
+    --_currentUndoStep;
+
+    _text = _undoSteps[_currentUndoStep].text;
+    _cursorPositionX = _undoSteps[_currentUndoStep].cursorPositionX;
+    _cursorPositionY = _undoSteps[_currentUndoStep].cursorPositionY;
     adjustScrollPosition();
     update();
-    _undoSteps.removeLast(); //TODO verschibe in redo
+    modifiedChanged(isModified());
 }
 
-void File::saveUndoStep() {
+void File::redo() {
+    if(_undoSteps.isEmpty()) {
+        return;
+    }
+
+    if (_currentUndoStep + 1 >= _undoSteps.size()) {
+        return;
+    }
+
+    ++_currentUndoStep;
+
+    _text = _undoSteps[_currentUndoStep].text;
+    _cursorPositionX = _undoSteps[_currentUndoStep].cursorPositionX;
+    _cursorPositionY = _undoSteps[_currentUndoStep].cursorPositionY;
+    adjustScrollPosition();
+    update();
+    modifiedChanged(isModified());
+}
+
+bool File::isModified() const {
+    return _currentUndoStep != _savedUndoStep;
+}
+
+void File::saveUndoStep(bool collapsable) {
+    if (_currentUndoStep + 1 != _undoSteps.size()) {
+        _undoSteps.resize(_currentUndoStep + 1);
+    } else if (_collapseUndoStep && collapsable && _currentUndoStep != _savedUndoStep) {
+        _undoSteps.removeLast();
+    }
     _undoSteps.append({ _text, _cursorPositionX, _cursorPositionY});
+    _currentUndoStep = _undoSteps.size() - 1;
+    _collapseUndoStep = collapsable;
+    modifiedChanged(true);
 }
 
 void File::paintEvent(Tui::ZPaintEvent *event) {
@@ -384,11 +430,13 @@ void File::deletePreviousCharacterOrWord(TextLayout::CursorMode mode) {
         int leftBoundary = lay.previousCursorPosition(_cursorPositionX, mode);
         _text[_cursorPositionY].remove(leftBoundary, _cursorPositionX - leftBoundary);
         _cursorPositionX = leftBoundary;
+        saveUndoStep();
     } else if (_cursorPositionY > 0) {
         _cursorPositionX = _text[_cursorPositionY -1].size();
         _text[_cursorPositionY -1] += _text[_cursorPositionY];
         _text.removeAt(_cursorPositionY);
         --_cursorPositionY;
+        saveUndoStep();
     }
 }
 
@@ -398,12 +446,14 @@ void File::deleteNextCharacterOrWord(TextLayout::CursorMode mode) {
         lay.doLayout(rect().width());
         int rightBoundary = lay.nextCursorPosition(_cursorPositionX, mode);
         _text[_cursorPositionY].remove(_cursorPositionX, rightBoundary - _cursorPositionX);
+        saveUndoStep();
     } else if(_text.count() > _cursorPositionY +1) {
         if(_text[_cursorPositionY].size() < _cursorPositionX) {
             _text[_cursorPositionY].resize(_cursorPositionX,' ');
         }
         _text[_cursorPositionY] += _text[_cursorPositionY + 1];
         _text.removeAt(_cursorPositionY +1);
+        saveUndoStep();
     }
 }
 
@@ -413,7 +463,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     QString text = event->text();
     if(event->key() == Qt::Key_Space && event->modifiers() == 0) {
         text = " ";
-        saveUndoStep();
     }
     if (isSelect() &&
             event->key() != Qt::Key_Right &&
@@ -435,12 +484,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if(event->key() == Qt::Key_Backspace && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier)) {
         deletePreviousCharacterOrWord(event->modifiers() & Qt::ControlModifier ? TextLayout::SkipWords : TextLayout::SkipCharacters);
         adjustScrollPosition();
-        setModified(true);
         update();
     } else if(event->key() == Qt::Key_Delete && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier)) {
         deleteNextCharacterOrWord(event->modifiers() & Qt::ControlModifier ? TextLayout::SkipWords : TextLayout::SkipCharacters);
         adjustScrollPosition();
-        setModified(true);
         update();
     }
     if ( (
@@ -485,8 +532,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         _cursorPositionX += text.size();
         adjustScrollPosition();
         update();
-        setModified(true);
-        //saveUndoStep();
+        saveUndoStep(text != " ");
     } else if(event->key() == Qt::Key_Left && (event->modifiers() & ~(Qt::ShiftModifier | Qt::ControlModifier)) == 0) {
         if(event->modifiers() & Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
@@ -504,6 +550,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
+        _collapseUndoStep = false;
         update();
     } else if(event->key() == Qt::Key_Right && (event->modifiers() & ~(Qt::ShiftModifier | Qt::ControlModifier)) == 0) {
         if(event->modifiers() & Qt::ShiftModifier) {
@@ -522,6 +569,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
+        _collapseUndoStep = false;
         update();
     } else if(event->key() == Qt::Key_Down && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if(event->modifiers() == Qt::ShiftModifier) {
@@ -536,6 +584,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
+        _collapseUndoStep = false;
         update();
     } else if(event->key() == Qt::Key_Up && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if(event->modifiers() == Qt::ShiftModifier) {
@@ -548,6 +597,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
+        _collapseUndoStep = false;
         update();
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if(event->modifiers() == Qt::ShiftModifier) {
@@ -558,6 +608,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
+        _collapseUndoStep = false;
         update();
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == Qt::ControlModifier || event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) )) {
         if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
@@ -568,6 +619,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
+        _collapseUndoStep = false;
         update();
     } else if(event->key() == Qt::Key_End && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if(event->modifiers() == Qt::ShiftModifier) {
@@ -578,6 +630,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
+        _collapseUndoStep = false;
         update();
     } else if(event->key() == Qt::Key_End && (event->modifiers() == Qt::ControlModifier || (event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)))) {
         if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
@@ -590,6 +643,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
+        _collapseUndoStep = false;
         update();
     } else if(event->key() == Qt::Key_PageDown && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if(event->modifiers() == Qt::ShiftModifier) {
@@ -604,6 +658,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
+        _collapseUndoStep = false;
         update();
     } else if(event->key() == Qt::Key_PageDown && ( event->modifiers() == Qt::ControlModifier ||
               (event->modifiers() == Qt::ControlModifier && event->modifiers() == Qt::ControlModifier) ) ) {
@@ -616,6 +671,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
+        _collapseUndoStep = false;
         update();
     } else if(event->key() == Qt::Key_PageUp && (event->modifiers() == Qt::ControlModifier ||
               (event->modifiers() == Qt::ControlModifier || event->modifiers() == Qt::ControlModifier) ) ) {
@@ -628,6 +684,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
           select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
+        _collapseUndoStep = false;
         update();
     } else if(event->key() == Qt::Key_PageUp && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if(event->modifiers() == Qt::ShiftModifier) {
@@ -643,12 +700,11 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
+        _collapseUndoStep = false;
         update();
     } else if(event->key() == Qt::Key_Enter && event->modifiers() == 0) {
         insertLinebreak();
-        saveUndoStep();
         adjustScrollPosition();
-        setModified(true);
         update();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
         if(this->getTabOption()) {
@@ -663,7 +719,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             ++_cursorPositionX;
         }
         adjustScrollPosition();
-        setModified(true);
+        saveUndoStep();
         update();
     } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {
@@ -678,11 +734,13 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         //STRG + X // Umschalt+Entf
         this->cut();
     } else if (event->text() == "z" && event->modifiers() == Qt::ControlModifier) {
-        //STRG + z
-        this->undo();
+        undo();
+    } else if (event->text() == "y" && event->modifiers() == Qt::ControlModifier) {
+        redo();
     } else if (event->text() == "a" && event->modifiers() == Qt::ControlModifier) {
         //STRG + a
         selectAll();
+        _collapseUndoStep = false;
     } else if (event->text() == "k" && event->modifiers() == Qt::ControlModifier) {
         //STRG + k //cut and copy line
         this->cutline();
@@ -724,7 +782,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             //Markirung Nachziehen
             startSelectY -= 1;
             endSelectY -= 1;
-            setModified(true);
+            saveUndoStep();
             adjustScrollPosition();
             update();
         }
@@ -752,7 +810,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             //Markirung Nachziehen
             startSelectY += 1;
             endSelectY += 1;
-            setModified(true);
+            saveUndoStep();
             adjustScrollPosition();
             update();
         }

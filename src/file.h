@@ -17,7 +17,6 @@ public:
     QString getFilename();
     bool newText();
     bool saveText();
-    void setModified(bool mod);
     bool openText();
     void cut();
     void cutline();
@@ -44,16 +43,17 @@ public:
     void toggleOverwrite();
     bool isOverwrite();
     void undo();
-    //void redo();
+    void redo();
     void deletePreviousCharacterOrWord(TextLayout::CursorMode mode);
     void deleteNextCharacterOrWord(TextLayout::CursorMode mode);
+
+    bool isModified() const;
 
 public:
 //    QString text() const;
 //    void setText(const QString &t);
     int _cursorPositionX = 0;
     int _cursorPositionY = 0;
-    bool modified = true;
     bool newfile = true;
 
 signals:
@@ -68,7 +68,7 @@ protected:
 
 private:
     void adjustScrollPosition();
-    void saveUndoStep();
+    void saveUndoStep(bool collapsable=false);
     QString filename;
     struct UndoStep {
         QVector<QString> text;
@@ -92,6 +92,9 @@ private:
     QVector<QString> _clipboard;
     bool overwrite = false;
     QVector<UndoStep> _undoSteps;
+    int _currentUndoStep;
+    bool _collapseUndoStep;
+    int _savedUndoStep;
 };
 
 #endif // FILE_H

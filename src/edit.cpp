@@ -44,7 +44,7 @@ Editor::Editor() {
 
     QObject::connect(new Tui::ZCommandNotifier("New", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            if(file->modified) {
+            if(file->isModified()) {
                 ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::New);
                 QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
                     delete confirmDialog;
@@ -67,7 +67,7 @@ Editor::Editor() {
 
     QObject::connect(new Tui::ZCommandNotifier("Open", this), &Tui::ZCommandNotifier::activated,
         [&] {
-            if(file->modified) {
+            if(file->isModified()) {
                 ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Open);
                 QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
                     delete confirmDialog;
@@ -238,7 +238,7 @@ SaveDialog * Editor::saveOrSaveas() {
 }
 
 void Editor::quit() {
-    if(file->modified) {
+    if(file->isModified()) {
         ConfirmSave *quitDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Quit);
 
         QObject::connect(quitDialog, &ConfirmSave::exitSelected, [=]{
