@@ -24,6 +24,9 @@ Editor::Editor() {
                             { "Select <m>a</m>ll", "Ctrl-A", "Selectall", {}},
                             { "Cut Line", "Ctrl-K", "Cutline", {}},
                             {},
+                            { "Undo", "Ctrl-z", "Undo", {}},
+                            { "Redo", "Ctrl-y", "Redo", {}},
+                            {},
                             { "<m>S</m>earch", "Ctrl-F", "Search", {}},
                             { "<m>R</m>eplace", "Ctrl-R", "Replace", {}},
                             {},
@@ -131,6 +134,16 @@ Editor::Editor() {
     QObject::connect(new Tui::ZCommandNotifier("Cutline", this), &Tui::ZCommandNotifier::activated,
          [&] {
             file->cutline();
+        }
+    );
+    QObject::connect(new Tui::ZCommandNotifier("Undo", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            file->undo();
+        }
+    );
+    QObject::connect(new Tui::ZCommandNotifier("Redo", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            file->redo();
         }
     );
     QObject::connect(new Tui::ZCommandNotifier("Gotoline", this), &Tui::ZCommandNotifier::activated,
