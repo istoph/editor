@@ -857,40 +857,9 @@ void File::adjustScrollPosition() {
         }
     }
 
-    //TODO: einstellbar machen
     if (_text[_cursorPositionY].size() < _cursorPositionX) {
-        //MERKEN
-        //_lastScrollPosition = _cursorPositionX;
         _cursorPositionX = _text[_cursorPositionY].size();
-
-    // TODO: das wird vermutlich nicht verwendet :(
-    } else if (_cursorPositionX < _lastCursorPositionX) {
-        if (_text[_cursorPositionY].size() < _lastCursorPositionX) {
-            _cursorPositionX = _text[_cursorPositionY].size();
-        } else {
-            _cursorPositionX = _lastCursorPositionX;
-        }
     }
-/*
-        if (_text[_cursorPositionY].size() < _lastScrollPosition) {
-            _cursorPositionX = _text[_cursorPositionY].size();
-        } else {
-            _cursorPositionX = _lastScrollPosition;
-        }
-*/
-
-        /*
-        if(_lastScrollPosition > 0) {
-            if (_text[_cursorPositionY].size() < _lastScrollPosition) {
-                _cursorPositionX = _text[_cursorPositionY].size();
-            } else {
-                _cursorPositionX = _lastScrollPosition;
-            }
-        } else {
-            _lastScrollPosition = _cursorPositionX;
-            _cursorPositionX = _text[_cursorPositionY].size();
-        }
-        */
 
     int _utf8PositionX = _text[_cursorPositionY].left(_cursorPositionX).toUtf8().size();
     cursorPositionChanged(cursorColumn, _utf8PositionX, _cursorPositionY);
