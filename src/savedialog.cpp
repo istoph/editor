@@ -25,9 +25,6 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
     setGeometry({20, 2, 40, 14});
     setWindowTitle("Save as...");
 
-    //TODO: inputbox multi line
-    //TODO: inputbox file up/donw
-    //TODO: inputbox enter to filenameText
     folder = new ListView(this);
     folder->setGeometry({3,2,34,6});
     folder->setFocus();
@@ -46,6 +43,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
     okButton->setGeometry({29, 11, 8, 7});
     okButton->setText("OK");
     okButton->setDefault(true);
+    okButton->setEnabled(false);
 
     connect(filenameText, &InputBox::textChanged, this, &SaveDialog::filenameChanged);
     QObject::connect(okButton, &Button::clicked, this, &SaveDialog::saveFile);
@@ -66,7 +64,11 @@ void SaveDialog::saveFile() {
 void SaveDialog::filenameChanged(QString filename) {
     QFileInfo datei(filename);
     bool ok = true;
-    if (datei.isDir()) {
+    if (filename.isEmpty()) {
+        ok = false;
+    } else if (datei.isDir()) {
+        dir.setPath(dir.filePath(filename));
+        refreshFolder();
         ok = false;
     } else if (!datei.dir().exists()) {
         ok = false;
