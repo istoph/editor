@@ -57,6 +57,7 @@ bool File::saveText() {
         _savedUndoStep = _currentUndoStep;
         modifiedChanged(false);
         newfile = false;
+        update();
         return true;
     }
     //TODO vernünfiges error Händling
