@@ -305,8 +305,8 @@ void File::undo() {
     _text = _undoSteps[_currentUndoStep].text;
     _cursorPositionX = _undoSteps[_currentUndoStep].cursorPositionX;
     _cursorPositionY = _undoSteps[_currentUndoStep].cursorPositionY;
-    adjustScrollPosition();
     modifiedChanged(isModified());
+    adjustScrollPosition();
 }
 
 void File::redo() {
@@ -323,8 +323,8 @@ void File::redo() {
     _text = _undoSteps[_currentUndoStep].text;
     _cursorPositionX = _undoSteps[_currentUndoStep].cursorPositionX;
     _cursorPositionY = _undoSteps[_currentUndoStep].cursorPositionY;
-    adjustScrollPosition();
     modifiedChanged(isModified());
+    adjustScrollPosition();
 }
 
 bool File::isModified() const {
