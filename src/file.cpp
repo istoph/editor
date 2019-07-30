@@ -167,7 +167,6 @@ void File::gotoline(int y, int x) {
 
     adjustScrollPosition();
     update();
-    this->focus(); // TODO: fix it ;)
 }
 
 bool File::setTabsize(int tab) {
