@@ -371,9 +371,9 @@ int main(int argc, char **argv) {
         }
         QFileInfo datei(p.first());
         if(datei.isReadable()) {
-            if(datei.size() > 10240 && !parser.isSet(bigOption) && !bigfile) {
+            if(datei.size() > 1024000 && !parser.isSet(bigOption) && !bigfile) {
                 //TODO: warn dialog
-                out << "The file is bigger then 1MB. Pleas start with -b for big files.\n";
+                out << "The file is bigger then 1MB ("<< datei.size() <<"). Please start with -b for big files.\n";
                 return 0;
             }
         }
