@@ -826,17 +826,38 @@ void File::adjustScrollPosition() {
     }
 
     //y
-    if (_cursorPositionY - _scrollPositionY >= geometry().height() -1) {
-        _scrollPositionY = _cursorPositionY - geometry().height() +1;
-    }
-    if (_text.count() - _scrollPositionY < geometry().height() -1) {
-        _scrollPositionY = std::max(0,_text.count() - geometry().height() +1);
-    }
     if(_cursorPositionY > 0) {
         if (_cursorPositionY - _scrollPositionY < 1) {
             _scrollPositionY = _cursorPositionY - 1;
         }
     }
+    if(!_wrapOption) {
+        if (_cursorPositionY - _scrollPositionY >= geometry().height() -1) {
+            _scrollPositionY = _cursorPositionY - geometry().height() +1;
+        }
+
+        if (_text.count() - _scrollPositionY < geometry().height() -1) {
+            _scrollPositionY = std::max(0,_text.count() - geometry().height() +1);
+        }
+    } else {
+        option = getTextOption();
+        int y = 0;
+        QVector<int> sizes;
+        for (int line = _scrollPositionY; line <= _cursorPositionY && line < _text.size(); line++) {
+            TextLayout lay = getTextLayoutForLine(option, line);
+            if (_cursorPositionY == line) {
+                int cursorPhysicalLineInViewport = y + lay.lineForTextPosition(_cursorPositionX).y();
+                while (sizes.size() && cursorPhysicalLineInViewport >= rect().height() - 1) {
+                    cursorPhysicalLineInViewport -= sizes.takeFirst();
+                    _scrollPositionY += 1;
+                }
+                break;
+            }
+            sizes.append(lay.lineCount());
+            y += lay.lineCount();
+        }
+    }
+
 
     if (_text[_cursorPositionY].size() < _cursorPositionX) {
         _cursorPositionX = _text[_cursorPositionY].size();
