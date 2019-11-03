@@ -160,10 +160,10 @@ Editor::Editor() {
 
     QObject::connect(new Tui::ZCommandNotifier("Formatting", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            if (file->getformatting_characters())
-                file->setFormatting_characters(false);
+            if (file->getformattingCharacters())
+                file->setFormattingCharacters(false);
             else
-                file->setFormatting_characters(true);
+                file->setFormattingCharacters(true);
             update();
         }
     );
@@ -339,7 +339,7 @@ int main(int argc, char **argv) {
     root->file->setTabOption(tab);
 
     bool fb = qsettings->value("formatting_characters","1").toBool();
-    root->file->setFormatting_characters(fb);
+    root->file->setFormattingCharacters(fb);
 
     bool bigfile = qsettings->value("bigfile", "false").toBool();
 

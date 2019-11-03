@@ -183,12 +183,12 @@ bool File::getTabOption() {
     return this->_tabOption;
 }
 
-bool File::setFormatting_characters(bool fb) {
+bool File::setFormattingCharacters(bool fb) {
     this->_formatting_characters = fb;
     return true;
 }
 
-bool File::getformatting_characters() {
+bool File::getformattingCharacters() {
     return _formatting_characters;
 }
 
@@ -357,7 +357,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     ZTextOption option;
     option.setWrapMode(_wrapOption ? ZTextOption::WrapAnywhere : ZTextOption::NoWrap);
     option.setTabStopDistance(_tabsize);
-    if (getformatting_characters()) {
+    if (getformattingCharacters()) {
         option.setFlags(ZTextOption::ShowTabsAndSpaces);
     }
 
@@ -394,7 +394,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         }
 
         lay.draw(*painter, {-_scrollPositionX, y}, base, &formatingChar, selections);
-        if (getformatting_characters()) {
+        if (getformattingCharacters()) {
             TextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
             if (isSelect(_text[line].size(), line)) {
                 painter->writeWithAttributes(-_scrollPositionX + lastLine.width(), y + lastLine.y(), QStringLiteral("¶"),
@@ -411,7 +411,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         }
         y += lay.lineCount();
     }
-    if (y < rect().height() && this->getformatting_characters() && _scrollPositionX == 0) {
+    if (y < rect().height() && this->getformattingCharacters() && _scrollPositionX == 0) {
         painter->writeWithAttributes(0, y, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
     }
 }

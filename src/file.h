@@ -29,8 +29,8 @@ public:
     int getTabsize();
     void setTabOption(bool tab);
     bool getTabOption();
-    bool setFormatting_characters(bool fb);
-    bool getformatting_characters();
+    bool setFormattingCharacters(bool fb);
+    bool getformattingCharacters();
     void setWrapOption(bool wrap);
     bool getWrapOption();
     void select(int x, int y);
