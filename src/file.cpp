@@ -343,6 +343,27 @@ void File::saveUndoStep(bool collapsable) {
     modifiedChanged(true);
 }
 
+ZTextOption File::getTextOption()
+{
+    ZTextOption option;
+    option.setWrapMode(_wrapOption ? ZTextOption::WrapAnywhere : ZTextOption::NoWrap);
+    option.setTabStopDistance(_tabsize);
+    if (getformattingCharacters()) {
+        option.setFlags(ZTextOption::ShowTabsAndSpaces);
+    }
+
+    return option;
+}
+
+TextLayout File::getTextLayoutForLine(const ZTextOption& option, int line)
+{
+    TextLayout lay(terminal()->textMetrics(), _text[line]);
+    lay.setTextOption(option);
+    lay.doLayout(rect().width());
+
+    return lay;
+}
+
 void File::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor bg;
     Tui::ZColor fg;
@@ -354,12 +375,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     auto *painter = event->painter();
     painter->clear(fg, bg);
 
-    ZTextOption option;
-    option.setWrapMode(_wrapOption ? ZTextOption::WrapAnywhere : ZTextOption::NoWrap);
-    option.setTabStopDistance(_tabsize);
-    if (getformattingCharacters()) {
-        option.setFlags(ZTextOption::ShowTabsAndSpaces);
-    }
+    ZTextOption option = getTextOption();
 
     auto startSelect = std::make_pair(startSelectY,startSelectX);
     auto endSelect = std::make_pair(endSelectY,endSelectX);
@@ -374,9 +390,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 
     int y = 0;
     for (int line = _scrollPositionY; y < rect().height() && line < _text.size(); line++) {
-        TextLayout lay(terminal()->textMetrics(), _text[line]);
-        lay.setTextOption(option);
-        lay.doLayout(rect().width());
+        TextLayout lay = getTextLayoutForLine(option, line);
         //selection
         selections.clear();
         if (line > startSelect.first && line < endSelect.first) {
@@ -792,12 +806,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 }
 
 void File::adjustScrollPosition() {
-    ZTextOption option;
+    ZTextOption option = getTextOption();
     option.setWrapMode(ZTextOption::NoWrap);
-    option.setTabStopDistance(_tabsize);
-    TextLayout lay(terminal()->textMetrics(), _text[_cursorPositionY]);
-    lay.setTextOption(option);
-    lay.doLayout(rect().width());
+    TextLayout lay = getTextLayoutForLine(option, _cursorPositionY);
     int cursorColumn = lay.lineAt(0).cursorToX(_cursorPositionX, TextLineRef::Leading);
 
     //x

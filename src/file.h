@@ -76,6 +76,9 @@ private:
         int cursorPositionY;
     };
 
+    ZTextOption getTextOption();
+    TextLayout getTextLayoutForLine(const ZTextOption &option, int line);
+
 private:
     QVector<QString> _text;
     int _scrollPositionX = 0;
