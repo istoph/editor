@@ -835,9 +835,8 @@ void File::adjustScrollPosition() {
     cursorPositionChanged(cursorColumn, _utf8PositionX, _cursorPositionY);
     scrollPositionChanged(_scrollPositionX, _scrollPositionY);
 
-    //TODO: make it faster
     int max=0;
-    for (int i=0; i < _text.count(); i++) {
+    for (int i=_scrollPositionY; i < _text.count() && i < _scrollPositionY + geometry().height(); i++) {
         if(max < _text[i].count())
             max = _text[i].count();
     }
