@@ -146,6 +146,15 @@ Editor::Editor() {
             file->redo();
         }
     );
+
+    //SEARCH
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("f"), this, Qt::ApplicationShortcut),
+                     &Tui::ZShortcut::activated, this, &Editor::searchDialog);
+    QObject::connect(new Tui::ZCommandNotifier("Search", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            searchDialog();
+        }
+    );
     QObject::connect(new Tui::ZCommandNotifier("Gotoline", this), &Tui::ZCommandNotifier::activated,
          [&] {
             new GotoLine(this, file);
@@ -208,6 +217,11 @@ Editor::Editor() {
     SearchDialog* searchDlg = new SearchDialog(this, file);
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
                      searchDlg, &SearchDialog::open);
+}
+
+void Editor::searchDialog() {
+    SearchDialog *sd = new SearchDialog(this, file);
+    sd->open();
 }
 
 void Editor::newFile(QString filename) {

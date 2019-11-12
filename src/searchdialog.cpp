@@ -7,7 +7,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     WindowLayout *wl = new WindowLayout();
     setLayout(wl);
 
-    setWindowTitle("Find");
+    setWindowTitle("Search");
 
     searchText = new InputBox(this);
     VBoxLayout *vbox = new VBoxLayout();

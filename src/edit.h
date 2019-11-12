@@ -47,6 +47,7 @@ private:
     SaveDialog *saveFileDialog();
     SaveDialog *saveOrSaveas();
     void quit();
+    void searchDialog();
 };
 
 #endif // EDIT_H
