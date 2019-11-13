@@ -32,7 +32,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
             VBoxLayout *nbox = new VBoxLayout();
             gbox->setLayout(nbox);
 
-            CheckBox *caseMatch = new CheckBox(withMarkup, "<m>M</m>atch case", gbox);
+            caseMatch = new CheckBox(withMarkup, "<m>M</m>atch case", gbox);
             nbox->addWidget(caseMatch);
             CheckBox *wordMatch = new CheckBox(withMarkup, "Match <m>e</m>ntire word only", gbox);
             nbox->addWidget(wordMatch);
@@ -90,13 +90,31 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     connect(searchText, &InputBox::textChanged, this, [this] (const QString& newText) {
         okBtn->setEnabled(newText.size());
     });
+
+    QObject::connect(okBtn, &Button::clicked, [=]{
+        _searchText = searchText->text();
+        file->setSerchText(_searchText);
+        update();
+    });
+
     QObject::connect(cancelBtn, &Button::clicked, [=]{
-         deleteLater();
+        _searchText = "";
+        file->setSerchText(_searchText);
+        deleteLater();
+    });
+
+    QObject::connect(caseMatch, &CheckBox::stateChanged, [=]{
+        caseSensitive = !caseSensitive;
+        if(caseSensitive) {
+            file->searchCaseSensitivity = Qt::CaseInsensitive;
+        } else {
+            file->searchCaseSensitivity = Qt::CaseSensitive;
+        }
+        update();
     });
 }
 
-void SearchDialog::open()
-{
+void SearchDialog::open() {
     QRect r = geometry();
     r.moveCenter(terminal()->mainWidget()->geometry().center());
     setGeometry(r);

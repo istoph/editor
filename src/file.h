@@ -48,6 +48,8 @@ public:
     void deleteNextCharacterOrWord(TextLayout::CursorMode mode);
 
     bool isModified() const;
+    void setSerchText(QString serchText);
+    Qt::CaseSensitivity searchCaseSensitivity;
 
 public:
 //    QString text() const;
@@ -98,6 +100,7 @@ private:
     int _currentUndoStep;
     bool _collapseUndoStep;
     int _savedUndoStep;
+    QString _searchText;
 };
 
 #endif // FILE_H

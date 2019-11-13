@@ -331,6 +331,10 @@ bool File::isModified() const {
     return _currentUndoStep != _savedUndoStep;
 }
 
+void File::setSerchText(QString serchText) {
+    _searchText = serchText;
+}
+
 void File::saveUndoStep(bool collapsable) {
     if (_currentUndoStep + 1 != _undoSteps.size()) {
         _undoSteps.resize(_currentUndoStep + 1);
@@ -382,7 +386,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     if(startSelect > endSelect) {
         std::swap(startSelect,endSelect);
     }
-    QVector<TextLayout::FormatRange> selections;
+    QVector<TextLayout::FormatRange> highlights;
     TextStyle base{fg, bg};
     TextStyle formatingChar{Tui::Colors::darkGray, bg};
     TextStyle selected{Tui::Colors::darkGray,fg,Tui::ZPainter::Attribute::Bold};
@@ -391,23 +395,32 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     int y = 0;
     for (int line = _scrollPositionY; y < rect().height() && line < _text.size(); line++) {
         TextLayout lay = getTextLayoutForLine(option, line);
-        //selection
-        selections.clear();
+
+        // highlights
+        highlights.clear();
+        // search matches
+        if(_searchText != "") {
+            int found = -1;
+            while ((found = _text[line].indexOf(_searchText, found + 1, searchCaseSensitivity)) != -1) {
+                highlights.append(TextLayout::FormatRange{found, _searchText.size(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZPainter::Attribute::Bold}, selectedFormatingChar});
+            }
+        }
+        // selection
         if (line > startSelect.first && line < endSelect.first) {
             // whole line
-            selections.append(TextLayout::FormatRange{0, _text[line].size(), selected, selectedFormatingChar});
+            highlights.append(TextLayout::FormatRange{0, _text[line].size(), selected, selectedFormatingChar});
         } else if (line > startSelect.first && line == endSelect.first) {
             // selection ends on this line
-            selections.append(TextLayout::FormatRange{0, endSelect.second, selected, selectedFormatingChar});
+            highlights.append(TextLayout::FormatRange{0, endSelect.second, selected, selectedFormatingChar});
         } else if (line == startSelect.first && line < endSelect.first) {
             // selection starts on this line
-            selections.append(TextLayout::FormatRange{startSelect.second, _text[line].size() - startSelect.second, selected, selectedFormatingChar});
+            highlights.append(TextLayout::FormatRange{startSelect.second, _text[line].size() - startSelect.second, selected, selectedFormatingChar});
         } else if (line == startSelect.first && line == endSelect.first) {
             // selection is contained in this line
-            selections.append(TextLayout::FormatRange{startSelect.second, endSelect.second - startSelect.second, selected, selectedFormatingChar});
+            highlights.append(TextLayout::FormatRange{startSelect.second, endSelect.second - startSelect.second, selected, selectedFormatingChar});
         }
 
-        lay.draw(*painter, {-_scrollPositionX, y}, base, &formatingChar, selections);
+        lay.draw(*painter, {-_scrollPositionX, y}, base, &formatingChar, highlights);
         if (getformattingCharacters()) {
             TextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
             if (isSelect(_text[line].size(), line)) {
@@ -798,6 +811,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             saveUndoStep();
             adjustScrollPosition();
         }
+    } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
+        _searchText = "";
     } else if (event->key() == Qt::Key_Insert && event->modifiers() == 0) {
         this->toggleOverwrite();
     } else {

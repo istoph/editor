@@ -18,6 +18,9 @@ private:
     InputBox *searchText = nullptr;
     Button *okBtn = nullptr;
     Button *cancelBtn = nullptr;
+    QString _searchText;
+    bool caseSensitive = true;
+    CheckBox *caseMatch = nullptr;
 };
 
 #endif // SEARCHDIALOG_H
