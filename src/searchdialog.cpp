@@ -75,7 +75,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
         okBtn->setEnabled(false);
         hbox->addWidget(okBtn);
 
-        Button *cancelBtn = new Button(withMarkup, "<m>C</m>lose", this);
+        cancelBtn = new Button(withMarkup, "<m>C</m>lose", this);
         hbox->addWidget(cancelBtn);
 
         hbox->addSpacing(3);
@@ -89,6 +89,9 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     connect(searchText, &InputBox::textChanged, this, [this] (const QString& newText) {
         okBtn->setEnabled(newText.size());
+    });
+    QObject::connect(cancelBtn, &Button::clicked, [=]{
+         deleteLater();
     });
 }
 

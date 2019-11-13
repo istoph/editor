@@ -17,6 +17,7 @@ public slots:
 private:
     InputBox *searchText = nullptr;
     Button *okBtn = nullptr;
+    Button *cancelBtn = nullptr;
 };
 
 #endif // SEARCHDIALOG_H
