@@ -9,7 +9,7 @@ class SearchDialog : public Dialog {
     Q_OBJECT
 
 public:
-    SearchDialog(Tui::ZWidget *parent, File* file);
+    SearchDialog(Tui::ZWidget *parent, File *file);
 
 public slots:
     void open();

@@ -87,8 +87,9 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     setGeometry({ 12, 5, 55, 13});
 
-    connect(searchText, &InputBox::textChanged, this, [this] (const QString& newText) {
+    QObject::connect(searchText, &InputBox::textChanged, this, [this,file] (const QString& newText) {
         okBtn->setEnabled(newText.size());
+        file->setSerchText(searchText->text());
     });
 
     QObject::connect(okBtn, &Button::clicked, [=]{
