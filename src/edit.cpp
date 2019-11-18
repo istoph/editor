@@ -179,7 +179,7 @@ Editor::Editor() {
 
     QObject::connect(new Tui::ZCommandNotifier("Wrap", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            file->setWrapOption(!file->getWrapOption());
+            setWrap(!file->getWrapOption());
         }
     );
 
@@ -305,6 +305,14 @@ void Editor::quit() {
     }
 }
 
+void Editor::setWrap(bool wrap) {
+    if (wrap) {
+        file->setWrapOption(true);
+    } else {
+        file->setWrapOption(false);
+    }
+}
+
 int main(int argc, char **argv) {
 
     QCoreApplication app(argc, argv);
@@ -373,7 +381,7 @@ int main(int argc, char **argv) {
     bool bigfile = qsettings->value("bigfile", "false").toBool();
 
     bool wl = qsettings->value("wrap_lines","false").toBool();
-    root->file->setWrapOption(wl || parser.isSet(wraplines));
+    root->setWrap(wl || parser.isSet(wraplines));
 
     QString logfile = qsettings->value("logfile", "").toString();
     if (logfile.isEmpty()) {

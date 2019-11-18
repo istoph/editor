@@ -41,6 +41,7 @@ public slots:
     void newFile(QString filename = "dokument.txt");
     void openFile(QString filename);
     void saveFile(QString filename);
+    void setWrap(bool wrap);
 
 private:
     void openFileDialog();
