@@ -3,6 +3,8 @@
 
 #include <testtui_lib.h>
 
+#include <QTimer>
+
 class ScrollBar : public Tui::ZWidget {
     Q_OBJECT
 public:
@@ -11,15 +13,22 @@ public:
 public slots:
     void scrollPosition(int x, int y);
     void positonMax(int x, int y);
+    void setAutoHide(bool val);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event);
+
+private:
+    void autoHideExpired();
 
 private:
     int _scrollPositionX = 0;
     int _scrollPositionY = 0;
     int _positionMaxX = 0;
     int _positionMaxY = 0;
+
+    QTimer _autoHide;
+    bool _autoHideEnabled = false;
 };
 
 #endif // SCROLLBAR_H

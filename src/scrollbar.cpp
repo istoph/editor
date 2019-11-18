@@ -1,7 +1,7 @@
 #include "scrollbar.h"
 
 ScrollBar::ScrollBar(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
-
+    QObject::connect(&_autoHide, &QTimer::timeout, this, &ScrollBar::autoHideExpired);
 }
 void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
 
@@ -69,8 +69,16 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
     }
 }
 
+void ScrollBar::autoHideExpired() {
+    setVisible(false);
+}
+
 void ScrollBar::scrollPosition(int x, int y)
 {
+    if (_autoHideEnabled && _scrollPositionY != y) {
+        setVisible(true);
+        _autoHide.start();
+    }
     _scrollPositionX = x;
     _scrollPositionY = y;
 }
@@ -79,4 +87,19 @@ void ScrollBar::positonMax(int x, int y)
 {
     _positionMaxX = x;
     _positionMaxY = y;
+}
+
+void ScrollBar::setAutoHide(bool val) {
+    if (_autoHideEnabled == val) {
+        return;
+    }
+    _autoHideEnabled = val;
+    if (_autoHideEnabled) {
+        _autoHide.setInterval(1000);
+        _autoHide.setSingleShot(true);
+        _autoHide.start();
+    } else {
+        _autoHide.stop();
+        setVisible(true);
+    }
 }
