@@ -49,6 +49,10 @@ private:
     SaveDialog *saveOrSaveas();
     void quit();
     void searchDialog();
+
+private:
+    ScrollBar *_scrollbarHorizontal = nullptr;
+    WindowLayout *_winLayout = nullptr;
 };
 
 #endif // EDIT_H

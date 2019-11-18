@@ -184,6 +184,7 @@ Editor::Editor() {
     );
 
     win = new WindowWidget(this);
+    win->setBorderEdges({ Qt::TopEdge });
 
     //File
     file = new File(win);
@@ -195,18 +196,23 @@ Editor::Editor() {
     connect(file, &File::modifiedChanged, s, &StatusBar::setModified);
 
     ScrollBar *sc = new ScrollBar(win);
+    sc->setTransparent(true);
     connect(file, &File::scrollPositionChanged, sc, &ScrollBar::scrollPosition);
     connect(file, &File::textMax, sc, &ScrollBar::positonMax);
 
-    ScrollBar *scH = new ScrollBar(win);
-    connect(file, &File::scrollPositionChanged, scH, &ScrollBar::scrollPosition);
-    connect(file, &File::textMax, scH, &ScrollBar::positonMax);
+    _scrollbarHorizontal = new ScrollBar(win);
+    connect(file, &File::scrollPositionChanged, _scrollbarHorizontal, &ScrollBar::scrollPosition);
+    connect(file, &File::textMax, _scrollbarHorizontal, &ScrollBar::positonMax);
+    _scrollbarHorizontal->setTransparent(true);
 
-    WindowLayout *winLayout = new WindowLayout();
-    win->setLayout(winLayout);
-    winLayout->addRightBorderWidget(sc);
-    winLayout->addBottomBorderWidget(scH);
-    winLayout->addCentralWidget(file);
+    _winLayout = new WindowLayout();
+    win->setLayout(_winLayout);
+    _winLayout->addRightBorderWidget(sc);
+    _winLayout->setRightBorderTopAdjust(-1);
+    _winLayout->setRightBorderBottomAdjust(-1);
+    _winLayout->addBottomBorderWidget(_scrollbarHorizontal);
+    _winLayout->setBottomBorderLeftAdjust(-1);
+    _winLayout->addCentralWidget(file);
 
     VBoxLayout *rootLayout = new VBoxLayout();
     setLayout(rootLayout);
@@ -308,8 +314,12 @@ void Editor::quit() {
 void Editor::setWrap(bool wrap) {
     if (wrap) {
         file->setWrapOption(true);
+        _scrollbarHorizontal->setVisible(false);
+        _winLayout->setRightBorderBottomAdjust(-2);
     } else {
         file->setWrapOption(false);
+        _scrollbarHorizontal->setVisible(true);
+        _winLayout->setRightBorderBottomAdjust(-1);
     }
 }
 
