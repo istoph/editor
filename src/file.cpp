@@ -335,6 +335,44 @@ void File::setSerchText(QString serchText) {
     _searchText = serchText;
 }
 
+void File::searchNext(int line) {
+    if(_searchText != "") {
+        int found = 0;
+        bool loop = false;
+        if (line < 0) {
+            line = _cursorPositionY;
+            found = _cursorPositionX;
+        } else {
+            loop = true;
+        }
+
+        for (; line < _text.size(); line++) {
+            found = _text[line].indexOf(_searchText, found + 1, searchCaseSensitivity);
+            if (found != -1) {
+                _cursorPositionY = line;
+                _cursorPositionX = found;
+                adjustScrollPosition();
+
+                resetSelect();
+                select(found, _cursorPositionY);
+                _cursorPositionX += _searchText.size();
+                select(_cursorPositionX, _cursorPositionY);
+                adjustScrollPosition();
+                return;
+            }
+        }
+        if(!loop) {
+            searchNext(0);
+        }
+    }
+}
+
+void File::searchPrevious() {
+    if(_searchText != "") {
+
+    }
+}
+
 void File::saveUndoStep(bool collapsable) {
     if (_currentUndoStep + 1 != _undoSteps.size()) {
         _undoSteps.resize(_currentUndoStep + 1);
@@ -494,6 +532,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             event->key() != Qt::Key_PageUp &&
             event->key() != Qt::Key_PageDown &&
             event->key() != Qt::Key_Escape &&
+            event->key() != Qt::Key_F3 &&
             event->modifiers() != Qt::ControlModifier
             ) {
         //Markierte Zeichen Löschen
@@ -722,6 +761,12 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         adjustScrollPosition();
         saveUndoStep();
+    } else if(event->key() == Qt::Key_F3 && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
+        if(event->modifiers() == 0) {
+            searchNext();
+        } else {
+            searchPrevious();
+        }
     } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {
         //STRG + C // Strg+Einfg

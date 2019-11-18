@@ -95,6 +95,8 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     QObject::connect(okBtn, &Button::clicked, [=]{
         _searchText = searchText->text();
         file->setSerchText(_searchText);
+        file->searchNext();
+        deleteLater();
         update();
     });
 

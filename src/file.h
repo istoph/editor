@@ -58,6 +58,9 @@ public:
     int _cursorPositionY = 0;
     bool newfile = true;
 
+    void searchNext(int line = -1);
+    void searchPrevious();
+
 signals:
     void cursorPositionChanged(int x, int utf8x, int y);
     void scrollPositionChanged(int x, int y);
