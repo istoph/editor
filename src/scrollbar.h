@@ -10,10 +10,13 @@ class ScrollBar : public Tui::ZWidget {
 public:
     ScrollBar(Tui::ZWidget *parent);
 
+    bool transparent() const;
+
 public slots:
     void scrollPosition(int x, int y);
     void positonMax(int x, int y);
     void setAutoHide(bool val);
+    void setTransparent(bool transparent);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event);
@@ -29,6 +32,7 @@ private:
 
     QTimer _autoHide;
     bool _autoHideEnabled = false;
+    bool _transparent = false;
 };
 
 #endif // SCROLLBAR_H

@@ -11,7 +11,6 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor fg = getColor("scrollbar.fg");
     Tui::ZColor bg = getColor("scrollbar.bg");
 
-    painter->clear(fg, bg);
 
     int thumbHeight;
     int trackBarPosition = 0;
@@ -51,18 +50,40 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
     }
 
     if (geometry().width() == 1) {
+        if (!_transparent) {
+            painter->clear(fg, bg);
+        } else {
+            for (int i = 0; i < geometry().height(); i++) {
+                painter->setBackground(0,i,{ 0, 0x00, 0x80});
+            }
+        }
         int y = 1 + trackBarPosition;
         painter->writeWithColors(0, 0, "↑", controlfg, controlbg);
-        for (int i=0; i<thumbHeight; i++) {
-            painter->writeWithColors(0, y, "▓", controlfg, controlbg);
+        for (int i = 0; i < thumbHeight; i++) {
+            if (!_transparent) {
+                painter->writeWithColors(0, y, "▓", controlfg, controlbg);
+            } else {
+                painter->setBackground(0,y,{ 0, 0, 0xd9});
+            }
             y+=1;
         }
         painter->writeWithColors(0, trackBarSize + 1, "↓", controlfg, controlbg);
     } else {
+        if (!_transparent) {
+            painter->clear(fg, bg);
+        } else {
+            for (int i = 0; i < geometry().width(); i++) {
+                painter->setBackground(i,0,{ 0, 0x00, 0x80});
+            }
+        }
         int x = 1 + trackBarPosition;
         painter->writeWithColors(0, 0, "←", controlfg, controlbg);
-        for (int i=0; i<thumbHeight; i++) {
-            painter->writeWithColors(x, 0, "▓", controlfg, controlbg);
+        for (int i = 0; i < thumbHeight; i++) {
+            if (!_transparent) {
+                painter->writeWithColors(x, 0, "▓", controlfg, controlbg);
+            } else {
+                painter->setBackground(x,0,{ 0, 0, 0xd9});
+            }
             x+=1;
         }
         painter->writeWithColors(trackBarSize + 1, 0, "→", controlfg, controlbg);
@@ -71,6 +92,14 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
 
 void ScrollBar::autoHideExpired() {
     setVisible(false);
+}
+
+bool ScrollBar::transparent() const {
+    return _transparent;
+}
+
+void ScrollBar::setTransparent(bool transparent) {
+    _transparent = transparent;
 }
 
 void ScrollBar::scrollPosition(int x, int y)
