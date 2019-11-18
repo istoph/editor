@@ -220,14 +220,13 @@ Editor::Editor() {
     rootLayout->addWidget(win);
     rootLayout->addWidget(s);
 
-    SearchDialog *searchDialog = new SearchDialog(this, file);
+    _searchDialog = new SearchDialog(this, file);
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
-                     searchDialog, &SearchDialog::open);
+                     _searchDialog, &SearchDialog::open);
 }
 
 void Editor::searchDialog() {
-    SearchDialog *searchDialog = new SearchDialog(this, file);
-    searchDialog->open();
+    _searchDialog->open();
 }
 
 void Editor::newFile(QString filename) {

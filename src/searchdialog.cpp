@@ -96,14 +96,14 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
         _searchText = searchText->text();
         file->setSerchText(_searchText);
         file->searchNext();
-        deleteLater();
+        setVisible(false);
         update();
     });
 
     QObject::connect(cancelBtn, &Button::clicked, [=]{
         _searchText = "";
         file->setSerchText(_searchText);
-        deleteLater();
+        setVisible(false);
     });
 
     QObject::connect(caseMatch, &CheckBox::stateChanged, [=]{

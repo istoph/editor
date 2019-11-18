@@ -53,6 +53,7 @@ private:
 private:
     ScrollBar *_scrollbarHorizontal = nullptr;
     WindowLayout *_winLayout = nullptr;
+    SearchDialog *_searchDialog = nullptr;
 };
 
 #endif // EDIT_H
