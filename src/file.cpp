@@ -331,8 +331,12 @@ bool File::isModified() const {
     return _currentUndoStep != _savedUndoStep;
 }
 
-void File::setSerchText(QString serchText) {
+void File::setSearchText(QString serchText) {
     _searchText = serchText;
+}
+
+void File::setSearchWrap(bool wrap) {
+    _searchWrap = wrap;
 }
 
 void File::searchNext(int line) {
@@ -361,7 +365,7 @@ void File::searchNext(int line) {
                 return;
             }
         }
-        if(!loop) {
+        if(_searchWrap && !loop) {
             searchNext(0);
         }
     }

@@ -36,8 +36,10 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
             nbox->addWidget(caseMatch);
             CheckBox *wordMatch = new CheckBox(withMarkup, "Match <m>e</m>ntire word only", gbox);
             nbox->addWidget(wordMatch);
+            wordMatch->setEnabled(false);
             CheckBox *regexMatch = new CheckBox(withMarkup, "Re<m>g</m>ular expression", gbox);
             nbox->addWidget(regexMatch);
+            regexMatch->setEnabled(false);
 
             hbox->addWidget(gbox);
         }
@@ -55,8 +57,9 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
             nbox->addSpacing(1);
 
-            CheckBox *wrap = new CheckBox(withMarkup, "Wra<m>p</m> around", gbox);
-            nbox->addWidget(wrap);
+            _wrap = new CheckBox(withMarkup, "Wra<m>p</m> around", gbox);
+            _wrap->setCheckState(Qt::Checked);
+            nbox->addWidget(_wrap);
 
             hbox->addWidget(gbox);
         }
@@ -89,12 +92,18 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     QObject::connect(searchText, &InputBox::textChanged, this, [this,file] (const QString& newText) {
         okBtn->setEnabled(newText.size());
-        file->setSerchText(searchText->text());
+        file->setSearchText(searchText->text());
     });
 
     QObject::connect(okBtn, &Button::clicked, [=]{
+        if (_wrap->checkState() == Qt::Checked) {
+            file->setSearchWrap(true);
+        } else {
+            file->setSearchWrap(false);
+        }
+
         _searchText = searchText->text();
-        file->setSerchText(_searchText);
+        file->setSearchText(_searchText);
         file->searchNext();
         setVisible(false);
         update();
@@ -102,7 +111,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     QObject::connect(cancelBtn, &Button::clicked, [=]{
         _searchText = "";
-        file->setSerchText(_searchText);
+        file->setSearchText(_searchText);
         setVisible(false);
     });
 

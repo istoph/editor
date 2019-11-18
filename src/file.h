@@ -48,7 +48,7 @@ public:
     void deleteNextCharacterOrWord(TextLayout::CursorMode mode);
 
     bool isModified() const;
-    void setSerchText(QString serchText);
+    void setSearchText(QString serchText);
     Qt::CaseSensitivity searchCaseSensitivity;
 
 public:
@@ -60,6 +60,7 @@ public:
 
     void searchNext(int line = -1);
     void searchPrevious();
+    void setSearchWrap(bool wrap);
 
 signals:
     void cursorPositionChanged(int x, int utf8x, int y);
@@ -104,6 +105,7 @@ private:
     bool _collapseUndoStep;
     int _savedUndoStep;
     QString _searchText;
+    bool _searchWrap;
 };
 
 #endif // FILE_H

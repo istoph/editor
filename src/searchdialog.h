@@ -21,6 +21,7 @@ private:
     QString _searchText;
     bool caseSensitive = true;
     CheckBox *caseMatch = nullptr;
+    CheckBox *_wrap = nullptr;
 };
 
 #endif // SEARCHDIALOG_H
