@@ -519,9 +519,14 @@ void File::deleteNextCharacterOrWord(TextLayout::CursorMode mode) {
     }
 }
 
-void File::keyEvent(Tui::ZKeyEvent *event) {
-    int height = 19; //Windows size
+int File::getVisibleLines() {
+    if(getWrapOption()) {
+        return geometry().height() - 2;
+    }
+    return geometry().height() - 1;
+}
 
+void File::keyEvent(Tui::ZKeyEvent *event) {
     QString text = event->text();
     if(event->key() == Qt::Key_Space && event->modifiers() == 0) {
         text = " ";
@@ -699,8 +704,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if(event->modifiers() == Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
-        if (_text.size() > _cursorPositionY + height) {
-            _cursorPositionY += height;
+        if (_text.size() > _cursorPositionY + getVisibleLines()) {
+            _cursorPositionY += getVisibleLines();
         } else {
             _cursorPositionY = _text.size() -1;
         }
@@ -737,8 +742,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if(event->modifiers() == Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
-        if (_cursorPositionY > height) {
-            _cursorPositionY += -height;
+        if (_cursorPositionY > getVisibleLines()) {
+            _cursorPositionY -= getVisibleLines();
         } else {
             _cursorPositionY = 0;
             _scrollPositionY = 0;

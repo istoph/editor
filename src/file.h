@@ -46,6 +46,7 @@ public:
     void redo();
     void deletePreviousCharacterOrWord(TextLayout::CursorMode mode);
     void deleteNextCharacterOrWord(TextLayout::CursorMode mode);
+    int getVisibleLines();
 
     bool isModified() const;
     void setSearchText(QString serchText);
