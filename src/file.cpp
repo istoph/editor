@@ -710,6 +710,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             _cursorPositionY = _text.size() -1;
         }
         if(event->modifiers() == Qt::ShiftModifier) {
+            _cursorPositionX = _text[_cursorPositionY].size();
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
@@ -722,6 +723,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         _cursorPositionX = 1;
         _cursorPositionY = 1;
         if(event->modifiers() == Qt::ShiftModifier) {
+            _cursorPositionX = _text[_cursorPositionY].size();
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
@@ -734,6 +736,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         _cursorPositionX = _text[_text.size() -1].size();
         _cursorPositionY = _text.size();
         if(event->modifiers() == Qt::ShiftModifier) {
+          _cursorPositionX = 0;
           select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
@@ -749,6 +752,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             _scrollPositionY = 0;
         }
         if(event->modifiers() == Qt::ShiftModifier) {
+            _cursorPositionX = 0;
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
