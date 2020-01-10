@@ -371,9 +371,44 @@ void File::searchNext(int line) {
     }
 }
 
-void File::searchPrevious() {
+void File::searchPrevious(int line) {
     if(_searchText != "") {
+        //int found = _text[_text.size()-1].size();
+        int found = 0;
+        bool loop = false;
+        if (line < 0) {
+            line = _cursorPositionY;
+            found = _cursorPositionX;
+        } else {
+            loop = true;
+        }
 
+        for (; line >= 0; line--) {
+            if(_cursorPositionX == 0) {
+                _cursorPositionX++;
+                continue;
+            }
+            found = _text[line].lastIndexOf(_searchText, found -1, searchCaseSensitivity);
+            if (found != -1) {
+                _cursorPositionY = line;
+                _cursorPositionX = found -1;
+                adjustScrollPosition();
+
+                resetSelect();
+                select(_cursorPositionX + _searchText.size() +1, _cursorPositionY);
+                if(_cursorPositionX < 0) {
+                    _cursorPositionX = 0;
+                    select(1, _cursorPositionY);
+                } else {
+                    select(found, _cursorPositionY);
+                }
+                adjustScrollPosition();
+                return;
+            }
+        }
+        if(_searchWrap && !loop) {
+            searchPrevious(_text.size() -1);
+        }
     }
 }
 
