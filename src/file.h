@@ -60,7 +60,7 @@ public:
     bool newfile = true;
 
     void searchNext(int line = -1);
-    void searchPrevious();
+    void searchPrevious(int line = -1);
     void setSearchWrap(bool wrap);
 
 signals:
