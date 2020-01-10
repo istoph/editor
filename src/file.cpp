@@ -341,7 +341,7 @@ void File::setSearchWrap(bool wrap) {
 
 void File::searchNext(int line) {
     if(_searchText != "") {
-        int found = 0;
+        int found = -1;
         bool loop = false;
         if (line < 0) {
             line = _cursorPositionY;
