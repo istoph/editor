@@ -2,6 +2,7 @@
 #define EDIT_H
 
 #include <QCoreApplication>
+#include <QSocketNotifier>
 
 #include <Tui/ZCommandNotifier.h>
 #include <Tui/ZPalette.h>
@@ -37,11 +38,17 @@ public:
     File *file;
     int tab = 8;
 
+public:
+    void watchPipe(int fd);
+
 public slots:
     void newFile(QString filename = "dokument.txt");
     void openFile(QString filename);
     void saveFile(QString filename);
     void setWrap(bool wrap);
+
+private slots:
+    void inputPipeReadable(int socket);
 
 private:
     void openFileDialog();
@@ -54,6 +61,8 @@ private:
     ScrollBar *_scrollbarHorizontal = nullptr;
     WindowLayout *_winLayout = nullptr;
     SearchDialog *_searchDialog = nullptr;
+    QSocketNotifier *_pipeSocketNotifier = nullptr;
+    QByteArray _pipeLineBuffer;
 };
 
 #endif // EDIT_H

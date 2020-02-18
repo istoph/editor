@@ -225,6 +225,11 @@ Editor::Editor() {
                      _searchDialog, &SearchDialog::open);
 }
 
+void Editor::watchPipe(int fd) {
+    _pipeSocketNotifier = new QSocketNotifier(0, QSocketNotifier::Type::Read, this);
+    QObject::connect(_pipeSocketNotifier, &QSocketNotifier::activated, this, &Editor::inputPipeReadable);
+}
+
 void Editor::searchDialog() {
     _searchDialog->open();
 }
@@ -322,6 +327,30 @@ void Editor::setWrap(bool wrap) {
     }
 }
 
+void Editor::inputPipeReadable(int socket) {
+    char buff[1024];
+    int bytes = read(socket, buff, 1024);
+    if (bytes == 0) {
+        // EOF
+        if (!_pipeLineBuffer.isEmpty()) {
+            file->appendLine(QString::fromUtf8(_pipeLineBuffer));
+        }
+        _pipeSocketNotifier->deleteLater();
+        _pipeSocketNotifier = nullptr;
+    } else if (bytes < 0) {
+        // TODO error handling
+        _pipeSocketNotifier->deleteLater();
+        _pipeSocketNotifier = nullptr;
+    } else {
+        _pipeLineBuffer.append(buff, bytes);
+        int index;
+        while ((index = _pipeLineBuffer.indexOf('\n')) != -1) {
+            file->appendLine(QString::fromUtf8(_pipeLineBuffer.left(index)));
+            _pipeLineBuffer = _pipeLineBuffer.mid(index + 1);
+        }
+    }
+}
+
 int main(int argc, char **argv) {
 
     QCoreApplication app(argc, argv);
@@ -415,15 +444,25 @@ int main(int argc, char **argv) {
             }
             p.removeFirst();
         }
-        QFileInfo datei(p.first());
-        if(datei.isReadable()) {
-            if(datei.size() > 1024000 && !parser.isSet(bigOption) && !bigfile) {
-                //TODO: warn dialog
-                out << "The file is bigger then 1MB ("<< datei.size() <<"). Please start with -b for big files.\n";
-                return 0;
+        if (!p.isEmpty()) {
+            if (p.first() != "-") {
+                QFileInfo datei(p.first());
+                if(datei.isReadable()) {
+                    if(datei.size() > 1024000 && !parser.isSet(bigOption) && !bigfile) {
+                        //TODO: warn dialog
+                        out << "The file is bigger then 1MB ("<< datei.size() <<"). Please start with -b for big files.\n";
+                        return 0;
+                    }
+                }
+                root->openFile(datei.absoluteFilePath());
+            } else {
+                root->newFile();
+                root->watchPipe(0);
             }
+        } else {
+            out << "Got file offset without file name.\n";
+            return 0;
         }
-        root->openFile(datei.absoluteFilePath());
     } else {
         root->newFile();
     }

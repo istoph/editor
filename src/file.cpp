@@ -561,6 +561,12 @@ int File::getVisibleLines() {
     return geometry().height() - 1;
 }
 
+void File::appendLine(const QString &line) {
+    // TODO richtig machen, z.B. saved state, ggf undo
+    _text.append(line);
+    adjustScrollPosition();
+}
+
 void File::keyEvent(Tui::ZKeyEvent *event) {
     QString text = event->text();
     if(event->key() == Qt::Key_Space && event->modifiers() == 0) {
