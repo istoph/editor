@@ -64,6 +64,9 @@ public:
     void searchPrevious(int line = -1);
     void setSearchWrap(bool wrap);
 
+public slots:
+    void followStandardInput(bool follow);
+
 signals:
     void cursorPositionChanged(int x, int utf8x, int y);
     void scrollPositionChanged(int x, int y);
@@ -108,6 +111,7 @@ private:
     int _savedUndoStep;
     QString _searchText;
     bool _searchWrap;
+    bool _follow = false;
 };
 
 #endif // FILE_H

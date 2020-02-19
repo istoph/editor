@@ -15,6 +15,8 @@ public slots:
     void cursorPosition(int x, int utf8x, int y);
     void scrollPosition(int x, int y);
     void setModified(bool modified);
+    void readFromStandardInput(bool activ);
+    void followStandardInput(bool follow);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event);
@@ -25,6 +27,8 @@ private:
     int _cursorPositionY = 0;
     int _scrollPositionX = 0;
     int _scrollPositionY = 0;
+    bool _stdin = false;
+    bool _stdin_follow = false;
 };
 
 #endif // STATUSBAR_H

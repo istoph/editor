@@ -25,6 +25,13 @@ void StatusBar::setModified(bool save) {
     this->modified = save;
 }
 
+void StatusBar::readFromStandardInput(bool activ) {
+    _stdin = activ;
+}
+void StatusBar::followStandardInput(bool follow) {
+    _stdin_follow = follow;
+}
+
 void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
 
     auto *painter = event->painter();
@@ -32,7 +39,14 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
 
     QString text;
     if(this->modified) {
-        text += "";
+        text += " ";
+    }
+    if(_stdin) {
+        text += " | STDIN";
+        if (_stdin_follow) {
+            //TODO: Blinking
+            text += " FOLOW";
+        }
     }
     text += " | UTF-8 " + QString::number(_cursorPositionY +1) + ":" + QString::number(_utf8PositionX +1);
     if (_utf8PositionX != _cursorPositionX) {

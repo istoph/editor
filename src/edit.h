@@ -25,6 +25,9 @@
 #include <QTextStream>
 #include <QCommandLineParser>
 
+//Debug Sleep
+#include <unistd.h>
+
 class Editor : public Tui::ZRoot {
     Q_OBJECT
 
@@ -39,7 +42,9 @@ public:
     int tab = 8;
 
 public:
-    void watchPipe(int fd);
+    void watchPipe();
+    void setFollow(bool follow);
+    bool getFollow();
 
 public slots:
     void newFile(QString filename = "dokument.txt");
@@ -49,6 +54,10 @@ public slots:
 
 private slots:
     void inputPipeReadable(int socket);
+
+signals:
+    void readFromStandadInput(bool activ);
+    void followStandadInput(bool follow);
 
 private:
     void openFileDialog();
@@ -63,6 +72,7 @@ private:
     SearchDialog *_searchDialog = nullptr;
     QSocketNotifier *_pipeSocketNotifier = nullptr;
     QByteArray _pipeLineBuffer;
+    bool _follow = false;
 };
 
 #endif // EDIT_H

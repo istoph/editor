@@ -36,7 +36,8 @@ Editor::Editor() {
                       { "<m>O</m>ptions", "", {}, {
                                  { "<m>T</m>ab", "", "Tab", {}},
                                  { "<m>F</m>ormatting characters", "", "Formatting", {}},
-                                 { "<m>W</m>rap long lines", "", "Wrap", {}}
+                                 { "<m>W</m>rap long lines", "", "Wrap", {}},
+                                 { "Following standard input", "", "Following", {}}
                              }
                            },
                       { "Hel<m>p</m>", "", {}, {
@@ -182,6 +183,13 @@ Editor::Editor() {
             setWrap(!file->getWrapOption());
         }
     );
+    //TODO das muss grau werden wenn stdin nicht aktiv ist
+    QObject::connect(new Tui::ZCommandNotifier("Following", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            setFollow(!getFollow());
+            file->followStandardInput(getFollow());
+        }
+    );
 
     win = new WindowWidget(this);
     win->setBorderEdges({ Qt::TopEdge });
@@ -194,6 +202,8 @@ Editor::Editor() {
     connect(file, &File::cursorPositionChanged, s, &StatusBar::cursorPosition);
     connect(file, &File::scrollPositionChanged, s, &StatusBar::scrollPosition);
     connect(file, &File::modifiedChanged, s, &StatusBar::setModified);
+    connect(this, &Editor::readFromStandadInput, s, &StatusBar::readFromStandardInput);
+    connect(this, &Editor::followStandadInput, s, &StatusBar::followStandardInput);
 
     ScrollBar *sc = new ScrollBar(win);
     sc->setTransparent(true);
@@ -225,7 +235,7 @@ Editor::Editor() {
                      _searchDialog, &SearchDialog::open);
 }
 
-void Editor::watchPipe(int fd) {
+void Editor::watchPipe() {
     _pipeSocketNotifier = new QSocketNotifier(0, QSocketNotifier::Type::Read, this);
     QObject::connect(_pipeSocketNotifier, &QSocketNotifier::activated, this, &Editor::inputPipeReadable);
 }
@@ -349,6 +359,21 @@ void Editor::inputPipeReadable(int socket) {
             _pipeLineBuffer = _pipeLineBuffer.mid(index + 1);
         }
     }
+
+    if(_pipeSocketNotifier == nullptr) {
+        readFromStandadInput(false);
+    } else {
+        readFromStandadInput(true);
+    }
+}
+
+void Editor::setFollow(bool follow) {
+    _follow = follow;
+    followStandadInput(_follow);
+}
+
+bool Editor::getFollow() {
+    return _follow;
 }
 
 int main(int argc, char **argv) {
@@ -368,6 +393,11 @@ int main(int argc, char **argv) {
                                     QCoreApplication::translate("main", "num"));
 
     parser.addOption(numberOption);
+
+    QCommandLineOption append({"a","append"},
+                              QCoreApplication::translate("main", "Only with read from standard input, then append to a file"),
+                               QCoreApplication::translate("main", "file"));
+    parser.addOption(append);
 
     // Big Files
     QCommandLineOption bigOption("b",QCoreApplication::translate("main", "Open bigger files then 1MB"));
@@ -456,8 +486,12 @@ int main(int argc, char **argv) {
                 }
                 root->openFile(datei.absoluteFilePath());
             } else {
-                root->newFile();
-                root->watchPipe(0);
+                if(parser.isSet(append)) {
+                    root->openFile(parser.value(append));
+                } else {
+                    root->newFile();
+                }
+                root->watchPipe();
             }
         } else {
             out << "Got file offset without file name.\n";

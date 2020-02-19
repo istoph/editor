@@ -339,6 +339,10 @@ void File::setSearchWrap(bool wrap) {
     _searchWrap = wrap;
 }
 
+void File::followStandardInput(bool follow) {
+    _follow = follow;
+}
+
 void File::searchNext(int line) {
     if(_searchText != "") {
         int found = -1;
@@ -564,6 +568,10 @@ int File::getVisibleLines() {
 void File::appendLine(const QString &line) {
     // TODO richtig machen, z.B. saved state, ggf undo
     _text.append(line);
+    if(_follow) {
+        _cursorPositionY = _text.size() -1;
+    }
+    saveUndoStep();
     adjustScrollPosition();
 }
 
