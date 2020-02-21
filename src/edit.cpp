@@ -391,13 +391,15 @@ int main(int argc, char **argv) {
     QCommandLineOption numberOption({"n","number"},
                                     QCoreApplication::translate("main", "The cursor will be positioned on line \"num\".  If \"num\" is missing, the cursor will be positioned on the last line."),
                                     QCoreApplication::translate("main", "num"));
-
     parser.addOption(numberOption);
 
     QCommandLineOption append({"a","append"},
                               QCoreApplication::translate("main", "Only with read from standard input, then append to a file"),
-                               QCoreApplication::translate("main", "file"));
+                              QCoreApplication::translate("main", "file"));
     parser.addOption(append);
+
+    QCommandLineOption follow({"f","follow"},QCoreApplication::translate("main", "Only with read from standard input, then follow the input stream"));
+    parser.addOption(follow);
 
     // Big Files
     QCommandLineOption bigOption("b",QCoreApplication::translate("main", "Open bigger files then 1MB"));
@@ -514,6 +516,10 @@ int main(int argc, char **argv) {
             lineChar = list1[1].toInt() -1;
         }
         root->file->gotoline(lineNumber,lineChar);
+    }
+
+    if(parser.isSet(follow)) {
+        root->file->followStandardInput(true);
     }
 
     root->file->setFocus();
