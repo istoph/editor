@@ -48,10 +48,15 @@ bool File::saveText() {
     QFile file(this->filename);
     if (file.open(QIODevice::WriteOnly)) {
         QTextStream stream(&file);
-        QString text;
-        foreach (text, _text) {
-            stream << text << endl;
+
+        for (int i=0; i<_text.size(); i++) {
+            if(i+1 == _text.size() && _nonewline) {
+                stream << _text[i];
+            } else {
+                stream << _text[i] << endl;
+            }
         }
+
         file.close();
         saveUndoStep();
         _savedUndoStep = _currentUndoStep;
@@ -136,14 +141,18 @@ bool File::isInsertable() {
 }
 
 void File::insertLinebreak() {
-    _text.insert(_cursorPositionY + 1,QString());
-    if (_text[_cursorPositionY].size() > _cursorPositionX) {
-        _text[_cursorPositionY + 1] = _text[_cursorPositionY].mid(_cursorPositionX);
-        _text[_cursorPositionY].resize(_cursorPositionX);
+    if(_nonewline && _cursorPositionY == _text.size() -1 && _text[_cursorPositionY].size() == _cursorPositionX) {
+        _nonewline = false;
+    } else {
+        _text.insert(_cursorPositionY + 1,QString());
+        if (_text[_cursorPositionY].size() > _cursorPositionX) {
+            _text[_cursorPositionY + 1] = _text[_cursorPositionY].mid(_cursorPositionX);
+            _text[_cursorPositionY].resize(_cursorPositionX);
+        }
+        _cursorPositionX=0;
+        _cursorPositionY++;
+        saveUndoStep();
     }
-    _cursorPositionX=0;
-    _cursorPositionY++;
-    saveUndoStep();
 }
 
 void File::gotoline(int y, int x) {
@@ -519,8 +528,15 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         }
         y += lay.lineCount();
     }
-    if (y < rect().height() && this->getformattingCharacters() && _scrollPositionX == 0) {
-        painter->writeWithAttributes(0, y, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+    if (_nonewline) {
+        if (this->getformattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
+            painter->writeWithAttributes(_text[_text.size() -1].size(), y-1, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+        }
+        painter->writeWithAttributes(0, y, "\\ No newline at end of file", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+    } else {
+        if (this->getformattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
+            painter->writeWithAttributes(0, y, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+        }
     }
 }
 
@@ -542,7 +558,9 @@ void File::deletePreviousCharacterOrWord(TextLayout::CursorMode mode) {
 }
 
 void File::deleteNextCharacterOrWord(TextLayout::CursorMode mode) {
-    if(_text[_cursorPositionY].size() > _cursorPositionX) {
+    if(_cursorPositionY == _text.size() -1 && _text[_cursorPositionY].size() == _cursorPositionX) {
+        _nonewline = true;
+    } else if(_text[_cursorPositionY].size() > _cursorPositionX) {
         TextLayout lay(terminal()->textMetrics(), _text[_cursorPositionY]);
         lay.doLayout(rect().width());
         int rightBoundary = lay.nextCursorPosition(_cursorPositionX, mode);

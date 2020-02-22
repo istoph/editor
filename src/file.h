@@ -112,6 +112,7 @@ private:
     QString _searchText;
     bool _searchWrap;
     bool _follow = false;
+    bool _nonewline = false;
 };
 
 #endif // FILE_H
