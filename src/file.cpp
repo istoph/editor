@@ -734,7 +734,16 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if(event->modifiers() == Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
-        _cursorPositionX = 0;
+        if(_cursorPositionX == 0) {
+            for (int i = 0; i < _text[_cursorPositionY].size()-1; i++) {
+                if(_text[_cursorPositionY][i] != ' ' && _text[_cursorPositionY][i] != '\t') {
+                    _cursorPositionX = i;
+                    break;
+                }
+            }
+        } else {
+            _cursorPositionX = 0;
+        }
         if(event->modifiers() == Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
