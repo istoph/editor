@@ -598,6 +598,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     if(event->key() == Qt::Key_Space && event->modifiers() == 0) {
         text = " ";
     }
+
     if (isSelect() &&
             event->key() != Qt::Key_Right &&
             event->key() != Qt::Key_Down &&
@@ -623,6 +624,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         deleteNextCharacterOrWord(event->modifiers() & Qt::ControlModifier ? TextLayout::SkipWords : TextLayout::SkipCharacters);
         adjustScrollPosition();
     }
+
     if (
         event->key() != Qt::Key_Tab &&
         (
@@ -657,7 +659,13 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         resetSelect();
         adjustScrollPosition();
     }
-    if(text.size() && event->modifiers() == 0) {
+
+    if (_formatting_characters && (event->text() == "·" || event->text() == "→") && event->modifiers() == 0) {
+        _text[_cursorPositionY].insert(_cursorPositionX, ' ');
+        ++_cursorPositionX;
+    } else if (_formatting_characters && event->text() == "¶" && event->modifiers() == 0) {
+        true;
+    } else if(text.size() && event->modifiers() == 0) {
         if(_text[_cursorPositionY].size() < _cursorPositionX) {
             _text[_cursorPositionY].resize(_cursorPositionX, ' ');
         }
