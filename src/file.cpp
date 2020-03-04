@@ -69,6 +69,12 @@ bool File::saveText() {
     return false;
 }
 
+void File::checkWritable() {
+     //QFile file(this->filename);
+     QFileInfo file(this->filename);
+     setWritable(file.isWritable());
+}
+
 bool File::openText() {
     QFile file(this->filename);
     newfile = false;
@@ -89,6 +95,7 @@ bool File::openText() {
             saveUndoStep();
             _savedUndoStep = _currentUndoStep;
         }
+        checkWritable();
         return true;
     }
     return false;

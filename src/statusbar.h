@@ -17,6 +17,7 @@ public slots:
     void setModified(bool modified);
     void readFromStandardInput(bool activ);
     void followStandardInput(bool follow);
+    void setWritable(bool rw);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event);
@@ -29,6 +30,7 @@ private:
     int _scrollPositionY = 0;
     bool _stdin = false;
     bool _stdin_follow = false;
+    bool _readwrite = true;
 };
 
 #endif // STATUSBAR_H

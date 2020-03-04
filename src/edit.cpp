@@ -204,6 +204,7 @@ Editor::Editor() {
     connect(file, &File::modifiedChanged, s, &StatusBar::setModified);
     connect(this, &Editor::readFromStandadInput, s, &StatusBar::readFromStandardInput);
     connect(this, &Editor::followStandadInput, s, &StatusBar::followStandardInput);
+    connect(file, &File::setWritable, s, &StatusBar::setWritable);
 
     ScrollBar *sc = new ScrollBar(win);
     sc->setTransparent(true);
@@ -358,6 +359,7 @@ void Editor::inputPipeReadable(int socket) {
             file->appendLine(QString::fromUtf8(_pipeLineBuffer.left(index)));
             _pipeLineBuffer = _pipeLineBuffer.mid(index + 1);
         }
+        file->modifiedChanged(true);
     }
 
     if(_pipeSocketNotifier == nullptr) {

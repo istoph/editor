@@ -63,6 +63,7 @@ public:
     void searchNext(int line = -1);
     void searchPrevious(int line = -1);
     void setSearchWrap(bool wrap);
+    void checkWritable();
 
 public slots:
     void followStandardInput(bool follow);
@@ -72,6 +73,7 @@ signals:
     void scrollPositionChanged(int x, int y);
     void textMax(int x, int y);
     void modifiedChanged(bool modified);
+    void setWritable(bool rw);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event) override;

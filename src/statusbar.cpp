@@ -32,10 +32,14 @@ void StatusBar::followStandardInput(bool follow) {
     _stdin_follow = follow;
 }
 
-void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
+void StatusBar::setWritable(bool rw) {
+    _readwrite = rw;
+}
 
+void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
+    Tui::ZColor bg = {0, 0xaa, 0xaa};
     auto *painter = event->painter();
-    painter->clear({0, 0, 0}, {0, 0xaa, 0xaa});
+
 
     QString text;
     if(this->modified) {
@@ -47,6 +51,13 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
             //TODO: Blinking
             text += " FOLOW";
         }
+    } else {
+        if(_readwrite) {
+            text += " | RW";
+        } else {
+            text += " | RO";
+            bg = {0xff,0,0};
+        }
     }
     text += " | UTF-8 " + QString::number(_cursorPositionY +1) + ":" + QString::number(_utf8PositionX +1);
     if (_utf8PositionX != _cursorPositionX) {
@@ -54,5 +65,6 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     }
     text += " | " + QString::number(_scrollPositionY +1)  + ":" + QString::number(_scrollPositionX +1);
 
-    painter->writeWithColors(50, 0, text.toUtf8(), {0, 0, 0}, {0, 0xaa, 0xaa});
+    painter->clear({0, 0, 0}, bg);
+    painter->writeWithColors(50, 0, text.toUtf8(), {0, 0, 0}, bg);
 }
