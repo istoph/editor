@@ -982,9 +982,11 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Up) {
         //Zeilen verschiben
 
+        bool _resetSelect = false;
         //Nich markierte Zeile verschiben
         if(!isSelect()) {
             startSelectY = endSelectY = _cursorPositionY;
+            _resetSelect = true;
         }
         if(startSelectY > 0) {
             //Zeilen Markieren
@@ -1003,6 +1005,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             //Markirung Nachziehen
             startSelectY -= 1;
             endSelectY -= 1;
+            if (_resetSelect) {
+                resetSelect();
+            }
             saveUndoStep();
             adjustScrollPosition();
         }
@@ -1010,8 +1015,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         //Zeilen verschiben
 
         //Nich markierte Zeile verschiben
+        bool _resetSelect = false;
         if(!isSelect()) {
             startSelectY = endSelectY = _cursorPositionY;
+            _resetSelect = true;
         }
         if(endSelectY + 1 < _text.size()) {
             //Zeilen Markieren
@@ -1030,6 +1037,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             //Markirung Nachziehen
             startSelectY += 1;
             endSelectY += 1;
+            if (_resetSelect) {
+                resetSelect();
+            }
             saveUndoStep();
             adjustScrollPosition();
         }
