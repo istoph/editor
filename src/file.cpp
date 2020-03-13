@@ -696,10 +696,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             _cursorPositionY -= 1;
             _cursorPositionX = _text[_cursorPositionY].size();
         }
+        adjustScrollPosition();
         if(event->modifiers() & Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
-        adjustScrollPosition();
         _collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Right && (event->modifiers() & ~(Qt::ShiftModifier | Qt::ControlModifier)) == 0) {
         if(event->modifiers() & Qt::ShiftModifier) {
@@ -714,10 +714,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             ++_cursorPositionY;
             _cursorPositionX = 0;
         }
+        adjustScrollPosition();
         if(event->modifiers() & Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
-        adjustScrollPosition();
         _collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Down && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if(event->modifiers() == Qt::ShiftModifier) {
@@ -728,10 +728,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         } else {
             ++_scrollPositionY;
         }
+        adjustScrollPosition();
         if(event->modifiers() == Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
-        adjustScrollPosition();
         _collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Up && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if(event->modifiers() == Qt::ShiftModifier) {
@@ -740,10 +740,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if (_cursorPositionY > 0) {
             --_cursorPositionY;
         }
+        adjustScrollPosition();
         if(event->modifiers() == Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
-        adjustScrollPosition();
         _collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if(event->modifiers() == Qt::ShiftModifier) {
