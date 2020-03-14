@@ -36,6 +36,7 @@ bool File::newText() {
     _scrollPositionX = 0;
     _cursorPositionX = 0;
     _cursorPositionY = 0;
+    _saveCursorPositionX = 0;
     saveUndoStep();
     _savedUndoStep = _currentUndoStep;
     modifiedChanged(false);
@@ -139,6 +140,7 @@ void File::paste() {
             insertLinebreak();
         }
     }
+    safeCursorPosition();
     adjustScrollPosition();
     saveUndoStep();
 }
@@ -158,6 +160,7 @@ void File::insertLinebreak() {
         }
         _cursorPositionX=0;
         _cursorPositionY++;
+        safeCursorPosition();
         saveUndoStep();
     }
 }
@@ -178,7 +181,7 @@ void File::gotoline(int y, int x) {
     } else {
         _cursorPositionX = x;
     }
-
+    safeCursorPosition();
     adjustScrollPosition();
 }
 
@@ -286,6 +289,7 @@ bool File::delSelect() {
             }
         }
     }
+    safeCursorPosition();
     resetSelect();
     saveUndoStep();
     return true;
@@ -322,6 +326,7 @@ void File::undo() {
     _cursorPositionX = _undoSteps[_currentUndoStep].cursorPositionX;
     _cursorPositionY = _undoSteps[_currentUndoStep].cursorPositionY;
     modifiedChanged(isModified());
+    safeCursorPosition();
     adjustScrollPosition();
 }
 
@@ -340,6 +345,7 @@ void File::redo() {
     _cursorPositionX = _undoSteps[_currentUndoStep].cursorPositionX;
     _cursorPositionY = _undoSteps[_currentUndoStep].cursorPositionY;
     modifiedChanged(isModified());
+    safeCursorPosition();
     adjustScrollPosition();
 }
 
@@ -381,6 +387,7 @@ void File::searchNext(int line) {
                 select(found, _cursorPositionY);
                 _cursorPositionX += _searchText.size();
                 select(_cursorPositionX, _cursorPositionY);
+                safeCursorPosition();
                 adjustScrollPosition();
                 return;
             }
@@ -422,6 +429,7 @@ void File::searchPrevious(int line) {
                 } else {
                     select(found, _cursorPositionY);
                 }
+                safeCursorPosition();
                 adjustScrollPosition();
                 return;
             }
@@ -554,12 +562,14 @@ void File::deletePreviousCharacterOrWord(TextLayout::CursorMode mode) {
         int leftBoundary = lay.previousCursorPosition(_cursorPositionX, mode);
         _text[_cursorPositionY].remove(leftBoundary, _cursorPositionX - leftBoundary);
         _cursorPositionX = leftBoundary;
+        safeCursorPosition();
         saveUndoStep();
     } else if (_cursorPositionY > 0) {
         _cursorPositionX = _text[_cursorPositionY -1].size();
         _text[_cursorPositionY -1] += _text[_cursorPositionY];
         _text.removeAt(_cursorPositionY);
         --_cursorPositionY;
+        safeCursorPosition();
         saveUndoStep();
     }
 }
@@ -670,6 +680,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     if (_formatting_characters && (event->text() == "·" || event->text() == "→") && event->modifiers() == 0) {
         _text[_cursorPositionY].insert(_cursorPositionX, ' ');
         ++_cursorPositionX;
+        safeCursorPosition();
     } else if (_formatting_characters && event->text() == "¶" && event->modifiers() == 0) {
         true;
     } else if(text.size() && event->modifiers() == 0) {
@@ -681,6 +692,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         _text[_cursorPositionY].insert(_cursorPositionX, text);
         _cursorPositionX += text.size();
+        safeCursorPosition();
         adjustScrollPosition();
         saveUndoStep(text != " ");
     } else if(event->key() == Qt::Key_Left && (event->modifiers() & ~(Qt::ShiftModifier | Qt::ControlModifier)) == 0) {
@@ -696,6 +708,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             _cursorPositionY -= 1;
             _cursorPositionX = _text[_cursorPositionY].size();
         }
+        safeCursorPosition();
         adjustScrollPosition();
         if(event->modifiers() & Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
@@ -714,6 +727,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             ++_cursorPositionY;
             _cursorPositionX = 0;
         }
+        safeCursorPosition();
         adjustScrollPosition();
         if(event->modifiers() & Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
@@ -725,6 +739,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         if (_text.size() -1 > _cursorPositionY) {
             ++_cursorPositionY;
+            TextLayout lay = getTextLayoutForLine(getTextOption(), _cursorPositionY);
+            TextLineRef la = lay.lineAt(0);
+            _cursorPositionX = la.xToCursor(_saveCursorPositionX);
         } else {
             ++_scrollPositionY;
         }
@@ -739,6 +756,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         if (_cursorPositionY > 0) {
             --_cursorPositionY;
+            TextLayout lay = getTextLayoutForLine(getTextOption(), _cursorPositionY);
+            TextLineRef la = lay.lineAt(0);
+            _cursorPositionX = la.xToCursor(_saveCursorPositionX);
         }
         adjustScrollPosition();
         if(event->modifiers() == Qt::ShiftModifier) {
@@ -762,6 +782,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if(event->modifiers() == Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
+        safeCursorPosition();
         adjustScrollPosition();
         _collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == Qt::ControlModifier || event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) )) {
@@ -772,6 +793,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
             select(_cursorPositionX, _cursorPositionY);
         }
+        safeCursorPosition();
         adjustScrollPosition();
         _collapseUndoStep = false;
     } else if(event->key() == Qt::Key_End && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
@@ -782,6 +804,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if(event->modifiers() == Qt::ShiftModifier) {
             select(_cursorPositionX, _cursorPositionY);
         }
+        safeCursorPosition();
         adjustScrollPosition();
         _collapseUndoStep = false;
     } else if(event->key() == Qt::Key_End && (event->modifiers() == Qt::ControlModifier || (event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)))) {
@@ -794,6 +817,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
             select(_cursorPositionX, _cursorPositionY);
         }
+        safeCursorPosition();
         adjustScrollPosition();
         _collapseUndoStep = false;
     } else if(event->key() == Qt::Key_PageDown && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
@@ -809,6 +833,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             _cursorPositionX = _text[_cursorPositionY].size();
             select(_cursorPositionX, _cursorPositionY);
         }
+        safeCursorPosition();
         adjustScrollPosition();
         _collapseUndoStep = false;
     } else if(event->key() == Qt::Key_PageDown && ( event->modifiers() == Qt::ControlModifier ||
@@ -822,6 +847,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             _cursorPositionX = _text[_cursorPositionY].size();
             select(_cursorPositionX, _cursorPositionY);
         }
+        safeCursorPosition();
         adjustScrollPosition();
         _collapseUndoStep = false;
     } else if(event->key() == Qt::Key_PageUp && (event->modifiers() == Qt::ControlModifier ||
@@ -901,6 +927,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 ++_cursorPositionX;
             }
         }
+        safeCursorPosition();
         adjustScrollPosition();
         saveUndoStep();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == Qt::ShiftModifier) {
@@ -935,6 +962,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             resetSelect();
             select(t_startSelectX, t_startSelectY);
             select(t_endSelectX, t_endSelectY);
+            safeCursorPosition();
             adjustScrollPosition();
             saveUndoStep();
         }
@@ -1122,4 +1150,10 @@ void File::adjustScrollPosition() {
     textMax(max - geometry().width(),_text.count() - geometry().height());
 
     update();
+}
+
+void File::safeCursorPosition() {
+    TextLayout lay = getTextLayoutForLine(getTextOption(), _cursorPositionY);
+    TextLineRef tlr = lay.lineForTextPosition(_cursorPositionX);
+    _saveCursorPositionX = tlr.cursorToX(_cursorPositionX, TextLineRef::Leading);
 }

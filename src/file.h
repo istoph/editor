@@ -81,6 +81,7 @@ protected:
 
 private:
     void adjustScrollPosition();
+    void safeCursorPosition();
     void saveUndoStep(bool collapsable=false);
     QString filename;
     struct UndoStep {
@@ -115,6 +116,7 @@ private:
     bool _searchWrap;
     bool _follow = false;
     bool _nonewline = false;
+    int _saveCursorPositionX = 0;
 };
 
 #endif // FILE_H
