@@ -133,6 +133,9 @@ void File::copy() {
 }
 
 void File::paste() {
+    if(isSelect()){
+        delSelect();
+    }
     for (int i=0; i<_clipboard.size(); i++) {
         _text[_cursorPositionY].insert(_cursorPositionX, _clipboard[i]);
         _cursorPositionX += _clipboard[i].size();
