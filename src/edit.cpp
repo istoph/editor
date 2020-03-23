@@ -243,6 +243,7 @@ void Editor::watchPipe() {
 
 void Editor::searchDialog() {
     _searchDialog->open();
+    _searchDialog->setSearchText(file->getSelectText());
 }
 
 void Editor::newFile(QString filename) {

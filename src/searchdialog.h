@@ -10,6 +10,7 @@ class SearchDialog : public Dialog {
 
 public:
     SearchDialog(Tui::ZWidget *parent, File *file);
+    void setSearchText(QString text);
 
 public slots:
     void open();

@@ -239,6 +239,23 @@ void File::resetSelect() {
     startSelectX = startSelectY = endSelectX = endSelectY = -1;
 }
 
+QString File::getSelectText() {
+    QString selectText = "";
+    if(isSelect()) {
+        for(int y = 0; y < _text.size();y++) {
+            for (int x = 0; x < _text[y].size(); x++) {
+                if(isSelect(x,y)) {
+                    selectText += _text[y].mid(x,1);
+                }
+            }
+            if(isSelect(_text[y].size(),y)) {
+                selectText += "\n";
+            }
+        }
+    }
+    return selectText;
+}
+
 bool File::isSelect(int x, int y) {
     auto startSelect = std::make_pair(startSelectY,startSelectX);
     auto endSelect = std::make_pair(endSelectY,endSelectX);

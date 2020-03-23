@@ -126,6 +126,10 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     });
 }
 
+void SearchDialog::setSearchText(QString text) {
+    searchText->setText(text);
+}
+
 void SearchDialog::open() {
     QRect r = geometry();
     r.moveCenter(terminal()->mainWidget()->geometry().center());

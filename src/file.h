@@ -35,7 +35,7 @@ public:
     bool getWrapOption();
     void select(int x, int y);
     void resetSelect();
-    void getSelect(bool start, int &x, int &y);
+    QString getSelectText();
     bool isSelect(int x, int y);
     bool isSelect();
     void selectAll();
