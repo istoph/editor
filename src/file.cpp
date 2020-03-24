@@ -505,7 +505,6 @@ bool File::highlightBracket() {
     QString openBracket = "{[(<";
     QString closeBracket = "}])>";
 
-    int y = 0;
     if(getHighlightBracket()) {
         for(int i=0; i<openBracket.size(); i++) {
             if (_text[_cursorPositionY][_cursorPositionX] == openBracket[i]) {
