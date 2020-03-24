@@ -92,6 +92,7 @@ private:
 
     ZTextOption getTextOption();
     TextLayout getTextLayoutForLine(const ZTextOption &option, int line);
+    bool highlightBracket();
 
 private:
     QVector<QString> _text;

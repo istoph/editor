@@ -493,9 +493,75 @@ TextLayout File::getTextLayoutForLine(const ZTextOption& option, int line)
     return lay;
 }
 
+bool File::highlightBracket() {
+
+    //,'"','\''
+    QString openBracket = "{[<"; //{'{','[','<'};
+    QString closeBracket = "}]>"; //{'}',']','>'};
+
+    int y = 0;
+    //ist die corser posiotion eine klamma
+    if(!isSelect()) {
+        for(int i=0; i<openBracket.size() ; i++) {
+            if (_text[_cursorPositionY][_cursorPositionX] == openBracket[i]) {
+                int y = 0;
+                int counter = 0;
+                int startX = _cursorPositionX+1;
+                for (int line = _cursorPositionY; y < rect().height() && line < _text.size(); line++) {
+                    for(; startX < _text[line].size(); startX++) {
+                        if (_text[line][startX] == openBracket[i]) {
+                            counter++;
+                        } else if (_text[line][startX] == closeBracket[i]) {
+                            if(counter>0) {
+                                counter--;
+                            } else {
+                                startSelectY=line;
+                                startSelectX=startX;
+                                endSelectY=line;
+                                endSelectX=startX+1;
+                                return true;
+                            }
+                        }
+                    }
+                    startX=0;
+                }
+            }
+
+            if (_text[_cursorPositionY][_cursorPositionX] == closeBracket[i]) {
+                int counter = 0;
+                int startX = _cursorPositionX-1;
+                for (int line = _cursorPositionY; line >= 0;) {
+                    for(; startX >= 0; startX--) {
+                        if (_text[line][startX] == closeBracket[i]) {
+                            counter++;
+                        } else if (_text[line][startX] == openBracket[i]) {
+                            if(counter>0) {
+                                counter--;
+                            } else {
+                                startSelectY=line;
+                                startSelectX=startX;
+                                endSelectY=line;
+                                endSelectX=startX+1;
+                                return true;
+                            }
+                        }
+                    }
+                    if(--line >= 0) {
+                        startX=_text[line].size();
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
 void File::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor bg;
     Tui::ZColor fg;
+    highlightBracket();
 
     bg = getColor("control.bg");
     //fg = getColor("control.fg");
