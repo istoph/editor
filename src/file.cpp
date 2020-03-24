@@ -76,6 +76,14 @@ void File::checkWritable() {
      setWritable(file.isWritable());
 }
 
+void File::setHighlightBracket(bool hb) {
+    _bracket = hb;
+}
+
+bool File::getHighlightBracket() {
+    return _bracket;
+}
+
 bool File::openText() {
     QFile file(this->filename);
     newfile = false;
@@ -494,20 +502,17 @@ TextLayout File::getTextLayoutForLine(const ZTextOption& option, int line)
 }
 
 bool File::highlightBracket() {
-
-    //,'"','\''
-    QString openBracket = "{[<"; //{'{','[','<'};
-    QString closeBracket = "}]>"; //{'}',']','>'};
+    QString openBracket = "{[(<";
+    QString closeBracket = "}])>";
 
     int y = 0;
-    //ist die corser posiotion eine klamma
-    if(!isSelect()) {
-        for(int i=0; i<openBracket.size() ; i++) {
+    if(getHighlightBracket()) {
+        for(int i=0; i<openBracket.size(); i++) {
             if (_text[_cursorPositionY][_cursorPositionX] == openBracket[i]) {
                 int y = 0;
                 int counter = 0;
                 int startX = _cursorPositionX+1;
-                for (int line = _cursorPositionY; y < rect().height() && line < _text.size(); line++) {
+                for (int line = _cursorPositionY; y++ < rect().height() && line < _text.size(); line++) {
                     for(; startX < _text[line].size(); startX++) {
                         if (_text[line][startX] == openBracket[i]) {
                             counter++;
@@ -515,10 +520,8 @@ bool File::highlightBracket() {
                             if(counter>0) {
                                 counter--;
                             } else {
-                                startSelectY=line;
-                                startSelectX=startX;
-                                endSelectY=line;
-                                endSelectX=startX+1;
+                                _bracketY=line;
+                                _bracketX=startX;
                                 return true;
                             }
                         }
@@ -538,23 +541,21 @@ bool File::highlightBracket() {
                             if(counter>0) {
                                 counter--;
                             } else {
-                                startSelectY=line;
-                                startSelectX=startX;
-                                endSelectY=line;
-                                endSelectX=startX+1;
+                                _bracketY=line;
+                                _bracketX=startX;
                                 return true;
                             }
                         }
                     }
                     if(--line >= 0) {
                         startX=_text[line].size();
-                    } else {
-                        return false;
                     }
                 }
             }
         }
     }
+    _bracketX=-1;
+    _bracketY=-1;
     return false;
 }
 
@@ -596,6 +597,15 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 highlights.append(TextLayout::FormatRange{found, _searchText.size(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZPainter::Attribute::Bold}, selectedFormatingChar});
             }
         }
+        if(_bracketX >= 0) {
+            if (_bracketY == line) {
+                highlights.append(TextLayout::FormatRange{_bracketX, 1, {Tui::Colors::cyan, bg,Tui::ZPainter::Attribute::Bold}, selectedFormatingChar});
+            }
+            if (line == _cursorPositionY) {
+                highlights.append(TextLayout::FormatRange{_cursorPositionX, 1, {Tui::Colors::cyan, bg,Tui::ZPainter::Attribute::Bold}, selectedFormatingChar});
+            }
+        }
+
         // selection
         if (line > startSelect.first && line < endSelect.first) {
             // whole line

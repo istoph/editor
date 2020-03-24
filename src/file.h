@@ -64,6 +64,8 @@ public:
     void searchPrevious(int line = -1);
     void setSearchWrap(bool wrap);
     void checkWritable();
+    void setHighlightBracket(bool hb);
+    bool getHighlightBracket();
 
 public slots:
     void followStandardInput(bool follow);
@@ -118,6 +120,9 @@ private:
     bool _follow = false;
     bool _nonewline = false;
     int _saveCursorPositionX = 0;
+    int _bracketX = -1;
+    int _bracketY = -1;
+    bool _bracket = false;
 };
 
 #endif // FILE_H

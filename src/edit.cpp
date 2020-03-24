@@ -37,7 +37,8 @@ Editor::Editor() {
                                  { "<m>T</m>ab", "", "Tab", {}},
                                  { "<m>F</m>ormatting characters", "", "Formatting", {}},
                                  { "<m>W</m>rap long lines", "", "Wrap", {}},
-                                 { "Following standard input", "", "Following", {}}
+                                 { "Following standard input", "", "Following", {}},
+                                 { "<m>H</m>ighlight Brackets", "", "Brackets", {}}
                              }
                            },
                       { "Hel<m>p</m>", "", {}, {
@@ -188,6 +189,12 @@ Editor::Editor() {
          [&] {
             setFollow(!getFollow());
             file->followStandardInput(getFollow());
+        }
+    );
+
+    QObject::connect(new Tui::ZCommandNotifier("Brackets", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            file->setHighlightBracket(!file->getHighlightBracket());
         }
     );
 
