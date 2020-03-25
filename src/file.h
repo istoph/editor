@@ -94,6 +94,7 @@ private:
 
     ZTextOption getTextOption();
     TextLayout getTextLayoutForLine(const ZTextOption &option, int line);
+    bool highlightBracket();
 
 private:
     QVector<QString> _text;
@@ -119,6 +120,9 @@ private:
     bool _follow = false;
     bool _nonewline = false;
     int _saveCursorPositionX = 0;
+    int _bracketX = -1;
+    int _bracketY = -1;
+    bool _bracket = false;
 };
 
 #endif // FILE_H
