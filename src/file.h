@@ -52,6 +52,8 @@ public:
     bool isModified() const;
     void setSearchText(QString serchText);
     Qt::CaseSensitivity searchCaseSensitivity;
+    void setHighlightBracket(bool hb);
+    bool getHighlightBracket();
 
 public:
 //    QString text() const;
@@ -64,8 +66,6 @@ public:
     void searchPrevious(int line = -1);
     void setSearchWrap(bool wrap);
     void checkWritable();
-    void setHighlightBracket(bool hb);
-    bool getHighlightBracket();
 
 public slots:
     void followStandardInput(bool follow);

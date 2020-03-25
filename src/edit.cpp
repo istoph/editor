@@ -463,6 +463,9 @@ int main(int argc, char **argv) {
     bool wl = qsettings->value("wrap_lines","false").toBool();
     root->setWrap(wl || parser.isSet(wraplines));
 
+    bool hb = qsettings->value("highlight_bracket","false").toBool();
+    root->file->setHighlightBracket(hb);
+
     QString logfile = qsettings->value("logfile", "").toString();
     if (logfile.isEmpty()) {
         QLoggingCategory::defaultCategory()->setEnabled(QtDebugMsg, false);
