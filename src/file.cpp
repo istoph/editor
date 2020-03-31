@@ -126,16 +126,18 @@ void File::cutline() {
 }
 
 void File::copy() {
-    _clipboard.clear();
-    _clipboard.append("");
-    for(int y = 0; y < _text.size();y++) {
-        for (int x = 0; x < _text[y].size(); x++) {
-            if(isSelect(x,y)) {
-                _clipboard.back() += _text[y].mid(x,1);
+    if(isSelect()) {
+        _clipboard.clear();
+        _clipboard.append("");
+        for(int y = 0; y < _text.size();y++) {
+            for (int x = 0; x < _text[y].size(); x++) {
+                if(isSelect(x,y)) {
+                    _clipboard.back() += _text[y].mid(x,1);
+                }
             }
-        }
-        if(isSelect(_text[y].size(),y)) {
-            _clipboard.append("");
+            if(isSelect(_text[y].size(),y)) {
+                _clipboard.append("");
+            }
         }
     }
 }
