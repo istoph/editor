@@ -1205,7 +1205,7 @@ void File::adjustScrollPosition() {
     }
     if(!_wrapOption) {
         if (_cursorPositionY - _scrollPositionY >= geometry().height() -1) {
-            _scrollPositionY = _cursorPositionY - geometry().height() +1;
+            _scrollPositionY = _cursorPositionY - geometry().height() +2;
         }
 
         if (_text.count() - _scrollPositionY < geometry().height() -1) {
