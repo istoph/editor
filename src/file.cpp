@@ -1208,8 +1208,8 @@ void File::adjustScrollPosition() {
             _scrollPositionY = _cursorPositionY - geometry().height() +2;
         }
 
-        if (_text.count() - _scrollPositionY < geometry().height() -1) {
-            _scrollPositionY = std::max(0,_text.count() - geometry().height() +1);
+        if (_text.size() - _scrollPositionY < geometry().height() -1) {
+            _scrollPositionY = std::max(0,_text.size() - geometry().height() +1);
         }
     } else {
         option = getTextOption();
