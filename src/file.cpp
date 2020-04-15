@@ -1043,7 +1043,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                        t_startSelectX -= 1;
                    }
                    if (selectedLine == endSelectY) {
-                       t_endSelectX =- 1;
+                       t_endSelectX = -1;
                    }
                 } else if (_text[selectedLine].mid(0,getTabsize()) == l.repeated(getTabsize())) {
                     _text[selectedLine].remove(0,getTabsize());
