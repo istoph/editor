@@ -50,7 +50,7 @@ public:
     void appendLine(const QString& line);
 
     bool isModified() const;
-    void setSearchText(QString serchText);
+    void setSearchText(QString searchText);
     Qt::CaseSensitivity searchCaseSensitivity;
     void setHighlightBracket(bool hb);
     bool getHighlightBracket();

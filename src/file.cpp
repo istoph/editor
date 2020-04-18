@@ -383,8 +383,8 @@ bool File::isModified() const {
     return _currentUndoStep != _savedUndoStep;
 }
 
-void File::setSearchText(QString serchText) {
-    _searchText = serchText;
+void File::setSearchText(QString searchText) {
+    _searchText = searchText;
 }
 
 void File::setSearchWrap(bool wrap) {
