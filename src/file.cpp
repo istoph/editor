@@ -839,8 +839,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             TextLayout lay = getTextLayoutForLine(getTextOption(), _cursorPositionY);
             TextLineRef la = lay.lineAt(0);
             _cursorPositionX = la.xToCursor(_saveCursorPositionX);
-        } else {
-            ++_scrollPositionY;
         }
         adjustScrollPosition();
         if(event->modifiers() == Qt::ShiftModifier) {
