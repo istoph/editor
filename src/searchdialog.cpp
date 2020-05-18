@@ -128,6 +128,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
 void SearchDialog::setSearchText(QString text) {
     searchText->setText(text);
+    this->searchText->textChanged(text);
 }
 
 void SearchDialog::open() {
