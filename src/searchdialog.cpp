@@ -134,6 +134,7 @@ void SearchDialog::setSearchText(QString text) {
 void SearchDialog::open() {
     QRect r = geometry();
     r.moveCenter(terminal()->mainWidget()->geometry().center());
+    r.moveBottom(terminal()->mainWidget()->geometry().height()-3);
     setGeometry(r);
     setVisible(true);
     placeFocus()->setFocus();
