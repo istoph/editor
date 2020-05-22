@@ -26,7 +26,7 @@ QString File::getFilename() {
 
 bool File::newText() {
     //TODO: with path
-    this->setFilename("dokument.txt");
+    setFilename("dokument.txt");
     //TODO: ask if save
     _text.clear();
     _text.append(QString());
@@ -482,8 +482,7 @@ void File::saveUndoStep(bool collapsable) {
     modifiedChanged(true);
 }
 
-ZTextOption File::getTextOption()
-{
+ZTextOption File::getTextOption() {
     ZTextOption option;
     option.setWrapMode(_wrapOption ? ZTextOption::WrapAnywhere : ZTextOption::NoWrap);
     option.setTabStopDistance(_tabsize);
@@ -494,8 +493,7 @@ ZTextOption File::getTextOption()
     return option;
 }
 
-TextLayout File::getTextLayoutForLine(const ZTextOption& option, int line)
-{
+TextLayout File::getTextLayoutForLine(const ZTextOption &option, int line) {
     TextLayout lay(terminal()->textMetrics(), _text[line]);
     lay.setTextOption(option);
     lay.doLayout(rect().width());
@@ -641,12 +639,12 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         y += lay.lineCount();
     }
     if (_nonewline) {
-        if (this->getformattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
+        if (getformattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
             painter->writeWithAttributes(_text[_text.size() -1].size(), y-1, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
         }
         painter->writeWithAttributes(0, y, "\\ No newline at end of file", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
     } else {
-        if (this->getformattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
+        if (getformattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
             painter->writeWithAttributes(0, y, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
         }
     }
@@ -992,7 +990,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 t_endSelectY = startSelectY;
             }
             for(int selectedLine = t_startSelectY; selectedLine<=t_endSelectY; selectedLine++) {
-                if(this->getTabOption()) {
+                if(getTabOption()) {
                     QString l = " ";
                     _text[selectedLine].insert(0, l.repeated(getTabsize()));
                 } else {
@@ -1000,7 +998,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 }
             }
             resetSelect();
-            if(this->getTabOption()) {
+            if(getTabOption()) {
                 _cursorPositionX += getTabsize();
                 select(t_startSelectX + getTabsize(), t_startSelectY);
                 select(t_endSelectX + getTabsize(), t_endSelectY);
@@ -1010,7 +1008,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 select(t_endSelectX + 1, t_endSelectY);
             }
         } else {
-            if(this->getTabOption()) {
+            if(getTabOption()) {
                 for (int i=0; i<getTabsize(); i++) {
                     if(_cursorPositionX % getTabsize() == 0 && i != 0)
                         break;
@@ -1064,15 +1062,15 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {
         //STRG + C // Strg+Einfg
-        this->copy();
+        copy();
     } else if ((event->text() == "v" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Enter && event->modifiers() == Qt::ShiftModifier)) {
         //STRG + V // Umschalt+Einfg
-        this->paste();
+        paste();
     } else if ((event->text() == "x" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Delete && event->modifiers() == Qt::ShiftModifier)) {
         //STRG + X // Umschalt+Entf
-        this->cut();
+        cut();
     } else if (event->text() == "z" && event->modifiers() == Qt::ControlModifier) {
         undo();
     } else if (event->text() == "y" && event->modifiers() == Qt::ControlModifier) {
@@ -1083,7 +1081,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         _collapseUndoStep = false;
     } else if (event->text() == "k" && event->modifiers() == Qt::ControlModifier) {
         //STRG + k //cut and copy line
-        this->cutline();
+        cutline();
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Up) {
         // Fenster hoch Scrolen
         if (_scrollPositionY > 0) {
@@ -1099,8 +1097,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Up) {
         //Zeilen verschiben
 
-        bool _resetSelect = false;
         //Nich markierte Zeile verschiben
+        bool _resetSelect = false;
         if(!isSelect()) {
             startSelectY = endSelectY = _cursorPositionY;
             _resetSelect = true;
@@ -1163,7 +1161,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
         _searchText = "";
     } else if (event->key() == Qt::Key_Insert && event->modifiers() == 0) {
-        this->toggleOverwrite();
+        toggleOverwrite();
     } else {
         Tui::ZWidget::keyEvent(event);
     }
