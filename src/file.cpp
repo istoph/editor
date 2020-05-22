@@ -1061,12 +1061,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             adjustScrollPosition();
             saveUndoStep();
         }
-    } else if(event->key() == Qt::Key_F3 && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
-        if(event->modifiers() == 0) {
-            searchNext();
-        } else {
-            searchPrevious();
-        }
     } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {
         //STRG + C // Strg+Einfg
