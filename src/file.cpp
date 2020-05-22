@@ -396,6 +396,9 @@ void File::followStandardInput(bool follow) {
 }
 
 void File::searchNext(int line) {
+    if(_searchText == "" && isSelect()) {
+        _searchText = getSelectText();
+    }
     if(_searchText != "") {
         int found = -1;
         bool loop = false;
@@ -429,6 +432,9 @@ void File::searchNext(int line) {
 }
 
 void File::searchPrevious(int line) {
+    if(_searchText == "" && isSelect()) {
+        _searchText = getSelectText();
+    }
     if(_searchText != "") {
         //int found = _text[_text.size()-1].size();
         int found = 0;
