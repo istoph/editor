@@ -1188,7 +1188,7 @@ void File::adjustScrollPosition() {
     }
 
     //y
-    if(_cursorPositionY > 0) {
+    if(_cursorPositionY >= 0) {
         if (_cursorPositionY - _scrollPositionY < 1) {
             _scrollPositionY = _cursorPositionY;
         }
