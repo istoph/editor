@@ -40,6 +40,9 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
             CheckBox *regexMatch = new CheckBox(withMarkup, "Re<m>g</m>ular expression", gbox);
             nbox->addWidget(regexMatch);
             regexMatch->setEnabled(false);
+            liveSearch = new CheckBox(withMarkup, "<m>L</m>ive search", gbox);
+            liveSearch->setCheckState(Qt::Checked);
+            nbox->addWidget(liveSearch);
 
             hbox->addWidget(gbox);
         }
@@ -93,6 +96,9 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     QObject::connect(searchText, &InputBox::textChanged, this, [this,file] (const QString& newText) {
         okBtn->setEnabled(newText.size());
         file->setSearchText(searchText->text());
+        if(searchText->text() != "" && liveSearch->checkState() == Qt::Checked) {
+            file->searchNext(0);
+        }
     });
 
     QObject::connect(okBtn, &Button::clicked, [=]{

@@ -23,6 +23,7 @@ private:
     bool caseSensitive = true;
     CheckBox *caseMatch = nullptr;
     CheckBox *_wrap = nullptr;
+    CheckBox *liveSearch = nullptr;
 };
 
 #endif // SEARCHDIALOG_H
