@@ -415,12 +415,14 @@ void File::searchNext(int line) {
                 _cursorPositionY = line;
                 _cursorPositionX = found;
                 adjustScrollPosition();
-
                 resetSelect();
                 select(found, _cursorPositionY);
                 _cursorPositionX += _searchText.size();
                 select(_cursorPositionX, _cursorPositionY);
                 safeCursorPosition();
+                if(_cursorPositionY - 1 > 0) {
+                    _scrollPositionY = _cursorPositionY -1;
+                }
                 adjustScrollPosition();
                 return;
             }
