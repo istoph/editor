@@ -8,6 +8,13 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setCursorColor(255, 255, 255);
     //_text.append(QString());
     newText();
+    _cmdUndo = new Tui::ZCommandNotifier("Undo", this);
+    QObject::connect(_cmdUndo, &Tui::ZCommandNotifier::activated, this, [this]{undo();});
+    _cmdUndo->setEnabled(false);
+    _cmdRedo = new Tui::ZCommandNotifier("Redo", this);
+    QObject::connect(_cmdRedo, &Tui::ZCommandNotifier::activated, this, [this]{redo();});
+    _cmdRedo->setEnabled(false);
+
     _cmdSearchNext = new Tui::ZCommandNotifier("Search Next", this);
     QObject::connect(_cmdSearchNext, &Tui::ZCommandNotifier::activated, this, [this]{searchNext();});
     _cmdSearchNext->setEnabled(false);
@@ -358,6 +365,7 @@ void File::undo() {
     _cursorPositionX = _undoSteps[_currentUndoStep].cursorPositionX;
     _cursorPositionY = _undoSteps[_currentUndoStep].cursorPositionY;
     modifiedChanged(isModified());
+    checkUndo();
     safeCursorPosition();
     adjustScrollPosition();
 }
@@ -377,12 +385,28 @@ void File::redo() {
     _cursorPositionX = _undoSteps[_currentUndoStep].cursorPositionX;
     _cursorPositionY = _undoSteps[_currentUndoStep].cursorPositionY;
     modifiedChanged(isModified());
+    checkUndo();
     safeCursorPosition();
     adjustScrollPosition();
 }
 
 bool File::isModified() const {
     return _currentUndoStep != _savedUndoStep;
+}
+
+void File::checkUndo() {
+    if(_cmdUndo != nullptr) {
+        if(_currentUndoStep != _savedUndoStep) {
+            _cmdUndo->setEnabled(true);
+        } else {
+            _cmdUndo->setEnabled(false);
+        }
+        if(_undoSteps.size() > _currentUndoStep +1) {
+            _cmdRedo->setEnabled(true);
+        } else {
+            _cmdRedo->setEnabled(false);
+        }
+    }
 }
 
 void File::setSearchText(QString searchText) {
@@ -501,6 +525,7 @@ void File::saveUndoStep(bool collapsable) {
     _currentUndoStep = _undoSteps.size() - 1;
     _collapseUndoStep = collapsable;
     modifiedChanged(true);
+    checkUndo();
 }
 
 ZTextOption File::getTextOption() {

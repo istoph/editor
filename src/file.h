@@ -88,6 +88,7 @@ private:
     void adjustScrollPosition();
     void safeCursorPosition();
     void saveUndoStep(bool collapsable=false);
+    void checkUndo();
     QString filename;
     struct UndoStep {
         QVector<QString> text;
@@ -127,6 +128,8 @@ private:
     int _bracketY = -1;
     bool _bracket = false;
 
+    Tui::ZCommandNotifier *_cmdUndo = nullptr;
+    Tui::ZCommandNotifier *_cmdRedo = nullptr;
     Tui::ZCommandNotifier *_cmdSearchNext;
     Tui::ZCommandNotifier *_cmdSearchPrevious;
 };
