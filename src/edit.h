@@ -65,11 +65,13 @@ private:
     SaveDialog *saveOrSaveas();
     void quit();
     void searchDialog();
+    void replaceDialog();
 
 private:
     ScrollBar *_scrollbarHorizontal = nullptr;
     WindowLayout *_winLayout = nullptr;
     SearchDialog *_searchDialog = nullptr;
+    SearchDialog *_replaceDialog = nullptr;
     QSocketNotifier *_pipeSocketNotifier = nullptr;
     QByteArray _pipeLineBuffer;
     bool _follow = false;

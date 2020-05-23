@@ -1,26 +1,47 @@
 #include "searchdialog.h"
 
-SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
+SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dialog(parent) {
+    _replace = replace;
     setVisible(false);
     setContentsMargins({ 1, 1, 2, 1});
 
     WindowLayout *wl = new WindowLayout();
     setLayout(wl);
 
-    setWindowTitle("Search");
+    if(_replace) {
+        setWindowTitle("Replase");
+    } else {
+        setWindowTitle("Search");
+    }
 
-    _searchText = new InputBox(this);
     VBoxLayout *vbox = new VBoxLayout();
     vbox->setSpacing(1);
     {
         HBoxLayout* hbox = new HBoxLayout();
-
         hbox->setSpacing(2);
+
         Label *l = new Label(withMarkup, "F<m>i</m>nd", this);
         hbox->addWidget(l);
+
+        _searchText = new InputBox(this);
         l->setBuddy(_searchText);
         hbox->addWidget(_searchText);
         vbox->add(hbox);
+    }
+
+    {
+        HBoxLayout* hbox = new HBoxLayout();
+        hbox->setSpacing(2);
+
+        Label *l = new Label(withMarkup, "Replase", this);
+        hbox->addWidget(l);
+
+        _replaseText = new InputBox(this);
+        l->setBuddy(_replaseText);
+        hbox->addWidget(_replaseText);
+        if(_replace) {
+            vbox->add(hbox);
+        }
     }
 
     {
@@ -52,11 +73,11 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
             VBoxLayout *nbox = new VBoxLayout();
             gbox->setLayout(nbox);
 
-            RadioButton *forward = new RadioButton(withMarkup, "<m>F</m>orward", gbox);
-            forward->setChecked(true);
-            nbox->addWidget(forward);
-            RadioButton *backward = new RadioButton(withMarkup, "<m>B</m>ackward", gbox);
-            nbox->addWidget(backward);
+            _forward = new RadioButton(withMarkup, "<m>F</m>orward", gbox);
+            _forward->setChecked(true);
+            nbox->addWidget(_forward);
+            _backward = new RadioButton(withMarkup, "<m>B</m>ackward", gbox);
+            nbox->addWidget(_backward);
 
             nbox->addSpacing(1);
 
@@ -85,8 +106,14 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
         _findNextBtn->setDefault(true);
         hbox->addWidget(_findNextBtn);
 
-        _findPreviousBtn = new Button(withMarkup, "<m>P</m>revious", this);
-        hbox->addWidget(_findPreviousBtn);
+        _replaceBtn = new Button(withMarkup, "<m>R</m>eplace", this);
+
+        _replaceAllBtn = new Button(withMarkup, "<m>A</m>ll", this);
+
+        if(_replace) {
+            hbox->addWidget(_replaceBtn);
+            hbox->addWidget(_replaceAllBtn);
+        }
 
         _cancelBtn = new Button(withMarkup, "<m>C</m>lose", this);
         hbox->addWidget(_cancelBtn);
@@ -98,11 +125,17 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     wl->addCentral(vbox);
 
-    setGeometry({ 12, 5, 55, 13});
+    if(_replace) {
+        setGeometry({ 12, 5, 55, 14});
+    } else {
+        setGeometry({ 12, 5, 55, 12});
+    }
+
 
     QObject::connect(_searchText, &InputBox::textChanged, this, [this,file] (const QString& newText) {
         _findNextBtn->setEnabled(newText.size());
-        _findPreviousBtn->setEnabled(newText.size());
+        _replaceBtn->setEnabled(newText.size());
+        _replaceAllBtn->setEnabled(newText.size());
         file->setSearchText(_searchText->text());
         if(_searchText->text() != "" && _liveSearchBox->checkState() == Qt::Checked) {
             file->searchNext(0);
@@ -111,13 +144,42 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     QObject::connect(_findNextBtn, &Button::clicked, [=]{
         file->setSearchText(_searchText->text());
-        file->searchNext();
+        if(_forward->checked()) {
+            file->searchNext();
+        } else {
+            file->searchPrevious();
+        }
+
     });
 
-    QObject::connect(_findPreviousBtn, &Button::clicked, [=]{
+    QObject::connect(_replaceBtn, &Button::clicked, [=]{
         file->setSearchText(_searchText->text());
-        file->searchPrevious();
+        file->setReplaceText(_replaseText->text());
+        file->setReplaceSelected();
+        if(_forward->checked()) {
+            file->searchNext();
+        } else {
+            file->searchPrevious();
+        }
+
     });
+
+     QObject::connect(_replaceAllBtn, &Button::clicked, [=]{
+         bool tmpwrap = file->getWrapOption();
+         file->setSearchText(_searchText->text());
+         file->setReplaceText(_replaseText->text());
+
+         file->setWrapOption(false);
+         while(true) {
+            file->searchNext(0);
+            if(!file->isSelect()){
+                break;
+            }
+            file->setReplaceSelected();
+         }
+
+         file->setWrapOption(tmpwrap);
+     });
 
     QObject::connect(_cancelBtn, &Button::clicked, [=]{
         file->setSearchText("");
@@ -147,6 +209,10 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 void SearchDialog::setSearchText(QString text) {
     _searchText->setText(text);
     _searchText->textChanged(text);
+}
+
+void SearchDialog::setReplace(bool replace) {
+    _replace = replace;
 }
 
 void SearchDialog::open() {

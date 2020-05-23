@@ -420,6 +420,10 @@ void File::setSearchText(QString searchText) {
     _searchText = searchText;
 }
 
+void File::setReplaceText(QString replaceText) {
+   _replaceText = replaceText;
+}
+
 void File::setSearchWrap(bool wrap) {
     _searchWrap = wrap;
 }
@@ -430,6 +434,23 @@ bool File::getSearchWrap() {
 
 void File::followStandardInput(bool follow) {
     _follow = follow;
+}
+
+void File::setReplaceSelected() {
+    if(isSelect()){
+        delSelect();
+        for (int i=0; i<_replaceText.size(); i++) {
+            _text[_cursorPositionY].insert(_cursorPositionX, _replaceText[i]);
+            _cursorPositionX++;
+            //_cursorPositionX += _replaceText[i].size();
+            //if(i+1<_replaceText.size()) {
+            //    insertLinebreak();
+            //}
+        }
+        safeCursorPosition();
+        adjustScrollPosition();
+        saveUndoStep();
+    }
 }
 
 void File::searchNext(int line) {

@@ -53,6 +53,8 @@ public:
 
     bool isModified() const;
     void setSearchText(QString searchText);
+    void setReplaceText(QString replaceText);
+    void setReplaceSelected();
     Qt::CaseSensitivity searchCaseSensitivity;
     void setHighlightBracket(bool hb);
     bool getHighlightBracket();
@@ -120,6 +122,7 @@ private:
     bool _collapseUndoStep;
     int _savedUndoStep;
     QString _searchText;
+    QString _replaceText;
     bool _searchWrap = true;
     bool _follow = false;
     bool _nonewline = false;
