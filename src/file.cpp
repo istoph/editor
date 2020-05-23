@@ -391,6 +391,10 @@ void File::setSearchWrap(bool wrap) {
     _searchWrap = wrap;
 }
 
+bool File::getSearchWrap() {
+    return _searchWrap;
+}
+
 void File::followStandardInput(bool follow) {
     _follow = follow;
 }

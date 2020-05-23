@@ -65,6 +65,7 @@ public:
     void searchNext(int line = -1);
     void searchPrevious(int line = -1);
     void setSearchWrap(bool wrap);
+    bool getSearchWrap();
     void checkWritable();
 
 public slots:
@@ -116,7 +117,7 @@ private:
     bool _collapseUndoStep;
     int _savedUndoStep;
     QString _searchText;
-    bool _searchWrap;
+    bool _searchWrap = true;
     bool _follow = false;
     bool _nonewline = false;
     int _saveCursorPositionX = 0;

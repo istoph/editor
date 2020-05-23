@@ -61,7 +61,11 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
             nbox->addSpacing(1);
 
             _wrap = new CheckBox(withMarkup, "Wra<m>p</m> around", gbox);
-            _wrap->setCheckState(Qt::Checked);
+            if(file->getSearchWrap()) {
+                _wrap->setCheckState(Qt::Checked);
+            } else {
+                _wrap->setCheckState(Qt::Unchecked);
+            }
             nbox->addWidget(_wrap);
 
             hbox->addWidget(gbox);
