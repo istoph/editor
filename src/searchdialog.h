@@ -16,14 +16,14 @@ public slots:
     void open();
 
 private:
-    InputBox *searchText = nullptr;
-    Button *okBtn = nullptr;
-    Button *cancelBtn = nullptr;
-    QString _searchText;
-    bool caseSensitive = true;
-    CheckBox *caseMatch = nullptr;
-    CheckBox *_wrap = nullptr;
-    CheckBox *liveSearch = nullptr;
+    InputBox *_searchText = nullptr;
+    Button *_findNextBtn = nullptr;
+    Button *_findPreviousBtn = nullptr;
+    Button *_cancelBtn = nullptr;
+    bool _caseSensitive = true;
+    CheckBox *_caseMatchBox = nullptr;
+    CheckBox *_wrapBox = nullptr;
+    CheckBox *_liveSearchBox = nullptr;
 };
 
 #endif // SEARCHDIALOG_H

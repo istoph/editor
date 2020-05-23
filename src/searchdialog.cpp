@@ -9,7 +9,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     setWindowTitle("Search");
 
-    searchText = new InputBox(this);
+    _searchText = new InputBox(this);
     VBoxLayout *vbox = new VBoxLayout();
     vbox->setSpacing(1);
     {
@@ -18,8 +18,8 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
         hbox->setSpacing(2);
         Label *l = new Label(withMarkup, "F<m>i</m>nd", this);
         hbox->addWidget(l);
-        l->setBuddy(searchText);
-        hbox->addWidget(searchText);
+        l->setBuddy(_searchText);
+        hbox->addWidget(_searchText);
         vbox->add(hbox);
     }
 
@@ -32,17 +32,17 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
             VBoxLayout *nbox = new VBoxLayout();
             gbox->setLayout(nbox);
 
-            caseMatch = new CheckBox(withMarkup, "<m>M</m>atch case", gbox);
-            nbox->addWidget(caseMatch);
-            CheckBox *wordMatch = new CheckBox(withMarkup, "Match <m>e</m>ntire word only", gbox);
-            nbox->addWidget(wordMatch);
-            wordMatch->setEnabled(false);
-            CheckBox *regexMatch = new CheckBox(withMarkup, "Re<m>g</m>ular expression", gbox);
-            nbox->addWidget(regexMatch);
-            regexMatch->setEnabled(false);
-            liveSearch = new CheckBox(withMarkup, "<m>L</m>ive search", gbox);
-            liveSearch->setCheckState(Qt::Checked);
-            nbox->addWidget(liveSearch);
+            _caseMatchBox = new CheckBox(withMarkup, "<m>M</m>atch case", gbox);
+            nbox->addWidget(_caseMatchBox);
+            CheckBox *wordMatchBox = new CheckBox(withMarkup, "Match <m>e</m>ntire word only", gbox);
+            nbox->addWidget(wordMatchBox);
+            wordMatchBox->setEnabled(false);
+            CheckBox *regexMatchBox = new CheckBox(withMarkup, "Re<m>g</m>ular expression", gbox);
+            nbox->addWidget(regexMatchBox);
+            regexMatchBox->setEnabled(false);
+            _liveSearchBox = new CheckBox(withMarkup, "<m>L</m>ive search", gbox);
+            _liveSearchBox->setCheckState(Qt::Checked);
+            nbox->addWidget(_liveSearchBox);
 
             hbox->addWidget(gbox);
         }
@@ -60,13 +60,13 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
             nbox->addSpacing(1);
 
-            _wrap = new CheckBox(withMarkup, "Wra<m>p</m> around", gbox);
+            _wrapBox = new CheckBox(withMarkup, "Wra<m>p</m> around", gbox);
             if(file->getSearchWrap()) {
-                _wrap->setCheckState(Qt::Checked);
+                _wrapBox->setCheckState(Qt::Checked);
             } else {
-                _wrap->setCheckState(Qt::Unchecked);
+                _wrapBox->setCheckState(Qt::Unchecked);
             }
-            nbox->addWidget(_wrap);
+            nbox->addWidget(_wrapBox);
 
             hbox->addWidget(gbox);
         }
@@ -80,13 +80,16 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
         HBoxLayout* hbox = new HBoxLayout();
         hbox->setSpacing(1);
         hbox->addStretch();
-        okBtn = new Button(withMarkup, "<m>F</m>ind", this);
-        okBtn->setDefault(true);
-        okBtn->setEnabled(false);
-        hbox->addWidget(okBtn);
 
-        cancelBtn = new Button(withMarkup, "<m>C</m>lose", this);
-        hbox->addWidget(cancelBtn);
+        _findNextBtn = new Button(withMarkup, "<m>N</m>ext", this);
+        _findNextBtn->setDefault(true);
+        hbox->addWidget(_findNextBtn);
+
+        _findPreviousBtn = new Button(withMarkup, "<m>P</m>revious", this);
+        hbox->addWidget(_findPreviousBtn);
+
+        _cancelBtn = new Button(withMarkup, "<m>C</m>lose", this);
+        hbox->addWidget(_cancelBtn);
 
         hbox->addSpacing(3);
 
@@ -97,48 +100,53 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     setGeometry({ 12, 5, 55, 13});
 
-    QObject::connect(searchText, &InputBox::textChanged, this, [this,file] (const QString& newText) {
-        okBtn->setEnabled(newText.size());
-        file->setSearchText(searchText->text());
-        if(searchText->text() != "" && liveSearch->checkState() == Qt::Checked) {
+    QObject::connect(_searchText, &InputBox::textChanged, this, [this,file] (const QString& newText) {
+        _findNextBtn->setEnabled(newText.size());
+        _findPreviousBtn->setEnabled(newText.size());
+        file->setSearchText(_searchText->text());
+        if(_searchText->text() != "" && _liveSearchBox->checkState() == Qt::Checked) {
             file->searchNext(0);
         }
     });
 
-    QObject::connect(okBtn, &Button::clicked, [=]{
-        if (_wrap->checkState() == Qt::Checked) {
-            file->setSearchWrap(true);
-        } else {
-            file->setSearchWrap(false);
-        }
-
-        _searchText = searchText->text();
-        file->setSearchText(_searchText);
+    QObject::connect(_findNextBtn, &Button::clicked, [=]{
+        file->setSearchText(_searchText->text());
         file->searchNext();
-        setVisible(false);
-        update();
     });
 
-    QObject::connect(cancelBtn, &Button::clicked, [=]{
-        _searchText = "";
-        file->setSearchText(_searchText);
+    QObject::connect(_findPreviousBtn, &Button::clicked, [=]{
+        file->setSearchText(_searchText->text());
+        file->searchPrevious();
+    });
+
+    QObject::connect(_cancelBtn, &Button::clicked, [=]{
+        file->setSearchText("");
+        file->resetSelect();
         setVisible(false);
     });
 
-    QObject::connect(caseMatch, &CheckBox::stateChanged, [=]{
-        caseSensitive = !caseSensitive;
-        if(caseSensitive) {
+    QObject::connect(_caseMatchBox, &CheckBox::stateChanged, [=]{
+        _caseSensitive = !_caseSensitive;
+        if(_caseSensitive) {
             file->searchCaseSensitivity = Qt::CaseInsensitive;
         } else {
             file->searchCaseSensitivity = Qt::CaseSensitive;
         }
         update();
     });
+
+    QObject::connect(_wrapBox, &CheckBox::stateChanged, [=]{
+        if (_wrapBox->checkState() == Qt::Checked) {
+            file->setSearchWrap(true);
+        } else {
+            file->setSearchWrap(false);
+        }
+    });
 }
 
 void SearchDialog::setSearchText(QString text) {
-    searchText->setText(text);
-    searchText->textChanged(text);
+    _searchText->setText(text);
+    _searchText->textChanged(text);
 }
 
 void SearchDialog::open() {
