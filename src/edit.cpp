@@ -28,6 +28,8 @@ Editor::Editor() {
                             { "Redo", "Ctrl-y", "Redo", {}},
                             {},
                             { "<m>S</m>earch", "Ctrl-F", "Search", {}},
+                            { "Search <m>N</m>ext", "F3", "Search Next", {}},
+                            { "Search <m>P</m>revious", "Shift-F3", "Search Previous", {}},
                             { "<m>R</m>eplace", "Ctrl-R", "Replace", {}},
                             {},
                             { "<m>G</m>oto line", "Ctrl-G", "Gotoline", {}}

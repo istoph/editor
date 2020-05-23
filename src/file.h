@@ -7,6 +7,8 @@
 #include <QFileInfo>
 #include <QTextStream>
 
+#include <Tui/ZCommandNotifier.h>
+
 class File : public Tui::ZWidget {
     Q_OBJECT
 
@@ -124,6 +126,9 @@ private:
     int _bracketX = -1;
     int _bracketY = -1;
     bool _bracket = false;
+
+    Tui::ZCommandNotifier *_cmdSearchNext;
+    Tui::ZCommandNotifier *_cmdSearchPrevious;
 };
 
 #endif // FILE_H

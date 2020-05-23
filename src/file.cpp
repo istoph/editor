@@ -1,5 +1,6 @@
 #include "file.h"
 
+#include <Tui/ZCommandNotifier.h>
 
 File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setFocusPolicy(Qt::StrongFocus);
@@ -7,6 +8,13 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setCursorColor(255, 255, 255);
     //_text.append(QString());
     newText();
+    _cmdSearchNext = new Tui::ZCommandNotifier("Search Next", this);
+    QObject::connect(_cmdSearchNext, &Tui::ZCommandNotifier::activated, this, [this]{searchNext();});
+    _cmdSearchNext->setEnabled(false);
+    _cmdSearchPrevious = new Tui::ZCommandNotifier("Search Previous", this);
+    QObject::connect(_cmdSearchPrevious, &Tui::ZCommandNotifier::activated, this, [this]{searchPrevious();});
+    _cmdSearchPrevious->setEnabled(false);
+
 }
 
 bool File::setFilename(QString filename) {
@@ -378,6 +386,13 @@ bool File::isModified() const {
 }
 
 void File::setSearchText(QString searchText) {
+    if(searchText == "") {
+        _cmdSearchNext->setEnabled(false);
+        _cmdSearchPrevious->setEnabled(false);
+    } else {
+        _cmdSearchNext->setEnabled(true);
+        _cmdSearchPrevious->setEnabled(true);
+    }
     _searchText = searchText;
 }
 
@@ -395,7 +410,7 @@ void File::followStandardInput(bool follow) {
 
 void File::searchNext(int line) {
     if(_searchText == "" && isSelect()) {
-        _searchText = getSelectText();
+        setSearchText(getSelectText());
     }
     if(_searchText != "") {
         int found = -1;
@@ -433,7 +448,7 @@ void File::searchNext(int line) {
 
 void File::searchPrevious(int line) {
     if(_searchText == "" && isSelect()) {
-        _searchText = getSelectText();
+        setSearchText(getSelectText());
     }
     if(_searchText != "") {
         //int found = _text[_text.size()-1].size();
