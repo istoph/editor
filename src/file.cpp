@@ -1,11 +1,5 @@
 #include "file.h"
 
-File::File() {
-    setFocusPolicy(Qt::StrongFocus);
-    setCursorStyle(Tui::CursorStyle::Bar);
-    //_text.append(QString());
-    newText();
-}
 
 File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setFocusPolicy(Qt::StrongFocus);
