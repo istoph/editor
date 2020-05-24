@@ -169,7 +169,11 @@ Editor::Editor() {
     );
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("r"), this, Qt::ApplicationShortcut),
                      &Tui::ZShortcut::activated, this, &Editor::replaceDialog);
-
+    QObject::connect(new Tui::ZCommandNotifier("Replace", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            replaceDialog();
+        }
+    );
     QObject::connect(new Tui::ZCommandNotifier("Gotoline", this), &Tui::ZCommandNotifier::activated,
          [&] {
             new GotoLine(this, file);
