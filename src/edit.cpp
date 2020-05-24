@@ -140,16 +140,6 @@ Editor::Editor() {
             file->cutline();
         }
     );
-    QObject::connect(new Tui::ZCommandNotifier("Undo", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            file->undo();
-        }
-    );
-    QObject::connect(new Tui::ZCommandNotifier("Redo", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            file->redo();
-        }
-    );
 
     //SEARCH
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, 0), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
