@@ -488,6 +488,7 @@ void File::searchNext(int line) {
         if(_searchWrap && !loop) {
             searchNext(0);
         }
+        resetSelect();
     }
 }
 
@@ -533,6 +534,7 @@ void File::searchPrevious(int line) {
         if(_searchWrap && !loop) {
             searchPrevious(_text.size() -1);
         }
+        resetSelect();
     }
 }
 
