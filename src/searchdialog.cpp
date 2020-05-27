@@ -9,7 +9,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
     setLayout(wl);
 
     if(_replace) {
-        setWindowTitle("Replase");
+        setWindowTitle("Replace");
     } else {
         setWindowTitle("Search");
     }
@@ -33,12 +33,12 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
         HBoxLayout* hbox = new HBoxLayout();
         hbox->setSpacing(2);
 
-        Label *l = new Label(withMarkup, "Replase", this);
+        Label *l = new Label(withMarkup, "Replace", this);
         hbox->addWidget(l);
 
-        _replaseText = new InputBox(this);
-        l->setBuddy(_replaseText);
-        hbox->addWidget(_replaseText);
+        _replaceText = new InputBox(this);
+        l->setBuddy(_replaceText);
+        hbox->addWidget(_replaceText);
         if(_replace) {
             vbox->add(hbox);
         }
@@ -154,7 +154,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
 
     QObject::connect(_replaceBtn, &Button::clicked, [=]{
         file->setSearchText(_searchText->text());
-        file->setReplaceText(_replaseText->text());
+        file->setReplaceText(_replaceText->text());
         file->setReplaceSelected();
         if(_forward->checked()) {
             file->searchNext();
@@ -167,7 +167,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
      QObject::connect(_replaceAllBtn, &Button::clicked, [=]{
          bool tmpwrap = file->getWrapOption();
          file->setSearchText(_searchText->text());
-         file->setReplaceText(_replaseText->text());
+         file->setReplaceText(_replaceText->text());
 
          file->setWrapOption(false);
          while(true) {

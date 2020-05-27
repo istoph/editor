@@ -19,7 +19,7 @@ public slots:
 private:
     bool _replace = false;
     InputBox *_searchText = nullptr;
-    InputBox *_replaseText = nullptr;
+    InputBox *_replaceText = nullptr;
     Button *_findNextBtn = nullptr;
     Button *_findPreviousBtn = nullptr;
     Button *_cancelBtn = nullptr;
