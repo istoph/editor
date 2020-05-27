@@ -216,6 +216,11 @@ Editor::Editor() {
     connect(file, &File::cursorPositionChanged, s, &StatusBar::cursorPosition);
     connect(file, &File::scrollPositionChanged, s, &StatusBar::scrollPosition);
     connect(file, &File::modifiedChanged, s, &StatusBar::setModified);
+    connect(file, &File::modifiedChanged, this,
+            [&] {
+                windowTitle(file->getFilename());
+            }
+    );
     connect(this, &Editor::readFromStandadInput, s, &StatusBar::readFromStandardInput);
     connect(this, &Editor::followStandadInput, s, &StatusBar::followStandardInput);
     connect(file, &File::setWritable, s, &StatusBar::setWritable);
@@ -269,14 +274,22 @@ void Editor::replaceDialog() {
     _replaceDialog->setSearchText(file->getSelectText());
 }
 
-void Editor::newFile(QString filename) {
+void Editor::windowTitle(QString filename) {
+    terminal()->setTitle("chr - "+ filename);
+    if(file->isModified()) {
+        filename = "*" + filename;
+    }
     win->setWindowTitle(filename);
+}
+
+void Editor::newFile(QString filename) {
+    windowTitle(filename);
     file->newText();
     file->setFilename(filename);
 }
 
 void Editor::openFile(QString filename) {
-    win->setWindowTitle(filename);
+    windowTitle(filename);
     //reset couser position
     file->newText();
     file->setFilename(filename);
@@ -285,7 +298,7 @@ void Editor::openFile(QString filename) {
 void Editor::saveFile(QString filename) {
     file->setFilename(filename);
     if(file->saveText()) {
-        win->setWindowTitle(filename);
+        windowTitle(filename);
         win->update();
     } else {
         Alert *e = new Alert(this);

@@ -45,6 +45,7 @@ public:
     void watchPipe();
     void setFollow(bool follow);
     bool getFollow();
+    void windowTitle(QString filename);
 
 public slots:
     void newFile(QString filename = "dokument.txt");
