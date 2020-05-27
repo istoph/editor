@@ -15,7 +15,7 @@ class File : public Tui::ZWidget {
 public:
     File();
     explicit File(Tui::ZWidget *parent);
-    bool setFilename(QString filename);
+    bool setFilename(QString _filename);
     QString getFilename();
     bool newText();
     bool saveText();
@@ -91,7 +91,7 @@ private:
     void safeCursorPosition();
     void saveUndoStep(bool collapsable=false);
     void checkUndo();
-    QString filename;
+    QString _filename;
     struct UndoStep {
         QVector<QString> text;
         int cursorPositionX;

@@ -26,11 +26,11 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
 
 bool File::setFilename(QString filename) {
     //TODO: check if file readable
-    this->filename = filename;
+    _filename = filename;
     return true;
 }
 QString File::getFilename() {
-    return this->filename;
+    return _filename;
 }
 
 bool File::newText() {
@@ -55,7 +55,7 @@ bool File::newText() {
 }
 
 bool File::saveText() {
-    QFile file(this->filename);
+    QFile file(_filename);
     if (file.open(QIODevice::WriteOnly)) {
         QTextStream stream(&file);
 
@@ -81,7 +81,7 @@ bool File::saveText() {
 
 void File::checkWritable() {
      //QFile file(this->filename);
-     QFileInfo file(this->filename);
+     QFileInfo file(_filename);
      setWritable(file.isWritable());
 }
 
@@ -94,7 +94,7 @@ bool File::getHighlightBracket() {
 }
 
 bool File::openText() {
-    QFile file(this->filename);
+    QFile file(_filename);
     newfile = false;
     if (file.open(QIODevice::ReadOnly)) {
         _text.clear();
