@@ -417,11 +417,11 @@ void File::setSearchText(QString searchText) {
         _cmdSearchNext->setEnabled(true);
         _cmdSearchPrevious->setEnabled(true);
     }
-    _searchText = searchText;
+    _searchText = searchText.replace("\\t","\t");
 }
 
 void File::setReplaceText(QString replaceText) {
-   _replaceText = replaceText;
+   _replaceText = replaceText.replace("\\t","\t");
 }
 
 void File::setSearchWrap(bool wrap) {

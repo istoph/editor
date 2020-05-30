@@ -27,6 +27,7 @@ private:
     Button *_replaceAllBtn = nullptr;
     bool _caseSensitive = true;
     CheckBox *_caseMatchBox = nullptr;
+    CheckBox *_parseBox = nullptr;
     CheckBox *_wrapBox = nullptr;
     CheckBox *_liveSearchBox = nullptr;
     RadioButton *_forward = nullptr;

@@ -79,7 +79,10 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
             _backward = new RadioButton(withMarkup, "<m>B</m>ackward", gbox);
             nbox->addWidget(_backward);
 
-            nbox->addSpacing(1);
+            _parseBox = new CheckBox(withMarkup, "escape sequence", gbox);
+            _parseBox->setCheckState(Qt::Checked);
+            _parseBox->setEnabled(false);
+            nbox->addWidget(_parseBox);
 
             _wrapBox = new CheckBox(withMarkup, "Wra<m>p</m> around", gbox);
             if(file->getSearchWrap()) {
