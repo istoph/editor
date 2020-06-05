@@ -46,6 +46,8 @@ public:
     bool isOverwrite();
     void undo();
     void redo();
+    void setGroupUndo(bool onoff);
+    int getGroupUndo();
     void deletePreviousCharacterOrWord(TextLayout::CursorMode mode);
     void deleteNextCharacterOrWord(TextLayout::CursorMode mode);
     int getVisibleLines();
@@ -130,6 +132,7 @@ private:
     int _bracketX = -1;
     int _bracketY = -1;
     bool _bracket = false;
+    int _groupUndo = 0;
 
     Tui::ZCommandNotifier *_cmdUndo = nullptr;
     Tui::ZCommandNotifier *_cmdRedo = nullptr;

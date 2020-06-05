@@ -172,6 +172,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
          file->setSearchText(_searchText->text());
          file->setReplaceText(_replaceText->text());
 
+         file->setGroupUndo(true);
          file->setWrapOption(false);
          while(true) {
             file->searchNext(0);
@@ -182,6 +183,8 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
          }
 
          file->setWrapOption(tmpwrap);
+         file->setGroupUndo(false);
+
      });
 
     QObject::connect(_cancelBtn, &Button::clicked, [=]{

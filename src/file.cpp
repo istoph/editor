@@ -390,6 +390,21 @@ void File::redo() {
     adjustScrollPosition();
 }
 
+void File::setGroupUndo(bool onoff) {
+    if(onoff) {
+        _groupUndo++;
+    } else if(_groupUndo <= 1) {
+        _groupUndo = 0;
+        saveUndoStep();
+    } else {
+        _groupUndo--;
+    }
+}
+
+int File::getGroupUndo() {
+    return _groupUndo;
+}
+
 bool File::isModified() const {
     return _currentUndoStep != _savedUndoStep;
 }
@@ -438,6 +453,7 @@ void File::followStandardInput(bool follow) {
 
 void File::setReplaceSelected() {
     if(isSelect()){
+        setGroupUndo(true);
         delSelect();
         for (int i=0; i<_replaceText.size(); i++) {
             _text[_cursorPositionY].insert(_cursorPositionX, _replaceText[i]);
@@ -449,7 +465,7 @@ void File::setReplaceSelected() {
         }
         safeCursorPosition();
         adjustScrollPosition();
-        saveUndoStep();
+        setGroupUndo(false);
     }
 }
 
@@ -539,16 +555,18 @@ void File::searchPrevious(int line) {
 }
 
 void File::saveUndoStep(bool collapsable) {
-    if (_currentUndoStep + 1 != _undoSteps.size()) {
-        _undoSteps.resize(_currentUndoStep + 1);
-    } else if (_collapseUndoStep && collapsable && _currentUndoStep != _savedUndoStep) {
-        _undoSteps.removeLast();
+    if(getGroupUndo() == 0) {
+        if (_currentUndoStep + 1 != _undoSteps.size()) {
+            _undoSteps.resize(_currentUndoStep + 1);
+        } else if (_collapseUndoStep && collapsable && _currentUndoStep != _savedUndoStep) {
+            _undoSteps.removeLast();
+        }
+        _undoSteps.append({ _text, _cursorPositionX, _cursorPositionY});
+        _currentUndoStep = _undoSteps.size() - 1;
+        _collapseUndoStep = collapsable;
+        modifiedChanged(true);
+        checkUndo();
     }
-    _undoSteps.append({ _text, _cursorPositionX, _cursorPositionY});
-    _currentUndoStep = _undoSteps.size() - 1;
-    _collapseUndoStep = collapsable;
-    modifiedChanged(true);
-    checkUndo();
 }
 
 ZTextOption File::getTextOption() {
