@@ -309,25 +309,37 @@ bool File::delSelect() {
         return false;
     }
 
-    int size = 0;
-    for(int y=_text.size() - 1; y >= 0; y--) {
-        for (int x=_text[y].size(); x >= 0; x--) {
-            if(isSelect(x,y)) {
-                _text[y].remove(x,1);
-                _cursorPositionY = y;
-                _cursorPositionX = x;
-            }
-            if(x == 0) {
-                if(y>0 && isSelect(_text[y-1].size(), y-1)) {
-                    size = _text[y-1].size();
-                    _text[y-1] += _text[y];
-                    _text.removeAt(y);
-                    _cursorPositionY = --y;
-                    _cursorPositionX = x = size;
-                }
+    auto startSelect = Position(startSelectX, startSelectY);
+    auto endSelect = Position(endSelectX, endSelectY);
+
+    if (startSelect > endSelect) {
+        std::swap(startSelect, endSelect);
+    }
+
+    if (startSelect.y == endSelect.y) {
+        // selection only on one line
+        _text[startSelect.y].remove(startSelect.x, endSelect.x - startSelect.x);
+    } else {
+        _text[startSelect.y].remove(startSelect.x, _text[startSelect.y].size() - startSelect.x);
+        const auto orignalTextLines = _text.size();
+        if (startSelect.y + 1 < endSelect.y) {
+            _text.remove(startSelect.y + 1, endSelect.y - startSelect.y - 1);
+        }
+        if (endSelect.y == orignalTextLines) {
+            // selected until the end of buffer, no last selection line to edit
+        } else {
+            _text[startSelect.y].append(_text[startSelect.y + 1].midRef(endSelect.x));
+            if (startSelect.y + 1 < _text.size()) {
+                _text.removeAt(startSelect.y + 1);
+            } else {
+                _text[startSelect.y + 1].clear();
             }
         }
     }
+
+    _cursorPositionX = startSelect.x;
+    _cursorPositionY = startSelect.y;
+
     safeCursorPosition();
     resetSelect();
     saveUndoStep();
@@ -1330,4 +1342,16 @@ void File::safeCursorPosition() {
     TextLayout lay = getTextLayoutForLine(getTextOption(), _cursorPositionY);
     TextLineRef tlr = lay.lineForTextPosition(_cursorPositionX);
     _saveCursorPositionX = tlr.cursorToX(_cursorPositionX, TextLineRef::Leading);
+}
+
+bool operator<(const File::Position &a, const File::Position &b) {
+    return std::tie(a.y, a.x) < std::tie(b.y, b.x);
+}
+
+bool operator>(const File::Position &a, const File::Position &b) {
+    return std::tie(a.y, a.x) > std::tie(b.y, b.x);
+}
+
+bool operator==(const File::Position &a, const File::Position &b) {
+    return std::tie(a.x, a.y) < std::tie(b.x, b.y);
 }

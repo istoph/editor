@@ -13,6 +13,18 @@ class File : public Tui::ZWidget {
     Q_OBJECT
 
 public:
+    struct Position {
+        int x = 0;
+        int y = 0;
+
+        Position(int x, int y) : x(x), y(y) {}
+        friend bool operator<(const Position& a, const Position& b);
+        friend bool operator>(const Position& a, const Position& b);
+        friend bool operator==(const Position& a, const Position& b);
+        friend void swap(Position& a, Position& b);
+    };
+
+public:
     File();
     explicit File(Tui::ZWidget *parent);
     bool setFilename(QString _filename);
