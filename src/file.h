@@ -9,6 +9,12 @@
 
 #include <Tui/ZCommandNotifier.h>
 
+#include "QJsonDocument"
+#include "QJsonObject"
+#include "QJsonArray"
+#include <QDir>
+#include <QDebug>
+
 class File : public Tui::ZWidget {
     Q_OBJECT
 
@@ -72,6 +78,10 @@ public:
     Qt::CaseSensitivity searchCaseSensitivity;
     void setHighlightBracket(bool hb);
     bool getHighlightBracket();
+    void readAttributes();
+    void getAttributes();
+    void writeAttributes();
+    void setAttributes(bool attr);
 
 public:
 //    QString text() const;
@@ -145,6 +155,8 @@ private:
     int _bracketY = -1;
     bool _bracket = false;
     int _groupUndo = 0;
+    QJsonObject _jo;
+    bool _noattr = false;
 
     Tui::ZCommandNotifier *_cmdUndo = nullptr;
     Tui::ZCommandNotifier *_cmdRedo = nullptr;

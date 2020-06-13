@@ -338,6 +338,7 @@ SaveDialog * Editor::saveOrSaveas() {
 }
 
 void Editor::quit() {
+    file->writeAttributes();
     if(file->isModified()) {
         ConfirmSave *quitDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Quit);
 
@@ -361,6 +362,10 @@ void Editor::quit() {
     } else {
         QCoreApplication::instance()->quit();
     }
+}
+
+void Editor::setNoattributes(bool attr) {
+    file->setAttributes(attr);
 }
 
 void Editor::setWrap(bool wrap) {
@@ -448,6 +453,10 @@ int main(int argc, char **argv) {
     QCommandLineOption wraplines("w",QCoreApplication::translate("main", "Wrap log lines"));
     parser.addOption(wraplines);
 
+    //Safe Attributes
+    QCommandLineOption noattributes("noattributes",QCoreApplication::translate("main", "Do not safe file attributes in ~/.chr.json"));
+    parser.addOption(noattributes);
+
     // Config File
     QCommandLineOption configOption({"c","config"},
                                     QCoreApplication::translate("main", "Load customized config file. The default if it exist is ~/.config/chr"),
@@ -488,6 +497,9 @@ int main(int argc, char **argv) {
     root->file->setFormattingCharacters(fb);
 
     bool bigfile = qsettings->value("bigfile", "false").toBool();
+
+    bool noattr = qsettings->value("noattributes","false").toBool();
+    root->setNoattributes(noattr || parser.isSet(noattributes));
 
     bool wl = qsettings->value("wrap_lines","false").toBool();
     root->setWrap(wl || parser.isSet(wraplines));

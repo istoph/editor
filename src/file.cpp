@@ -24,6 +24,70 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
 
 }
 
+void File::setAttributes(bool attr) {
+    _noattr = attr;
+}
+
+void File::readAttributes() {
+    if(_noattr) {
+        return;
+    }
+    QFile fileRead(QDir::homePath() + "/.chr.json");
+    if(!fileRead.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << "File open error";
+    }
+
+    fileRead.open(QIODevice::ReadOnly | QIODevice::Text);
+    QString val = fileRead.readAll();
+    fileRead.close();
+
+    QJsonDocument jd = QJsonDocument::fromJson(val.toUtf8());
+    _jo = jd.object();
+}
+
+void File::getAttributes() {
+    if(_noattr || _cursorPositionX > 0|| _cursorPositionY > 0) {
+        return;
+    }
+    readAttributes();
+    QJsonObject data = _jo.value(_filename).toObject();
+    _cursorPositionX = data.value("cursorPositionX").toInt();
+    _cursorPositionY = data.value("cursorPositionY").toInt();
+    _scrollPositionX = data.value("scrollPositionX").toInt();
+    _scrollPositionY = data.value("scrollPositionY").toInt();
+    adjustScrollPosition();
+}
+
+void File::writeAttributes() {
+    QFileInfo i(_filename);
+    if(!i.exists() || _noattr) {
+        return;
+    }
+    readAttributes();
+
+    QJsonObject data;
+    data.insert("cursorPositionX",_cursorPositionX);
+    data.insert("cursorPositionY",_cursorPositionY);
+    data.insert("scrollPositionX",_scrollPositionX);
+    data.insert("scrollPositionY",_scrollPositionY);
+    data.insert("tabSize",_tabsize);
+    data.insert("tabOption",_tabOption);
+    _jo.insert(_filename, data);
+
+    QJsonDocument jsonDoc;
+    jsonDoc.setObject(_jo);
+
+    //Save
+    QFile file(QDir::homePath() + "/.chr.json");
+    if(!file.open(QIODevice::ReadWrite)) {
+        qDebug() << "File open error";
+    }
+    // Clear the original content in the file
+    file.resize(0);
+    file.write(jsonDoc.toJson());
+    file.close();
+}
+
 bool File::setFilename(QString filename) {
     //TODO: check if file readable
     _filename = filename;
@@ -73,6 +137,7 @@ bool File::saveText() {
         modifiedChanged(false);
         newfile = false;
         update();
+        writeAttributes();
         return true;
     }
     //TODO vernünfiges error Händling
@@ -114,6 +179,7 @@ bool File::openText() {
             _savedUndoStep = _currentUndoStep;
         }
         checkWritable();
+        getAttributes();
         return true;
     }
     return false;
