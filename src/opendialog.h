@@ -27,7 +27,7 @@ private:
     InputBox *filenameText = nullptr;
     ListView *folder = nullptr;
     Button *okButton = nullptr;
-    QDir dir;
+    QDir _dir;
 
     void refreshFolder();
 };

@@ -3,16 +3,16 @@
 void OpenDialog::refreshFolder()
 {
     QStringList items;
-    QFileInfoList list = dir.entryInfoList();
-    dir.setFilter(QDir::AllEntries);
+    QFileInfoList list = _dir.entryInfoList();
+    _dir.setFilter(QDir::AllEntries);
 
     //TODO: das abschneiden muss das Lable machen ;)
-    curentPath->setText(dir.absolutePath().right(33));
+    curentPath->setText(_dir.absolutePath().right(33));
     for (int i = 0; i < list.size(); ++i) {
         QFileInfo fileInfo = list.at(i);
         if(fileInfo.fileName() != ".") {
             if(fileInfo.fileName() == "..") {
-                if(dir.path() != "/") {
+                if(_dir.path() != "/") {
                     items.append("../");
                 }
             } else if(fileInfo.isDir()) {
@@ -27,7 +27,7 @@ void OpenDialog::refreshFolder()
 
 OpenDialog::OpenDialog(Tui::ZWidget *parent) : Dialog(parent) {
 
-    dir.makeAbsolute();
+    _dir.makeAbsolute();
 
     setVisible(false);
     setContentsMargins({ 1, 1, 2, 1});
@@ -83,16 +83,16 @@ void OpenDialog::filenameChanged(QString filename) {
 
 void OpenDialog::userInput(QString filename) {
     QString tmp = filename.left(filename.size()-1);
-    if(QFileInfo(dir.filePath(filename)).isDir() && QFileInfo(dir.filePath(tmp)).isSymLink()) {
-       dir.setPath(dir.filePath(QFileInfo(dir.filePath(tmp)).readLink()));
-       dir.makeAbsolute();
+    if(QFileInfo(_dir.filePath(filename)).isDir() && QFileInfo(_dir.filePath(tmp)).isSymLink()) {
+       _dir.setPath(_dir.filePath(QFileInfo(_dir.filePath(tmp)).readLink()));
+       _dir.makeAbsolute();
        refreshFolder();
-    } else if(QFileInfo(dir.filePath(filename)).isDir()) {
-        dir.setPath(dir.filePath(filename));
-        dir.makeAbsolute();
+    } else if(QFileInfo(_dir.filePath(filename)).isDir()) {
+        _dir.setPath(_dir.filePath(filename));
+        _dir.makeAbsolute();
         refreshFolder();
     } else {
-        fileSelected(dir.filePath(filename));
+        fileSelected(_dir.filePath(filename));
         deleteLater();
     }
 }
