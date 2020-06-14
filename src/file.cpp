@@ -154,9 +154,12 @@ bool File::saveText() {
 }
 
 void File::checkWritable() {
-     //QFile file(this->filename);
-     QFileInfo file(_filename);
-     setWritable(file.isWritable());
+    setWritable(getWritable());
+}
+
+bool File::getWritable() {
+    QFileInfo file(_filename);
+    return file.isWritable();
 }
 
 void File::setHighlightBracket(bool hb) {

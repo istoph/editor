@@ -93,6 +93,7 @@ public:
     void setSearchWrap(bool wrap);
     bool getSearchWrap();
     void checkWritable();
+    bool getWritable();
 
 public slots:
     void followStandardInput(bool follow);

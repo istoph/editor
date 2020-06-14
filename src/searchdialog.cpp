@@ -20,7 +20,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
         HBoxLayout* hbox = new HBoxLayout();
         hbox->setSpacing(2);
 
-        Label *l = new Label(withMarkup, "F<m>i</m>nd", this);
+        Label *l = new Label(withMarkup, "F<m>i</m>nd   ", this);
         hbox->addWidget(l);
 
         _searchText = new InputBox(this);
@@ -84,7 +84,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
             _parseBox->setEnabled(false);
             nbox->addWidget(_parseBox);
 
-            _wrapBox = new CheckBox(withMarkup, "Wra<m>p</m> around", gbox);
+            _wrapBox = new CheckBox(withMarkup, "<m>W</m>rap around", gbox);
             if(file->getSearchWrap()) {
                 _wrapBox->setCheckState(Qt::Checked);
             } else {
@@ -174,6 +174,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
 
          file->setGroupUndo(true);
          file->setWrapOption(false);
+
          while(true) {
             file->searchNext(0);
             if(!file->isSelect()){
