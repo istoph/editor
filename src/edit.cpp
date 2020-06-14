@@ -364,10 +364,6 @@ void Editor::quit() {
     }
 }
 
-void Editor::setNoattributes(bool attr) {
-    file->setAttributes(attr);
-}
-
 void Editor::setWrap(bool wrap) {
     if (wrap) {
         file->setWrapOption(true);
@@ -454,8 +450,8 @@ int main(int argc, char **argv) {
     parser.addOption(wraplines);
 
     //Safe Attributes
-    QCommandLineOption noattributes("noattributes",QCoreApplication::translate("main", "Do not safe file attributes in ~/.chr.json"));
-    parser.addOption(noattributes);
+    QCommandLineOption attributesfileOption("attributesfile",QCoreApplication::translate("main", "Safe file for attributes, default ~/.cache/chr.json"));
+    parser.addOption(attributesfileOption);
 
     // Config File
     QCommandLineOption configOption({"c","config"},
@@ -485,6 +481,11 @@ int main(int argc, char **argv) {
         configDir = QDir::homePath() +"/.config/chr";
     }
 
+    QString attributesfile = "";
+    if(parser.isSet(attributesfileOption)) {
+        attributesfile = parser.value(attributesfileOption);
+    }
+
     // Default settings
     QSettings * qsettings = new QSettings(configDir, QSettings::IniFormat);
     int tabsize = qsettings->value("tabsize","4").toInt();
@@ -498,8 +499,11 @@ int main(int argc, char **argv) {
 
     bool bigfile = qsettings->value("bigfile", "false").toBool();
 
-    bool noattr = qsettings->value("noattributes","false").toBool();
-    root->setNoattributes(noattr || parser.isSet(noattributes));
+    QString attributesfileDefault = qsettings->value("attributesfile", QDir::homePath() + "/.cache/chr.json").toString();
+    if(attributesfile.isEmpty()) {
+        attributesfile = attributesfileDefault;
+    }
+    root->file->setAttributesfile(attributesfile);
 
     bool wl = qsettings->value("wrap_lines","false").toBool();
     root->setWrap(wl || parser.isSet(wraplines));

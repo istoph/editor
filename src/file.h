@@ -1,19 +1,17 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include <testtui_lib.h>
-
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QSaveFile>
 #include <QTextStream>
 
+#include <testtui_lib.h>
 #include <Tui/ZCommandNotifier.h>
-
-#include "QJsonDocument"
-#include "QJsonObject"
-#include "QJsonArray"
-#include <QDir>
-#include <QDebug>
 
 class File : public Tui::ZWidget {
     Q_OBJECT
@@ -81,7 +79,7 @@ public:
     void readAttributes();
     void getAttributes();
     void writeAttributes();
-    void setAttributes(bool attr);
+    void setAttributesfile(QString attributesfile);
 
 public:
 //    QString text() const;
@@ -157,6 +155,7 @@ private:
     int _groupUndo = 0;
     QJsonObject _jo;
     bool _noattr = false;
+    QString _attributesfile;
 
     Tui::ZCommandNotifier *_cmdUndo = nullptr;
     Tui::ZCommandNotifier *_cmdRedo = nullptr;

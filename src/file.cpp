@@ -24,20 +24,14 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
 
 }
 
-void File::setAttributes(bool attr) {
-    _noattr = attr;
-}
-
 void File::readAttributes() {
-    if(_noattr) {
+    if(_attributesfile.isEmpty()) {
         return;
     }
-    QFile fileRead(QDir::homePath() + "/.chr.json");
+    QFile fileRead(_attributesfile);
     if(!fileRead.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug() << "File open error";
+        //qDebug() << "File open error";
     }
-
-    fileRead.open(QIODevice::ReadOnly | QIODevice::Text);
     QString val = fileRead.readAll();
     fileRead.close();
 
@@ -46,21 +40,24 @@ void File::readAttributes() {
 }
 
 void File::getAttributes() {
-    if(_noattr || _cursorPositionX > 0|| _cursorPositionY > 0) {
+    if(_attributesfile.isEmpty() || _cursorPositionX || _cursorPositionY) {
         return;
     }
     readAttributes();
     QJsonObject data = _jo.value(_filename).toObject();
-    _cursorPositionX = data.value("cursorPositionX").toInt();
-    _cursorPositionY = data.value("cursorPositionY").toInt();
-    _scrollPositionX = data.value("scrollPositionX").toInt();
-    _scrollPositionY = data.value("scrollPositionY").toInt();
-    adjustScrollPosition();
+    if(_text.size() > data.value("cursorPositionY").toInt() && _text[data.value("cursorPositionY").toInt()].size() > data.value("cursorPositionX").toInt()) {
+        _cursorPositionX = data.value("cursorPositionX").toInt();
+        _cursorPositionY = data.value("cursorPositionY").toInt();
+        _scrollPositionX = data.value("scrollPositionX").toInt();
+        _scrollPositionY = data.value("scrollPositionY").toInt();
+
+        adjustScrollPosition();
+    }
 }
 
 void File::writeAttributes() {
-    QFileInfo i(_filename);
-    if(!i.exists() || _noattr) {
+    QFileInfo filenameInfo(_filename);
+    if(!filenameInfo.exists() || _attributesfile.isEmpty()) {
         return;
     }
     readAttributes();
@@ -70,22 +67,28 @@ void File::writeAttributes() {
     data.insert("cursorPositionY",_cursorPositionY);
     data.insert("scrollPositionX",_scrollPositionX);
     data.insert("scrollPositionY",_scrollPositionY);
-    data.insert("tabSize",_tabsize);
-    data.insert("tabOption",_tabOption);
-    _jo.insert(_filename, data);
+    _jo.insert(filenameInfo.absoluteFilePath(), data);
 
     QJsonDocument jsonDoc;
     jsonDoc.setObject(_jo);
 
     //Save
-    QFile file(QDir::homePath() + "/.chr.json");
-    if(!file.open(QIODevice::ReadWrite)) {
-        qDebug() << "File open error";
+    QSaveFile file(_attributesfile);
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        //qDebug() << "File open error";
     }
-    // Clear the original content in the file
-    file.resize(0);
     file.write(jsonDoc.toJson());
-    file.close();
+    file.commit();
+}
+
+void File::setAttributesfile(QString attributesfile) {
+    //TODO is creatable
+    if(attributesfile.isEmpty() || attributesfile.isNull()) {
+        _attributesfile = "";
+    } else {
+        QFileInfo i(attributesfile);
+        _attributesfile = i.absoluteFilePath();
+    }
 }
 
 bool File::setFilename(QString filename, bool newfile) {
