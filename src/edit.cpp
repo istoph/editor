@@ -49,6 +49,7 @@ Editor::Editor() {
                       }
                    });
 
+
     //File
     QObject::connect(new Tui::ZCommandNotifier("New", this), &Tui::ZCommandNotifier::activated,
          [&] {
@@ -298,6 +299,7 @@ void Editor::openFile(QString filename) {
     file->setFilename(filename);
     file->openText();
 }
+
 void Editor::saveFile(QString filename) {
     file->setFilename(filename);
     if(file->saveText()) {
@@ -343,7 +345,7 @@ SaveDialog * Editor::saveOrSaveas() {
 void Editor::quit() {
     file->writeAttributes();
     if(file->isModified()) {
-        ConfirmSave *quitDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Quit);
+        ConfirmSave *quitDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Quit, file->getWritable());
 
         QObject::connect(quitDialog, &ConfirmSave::exitSelected, [=]{
             QCoreApplication::instance()->quit();
@@ -488,6 +490,7 @@ int main(int argc, char **argv) {
     if(parser.isSet(attributesfileOption)) {
         attributesfile = parser.value(attributesfileOption);
     }
+
 
     // Default settings
     QSettings * qsettings = new QSettings(configDir, QSettings::IniFormat);

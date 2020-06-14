@@ -11,7 +11,7 @@ public:
     enum Type { New, Open, Quit };
     Q_OBJECT
 public:
-    explicit ConfirmSave(Tui::ZWidget *parent, QString filename, Type type);
+    explicit ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool saveable = true);
 
 signals:
     void saveSelected();

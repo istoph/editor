@@ -1,6 +1,6 @@
 #include "confirmsave.h"
 
-ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type) : Dialog(parent) {
+ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool saveable) : Dialog(parent) {
     QString mainLable = "Save: " + filename;
 
     QString title, nosave, save;
@@ -37,6 +37,10 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type) : Di
 
     //Cancle
     Button *bCancle = new Button(this);
+    if(!saveable) {
+        bCancle->setDefault(!saveable);
+        bCancle->setFocus();
+    }
     bCancle->setText("Cancle");
     hbox->addWidget(bCancle);
 
@@ -49,8 +53,11 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type) : Di
     //Save
     Button *bSave = new Button(this);
     bSave->setText(save);
-    bSave->setDefault(true);
-    bSave->setFocus();
+    bSave->setEnabled(saveable);
+    if (saveable) {
+        bSave->setDefault(saveable);
+        bSave->setFocus();
+    }
     hbox->addWidget(bSave);
     vbox->add(hbox);
 
