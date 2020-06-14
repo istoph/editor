@@ -10,7 +10,8 @@ class OpenDialog : public Dialog {
     Q_OBJECT
 
 public:
-    OpenDialog(Tui::ZWidget *parent);
+    OpenDialog(Tui::ZWidget *parent, QString path = "");
+    void pathSelected(QString path);
 
 public slots:
     void open();

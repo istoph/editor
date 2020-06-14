@@ -285,7 +285,7 @@ void Editor::windowTitle(QString filename) {
 void Editor::newFile(QString filename) {
     windowTitle(filename);
     file->newText();
-    file->setFilename(filename);
+    file->setFilename(filename, true);
 }
 
 void Editor::openFile(QString filename) {
@@ -308,8 +308,8 @@ void Editor::saveFile(QString filename) {
     }
 
 }
-void Editor::openFileDialog() {
-    OpenDialog * openDialog = new OpenDialog(this);
+void Editor::openFileDialog(QString path) {
+    OpenDialog * openDialog = new OpenDialog(this, path);
     connect(openDialog, &OpenDialog::fileSelected, this, &Editor::openFile);
 }
 
@@ -516,7 +516,7 @@ int main(int argc, char **argv) {
     qDebug("chr starting");
 
     // OPEN FILE
-    int lineNumber = 0, lineChar = 0;
+    int lineNumber = -1, lineChar = 0;
     if(!args.isEmpty()) {
         QStringList p = args;
         if (p.first().mid(0,1) == "+") {
@@ -533,14 +533,25 @@ int main(int argc, char **argv) {
         if (!p.isEmpty()) {
             if (p.first() != "-") {
                 QFileInfo datei(p.first());
-                if(datei.isReadable()) {
+                if(datei.isFile()) {
                     if(datei.size() > 1024000 && !parser.isSet(bigOption) && !bigfile) {
                         //TODO: warn dialog
                         out << "The file is bigger then 1MB ("<< datei.size() <<"). Please start with -b for big files.\n";
                         return 0;
                     }
+                    root->openFile(datei.absoluteFilePath());
+                } else if(datei.isDir()) {
+                    QString tmp = datei.absoluteFilePath();
+                    QTimer *t = new QTimer();
+                    QObject::connect(t, &QTimer::timeout, t, [t, root, tmp] {
+                        root->openFileDialog(tmp);
+                        t->deleteLater();
+                    });
+                    t->setSingleShot(true);
+                    t->start(0);
+                } else {
+                    root->newFile(datei.absoluteFilePath());
                 }
-                root->openFile(datei.absoluteFilePath());
             } else {
                 if(parser.isSet(append)) {
                     root->openFile(parser.value(append));

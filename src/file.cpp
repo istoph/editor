@@ -88,9 +88,15 @@ void File::writeAttributes() {
     file.close();
 }
 
-bool File::setFilename(QString filename) {
-    //TODO: check if file readable
-    _filename = filename;
+bool File::setFilename(QString filename, bool newfile) {
+    if(newfile) {
+        _filename = filename;
+        this->newfile = false;
+        saveUndoStep();
+    } else {
+        QFileInfo filenameInfo(filename);
+        _filename = filenameInfo.absoluteFilePath();
+    }
     return true;
 }
 QString File::getFilename() {
@@ -98,9 +104,11 @@ QString File::getFilename() {
 }
 
 bool File::newText() {
-    //TODO: with path
-    setFilename("dokument.txt");
-    //TODO: ask if save
+    if(getFilename().isEmpty()) {
+        setFilename("dokument.txt");
+        modifiedChanged(false);
+        newfile = true;
+    }
     _text.clear();
     _text.append(QString());
     _undoSteps.clear();
@@ -112,9 +120,7 @@ bool File::newText() {
     _saveCursorPositionX = 0;
     saveUndoStep();
     _savedUndoStep = _currentUndoStep;
-    modifiedChanged(false);
     update();
-    newfile = true;
     return true;
 }
 

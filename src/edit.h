@@ -46,6 +46,7 @@ public:
     void setFollow(bool follow);
     bool getFollow();
     void windowTitle(QString filename);
+    void openFileDialog(QString path = "");
 
 public slots:
     void newFile(QString filename = "dokument.txt");
@@ -62,7 +63,6 @@ signals:
     void followStandadInput(bool follow);
 
 private:
-    void openFileDialog();
     SaveDialog *saveFileDialog();
     SaveDialog *saveOrSaveas();
     void quit();

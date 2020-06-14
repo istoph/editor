@@ -25,8 +25,10 @@ void OpenDialog::refreshFolder()
     folder->setItems(items);
 }
 
-OpenDialog::OpenDialog(Tui::ZWidget *parent) : Dialog(parent) {
-
+OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
+    if(path.size()) {
+        _dir.setPath(path);
+    }
     _dir.makeAbsolute();
 
     setVisible(false);
@@ -79,6 +81,10 @@ void OpenDialog::open() {
 void OpenDialog::filenameChanged(QString filename) {
     QFileInfo datei(filename);
     okButton->setEnabled(datei.isReadable());
+}
+
+void OpenDialog::pathSelected(QString path) {
+    _dir.setPath(path);
 }
 
 void OpenDialog::userInput(QString filename) {

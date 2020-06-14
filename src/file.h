@@ -33,7 +33,7 @@ public:
 public:
     File();
     explicit File(Tui::ZWidget *parent);
-    bool setFilename(QString _filename);
+    bool setFilename(QString _filename,  bool newfile = false);
     QString getFilename();
     bool newText();
     bool saveText();
