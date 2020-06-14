@@ -49,6 +49,7 @@ Editor::Editor() {
                       }
                    });
 
+    //File
     QObject::connect(new Tui::ZCommandNotifier("New", this), &Tui::ZCommandNotifier::activated,
          [&] {
             if(file->isModified()) {
@@ -115,6 +116,7 @@ Editor::Editor() {
     QObject::connect(new Tui::ZCommandNotifier("Quit", this), &Tui::ZCommandNotifier::activated,
                      this, &Editor::quit);
 
+    //Edit
     QObject::connect(new Tui::ZCommandNotifier("Cut", this), &Tui::ZCommandNotifier::activated,
          [&] {
             file->cut();
@@ -170,6 +172,7 @@ Editor::Editor() {
         }
     );
 
+    //Options
     QObject::connect(new Tui::ZCommandNotifier("Tab", this), &Tui::ZCommandNotifier::activated,
         [&] {
             new TabDialog(file, this);
