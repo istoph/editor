@@ -4,6 +4,7 @@ editor_sources = [
   'edit.cpp',
   'file.cpp',
   'gotoline.cpp',
+  'main.cpp',
   'opendialog.cpp',
   'savedialog.cpp',
   'scrollbar.cpp',
