@@ -176,18 +176,19 @@ bool File::openText() {
         _text.clear();
         QByteArray lineBuf;
         lineBuf.resize(16384);
-        while (true) { // each line
+        while (!file.atEnd()) { // each line
             int lineBytes = 0;
-            while (true) { // chunks of the line
+            _nonewline = true;
+            while (!file.atEnd()) { // chunks of the line
                 int res = file.readLine(lineBuf.data() + lineBytes, lineBuf.size() - 1 - lineBytes);
                 if (res < 0) {
                     // Some kind of error
                     return false;
-                }
-                if (res > 0) {
+                } else if (res > 0) {
                     lineBytes += res;
                     if (lineBuf[lineBytes - 1] == '\n') {
                         --lineBytes; // remove \n
+                        _nonewline = false;
                         break;
                     } else if (lineBytes == lineBuf.size() - 2) {
                         lineBuf.resize(lineBuf.size() * 2);
@@ -207,6 +208,7 @@ bool File::openText() {
         _currentUndoStep = -1;
         if (_text.isEmpty()) {
             _text.append("");
+            _nonewline = true;
             saveUndoStep();
             _savedUndoStep = -1;
         } else {
