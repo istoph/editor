@@ -810,6 +810,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     TextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
 
     int y = 0;
+    int tmpLastLineWidth = 0;
     for (int line = _scrollPositionY; y < rect().height() && line < _text.size(); line++) {
         TextLayout lay = getTextLayoutForLine(option, line);
 
@@ -849,6 +850,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         lay.draw(*painter, {-_scrollPositionX, y}, base, &formatingChar, highlights);
         if (getformattingCharacters()) {
             TextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
+            tmpLastLineWidth = lastLine.width();
             if (isSelect(_text[line].size(), line)) {
                 painter->writeWithAttributes(-_scrollPositionX + lastLine.width(), y + lastLine.y(), QStringLiteral("¶"),
                                              selectedFormatingChar.foregroundColor(), selectedFormatingChar.backgroundColor(), selectedFormatingChar.attributes());
@@ -866,7 +868,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     }
     if (_nonewline) {
         if (getformattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
-            painter->writeWithAttributes(_text[_text.size() -1].size(), y-1, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+            painter->writeWithAttributes(-_scrollPositionX + tmpLastLineWidth, y-1, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
         }
         painter->writeWithAttributes(0, y, "\\ No newline at end of file", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
     } else {
