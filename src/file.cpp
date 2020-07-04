@@ -47,7 +47,7 @@ void File::getAttributes() {
     }
     if(readAttributes()) {
         QJsonObject data = _jo.value(_filename).toObject();
-        if(_text.size() > data.value("cursorPositionY").toInt() && _text[data.value("cursorPositionY").toInt()].size() > data.value("cursorPositionX").toInt()) {
+        if(_text.size() > data.value("cursorPositionY").toInt() && _text[data.value("cursorPositionY").toInt()].size() +1 > data.value("cursorPositionX").toInt()) {
             _cursorPositionX = data.value("cursorPositionX").toInt();
             _cursorPositionY = data.value("cursorPositionY").toInt();
             _scrollPositionX = data.value("scrollPositionX").toInt();
