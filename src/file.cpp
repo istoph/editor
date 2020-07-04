@@ -6,7 +6,6 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setFocusPolicy(Qt::StrongFocus);
     setCursorStyle(Tui::CursorStyle::Bar);
     setCursorColor(255, 255, 255);
-    //_text.append(QString());
     newText();
     _cmdUndo = new Tui::ZCommandNotifier("Undo", this);
     QObject::connect(_cmdUndo, &Tui::ZCommandNotifier::activated, this, [this]{undo();});
@@ -121,11 +120,12 @@ bool File::newText() {
     _currentUndoStep = -1;
     _collapseUndoStep = false;
     _scrollPositionX = 0;
+    _scrollPositionY = 0;
     _cursorPositionX = 0;
     _cursorPositionY = 0;
     _saveCursorPositionX = 0;
-    saveUndoStep();
-    _savedUndoStep = _currentUndoStep;
+    cursorPositionChanged(0, 0, 0);
+    scrollPositionChanged(0, 0);
     update();
     return true;
 }
