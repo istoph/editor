@@ -126,6 +126,8 @@ bool File::newText() {
     _saveCursorPositionX = 0;
     cursorPositionChanged(0, 0, 0);
     scrollPositionChanged(0, 0);
+    _msdos = false;
+    msdosMode(_msdos);
     update();
     return true;
 }
@@ -138,7 +140,11 @@ bool File::saveText() {
             if(i+1 == _text.size() && _nonewline) {
                 // omit newline
             } else {
-                file.write("\n", 1);
+                if(_msdos) {
+                    file.write("\r\n", 2);
+                } else {
+                    file.write("\n", 1);
+                }
             }
         }
 
@@ -220,6 +226,21 @@ bool File::openText() {
         }
         checkWritable();
         getAttributes();
+
+        for (int l = 0; l < _text.size(); l++) {
+            if(_text[l].size() >= 1 && _text[l].at(_text[l].size() -1) == "\r") {
+                _msdos = true;
+            } else {
+                _msdos = false;
+                break;
+            }
+        }
+        if(_msdos) {
+            msdosMode(true);
+            for (int i = 0; i < _text.size(); i++) {
+                _text[i].remove(_text[i].size() -1, 1);
+            }
+        }
         return true;
     }
     return false;

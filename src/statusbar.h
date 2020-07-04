@@ -18,6 +18,7 @@ public slots:
     void readFromStandardInput(bool activ);
     void followStandardInput(bool follow);
     void setWritable(bool rw);
+    void msdosMode(bool msdos);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event);
@@ -31,6 +32,7 @@ private:
     bool _stdin = false;
     bool _stdin_follow = false;
     bool _readwrite = true;
+    bool _msdosMode = false;
 };
 
 #endif // STATUSBAR_H

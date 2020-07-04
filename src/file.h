@@ -104,6 +104,7 @@ signals:
     void textMax(int x, int y);
     void modifiedChanged(bool modified);
     void setWritable(bool rw);
+    void msdosMode(bool msdos);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event) override;
@@ -157,6 +158,7 @@ private:
     QJsonObject _jo;
     bool _noattr = false;
     QString _attributesfile;
+    bool _msdos = false;
 
     Tui::ZCommandNotifier *_cmdUndo = nullptr;
     Tui::ZCommandNotifier *_cmdRedo = nullptr;
