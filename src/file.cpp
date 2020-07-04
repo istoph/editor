@@ -24,34 +24,37 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
 
 }
 
-void File::readAttributes() {
+bool File::readAttributes() {
     if(_attributesfile.isEmpty()) {
-        return;
+        return false;
     }
     QFile fileRead(_attributesfile);
     if(!fileRead.open(QIODevice::ReadOnly | QIODevice::Text)) {
         //qDebug() << "File open error";
+        return false;
     }
     QString val = fileRead.readAll();
     fileRead.close();
 
     QJsonDocument jd = QJsonDocument::fromJson(val.toUtf8());
     _jo = jd.object();
+    return true;
 }
 
 void File::getAttributes() {
     if(_attributesfile.isEmpty() || _cursorPositionX || _cursorPositionY) {
         return;
     }
-    readAttributes();
-    QJsonObject data = _jo.value(_filename).toObject();
-    if(_text.size() > data.value("cursorPositionY").toInt() && _text[data.value("cursorPositionY").toInt()].size() > data.value("cursorPositionX").toInt()) {
-        _cursorPositionX = data.value("cursorPositionX").toInt();
-        _cursorPositionY = data.value("cursorPositionY").toInt();
-        _scrollPositionX = data.value("scrollPositionX").toInt();
-        _scrollPositionY = data.value("scrollPositionY").toInt();
+    if(readAttributes()) {
+        QJsonObject data = _jo.value(_filename).toObject();
+        if(_text.size() > data.value("cursorPositionY").toInt() && _text[data.value("cursorPositionY").toInt()].size() > data.value("cursorPositionX").toInt()) {
+            _cursorPositionX = data.value("cursorPositionX").toInt();
+            _cursorPositionY = data.value("cursorPositionY").toInt();
+            _scrollPositionX = data.value("scrollPositionX").toInt();
+            _scrollPositionY = data.value("scrollPositionY").toInt();
 
-        adjustScrollPosition();
+            adjustScrollPosition();
+        }
     }
 }
 

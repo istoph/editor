@@ -76,7 +76,7 @@ public:
     Qt::CaseSensitivity searchCaseSensitivity;
     void setHighlightBracket(bool hb);
     bool getHighlightBracket();
-    void readAttributes();
+    bool readAttributes();
     void getAttributes();
     void writeAttributes();
     void setAttributesfile(QString attributesfile);
