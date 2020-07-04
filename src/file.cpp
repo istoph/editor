@@ -901,7 +901,9 @@ int File::getVisibleLines() {
 }
 
 void File::appendLine(const QString &line) {
-    // TODO richtig machen, z.B. saved state, ggf undo
+    if(_text.size() == 1 && _text[0] == "") {
+        _text.clear();
+    }
     _text.append(line);
     if(_follow) {
         _cursorPositionY = _text.size() -1;
