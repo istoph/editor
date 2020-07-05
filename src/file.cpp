@@ -228,7 +228,7 @@ bool File::openText() {
         getAttributes();
 
         for (int l = 0; l < _text.size(); l++) {
-            if(_text[l].size() >= 1 && _text[l].at(_text[l].size() -1) == "\r") {
+            if(_text[l].size() >= 1 && _text[l].at(_text[l].size() -1) == QChar('\r')) {
                 _msdos = true;
             } else {
                 _msdos = false;
