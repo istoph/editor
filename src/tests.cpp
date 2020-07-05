@@ -96,7 +96,7 @@ TEST_CASE("read write dos text") {
 
     QFile fp("text");
     CHECK(fp.open(QFile::WriteOnly));
-    fp.write(QByteArray("Hier verewigen sich \r\ndie Entwickler des Editors\r\nChristoph Hüffelmann und\r\nMartin Hostettler\r\n"));
+    fp.write(QByteArray("test\r\n\nblub\r\n"));
     fp.close();
 
     readWrite("text");
@@ -109,6 +109,29 @@ TEST_CASE("read write dos text one newline") {
     QFile fp("text");
     CHECK(fp.open(QFile::WriteOnly));
     fp.write(QByteArray("Hier verewigen sich \r\ndie Entwickler des Editors\r\nChristoph Hüffelmann und\r\nMartin Hostettler"));
+    fp.close();
+
+    readWrite("text");
+
+    fp.remove();
+}
+
+TEST_CASE("all chars") {
+
+    QFile fp("text");
+    CHECK(fp.open(QFile::WriteOnly));
+    for (int i = 1; i <= 0xFFFF; i++) {
+        fp.write(QString(1,QChar(i)).toUtf8());
+        if(i % 80 == 0) {
+            fp.write("\n");
+        }
+    }
+    for (int i = 0xFFFF; i <= 0x10FFFF; i++) {
+        fp.write((QString(1,QChar::highSurrogate(i))+QString(1,QChar::lowSurrogate(i))).toUtf8());
+        if(i % 80 == 0) {
+            fp.write("\n");
+        }
+    }
     fp.close();
 
     readWrite("text");
