@@ -55,10 +55,8 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
 }
 
 void SaveDialog::saveFile() {
-    fileSelected(filenameText->text());
+    fileSelected(dir.absolutePath() + "/" + filenameText->text());
     deleteLater();
-    //file->unsave
-    //File::saveText()
 }
 
 void SaveDialog::filenameChanged(QString filename) {
