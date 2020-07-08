@@ -26,6 +26,7 @@ private:
     Label *curentPath = nullptr;
     InputBox *filenameText = nullptr;
     ListView *folder = nullptr;
+    Button *cancleButton = nullptr;
     Button *okButton = nullptr;
     QDir dir;
 

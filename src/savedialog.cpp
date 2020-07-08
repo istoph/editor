@@ -23,13 +23,13 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
     setVisible(false);
     setContentsMargins({ 1, 1, 2, 1});
 
-    setGeometry({20, 2, 40, 14});
+    setGeometry({10, 2, 50, 15});
     setWindowTitle("Save as...");
 
     curentPath = new Label(this);
     curentPath->setGeometry({2,2,45,1});
     folder = new ListView(this);
-    folder->setGeometry({3,2,34,6});
+    folder->setGeometry({3,3,44,6});
     folder->setFocus();
 
     connect(folder, &ListView::enterPressed, [this](int selected){
@@ -38,17 +38,19 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
     refreshFolder();
 
     filenameText = new InputBox(this);
-    filenameText->setGeometry({3,9,34,1});
-    //filenameText->setText(file.getFilename());
-    //filenameText->setFocus();
+    filenameText->setGeometry({3,10,44,1});
+    cancleButton = new Button(this);
+    cancleButton->setGeometry({25, 12, 12, 7});
+    cancleButton->setText("Cancle");
 
     okButton = new Button(this);
-    okButton->setGeometry({29, 11, 8, 7});
-    okButton->setText("OK");
+    okButton->setGeometry({37, 12, 10, 7});
+    okButton->setText("Save");
     okButton->setDefault(true);
     okButton->setEnabled(false);
 
-    connect(filenameText, &InputBox::textChanged, this, &SaveDialog::filenameChanged);
+    QObject::connect(filenameText, &InputBox::textChanged, this, &SaveDialog::filenameChanged);
+    QObject::connect(cancleButton, &Button::clicked, this, &SaveDialog::rejected);
     QObject::connect(okButton, &Button::clicked, this, &SaveDialog::saveFile);
 
     QRect r = geometry();
