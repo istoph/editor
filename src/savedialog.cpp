@@ -4,6 +4,7 @@ void SaveDialog::refreshFolder() {
     QStringList items;
     QFileInfoList list = dir.entryInfoList();
     dir.setFilter(QDir::AllEntries);
+    curentPath->setText(dir.absolutePath().right(44));
     for (int i = 0; i < list.size(); ++i) {
         QFileInfo fileInfo = list.at(i);
         if(fileInfo.fileName() != ".") {
@@ -25,6 +26,8 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
     setGeometry({20, 2, 40, 14});
     setWindowTitle("Save as...");
 
+    curentPath = new Label(this);
+    curentPath->setGeometry({2,2,45,1});
     folder = new ListView(this);
     folder->setGeometry({3,2,34,6});
     folder->setFocus();
