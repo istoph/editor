@@ -2,9 +2,9 @@
 
 void SaveDialog::refreshFolder() {
     QStringList items;
-    QFileInfoList list = dir.entryInfoList();
-    dir.setFilter(QDir::AllEntries);
-    curentPath->setText(dir.absolutePath().right(44));
+    QFileInfoList list = _dir.entryInfoList();
+    _dir.setFilter(QDir::AllEntries);
+    _curentPath->setText(_dir.absolutePath().right(44));
     for (int i = 0; i < list.size(); ++i) {
         QFileInfo fileInfo = list.at(i);
         if(fileInfo.fileName() != ".") {
@@ -15,7 +15,7 @@ void SaveDialog::refreshFolder() {
             }
         }
     }
-    folder->setItems(items);
+    _folder->setItems(items);
 }
 
 SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
@@ -26,32 +26,32 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
     setGeometry({10, 2, 50, 15});
     setWindowTitle("Save as...");
 
-    curentPath = new Label(this);
-    curentPath->setGeometry({2,2,45,1});
-    folder = new ListView(this);
-    folder->setGeometry({3,3,44,6});
-    folder->setFocus();
+    _curentPath = new Label(this);
+    _curentPath->setGeometry({2,2,45,1});
+    _folder = new ListView(this);
+    _folder->setGeometry({3,3,44,6});
+    _folder->setFocus();
 
-    connect(folder, &ListView::enterPressed, [this](int selected){
-        userInput(folder->items()[selected]);
+    connect(_folder, &ListView::enterPressed, [this](int selected){
+        userInput(_folder->items()[selected]);
     });
     refreshFolder();
 
-    filenameText = new InputBox(this);
-    filenameText->setGeometry({3,10,44,1});
-    cancleButton = new Button(this);
-    cancleButton->setGeometry({25, 12, 12, 7});
-    cancleButton->setText("Cancle");
+    _filenameText = new InputBox(this);
+    _filenameText->setGeometry({3,10,44,1});
+    _cancleButton = new Button(this);
+    _cancleButton->setGeometry({25, 12, 12, 7});
+    _cancleButton->setText("Cancle");
 
-    okButton = new Button(this);
-    okButton->setGeometry({37, 12, 10, 7});
-    okButton->setText("Save");
-    okButton->setDefault(true);
-    okButton->setEnabled(false);
+    _okButton = new Button(this);
+    _okButton->setGeometry({37, 12, 10, 7});
+    _okButton->setText("Save");
+    _okButton->setDefault(true);
+    _okButton->setEnabled(false);
 
-    QObject::connect(filenameText, &InputBox::textChanged, this, &SaveDialog::filenameChanged);
-    QObject::connect(cancleButton, &Button::clicked, this, &SaveDialog::rejected);
-    QObject::connect(okButton, &Button::clicked, this, &SaveDialog::saveFile);
+    QObject::connect(_filenameText, &InputBox::textChanged, this, &SaveDialog::filenameChanged);
+    QObject::connect(_cancleButton, &Button::clicked, this, &SaveDialog::rejected);
+    QObject::connect(_okButton, &Button::clicked, this, &SaveDialog::saveFile);
 
     QRect r = geometry();
     r.moveCenter(terminal()->mainWidget()->geometry().center());
@@ -60,7 +60,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
 }
 
 void SaveDialog::saveFile() {
-    fileSelected(dir.absolutePath() + "/" + filenameText->text());
+    fileSelected(_dir.absolutePath() + "/" + _filenameText->text());
     deleteLater();
 }
 
@@ -70,7 +70,7 @@ void SaveDialog::filenameChanged(QString filename) {
     if (filename.isEmpty()) {
         ok = false;
     } else if (datei.isDir()) {
-        dir.setPath(dir.filePath(filename));
+        _dir.setPath(_dir.filePath(filename));
         refreshFolder();
         ok = false;
     } else if (!datei.dir().exists()) {
@@ -87,15 +87,15 @@ void SaveDialog::filenameChanged(QString filename) {
             }
         }
     }
-    okButton->setEnabled(ok);
+    _okButton->setEnabled(ok);
 }
 
 void SaveDialog::userInput(QString filename) {
-    if(QFileInfo(dir.filePath(filename)).isDir()) {
-        dir.setPath(dir.filePath(filename));
+    if(QFileInfo(_dir.filePath(filename)).isDir()) {
+        _dir.setPath(_dir.filePath(filename));
         refreshFolder();
     } else {
-        filenameText->setText(filename);
-        filenameText->setFocus();
+        _filenameText->setText(filename);
+        _filenameText->setFocus();
     }
 }
