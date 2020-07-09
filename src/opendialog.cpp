@@ -13,7 +13,7 @@ void OpenDialog::refreshFolder()
         if(fileInfo.fileName() != ".") {
             if(fileInfo.fileName() == "..") {
                 if(_dir.path() != "/") {
-                    items.append("../");
+                    items.insert(0,"../");
                 }
             } else if(fileInfo.isDir()) {
                 items.append(fileInfo.fileName()+"/");
