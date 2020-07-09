@@ -1007,7 +1007,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         ++_cursorPositionX;
         safeCursorPosition();
     } else if (_formatting_characters && event->text() == "¶" && event->modifiers() == 0) {
-        true;
+        //do not add the character
     } else if(text.size() && event->modifiers() == 0) {
         if(_text[_cursorPositionY].size() < _cursorPositionX) {
             _text[_cursorPositionY].resize(_cursorPositionX, ' ');
