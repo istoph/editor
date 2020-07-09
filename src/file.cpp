@@ -133,7 +133,7 @@ bool File::newText() {
 }
 
 bool File::saveText() {
-    QFile file(_filename);
+    QSaveFile file(_filename);
     if (file.open(QIODevice::WriteOnly)) {
         for (int i=0; i<_text.size(); i++) {
             file.write(surrogate_escape::encode(_text[i]));
@@ -148,7 +148,7 @@ bool File::saveText() {
             }
         }
 
-        file.close();
+        file.commit();
         saveUndoStep();
         _savedUndoStep = _currentUndoStep;
         modifiedChanged(false);
