@@ -10,7 +10,7 @@ class SaveDialog : public Dialog {
     Q_OBJECT
 
 public:
-    SaveDialog(Tui::ZWidget *parent);
+    SaveDialog(Tui::ZWidget *parent, File *file = nullptr);
 
 public slots:
     void saveFile();
@@ -27,6 +27,7 @@ private:
     Label *_curentPath = nullptr;
     InputBox *_filenameText = nullptr;
     ListView *_folder = nullptr;
+    CheckBox *_dos = nullptr;
     Button *_cancleButton = nullptr;
     Button *_okButton = nullptr;
     QDir _dir;

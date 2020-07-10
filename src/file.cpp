@@ -93,6 +93,15 @@ void File::setAttributesfile(QString attributesfile) {
     }
 }
 
+bool File::getMsDosMode() {
+    return _msdos;
+}
+
+void File::setMsDosMode(bool msdos) {
+    _msdos = msdos;
+    msdosMode(_msdos);
+}
+
 bool File::setFilename(QString filename, bool newfile) {
     if(newfile) {
         _filename = filename;
@@ -126,8 +135,7 @@ bool File::newText() {
     _saveCursorPositionX = 0;
     cursorPositionChanged(0, 0, 0);
     scrollPositionChanged(0, 0);
-    _msdos = false;
-    msdosMode(_msdos);
+    setMsDosMode(false);
     update();
     return true;
 }
@@ -140,7 +148,7 @@ bool File::saveText() {
             if(i+1 == _text.size() && _nonewline) {
                 // omit newline
             } else {
-                if(_msdos) {
+                if(getMsDosMode()) {
                     file.write("\r\n", 2);
                 } else {
                     file.write("\n", 1);

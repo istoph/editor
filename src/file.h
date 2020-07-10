@@ -80,6 +80,8 @@ public:
     void getAttributes();
     void writeAttributes();
     void setAttributesfile(QString attributesfile);
+    bool getMsDosMode();
+    void setMsDosMode(bool msdos);
 
 public:
 //    QString text() const;

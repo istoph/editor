@@ -18,12 +18,12 @@ void SaveDialog::refreshFolder() {
     _folder->setItems(items);
 }
 
-SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
+SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     setVisible(false);
     setContentsMargins({ 1, 1, 2, 1});
 
-    setGeometry({10, 2, 50, 15});
+    setGeometry({10, 2, 50, 17});
     setWindowTitle("Save as...");
 
     _curentPath = new Label(this);
@@ -39,17 +39,32 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
 
     _filenameText = new InputBox(this);
     _filenameText->setGeometry({3,10,44,1});
+    _dos = new CheckBox(withMarkup, "MS <m>D</m>os Mode", this);
+    _dos->setGeometry({31, 12, 16, 7});
+    if(file->getMsDosMode()) {
+        _dos->setCheckState(Qt::Checked);
+    } else {
+        _dos->setCheckState(Qt::Unchecked);
+    }
+
     _cancleButton = new Button(this);
-    _cancleButton->setGeometry({25, 12, 12, 7});
+    _cancleButton->setGeometry({25, 14, 12, 7});
     _cancleButton->setText("Cancle");
 
     _okButton = new Button(this);
-    _okButton->setGeometry({37, 12, 10, 7});
+    _okButton->setGeometry({37, 14, 10, 7});
     _okButton->setText("Save");
     _okButton->setDefault(true);
     _okButton->setEnabled(false);
 
     QObject::connect(_filenameText, &InputBox::textChanged, this, &SaveDialog::filenameChanged);
+    QObject::connect(_dos, &CheckBox::stateChanged, [=] {
+       if(_dos->checkState() == Qt::Checked) {
+            file->setMsDosMode(true);
+       } else {
+            file->setMsDosMode(false);
+       }
+    });
     QObject::connect(_cancleButton, &Button::clicked, this, &SaveDialog::rejected);
     QObject::connect(_okButton, &Button::clicked, this, &SaveDialog::saveFile);
 

@@ -318,7 +318,7 @@ void Editor::openFileDialog(QString path) {
 }
 
 SaveDialog * Editor::saveFileDialog() {
-    SaveDialog * saveDialog = new SaveDialog(this);
+    SaveDialog * saveDialog = new SaveDialog(this, file);
     connect(saveDialog, &SaveDialog::fileSelected, this, &Editor::saveFile);
     return saveDialog;
 }
