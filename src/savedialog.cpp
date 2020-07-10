@@ -59,6 +59,10 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent) : Dialog(parent) {
     setVisible(true);
 }
 
+void SaveDialog::rejected() {
+    deleteLater();
+}
+
 void SaveDialog::saveFile() {
     fileSelected(_dir.absolutePath() + "/" + _filenameText->text());
     deleteLater();

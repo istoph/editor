@@ -14,6 +14,7 @@ public:
 
 public slots:
     void saveFile();
+    void rejected();
 
 signals:
     void fileSelected(QString filename);
