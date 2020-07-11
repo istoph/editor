@@ -102,6 +102,11 @@ void File::setMsDosMode(bool msdos) {
     msdosMode(_msdos);
 }
 
+int File::tabToSpace() {
+    QString space = " ";
+    return replaceAll("\\t", space.repeated(getTabsize()));
+}
+
 int File::replaceAll(QString searchText, QString replaceText) {
     bool tmpwrap = getWrapOption();
     int counter = 0;

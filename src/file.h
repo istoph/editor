@@ -82,6 +82,7 @@ public:
     void setAttributesfile(QString attributesfile);
     bool getMsDosMode();
     void setMsDosMode(bool msdos);
+    int tabToSpace();
     int replaceAll(QString searchText, QString replaceText);
 
 public:
