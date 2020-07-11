@@ -30,6 +30,8 @@ Editor::Editor() {
                             { "Search <m>P</m>revious", "Shift-F3", "Search Previous", {}},
                             { "<m>R</m>eplace", "Ctrl-R", "Replace", {}},
                             {},
+                            { "Insert C<m>h</m>aracter...", "", "InsertCharacter", {}},
+                            {},
                             { "<m>G</m>oto line", "Ctrl-G", "Gotoline", {}}
                         }
                       },
@@ -163,6 +165,11 @@ Editor::Editor() {
     QObject::connect(new Tui::ZCommandNotifier("Replace", this), &Tui::ZCommandNotifier::activated,
          [&] {
             replaceDialog();
+        }
+    );
+    QObject::connect(new Tui::ZCommandNotifier("InsertCharacter", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            new InsertCharacter(this, file);
         }
     );
     QObject::connect(new Tui::ZCommandNotifier("Gotoline", this), &Tui::ZCommandNotifier::activated,

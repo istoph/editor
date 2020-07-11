@@ -943,6 +943,13 @@ void File::appendLine(const QString &line) {
     adjustScrollPosition();
 }
 
+void File::insertAtCursorPosition(QString str) {
+    //TODO: \n
+    _text[_cursorPositionY].insert(_cursorPositionX, str);
+    _cursorPositionX += str.size();
+    safeCursorPosition();
+}
+
 void File::keyEvent(Tui::ZKeyEvent *event) {
     QString text = event->text();
     if(event->key() == Qt::Key_Space && event->modifiers() == 0) {
