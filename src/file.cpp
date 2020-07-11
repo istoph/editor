@@ -102,6 +102,30 @@ void File::setMsDosMode(bool msdos) {
     msdosMode(_msdos);
 }
 
+int File::replaceAll(QString searchText, QString replaceText) {
+    bool tmpwrap = getWrapOption();
+    int counter = 0;
+    setSearchText(searchText);
+    setReplaceText(replaceText);
+
+    setGroupUndo(true);
+    setWrapOption(false);
+
+    while(true) {
+       searchNext(0);
+       if(!isSelect()){
+           break;
+       }
+       setReplaceSelected();
+       counter++;
+    }
+
+    setWrapOption(tmpwrap);
+    setGroupUndo(false);
+
+    return counter;
+}
+
 bool File::setFilename(QString filename, bool newfile) {
     if(newfile) {
         _filename = filename;

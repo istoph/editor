@@ -168,24 +168,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
     });
 
      QObject::connect(_replaceAllBtn, &Button::clicked, [=]{
-         bool tmpwrap = file->getWrapOption();
-         file->setSearchText(_searchText->text());
-         file->setReplaceText(_replaceText->text());
-
-         file->setGroupUndo(true);
-         file->setWrapOption(false);
-
-         while(true) {
-            file->searchNext(0);
-            if(!file->isSelect()){
-                break;
-            }
-            file->setReplaceSelected();
-         }
-
-         file->setWrapOption(tmpwrap);
-         file->setGroupUndo(false);
-
+         file->replaceAll(_searchText->text(), _replaceText->text());
      });
 
     QObject::connect(_cancelBtn, &Button::clicked, [=]{

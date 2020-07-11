@@ -82,6 +82,7 @@ public:
     void setAttributesfile(QString attributesfile);
     bool getMsDosMode();
     void setMsDosMode(bool msdos);
+    int replaceAll(QString searchText, QString replaceText);
 
 public:
 //    QString text() const;
