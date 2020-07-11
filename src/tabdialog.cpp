@@ -5,7 +5,6 @@ TabDialog::TabDialog(File *file, Tui::ZWidget *parent) : Dialog(parent) {
 
     setFocus();
     setWindowTitle("Formatting Tab");
-    //setPaletteClass({"window","cyan"});
     setContentsMargins({ 1, 1, 1, 1});
 
     VBoxLayout *vbox = new VBoxLayout();
@@ -13,55 +12,74 @@ TabDialog::TabDialog(File *file, Tui::ZWidget *parent) : Dialog(parent) {
     vbox->setSpacing(1);
 
     HBoxLayout* hbox1 = new HBoxLayout();
+    RadioButton *tabRadioButton = new RadioButton(this);
+    tabRadioButton->setMarkup("<m>T</m>ab");
+    tabRadioButton->setChecked(!file->getTabOption());
+    hbox1->addWidget(tabRadioButton);
 
-    RadioButton *r1 = new RadioButton(this);
-    r1->setMarkup("<m>T</m>ab");
-    // TODO: onSelect i1 und b1->setEnabled(false);
-    r1->setChecked(!file->getTabOption());
-    hbox1->addWidget(r1);
-
-    RadioButton *r2 = new RadioButton(this);
-    r2->setMarkup("<m>B</m>lank");
-    r2->setChecked(file->getTabOption());
-    hbox1->addWidget(r2);
+    RadioButton *blankRadioButton = new RadioButton(this);
+    blankRadioButton->setMarkup("<m>B</m>lank");
+    blankRadioButton->setChecked(file->getTabOption());
+    hbox1->addWidget(blankRadioButton);
 
     vbox->add(hbox1);
     vbox->addStretch();
 
     HBoxLayout* hbox2 = new HBoxLayout();
+    Label *tabstopLable = new Label(this);
+    tabstopLable->setText("Tab Stops: ");
+    hbox2->addWidget(tabstopLable);
 
-    Label *l1 = new Label(this);
-    l1->setText("Tab Stops: ");
-    hbox2->addWidget(l1);
-
-    InputBox *i1 = new InputBox(this);
-    i1->setText(QString::number(file->getTabsize()));
-    i1->setFocus();
-    i1->setEnabled(true);
-    hbox2->addWidget(i1);
-
+    InputBox *tabsizeInputBox = new InputBox(this);
+    tabsizeInputBox->setText(QString::number(file->getTabsize()));
+    tabsizeInputBox->setFocus();
+    tabsizeInputBox->setEnabled(true);
+    hbox2->addWidget(tabsizeInputBox);
     vbox->add(hbox2);
 
     HBoxLayout* hbox3 = new HBoxLayout();
+    Label *tabtospaceLabel = new Label(this);
+    tabtospaceLabel->setText("Tab to Space: ");
+    hbox3->addWidget(tabtospaceLabel);
 
-    Button *cancelButton = new Button(this);
-    cancelButton->setText("Cancel");
-    hbox3->addWidget(cancelButton);
-
-    Button *okButton = new Button(this);
-    okButton->setText("OK");
-    okButton->setDefault(true);
-    hbox3->addWidget(okButton);
-
+    Button *convertButton = new Button(this);
+    convertButton->setText("Convert");
+    convertButton->setDefault(true);
+    hbox3->addWidget(convertButton);
     vbox->add(hbox3);
 
-    QObject::connect(okButton, &Button::clicked, [=]{
-        if(i1->text().toInt() > 0) {
-            file->setTabOption(r2->checked());
-            file->setTabsize(i1->text().toInt());
-            deleteLater();
+    HBoxLayout* hbox4 = new HBoxLayout();
+    Button *cancelButton = new Button(this);
+    cancelButton->setText("Cancel");
+    hbox4->addWidget(cancelButton);
+
+    Button *saveButton = new Button(this);
+    saveButton->setText("Save");
+    saveButton->setDefault(true);
+    hbox4->addWidget(saveButton);
+    vbox->add(hbox4);
+
+    QObject::connect(convertButton, &Button::clicked, [=]{
+        file->setTabOption(blankRadioButton->checked());
+        file->setTabsize(tabsizeInputBox->text().toInt());
+        file->tabToSpace();
+        deleteLater();
+    });
+
+    QObject::connect(saveButton, &Button::clicked, [=]{
+        file->setTabOption(blankRadioButton->checked());
+        file->setTabsize(tabsizeInputBox->text().toInt());
+        deleteLater();
+    });
+
+    QObject::connect(tabsizeInputBox, &InputBox::textChanged, [=]{
+        if(tabsizeInputBox->text().toInt() > 0 && tabsizeInputBox->text().toInt() < 100) {
+            convertButton->setEnabled(true);
+            saveButton->setEnabled(true);
+        } else {
+            convertButton->setEnabled(false);
+            saveButton->setEnabled(false);
         }
-        //TODO: error message
     });
 
     QObject::connect(cancelButton, &Button::clicked, [=]{
