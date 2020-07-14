@@ -994,10 +994,17 @@ void File::appendLine(const QString &line) {
 }
 
 void File::insertAtCursorPosition(QString str) {
-    //TODO: \n
-    _text[_cursorPositionY].insert(_cursorPositionX, str);
-    _cursorPositionX += str.size();
+    QStringList sl = str.split("\n");
+    for(int i = 0; i < sl.size() ;i++) {
+        _text[_cursorPositionY].insert(_cursorPositionX, sl[i]);
+        _cursorPositionX += sl[i].size();
+        if(i+1 < sl.size()) {
+            insertLinebreak();
+        }
+    }
+    modifiedChanged(true);
     safeCursorPosition();
+    adjustScrollPosition();
 }
 
 void File::keyEvent(Tui::ZKeyEvent *event) {
