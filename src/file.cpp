@@ -103,8 +103,23 @@ void File::setMsDosMode(bool msdos) {
 }
 
 int File::tabToSpace() {
-    QString space = " ";
-    return replaceAll("\\t", space.repeated(getTabsize()));
+    int count = 0;
+    for (int line = 0, found = -1; line < _text.size(); line++) {
+        do {
+            found = _text[line].indexOf("\t", found + 1);
+            if (found != -1) {
+                _text[line].remove(found,1);
+                for (int i=found%getTabsize(); i<getTabsize(); i++) {
+                    _text[line].insert(found, " ");
+                }
+                count++;
+            }
+        } while (found != -1);
+    }
+    if(count>0){
+        saveUndoStep();
+    }
+    return count;
 }
 
 int File::replaceAll(QString searchText, QString replaceText) {
