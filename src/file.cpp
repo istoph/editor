@@ -104,17 +104,23 @@ void File::setMsDosMode(bool msdos) {
 
 int File::tabToSpace() {
     int count = 0;
+
+    ZTextOption option = getTextOption();
+    option.setWrapMode(ZTextOption::NoWrap);
+
     for (int line = 0, found = -1; line < _text.size(); line++) {
-        do {
-            found = _text[line].indexOf("\t", found + 1);
-            if (found != -1) {
+        found = _text[line].lastIndexOf("\t");
+        if(found != -1) {
+            TextLayout lay = getTextLayoutForLine(option, line);
+            while (found != -1) {
+                int columnStart = lay.lineAt(0).cursorToX(found, TextLineRef::Leading);
+                int columnEnd = lay.lineAt(0).cursorToX(found, TextLineRef::Trailing);
                 _text[line].remove(found,1);
-                for (int i=found%getTabsize(); i<getTabsize(); i++) {
-                    _text[line].insert(found, " ");
-                }
+                _text[line].insert(found, QString(" ").repeated(columnEnd-columnStart));
                 count++;
+                found = _text[line].lastIndexOf("\t", found);
             }
-        } while (found != -1);
+        }
     }
     if(count>0){
         saveUndoStep();
