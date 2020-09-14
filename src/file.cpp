@@ -77,10 +77,11 @@ void File::writeAttributes() {
     //Save
     QSaveFile file(_attributesfile);
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        //qDebug() << "File open error";
+        //qWarning("%s%s", "can not save file: ", _attributesfile.toUtf8().data());
+    } else {
+        file.write(jsonDoc.toJson());
+        file.commit();
     }
-    file.write(jsonDoc.toJson());
-    file.commit();
 }
 
 void File::setAttributesfile(QString attributesfile) {
