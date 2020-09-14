@@ -36,7 +36,9 @@ int main(int argc, char **argv) {
     parser.addOption(wraplines);
 
     //Safe Attributes
-    QCommandLineOption attributesfileOption("attributesfile",QCoreApplication::translate("main", "Safe file for attributes, default ~/.cache/chr.json"));
+    QCommandLineOption attributesfileOption("attributesfile",
+                                            QCoreApplication::translate("main", "Safe file for attributes, default ~/.cache/chr.json"),
+                                            QCoreApplication::translate("main", "config file"));
     parser.addOption(attributesfileOption);
 
     // Config File
