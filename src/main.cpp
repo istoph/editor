@@ -1,6 +1,7 @@
 #include "edit.h"
 #include <QLoggingCategory>
 #include <Tui/ZSimpleFileLogger.h>
+#include <Tui/ZSimpleStringLogger.h>
 
 int main(int argc, char **argv) {
 
@@ -103,6 +104,7 @@ int main(int argc, char **argv) {
     QString logfile = qsettings->value("logfile", "").toString();
     if (logfile.isEmpty()) {
         QLoggingCategory::defaultCategory()->setEnabled(QtDebugMsg, false);
+        Tui::ZSimpleStringLogger::install();
     } else {
         Tui::ZSimpleFileLogger::install(logfile);
     }
@@ -184,5 +186,9 @@ int main(int argc, char **argv) {
     root->file->setCursorStyle(Tui::CursorStyle::Underline);
 
     app.exec();
+    if(Tui::ZSimpleStringLogger::getMessages().size() > 0) {
+        terminal.pauseOperation();
+        printf("\e[90m%s\e[0m", Tui::ZSimpleStringLogger::getMessages().toUtf8().data());
+    }
     return 0;
 }
