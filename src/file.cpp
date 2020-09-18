@@ -119,6 +119,9 @@ int File::tabToSpace() {
     ZTextOption option = getTextOption();
     option.setWrapMode(ZTextOption::NoWrap);
 
+    TextLayout lay = getTextLayoutForLine(option, _cursorPositionY);
+    int cursorPosition = lay.lineAt(0).cursorToX(_cursorPositionX, TextLineRef::Leading);
+
     for (int line = 0, found = -1; line < _text.size(); line++) {
         found = _text[line].lastIndexOf("\t");
         if(found != -1) {
@@ -133,6 +136,13 @@ int File::tabToSpace() {
             }
         }
     }
+
+    lay = getTextLayoutForLine(option, _cursorPositionY);
+    int newCursorPosition = lay.lineAt(0).xToCursor(cursorPosition);
+    if(newCursorPosition -1 >= 0) {
+        _cursorPositionX = newCursorPosition;
+    }
+
     if(count>0){
         saveUndoStep();
     }
