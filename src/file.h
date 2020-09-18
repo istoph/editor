@@ -78,7 +78,7 @@ public:
     bool getHighlightBracket();
     bool readAttributes();
     void getAttributes();
-    void writeAttributes();
+    bool writeAttributes();
     void setAttributesfile(QString attributesfile);
     bool getMsDosMode();
     void setMsDosMode(bool msdos);

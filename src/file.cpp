@@ -57,10 +57,10 @@ void File::getAttributes() {
     }
 }
 
-void File::writeAttributes() {
+bool File::writeAttributes() {
     QFileInfo filenameInfo(_filename);
     if(!filenameInfo.exists() || _attributesfile.isEmpty()) {
-        return;
+        return false;
     }
     readAttributes();
 
@@ -75,13 +75,23 @@ void File::writeAttributes() {
     jsonDoc.setObject(_jo);
 
     //Save
+    QDir d = QFileInfo(_attributesfile).absoluteDir();
+    QString absolute=d.absolutePath();
+    if(!QDir(absolute).exists()) {
+        if(QDir().mkdir(absolute)) {
+            qWarning("%s%s", "can not create directory: ", absolute.toUtf8().data());
+            return false;
+        }
+    }
+
     QSaveFile file(_attributesfile);
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        //qWarning("%s%s", "can not save file: ", _attributesfile.toUtf8().data());
-    } else {
-        file.write(jsonDoc.toJson());
-        file.commit();
+        qWarning("%s%s", "can not save file: ", _attributesfile.toUtf8().data());
+        return false;
     }
+    file.write(jsonDoc.toJson());
+    file.commit();
+    return true;
 }
 
 void File::setAttributesfile(QString attributesfile) {
