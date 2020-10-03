@@ -1028,6 +1028,20 @@ void File::insertAtCursorPosition(QString str) {
     adjustScrollPosition();
 }
 
+void File::pasteEvent(Tui::ZPasteEvent *event) {
+    QString text = event->text();
+    if(_formatting_characters) {
+        text.replace(QString("·"), QString(" "));
+        text.replace(QString("→"), QString(" "));
+        text.replace(QString("¶"), QString(""));
+    }
+    text.replace(QString('\r\n'), QString('\n'));
+    text.replace(QString('\r'), QString('\n'));
+
+    delSelect();
+    insertAtCursorPosition(text);
+}
+
 void File::keyEvent(Tui::ZKeyEvent *event) {
     QString text = event->text();
     if(event->key() == Qt::Key_Space && event->modifiers() == 0) {

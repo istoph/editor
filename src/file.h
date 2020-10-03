@@ -113,6 +113,7 @@ signals:
 protected:
     void paintEvent(Tui::ZPaintEvent *event) override;
     void keyEvent(Tui::ZKeyEvent *event) override;
+    void pasteEvent(Tui::ZPasteEvent *event) override;
 
 private:
     void adjustScrollPosition();
