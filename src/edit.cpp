@@ -393,7 +393,7 @@ void Editor::inputPipeReadable(int socket) {
     if (bytes == 0) {
         // EOF
         if (!_pipeLineBuffer.isEmpty()) {
-            file->appendLine(QString::fromUtf8(_pipeLineBuffer));
+            file->appendLine(surrogate_escape::decode(_pipeLineBuffer));
         }
         _pipeSocketNotifier->deleteLater();
         _pipeSocketNotifier = nullptr;
@@ -405,7 +405,7 @@ void Editor::inputPipeReadable(int socket) {
         _pipeLineBuffer.append(buff, bytes);
         int index;
         while ((index = _pipeLineBuffer.indexOf('\n')) != -1) {
-            file->appendLine(QString::fromUtf8(_pipeLineBuffer.left(index)));
+            file->appendLine(surrogate_escape::decode(_pipeLineBuffer.left(index)));
             _pipeLineBuffer = _pipeLineBuffer.mid(index + 1);
         }
         file->modifiedChanged(true);
