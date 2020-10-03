@@ -1309,7 +1309,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         adjustScrollPosition();
         _collapseUndoStep = false;
-    } else if(event->key() == Qt::Key_Enter && event->modifiers() == 0) {
+    } else if(event->key() == Qt::Key_Enter && (event->modifiers() & ~Qt::KeypadModifier) == 0) {
         insertLinebreak();
         adjustScrollPosition();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
