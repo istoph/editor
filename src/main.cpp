@@ -129,9 +129,9 @@ int main(int argc, char **argv) {
             if (p.first() != "-") {
                 QFileInfo datei(p.first());
                 if(datei.isFile()) {
-                    if(datei.size() > 1024000 && !parser.isSet(bigOption) && !bigfile) {
-                        //TODO: warn dialog
-                        out << "The file is bigger then 1MB ("<< datei.size() <<"). Please start with -b for big files.\n";
+                    int maxMB = 100;
+                    if(datei.size()/1024/1024 >= maxMB && !parser.isSet(bigOption) && !bigfile) {
+                        out << "The file is bigger then "<< maxMB << "MB ("<< datei.size()/1024/1024 <<"MB). Please start with -b for big files.\n";
                         return 0;
                     }
                     root->openFile(datei.absoluteFilePath());
