@@ -3,6 +3,7 @@
 void OpenDialog::refreshFolder()
 {
     QStringList items;
+    _dir.setSorting(QDir::DirsFirst | QDir::Name);
     QFileInfoList list = _dir.entryInfoList();
     _dir.setFilter(QDir::AllEntries);
 
