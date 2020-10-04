@@ -15,6 +15,7 @@ public:
 
 public slots:
     void open();
+    void rejected();
 
 signals:
     void fileSelected(QString filename);
@@ -28,6 +29,7 @@ private:
     InputBox *_filenameText = nullptr;
     ListView *_folder = nullptr;
     Button *_okButton = nullptr;
+    Button *_cancleButton = nullptr;
     QDir _dir;
 
     void refreshFolder();

@@ -54,10 +54,15 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     _okButton->setText("Open");
     _okButton->setDefault(true);
 
+    _cancleButton = new Button(this);
+    _cancleButton->setGeometry({14, 11, 12, 7});
+    _cancleButton->setText("Cancle");
+
 
     //connect(filenameText, &InputBox::textChanged, this, &OpenDialog::filenameChanged);
 
     QObject::connect(_okButton, &Button::clicked, this, &OpenDialog::open);
+    QObject::connect(_cancleButton, &Button::clicked, this, &OpenDialog::rejected);
 
     QRect r = geometry();
     r.moveCenter(terminal()->mainWidget()->geometry().center());
@@ -95,4 +100,8 @@ void OpenDialog::userInput(QString filename) {
         fileSelected(_dir.filePath(filename));
         deleteLater();
     }
+}
+
+void OpenDialog::rejected() {
+    deleteLater();
 }
