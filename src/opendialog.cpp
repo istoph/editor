@@ -7,7 +7,7 @@ void OpenDialog::refreshFolder()
     _dir.setFilter(QDir::AllEntries);
 
     //TODO: das abschneiden muss das Lable machen ;)
-    curentPath->setText(_dir.absolutePath().right(33));
+    _curentPath->setText(_dir.absolutePath().right(33));
     for (int i = 0; i < list.size(); ++i) {
         QFileInfo fileInfo = list.at(i);
         if(fileInfo.fileName() != ".") {
@@ -22,7 +22,7 @@ void OpenDialog::refreshFolder()
             }
         }
     }
-    folder->setItems(items);
+    _folder->setItems(items);
 }
 
 OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
@@ -37,33 +37,27 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     setGeometry({20, 2, 40, 14});
     setWindowTitle("File Open");
 
-    curentPath = new Label(this);
-    curentPath->setGeometry({3,1,34,1});
+    _curentPath = new Label(this);
+    _curentPath->setGeometry({3,1,34,1});
 
-    folder = new ListView(this);
-    folder->setGeometry({3,2,34,8});
-    folder->setFocus();
+    _folder = new ListView(this);
+    _folder->setGeometry({3,2,34,8});
+    _folder->setFocus();
 
-    connect(folder, &ListView::enterPressed, [this](int selected){
-        userInput(folder->items()[selected]);
+    connect(_folder, &ListView::enterPressed, [this](int selected){
+        userInput(_folder->items()[selected]);
     });
     refreshFolder();
 
-    /*
-    filenameText = new InputBox(this);
-    filenameText->setGeometry({3,2,30,1});
-    filenameText->setText("dokument.txt");
-    filenameText->setFocus();
-    */
+    _okButton = new Button(this);
+    _okButton->setGeometry({27, 11, 10, 7});
+    _okButton->setText("Open");
+    _okButton->setDefault(true);
 
-    okButton = new Button(this);
-    okButton->setGeometry({28, 11, 8, 7});
-    okButton->setText("OK");
-    okButton->setDefault(true);
 
     //connect(filenameText, &InputBox::textChanged, this, &OpenDialog::filenameChanged);
 
-    QObject::connect(okButton, &Button::clicked, this, &OpenDialog::open);
+    QObject::connect(_okButton, &Button::clicked, this, &OpenDialog::open);
 
     QRect r = geometry();
     r.moveCenter(terminal()->mainWidget()->geometry().center());
@@ -74,13 +68,13 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
 void OpenDialog::open() {
     // TODO: error message
     //fileSelected(filenameText->text());
-    fileSelected(folder->currentItem());
+    fileSelected(_folder->currentItem());
     deleteLater();
 }
 
 void OpenDialog::filenameChanged(QString filename) {
     QFileInfo datei(filename);
-    okButton->setEnabled(datei.isReadable());
+    _okButton->setEnabled(datei.isReadable());
 }
 
 void OpenDialog::pathSelected(QString path) {

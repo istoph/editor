@@ -24,10 +24,10 @@ private:
     void userInput(QString filename);
 
 private:
-    Label *curentPath = nullptr;
-    InputBox *filenameText = nullptr;
-    ListView *folder = nullptr;
-    Button *okButton = nullptr;
+    Label *_curentPath = nullptr;
+    InputBox *_filenameText = nullptr;
+    ListView *_folder = nullptr;
+    Button *_okButton = nullptr;
     QDir _dir;
 
     void refreshFolder();
