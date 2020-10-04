@@ -1035,7 +1035,7 @@ void File::pasteEvent(Tui::ZPasteEvent *event) {
         text.replace(QString("→"), QString(" "));
         text.replace(QString("¶"), QString(""));
     }
-    text.replace(QString('\r\n'), QString('\n'));
+    text.replace(QString("\r\n"), QString('\n'));
     text.replace(QString('\r'), QString('\n'));
 
     delSelect();
