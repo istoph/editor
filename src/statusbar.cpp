@@ -40,12 +40,20 @@ void StatusBar::msdosMode(bool msdos) {
     _msdosMode = msdos;
 }
 
+void StatusBar::modifiedSelectMode(bool event) {
+    _selectMode = event;
+    update();
+}
+
 void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor bg = {0, 0xaa, 0xaa};
     auto *painter = event->painter();
 
 
     QString text;
+    if(_selectMode) {
+        text += " SELECT MODE";
+    }
     if(this->modified) {
         text += " ";
     }

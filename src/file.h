@@ -109,6 +109,7 @@ signals:
     void modifiedChanged(bool modified);
     void setWritable(bool rw);
     void msdosMode(bool msdos);
+    void modifiedSelectMode(bool f4);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event) override;
@@ -169,6 +170,10 @@ private:
     Tui::ZCommandNotifier *_cmdRedo = nullptr;
     Tui::ZCommandNotifier *_cmdSearchNext;
     Tui::ZCommandNotifier *_cmdSearchPrevious;
+    bool _selectMode = false;
+    void setSelectMode(bool f4);
+    bool getSelectMode();
+    void toggleSelectMode();
 };
 
 #endif // FILE_H

@@ -234,6 +234,7 @@ Editor::Editor() {
     connect(this, &Editor::followStandadInput, s, &StatusBar::followStandardInput);
     connect(file, &File::setWritable, s, &StatusBar::setWritable);
     connect(file, &File::msdosMode, s, &StatusBar::msdosMode);
+    connect(file, &File::modifiedSelectMode, s, &StatusBar::modifiedSelectMode);
 
     ScrollBar *sc = new ScrollBar(win);
     sc->setTransparent(true);
