@@ -98,7 +98,7 @@ public:
     bool getSearchWrap();
     void checkWritable();
     bool getWritable();
-    void runSearch(bool direction = true);
+    void runSearch();
     void setSearchDirection(bool searchDirection);
     void searchSelect(int found = -1);
 
@@ -136,8 +136,7 @@ private:
     ZTextOption getTextOption();
     TextLayout getTextLayoutForLine(const ZTextOption &option, int line);
     bool highlightBracket();
-    void searchSelectNext(int line, int found);
-    void searchSelectPrevious(int line, int found);
+    void searchSelect(int line, int found);
 
 private:
     QVector<QString> _text;

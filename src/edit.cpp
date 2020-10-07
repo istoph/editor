@@ -147,11 +147,13 @@ Editor::Editor() {
     //SEARCH
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, 0), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
           [&] {
+            file->setSearchDirection(true);
             file->runSearch();
           });
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, Qt::ShiftModifier), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
           [&] {
-            file->runSearch(false);
+            file->setSearchDirection(false);
+            file->runSearch();
           });
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("f"), this, Qt::ApplicationShortcut),
                      &Tui::ZShortcut::activated, this, &Editor::searchDialog);

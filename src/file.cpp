@@ -15,10 +15,10 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     _cmdRedo->setEnabled(false);
 
     _cmdSearchNext = new Tui::ZCommandNotifier("Search Next", this);
-    QObject::connect(_cmdSearchNext, &Tui::ZCommandNotifier::activated, this, [this]{runSearch();});
+    QObject::connect(_cmdSearchNext, &Tui::ZCommandNotifier::activated, this, [this]{setSearchDirection(true);runSearch();});
     _cmdSearchNext->setEnabled(false);
     _cmdSearchPrevious = new Tui::ZCommandNotifier("Search Previous", this);
-    QObject::connect(_cmdSearchPrevious, &Tui::ZCommandNotifier::activated, this, [this]{runSearch(false);});
+    QObject::connect(_cmdSearchPrevious, &Tui::ZCommandNotifier::activated, this, [this]{setSearchDirection(false);runSearch();});
     _cmdSearchPrevious->setEnabled(false);
 
 }
@@ -162,7 +162,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
     for (int line = 0; line < _text.size(); line++) {
         while(true) {
            found = _text[line].indexOf(searchText, found + 1, searchCaseSensitivity);
-           searchSelectNext(line,found);
+           searchSelect(line,found);
            if(!isSelect()){
                break;
            }
@@ -777,25 +777,21 @@ static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter searc
     return {-1, -1};
 }
 
-void File::runSearch(bool direction) {
+void File::runSearch() {
     const int gen = ++(*searchNextGeneration);
 
     auto watcher = new QFutureWatcher<SearchLine>();
-    connect(watcher, &QFutureWatcher<SearchLine>::finished, this, [this, watcher, gen, direction]{
+    connect(watcher, &QFutureWatcher<SearchLine>::finished, this, [this, watcher, gen]{
         auto n = watcher->future().result();
         if(gen == *searchNextGeneration && n.line > -1) {
-            if(_searchDirection ^ direction) {
-                searchSelectNext(n.line, n.found);
-            } else {
-                searchSelectPrevious(n.line, n.found);
-            }
+           searchSelect(n.line, n.found);
         }
         watcher->deleteLater();
     });
 
     SearchParameter search = { _searchText, _searchWrap, searchCaseSensitivity, _cursorPositionY, _cursorPositionX};
     QFuture<SearchLine> future;
-    if(_searchDirection ^ direction) {
+    if(_searchDirection) {
         future = QtConcurrent::run(conSearchNext, _text, search, gen, searchNextGeneration);
     } else {
         future = QtConcurrent::run(conSearchPrevious, _text, search, gen, searchNextGeneration);
@@ -803,35 +799,19 @@ void File::runSearch(bool direction) {
     watcher->setFuture(future);
 }
 
-void File::searchSelectNext(int line, int found) {
+void File::searchSelect(int line, int found) {
     if (found != -1) {
         _cursorPositionY = line;
         _cursorPositionX = found;
         adjustScrollPosition();
         resetSelect();
-        select(found, _cursorPositionY);
-        _cursorPositionX += _searchText.size();
         select(_cursorPositionX, _cursorPositionY);
-        safeCursorPosition();
+        select(_cursorPositionX + _searchText.size(), _cursorPositionY);
+        if(_searchDirection) {
+            _cursorPositionX += _searchText.size() -1;
+        }
         if(_cursorPositionY - 1 > 0) {
             _scrollPositionY = _cursorPositionY -1;
-        }
-        adjustScrollPosition();
-    }
-}
-
-void File::searchSelectPrevious(int line, int found) {
-    if (found != -1) {
-        _cursorPositionY = line;
-        _cursorPositionX = found;
-        adjustScrollPosition();
-        resetSelect();
-        select(_cursorPositionX + _searchText.size(), _cursorPositionY);
-        if(_cursorPositionX < 0) {
-            _cursorPositionX = 0;
-            select(1, _cursorPositionY);
-        } else {
-            select(found, _cursorPositionY);
         }
         safeCursorPosition();
         adjustScrollPosition();

@@ -140,20 +140,30 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
         _replaceAllBtn->setEnabled(newText.size());
         file->setSearchText(_searchText->text());
         if(_searchText->text() != "" && _liveSearchBox->checkState() == Qt::Checked) {
+            file->setSearchDirection(_forward->checked());
+            if(_forward->checked()) {
+                if(file->_cursorPositionX > 0) {
+                    file->_cursorPositionX--;
+                }
+            } else {
+                file->_cursorPositionX++;
+            }
             file->runSearch();
         }
     });
 
     QObject::connect(_findNextBtn, &Button::clicked, [=]{
         file->setSearchText(_searchText->text());
-        file->runSearch(_forward->checked());
+        file->setSearchDirection(_forward->checked());
+        file->runSearch();
     });
 
     QObject::connect(_replaceBtn, &Button::clicked, [=]{
         file->setSearchText(_searchText->text());
         file->setReplaceText(_replaceText->text());
         file->setReplaceSelected();
-        file->runSearch(_forward->checked());
+        file->setSearchDirection(_forward->checked());
+        file->runSearch();
     });
 
      QObject::connect(_replaceAllBtn, &Button::clicked, [=]{
