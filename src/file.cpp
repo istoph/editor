@@ -784,19 +784,18 @@ void File::runSearch(bool direction) {
     connect(watcher, &QFutureWatcher<SearchLine>::finished, this, [this, watcher, gen, direction]{
         auto n = watcher->future().result();
         if(gen == *searchNextGeneration && n.line > -1) {
-            if(_searchDirection && direction) {
+            if(_searchDirection ^ direction) {
                 searchSelectNext(n.line, n.found);
             } else {
                 searchSelectPrevious(n.line, n.found);
             }
-
         }
         watcher->deleteLater();
     });
 
     SearchParameter search = { _searchText, _searchWrap, searchCaseSensitivity, _cursorPositionY, _cursorPositionX};
     QFuture<SearchLine> future;
-    if(_searchDirection && direction) {
+    if(_searchDirection ^ direction) {
         future = QtConcurrent::run(conSearchNext, _text, search, gen, searchNextGeneration);
     } else {
         future = QtConcurrent::run(conSearchPrevious, _text, search, gen, searchNextGeneration);
