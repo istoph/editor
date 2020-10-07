@@ -148,14 +148,14 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
             } else {
                 file->_cursorPositionX++;
             }
-            file->runSearch();
+            file->runSearch(false);
         }
     });
 
     QObject::connect(_findNextBtn, &Button::clicked, [=]{
         file->setSearchText(_searchText->text());
         file->setSearchDirection(_forward->checked());
-        file->runSearch();
+        file->runSearch(false);
     });
 
     QObject::connect(_replaceBtn, &Button::clicked, [=]{
@@ -163,7 +163,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
         file->setReplaceText(_replaceText->text());
         file->setReplaceSelected();
         file->setSearchDirection(_forward->checked());
-        file->runSearch();
+        file->runSearch(false);
     });
 
      QObject::connect(_replaceAllBtn, &Button::clicked, [=]{
