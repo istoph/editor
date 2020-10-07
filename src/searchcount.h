@@ -10,7 +10,7 @@ class SearchCount : public QObject {
 
 public:
     explicit SearchCount();
-    void run(QVector<QString> text, QString searchText, int gen, std::shared_ptr<std::atomic<int>> searchGen);
+    void run(QVector<QString> text, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen);
 signals:
     void searchCount(int sc);
 };

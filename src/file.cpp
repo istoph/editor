@@ -660,11 +660,11 @@ void File::setSearchText(QString searchText) {
         _cmdSearchPrevious->setEnabled(true);
     }
 
-    QtConcurrent::run([this](QVector<QString> text, QString searchText, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
+    QtConcurrent::run([this](QVector<QString> text, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
         SearchCount sc;
         connect(&sc, &SearchCount::searchCount, this, &File::emitSearchCount);
-        sc.run(text, searchText, gen, searchGen);
-    },_text, _searchText, gen, searchGeneration);
+        sc.run(text, searchText, caseSensitivity, gen, searchGen);
+    },_text, _searchText, searchCaseSensitivity, gen, searchGeneration);
 }
 
 void File::setReplaceText(QString replaceText) {
