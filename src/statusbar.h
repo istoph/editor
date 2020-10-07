@@ -14,17 +14,20 @@ public:
 public slots:
     void cursorPosition(int x, int utf8x, int y);
     void scrollPosition(int x, int y);
-    void setModified(bool modified);
+    void setModified(bool modifiedFile);
     void readFromStandardInput(bool activ);
     void followStandardInput(bool follow);
     void setWritable(bool rw);
+    void searchCount(int sc);
+    void searchText(QString searchText);
     void msdosMode(bool msdos);
     void modifiedSelectMode(bool f4);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event);
+
 private:
-    bool modified = false;
+    bool _modifiedFile = false;
     int _cursorPositionX = 0;
     int _utf8PositionX = 0;
     int _cursorPositionY = 0;
@@ -33,6 +36,8 @@ private:
     bool _stdin = false;
     bool _stdin_follow = false;
     bool _readwrite = true;
+    int _searchCount = -1;
+    QString _searchText = "";
     bool _msdosMode = false;
     bool _selectMode = false;
 };

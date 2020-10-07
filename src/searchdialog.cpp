@@ -134,37 +134,26 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
         setGeometry({ 12, 5, 55, 12});
     }
 
-
     QObject::connect(_searchText, &InputBox::textChanged, this, [this,file] (const QString& newText) {
         _findNextBtn->setEnabled(newText.size());
         _replaceBtn->setEnabled(newText.size());
         _replaceAllBtn->setEnabled(newText.size());
         file->setSearchText(_searchText->text());
         if(_searchText->text() != "" && _liveSearchBox->checkState() == Qt::Checked) {
-            file->searchNext(0);
+            file->runSearch();
         }
     });
 
     QObject::connect(_findNextBtn, &Button::clicked, [=]{
         file->setSearchText(_searchText->text());
-        if(_forward->checked()) {
-            file->searchNext();
-        } else {
-            file->searchPrevious();
-        }
-
+        file->runSearch(_forward->checked());
     });
 
     QObject::connect(_replaceBtn, &Button::clicked, [=]{
         file->setSearchText(_searchText->text());
         file->setReplaceText(_replaceText->text());
         file->setReplaceSelected();
-        if(_forward->checked()) {
-            file->searchNext();
-        } else {
-            file->searchPrevious();
-        }
-
+        file->runSearch(_forward->checked());
     });
 
      QObject::connect(_replaceAllBtn, &Button::clicked, [=]{
@@ -193,6 +182,10 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
         } else {
             file->setSearchWrap(false);
         }
+    });
+
+    QObject::connect(_forward, &RadioButton::toggled, [=](bool state){
+        file->setSearchDirection(state);
     });
 }
 

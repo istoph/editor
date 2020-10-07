@@ -14,7 +14,7 @@ add_project_arguments('-Werror=return-type', '-Werror=implicit-function-declarat
 
 
 qt5 = import('qt5')
-qt5_dep = dependency('qt5', modules: 'Core')
+qt5_dep = dependency('qt5', modules: ['Core', 'Concurrent'])
 
 tuiwidgets_dep = dependency('TuiWidgets')
 testtui_lib_dep = dependency('testtui_lib')

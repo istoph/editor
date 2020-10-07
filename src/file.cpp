@@ -15,10 +15,10 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     _cmdRedo->setEnabled(false);
 
     _cmdSearchNext = new Tui::ZCommandNotifier("Search Next", this);
-    QObject::connect(_cmdSearchNext, &Tui::ZCommandNotifier::activated, this, [this]{searchNext();});
+    QObject::connect(_cmdSearchNext, &Tui::ZCommandNotifier::activated, this, [this]{runSearch();});
     _cmdSearchNext->setEnabled(false);
     _cmdSearchPrevious = new Tui::ZCommandNotifier("Search Previous", this);
-    QObject::connect(_cmdSearchPrevious, &Tui::ZCommandNotifier::activated, this, [this]{searchPrevious();});
+    QObject::connect(_cmdSearchPrevious, &Tui::ZCommandNotifier::activated, this, [this]{runSearch(false);});
     _cmdSearchPrevious->setEnabled(false);
 
 }
@@ -158,15 +158,18 @@ int File::replaceAll(QString searchText, QString replaceText) {
     setGroupUndo(true);
     setWrapOption(false);
 
-    while(true) {
-       searchNext(0);
-       if(!isSelect()){
-           break;
-       }
-       setReplaceSelected();
-       counter++;
+    int found = -1;
+    for (int line = 0; line < _text.size(); line++) {
+        while(true) {
+           found = _text[line].indexOf(searchText, found + 1, searchCaseSensitivity);
+           searchSelectNext(line,found);
+           if(!isSelect()){
+               break;
+           }
+           setReplaceSelected();
+           counter++;
+        }
     }
-
     setWrapOption(tmpwrap);
     setGroupUndo(false);
 
@@ -644,14 +647,24 @@ void File::checkUndo() {
 }
 
 void File::setSearchText(QString searchText) {
+    int gen = ++(*searchGeneration);
+    _searchText = searchText.replace("\\t","\t");
+    emitSearchText(_searchText);
+
     if(searchText == "") {
         _cmdSearchNext->setEnabled(false);
         _cmdSearchPrevious->setEnabled(false);
+        return;
     } else {
         _cmdSearchNext->setEnabled(true);
         _cmdSearchPrevious->setEnabled(true);
     }
-    _searchText = searchText.replace("\\t","\t");
+
+    QtConcurrent::run([this](QVector<QString> text, QString searchText, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
+        SearchCount sc;
+        connect(&sc, &SearchCount::searchCount, this, &File::emitSearchCount);
+        sc.run(text, searchText, gen, searchGen);
+    },_text, _searchText, gen, searchGeneration);
 }
 
 void File::setReplaceText(QString replaceText) {
@@ -664,6 +677,10 @@ void File::setSearchWrap(bool wrap) {
 
 bool File::getSearchWrap() {
     return _searchWrap;
+}
+
+void File::setSearchDirection(bool searchDirection) {
+    _searchDirection = searchDirection;
 }
 
 void File::followStandardInput(bool follow) {
@@ -688,88 +705,137 @@ void File::setReplaceSelected() {
     }
 }
 
-void File::searchNext(int line) {
-    if(_searchText == "" && isSelect()) {
-        setSearchText(getSelectText());
-    }
-    if(_searchText != "") {
-        int found = -1;
-        bool loop = false;
-        if (line < 0) {
-            line = _cursorPositionY;
-            found = _cursorPositionX;
-        } else {
-            loop = true;
-        }
+struct SearchLine {
+    int line;
+    int found;
+};
 
-        for (; line < _text.size(); line++) {
-            found = _text[line].indexOf(_searchText, found + 1, searchCaseSensitivity);
-            if (found != -1) {
-                _cursorPositionY = line;
-                _cursorPositionX = found;
-                adjustScrollPosition();
-                resetSelect();
-                select(found, _cursorPositionY);
-                _cursorPositionX += _searchText.size();
-                select(_cursorPositionX, _cursorPositionY);
-                safeCursorPosition();
-                if(_cursorPositionY - 1 > 0) {
-                    _scrollPositionY = _cursorPositionY -1;
-                }
-                adjustScrollPosition();
-                return;
+//This struct is for fucking QtConcurrent::run which only has five parameters
+struct SearchParameter {
+    QString searchText;
+    bool searchWrap;
+    Qt::CaseSensitivity caseSensitivity;
+    int startAtLine;
+    int startPosition;
+};
+
+static SearchLine conSearchNext(QVector<QString> text, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
+    int start = search.startAtLine;
+    int line = search.startAtLine;
+    int found = search.startPosition -1;
+    int end = text.size() -1;
+    while (true) {
+        for(;line < end; line++) {
+            found = text[line].indexOf(search.searchText, found + 1, search.caseSensitivity);
+            if(gen != *nextGeneration) {
+                return {-1, -1};
+            }
+            if(found != -1) {
+                return {line, found};
             }
         }
-        if(_searchWrap && !loop) {
-            searchNext(0);
+        if(!search.searchWrap || start == 0) {
+            return {-1, -1};
+        } else {
+            end = start;
+            start = line = 0;
         }
+    }
+    return {-1, -1};
+}
+
+static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
+    int start = search.startAtLine;
+    int line = search.startAtLine;
+    int found = search.startPosition -1;
+    if(found <= 0 && start > 0) {
+        --line;
+        found = text[line].size();
+    }
+    int end = 0;
+    while (true) {
+        for (; line >= end;) {
+            found = text[line].lastIndexOf(search.searchText, found -1, search.caseSensitivity);
+            if(gen != *nextGeneration) {
+                return {-1, -1};
+            }
+            if(found != -1) {
+                return {line, found};
+            }
+            if(--line >= 0) {
+                found = text[line].size();
+            }
+        }
+        if(!search.searchWrap || start == text.size()) {
+            return {-1, -1};
+        } else {
+            end = start;
+            start = line = text.size() -1;
+            found = text[text.size() -1].size();
+        }
+    }
+    return {-1, -1};
+}
+
+void File::runSearch(bool direction) {
+    const int gen = ++(*searchNextGeneration);
+
+    auto watcher = new QFutureWatcher<SearchLine>();
+    connect(watcher, &QFutureWatcher<SearchLine>::finished, this, [this, watcher, gen, direction]{
+        auto n = watcher->future().result();
+        if(gen == *searchNextGeneration && n.line > -1) {
+            if(_searchDirection && direction) {
+                searchSelectNext(n.line, n.found);
+            } else {
+                searchSelectPrevious(n.line, n.found);
+            }
+
+        }
+        watcher->deleteLater();
+    });
+
+    SearchParameter search = { _searchText, _searchWrap, searchCaseSensitivity, _cursorPositionY, _cursorPositionX};
+    QFuture<SearchLine> future;
+    if(_searchDirection && direction) {
+        future = QtConcurrent::run(conSearchNext, _text, search, gen, searchNextGeneration);
+    } else {
+        future = QtConcurrent::run(conSearchPrevious, _text, search, gen, searchNextGeneration);
+    }
+    watcher->setFuture(future);
+}
+
+void File::searchSelectNext(int line, int found) {
+    if (found != -1) {
+        _cursorPositionY = line;
+        _cursorPositionX = found;
+        adjustScrollPosition();
         resetSelect();
+        select(found, _cursorPositionY);
+        _cursorPositionX += _searchText.size();
+        select(_cursorPositionX, _cursorPositionY);
+        safeCursorPosition();
+        if(_cursorPositionY - 1 > 0) {
+            _scrollPositionY = _cursorPositionY -1;
+        }
+        adjustScrollPosition();
     }
 }
 
-void File::searchPrevious(int line) {
-    if(_searchText == "" && isSelect()) {
-        setSearchText(getSelectText());
-    }
-    if(_searchText != "") {
-        //int found = _text[_text.size()-1].size();
-        int found = 0;
-        bool loop = false;
-        if (line < 0) {
-            line = _cursorPositionY;
-            found = _cursorPositionX;
-        } else {
-            loop = true;
-        }
-
-        for (; line >= 0; line--) {
-            if(_cursorPositionX == 0) {
-                _cursorPositionX++;
-                continue;
-            }
-            found = _text[line].lastIndexOf(_searchText, found -1, searchCaseSensitivity);
-            if (found != -1) {
-                _cursorPositionY = line;
-                _cursorPositionX = found -1;
-                adjustScrollPosition();
-
-                resetSelect();
-                select(_cursorPositionX + _searchText.size() +1, _cursorPositionY);
-                if(_cursorPositionX < 0) {
-                    _cursorPositionX = 0;
-                    select(1, _cursorPositionY);
-                } else {
-                    select(found, _cursorPositionY);
-                }
-                safeCursorPosition();
-                adjustScrollPosition();
-                return;
-            }
-        }
-        if(_searchWrap && !loop) {
-            searchPrevious(_text.size() -1);
-        }
+void File::searchSelectPrevious(int line, int found) {
+    if (found != -1) {
+        _cursorPositionY = line;
+        _cursorPositionX = found;
+        adjustScrollPosition();
         resetSelect();
+        select(_cursorPositionX + _searchText.size(), _cursorPositionY);
+        if(_cursorPositionX < 0) {
+            _cursorPositionX = 0;
+            select(1, _cursorPositionY);
+        } else {
+            select(found, _cursorPositionY);
+        }
+        safeCursorPosition();
+        adjustScrollPosition();
     }
 }
 
@@ -1512,7 +1578,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             adjustScrollPosition();
         }
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
-        _searchText = "";
+        setSearchText("");
     } else if (event->key() == Qt::Key_Insert && event->modifiers() == 0) {
         toggleOverwrite();
     } else if (event->key() == Qt::Key_F4 && event->modifiers() == 0) {

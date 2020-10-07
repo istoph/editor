@@ -147,11 +147,11 @@ Editor::Editor() {
     //SEARCH
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, 0), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
           [&] {
-            file->searchNext();
+            file->runSearch();
           });
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, Qt::ShiftModifier), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
           [&] {
-            file->searchPrevious();
+            file->runSearch(false);
           });
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("f"), this, Qt::ApplicationShortcut),
                      &Tui::ZShortcut::activated, this, &Editor::searchDialog);
@@ -235,6 +235,8 @@ Editor::Editor() {
     connect(file, &File::setWritable, s, &StatusBar::setWritable);
     connect(file, &File::msdosMode, s, &StatusBar::msdosMode);
     connect(file, &File::modifiedSelectMode, s, &StatusBar::modifiedSelectMode);
+    connect(file, &File::emitSearchCount, s, &StatusBar::searchCount);
+    connect(file, &File::emitSearchText, s, &StatusBar::searchText);
 
     ScrollBar *sc = new ScrollBar(win);
     sc->setTransparent(true);

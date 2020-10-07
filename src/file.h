@@ -9,9 +9,13 @@
 #include <QJsonObject>
 #include <QSaveFile>
 #include <QTextStream>
+#include <QtConcurrent>
+#include <QFuture>
+#include <QFutureWatcher>
 
 #include <testtui_lib.h>
 #include <Tui/ZCommandNotifier.h>
+#include "searchcount.h"
 
 class File : public Tui::ZWidget {
     Q_OBJECT
@@ -86,18 +90,17 @@ public:
     int replaceAll(QString searchText, QString replaceText);
 
 public:
-//    QString text() const;
-//    void setText(const QString &t);
     int _cursorPositionX = 0;
     int _cursorPositionY = 0;
     bool newfile = true;
 
-    void searchNext(int line = -1);
-    void searchPrevious(int line = -1);
     void setSearchWrap(bool wrap);
     bool getSearchWrap();
     void checkWritable();
     bool getWritable();
+    void runSearch(bool direction = true);
+    void setSearchDirection(bool searchDirection);
+    void searchSelect(int found = -1);
 
 public slots:
     void followStandardInput(bool follow);
@@ -110,6 +113,8 @@ signals:
     void setWritable(bool rw);
     void msdosMode(bool msdos);
     void modifiedSelectMode(bool f4);
+    void emitSearchCount(int sc);
+    void emitSearchText(QString searchText);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event) override;
@@ -131,6 +136,8 @@ private:
     ZTextOption getTextOption();
     TextLayout getTextLayoutForLine(const ZTextOption &option, int line);
     bool highlightBracket();
+    void searchSelectNext(int line, int found);
+    void searchSelectPrevious(int line, int found);
 
 private:
     QVector<QString> _text;
@@ -154,6 +161,9 @@ private:
     QString _searchText;
     QString _replaceText;
     bool _searchWrap = true;
+    bool _searchDirection = true;
+    std::shared_ptr<std::atomic<int>> searchGeneration = std::make_shared<std::atomic<int>>();
+    std::shared_ptr<std::atomic<int>> searchNextGeneration = std::make_shared<std::atomic<int>>();
     bool _follow = false;
     bool _nonewline = false;
     int _saveCursorPositionX = 0;
