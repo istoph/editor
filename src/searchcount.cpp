@@ -11,6 +11,6 @@ void SearchCount::run(QVector<QString> text, QString searchText, int gen, std::s
             return;
         }
         found += text[line].count(searchText);
+        searchCount(found);
     }
-    searchCount(found);
 }
