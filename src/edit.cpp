@@ -341,7 +341,10 @@ void Editor::saveFile(QString filename) {
         win->update();
     } else {
         Alert *e = new Alert(this);
-        e->setGeometry({10,5,60,15});
+        e->addPaletteClass("red");
+        e->setWindowTitle("Error");
+        e->setMarkup("file could not be saved"); //Die Datei konnte nicht gespeicher werden!
+        e->setGeometry({15,5,50,5});
         e->setVisible(true);
         e->setFocus();
     }
@@ -363,15 +366,7 @@ SaveDialog * Editor::saveOrSaveas() {
         SaveDialog *q = saveFileDialog();
         return q;
     } else {
-        if(!file->saveText()) {
-            Alert *e = new Alert(this);
-            e->addPaletteClass("red");
-            e->setWindowTitle("Error");
-            e->setMarkup("file could not be saved"); //Die Datei konnte nicht gespeicher werden!
-            e->setGeometry({15,5,50,5});
-            e->setVisible(true);
-            e->setFocus();
-        }
+        saveFile(file->getFilename());
         return nullptr;
     }
 }
