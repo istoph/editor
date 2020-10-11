@@ -234,22 +234,22 @@ Editor::Editor() {
     file = new File(win);
     win->setWindowTitle(file->getFilename());
 
-    StatusBar *s = new StatusBar(this);
-    connect(file, &File::cursorPositionChanged, s, &StatusBar::cursorPosition);
-    connect(file, &File::scrollPositionChanged, s, &StatusBar::scrollPosition);
-    connect(file, &File::modifiedChanged, s, &StatusBar::setModified);
+    _statusBar = new StatusBar(this);
+    connect(file, &File::cursorPositionChanged, _statusBar, &StatusBar::cursorPosition);
+    connect(file, &File::scrollPositionChanged, _statusBar, &StatusBar::scrollPosition);
+    connect(file, &File::modifiedChanged, _statusBar, &StatusBar::setModified);
     connect(file, &File::modifiedChanged, this,
             [&] {
                 windowTitle(file->getFilename());
             }
     );
-    connect(this, &Editor::readFromStandadInput, s, &StatusBar::readFromStandardInput);
-    connect(this, &Editor::followStandadInput, s, &StatusBar::followStandardInput);
-    connect(file, &File::setWritable, s, &StatusBar::setWritable);
-    connect(file, &File::msdosMode, s, &StatusBar::msdosMode);
-    connect(file, &File::modifiedSelectMode, s, &StatusBar::modifiedSelectMode);
-    connect(file, &File::emitSearchCount, s, &StatusBar::searchCount);
-    connect(file, &File::emitSearchText, s, &StatusBar::searchText);
+    connect(this, &Editor::readFromStandadInput, _statusBar, &StatusBar::readFromStandardInput);
+    connect(this, &Editor::followStandadInput, _statusBar, &StatusBar::followStandardInput);
+    connect(file, &File::setWritable, _statusBar, &StatusBar::setWritable);
+    connect(file, &File::msdosMode, _statusBar, &StatusBar::msdosMode);
+    connect(file, &File::modifiedSelectMode, _statusBar, &StatusBar::modifiedSelectMode);
+    connect(file, &File::emitSearchCount, _statusBar, &StatusBar::searchCount);
+    connect(file, &File::emitSearchText, _statusBar, &StatusBar::searchText);
 
     ScrollBar *sc = new ScrollBar(win);
     sc->setTransparent(true);
@@ -274,7 +274,7 @@ Editor::Editor() {
     setLayout(rootLayout);
     rootLayout->addWidget(menu);
     rootLayout->addWidget(win);
-    rootLayout->addWidget(s);
+    rootLayout->addWidget(_statusBar);
 
     _searchDialog = new SearchDialog(this, file);
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,

@@ -80,6 +80,7 @@ private:
     Tui::ZCommandNotifier *_cmdFollow = nullptr;
     Tui::ZCommandNotifier *_cmdInputPipe = nullptr;
     bool _follow = false;
+    StatusBar *_statusBar = nullptr;
 };
 
 #endif // EDIT_H
