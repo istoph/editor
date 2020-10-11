@@ -25,6 +25,7 @@
 #include <QSettings>
 #include <QTextStream>
 #include <QCommandLineParser>
+#include <QFileSystemWatcher>
 
 //Debug Sleep
 #include <unistd.h>
@@ -62,6 +63,7 @@ private slots:
 signals:
     void readFromStandadInput(bool activ);
     void followStandadInput(bool follow);
+    void fileChanged(bool fileChanged);
 
 private:
     SaveDialog *saveFileDialog();
@@ -80,6 +82,7 @@ private:
     Tui::ZCommandNotifier *_cmdFollow = nullptr;
     Tui::ZCommandNotifier *_cmdInputPipe = nullptr;
     bool _follow = false;
+    QFileSystemWatcher *_watcher = nullptr;
     StatusBar *_statusBar = nullptr;
 };
 

@@ -283,6 +283,11 @@ Editor::Editor() {
     _replaceDialog = new SearchDialog(this, file, true);
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
                      _replaceDialog, &SearchDialog::open);
+
+    _watcher = new QFileSystemWatcher();
+    QObject::connect(_watcher, &QFileSystemWatcher::fileChanged, this, [=]{
+        _statusBar->fileHasBeenChanged(true);
+    });
 }
 
 void Editor::closePipe() {
@@ -324,6 +329,8 @@ void Editor::newFile(QString filename) {
     file->newText();
     file->setFilename(filename, true);
     closePipe();
+    _statusBar->fileHasBeenChanged(false);
+    _watcher->addPath(file->getFilename());
 }
 
 void Editor::openFile(QString filename) {
@@ -332,13 +339,18 @@ void Editor::openFile(QString filename) {
     file->newText();
     file->setFilename(filename);
     file->openText();
+    closePipe();
+    _statusBar->fileHasBeenChanged(false);
+    _watcher->addPath(file->getFilename());
 }
 
 void Editor::saveFile(QString filename) {
     file->setFilename(filename);
+    _watcher->removePaths(_watcher->files());
     if(file->saveText()) {
         windowTitle(filename);
         win->update();
+        _statusBar->fileHasBeenChanged(false);
     } else {
         Alert *e = new Alert(this);
         e->addPaletteClass("red");
@@ -348,6 +360,7 @@ void Editor::saveFile(QString filename) {
         e->setVisible(true);
         e->setFocus();
     }
+    _watcher->addPath(file->getFilename());
 
 }
 void Editor::openFileDialog(QString path) {

@@ -22,6 +22,7 @@ public slots:
     void searchText(QString searchText);
     void msdosMode(bool msdos);
     void modifiedSelectMode(bool f4);
+    void fileHasBeenChanged(bool fileChanged = true);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event);
@@ -40,6 +41,7 @@ private:
     QString _searchText = "";
     bool _msdosMode = false;
     bool _selectMode = false;
+    bool _fileChanged = false;
 };
 
 #endif // STATUSBAR_H

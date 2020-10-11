@@ -63,6 +63,11 @@ void StatusBar::modifiedSelectMode(bool event) {
     update();
 }
 
+void StatusBar::fileHasBeenChanged(bool fileChanged) {
+    _fileChanged = fileChanged;
+    update();
+}
+
 void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor bg = {0, 0xaa, 0xaa};
     auto *painter = event->painter();
@@ -71,6 +76,10 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     search = _searchText +": "+ QString::number(_searchCount);
 
     QString text;
+    if(_fileChanged) {
+        text += " FILE CHANGED";
+        bg = {0xFF,0xDD,0};
+    }
     if(_selectMode) {
         text += " SELECT MODE";
     }
