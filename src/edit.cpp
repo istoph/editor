@@ -187,10 +187,7 @@ Editor::Editor() {
 
     QObject::connect(new Tui::ZCommandNotifier("Formatting", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            if (file->getformattingCharacters())
-                file->setFormattingCharacters(false);
-            else
-                file->setFormattingCharacters(true);
+            file->setFormattingCharacters(!file->getformattingCharacters());
             update();
         }
     );
