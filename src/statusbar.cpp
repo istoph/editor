@@ -34,7 +34,7 @@ void StatusBar::readFromStandardInput(bool activ) {
 }
 
 void StatusBar::followStandardInput(bool follow) {
-    _stdin_follow = follow;
+    _follow = follow;
     update();
 }
 
@@ -79,9 +79,8 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     }
     if(_stdin) {
         text += " | STDIN";
-        if (_stdin_follow) {
-            //TODO: Blinking
-            text += " FOLOW";
+        if (_follow) {
+            text += " FOLLOW";
         }
     } else {
         if(_readwrite) {

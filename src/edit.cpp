@@ -40,6 +40,7 @@ Editor::Editor() {
                                  { "<m>F</m>ormatting characters", "", "Formatting", {}},
                                  { "<m>W</m>rap long lines", "", "Wrap", {}},
                                  { "Following standard input", "", "Following", {}},
+                                 { "Stop Input Pipe", "", "InputPipe", {}},
                                  { "<m>H</m>ighlight Brackets", "", "Brackets", {}}
                              }
                            },
@@ -71,6 +72,7 @@ Editor::Editor() {
             } else {
                 newFile();
             }
+
         }
     );
 
@@ -197,13 +199,27 @@ Editor::Editor() {
             setWrap(!file->getWrapOption());
         }
     );
-    //TODO das muss grau werden wenn stdin nicht aktiv ist
-    QObject::connect(new Tui::ZCommandNotifier("Following", this), &Tui::ZCommandNotifier::activated,
+
+    _cmdInputPipe = new Tui::ZCommandNotifier("InputPipe", this);
+    _cmdInputPipe->setEnabled(false);
+    QObject::connect(_cmdInputPipe, &Tui::ZCommandNotifier::activated,
          [&] {
-            setFollow(!getFollow());
-            file->followStandardInput(getFollow());
+            closePipe();
         }
     );
+
+    _cmdFollow = new Tui::ZCommandNotifier("Following", this);
+    _cmdFollow->setEnabled(false);
+    QObject::connect(_cmdFollow, &Tui::ZCommandNotifier::activated,
+         [&] {
+            setFollow(!getFollow());
+        }
+    );
+
+    QObject::connect(this, &Editor::readFromStandadInput, this, [=](bool enable){
+        _cmdInputPipe->setEnabled(enable);
+        _cmdFollow->setEnabled(enable);
+    });
 
     QObject::connect(new Tui::ZCommandNotifier("Brackets", this), &Tui::ZCommandNotifier::activated,
          [&] {
@@ -269,9 +285,20 @@ Editor::Editor() {
                      _replaceDialog, &SearchDialog::open);
 }
 
+void Editor::closePipe() {
+    if(_pipeSocketNotifier != nullptr && _pipeSocketNotifier->isEnabled()) {
+        _pipeSocketNotifier->setEnabled(false);
+        _pipeSocketNotifier->deleteLater();
+        _pipeSocketNotifier = nullptr;
+        close(0);
+        readFromStandadInput(false);
+    }
+}
+
 void Editor::watchPipe() {
     _pipeSocketNotifier = new QSocketNotifier(0, QSocketNotifier::Type::Read, this);
     QObject::connect(_pipeSocketNotifier, &QSocketNotifier::activated, this, &Editor::inputPipeReadable);
+    readFromStandadInput(true);
 }
 
 void Editor::searchDialog() {
@@ -296,6 +323,7 @@ void Editor::newFile(QString filename) {
     windowTitle(filename);
     file->newText();
     file->setFilename(filename, true);
+    closePipe();
 }
 
 void Editor::openFile(QString filename) {
@@ -420,7 +448,8 @@ void Editor::inputPipeReadable(int socket) {
 
 void Editor::setFollow(bool follow) {
     _follow = follow;
-    followStandadInput(_follow);
+    file->followStandardInput(getFollow());
+    followStandadInput(getFollow());
 }
 
 bool Editor::getFollow() {

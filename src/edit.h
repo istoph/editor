@@ -43,6 +43,7 @@ public:
     int tab = 8;
 
 public:
+    void closePipe();
     void watchPipe();
     void setFollow(bool follow);
     bool getFollow();
@@ -76,6 +77,8 @@ private:
     SearchDialog *_replaceDialog = nullptr;
     QSocketNotifier *_pipeSocketNotifier = nullptr;
     QByteArray _pipeLineBuffer;
+    Tui::ZCommandNotifier *_cmdFollow = nullptr;
+    Tui::ZCommandNotifier *_cmdInputPipe = nullptr;
     bool _follow = false;
 };
 

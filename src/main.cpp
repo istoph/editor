@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
     }
 
     if(parser.isSet(follow)) {
-        root->file->followStandardInput(true);
+        root->setFollow(true);
     }
 
     root->file->setFocus();

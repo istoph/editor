@@ -34,7 +34,7 @@ private:
     int _scrollPositionX = 0;
     int _scrollPositionY = 0;
     bool _stdin = false;
-    bool _stdin_follow = false;
+    bool _follow = false;
     bool _readwrite = true;
     int _searchCount = -1;
     QString _searchText = "";
