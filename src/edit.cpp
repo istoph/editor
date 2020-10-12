@@ -337,21 +337,23 @@ void Editor::windowTitle(QString filename) {
 }
 
 void Editor::newFile(QString filename) {
+    closePipe();
+    _watcher->removePaths(_watcher->files());
     windowTitle(filename);
     file->newText();
     file->setFilename(filename, true);
-    closePipe();
     _statusBar->fileHasBeenChanged(false);
     _watcher->addPath(file->getFilename());
 }
 
 void Editor::openFile(QString filename) {
+    closePipe();
+    _watcher->removePaths(_watcher->files());
     windowTitle(filename);
     //reset couser position
     file->newText();
     file->setFilename(filename);
     file->openText();
-    closePipe();
     _statusBar->fileHasBeenChanged(false);
     _watcher->addPath(file->getFilename());
 }
