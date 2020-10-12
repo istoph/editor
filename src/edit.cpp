@@ -407,16 +407,12 @@ SaveDialog * Editor::saveOrSaveas() {
 
 void Editor::reload() {
     //TODO: ask if discard
-    int x = file->_cursorPositionX;
-    int y = file->_cursorPositionY;
+    QPoint xy = file->getCursorPosition();
 
-    file->newText();
     file->openText();
     _statusBar->fileHasBeenChanged(false);
 
-    file->_cursorPositionX = x;
-    file->_cursorPositionY = y;
-    //file->adjustScrollPosition();
+    file->setCursorPosition(xy);
 }
 
 void Editor::quit() {

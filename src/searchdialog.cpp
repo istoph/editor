@@ -159,11 +159,9 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
         if(_searchText->text() != "" && _liveSearchBox->checkState() == Qt::Checked) {
             file->setSearchDirection(_forward->checked());
             if(_forward->checked()) {
-                if(file->_cursorPositionX > 0) {
-                    file->_cursorPositionX--;
-                }
+                file->setCursorPosition({file->getCursorPosition().x()-1, file->getCursorPosition().y()});
             } else {
-                file->_cursorPositionX++;
+                file->setCursorPosition({file->getCursorPosition().x()+1, file->getCursorPosition().y()});
             }
             file->runSearch(false);
         }

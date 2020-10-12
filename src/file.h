@@ -89,10 +89,10 @@ public:
     void setMsDosMode(bool msdos);
     int tabToSpace();
     int replaceAll(QString searchText, QString replaceText);
+    QPoint getCursorPosition();
+    void setCursorPosition(QPoint position);
 
 public:
-    int _cursorPositionX = 0;
-    int _cursorPositionY = 0;
     bool newfile = true;
 
     void setSearchWrap(bool wrap);
@@ -144,6 +144,8 @@ private:
 
 private:
     QVector<QString> _text;
+    int _cursorPositionX = 0;
+    int _cursorPositionY = 0;
     int _scrollPositionX = 0;
     int _scrollPositionY = 0;
     int _lastCursorPositionX = -1;

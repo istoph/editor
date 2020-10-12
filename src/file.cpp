@@ -176,6 +176,16 @@ int File::replaceAll(QString searchText, QString replaceText) {
     return counter;
 }
 
+QPoint File::getCursorPosition() {
+    return {_cursorPositionX,_cursorPositionY};
+}
+
+void File::setCursorPosition(QPoint position) {
+    _cursorPositionY = std::max(std::min(position.y(), _text.size() -1),0);
+    _cursorPositionX = std::max(std::min(position.x(), _text[_cursorPositionY].size()),0);
+    adjustScrollPosition();
+}
+
 bool File::setFilename(QString filename, bool newfile) {
     if(newfile) {
         _filename = filename;
