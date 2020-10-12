@@ -38,6 +38,7 @@ Editor::Editor() {
                       },
                       { "<m>O</m>ptions", "", {}, {
                                  { "<m>T</m>ab", "", "Tab", {}},
+                                 { "<m>L</m>ine Number", "", "LineNumber", {}},
                                  { "<m>F</m>ormatting characters", "", "Formatting", {}},
                                  { "<m>W</m>rap long lines", "", "Wrap", {}},
                                  { "Following standard input", "", "Following", {}},
@@ -189,6 +190,12 @@ Editor::Editor() {
     QObject::connect(new Tui::ZCommandNotifier("Tab", this), &Tui::ZCommandNotifier::activated,
         [&] {
             new TabDialog(file, this);
+        }
+    );
+
+    QObject::connect(new Tui::ZCommandNotifier("LineNumber", this), &Tui::ZCommandNotifier::activated,
+        [&] {
+            file->toggleLineNumber();
         }
     );
 

@@ -102,6 +102,8 @@ public:
     void runSearch(bool direction);
     void setSearchDirection(bool searchDirection);
     void searchSelect(int found = -1);
+    void setLineNumber(bool linenumber);
+    void toggleLineNumber();
 
 public slots:
     void followStandardInput(bool follow);
@@ -175,6 +177,7 @@ private:
     bool _noattr = false;
     QString _attributesfile;
     bool _msdos = false;
+    bool _linenumber = false;
 
     Tui::ZCommandNotifier *_cmdUndo = nullptr;
     Tui::ZCommandNotifier *_cmdRedo = nullptr;
