@@ -11,6 +11,7 @@ Editor::Editor() {
                             { "<m>O</m>pen...", "Ctrl-O", "Open", {}},
                             { "<m>S</m>ave", "Ctrl-S", "Save", {}},
                             { "Save <m>a</m>s...", "Ctrl-Shift-S", "SaveAs", {}},
+                            { "<m>R</m>eload", "", "Reload", {}},
                             {},
                             { "<m>Q</m>uit", "Ctrl-q", "Quit", {}}
                         }
@@ -112,6 +113,10 @@ Editor::Editor() {
             this, &Editor::saveFileDialog);
     QObject::connect(new Tui::ZCommandNotifier("SaveAs", this), &Tui::ZCommandNotifier::activated,
                      this, &Editor::saveFileDialog);
+
+    //Reload
+    QObject::connect(new Tui::ZCommandNotifier("Reload", this), &Tui::ZCommandNotifier::activated,
+                     this, &Editor::reload);
 
     //QUIT
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("q"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
@@ -391,6 +396,20 @@ SaveDialog * Editor::saveOrSaveas() {
         saveFile(file->getFilename());
         return nullptr;
     }
+}
+
+void Editor::reload() {
+    //TODO: ask if discard
+    int x = file->_cursorPositionX;
+    int y = file->_cursorPositionY;
+
+    file->newText();
+    file->openText();
+    _statusBar->fileHasBeenChanged(false);
+
+    file->_cursorPositionX = x;
+    file->_cursorPositionY = y;
+    //file->adjustScrollPosition();
 }
 
 void Editor::quit() {

@@ -70,6 +70,7 @@ signals:
 private:
     SaveDialog *saveFileDialog();
     SaveDialog *saveOrSaveas();
+    void reload();
     void quit();
     void searchDialog();
     void replaceDialog();
