@@ -345,7 +345,8 @@ void File::cutline() {
 
 void File::copy() {
     if(isSelect()) {
-        _clipboard.clear();
+        Clipboard *clipboard = findFacet<Clipboard>();
+        QVector<QString> _clipboard;
         _clipboard.append("");
         for(int y = 0; y < _text.size();y++) {
             for (int x = 0; x < _text[y].size(); x++) {
@@ -357,6 +358,7 @@ void File::copy() {
                 _clipboard.append("");
             }
         }
+        clipboard->setClipboard(_clipboard);
     }
 }
 
@@ -364,6 +366,8 @@ void File::paste() {
     if(isSelect()){
         delSelect();
     }
+    Clipboard *clipboard = findFacet<Clipboard>();
+    QVector<QString> _clipboard = clipboard->getClipboard();
     for (int i=0; i<_clipboard.size(); i++) {
         _text[_cursorPositionY].insert(_cursorPositionX, _clipboard[i]);
         _cursorPositionX += _clipboard[i].size();
@@ -377,6 +381,8 @@ void File::paste() {
 }
 
 bool File::isInsertable() {
+    Clipboard *clipboard = findFacet<Clipboard>();
+    QVector<QString> _clipboard = clipboard->getClipboard();
     return !_clipboard.isEmpty();
 }
 

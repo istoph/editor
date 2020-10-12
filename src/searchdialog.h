@@ -4,6 +4,7 @@
 #include <testtui_lib.h>
 
 #include "file.h"
+#include "clipboard.h"
 
 class SearchDialog : public Dialog {
     Q_OBJECT

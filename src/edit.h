@@ -20,6 +20,7 @@
 #include "statusbar.h"
 #include "insertcharacter.h"
 #include "gotoline.h"
+#include "clipboard.h"
 
 #include <QDir>
 #include <QSettings>
@@ -50,6 +51,7 @@ public:
     bool getFollow();
     void windowTitle(QString filename);
     void openFileDialog(QString path = "");
+    QObject *facet(const QMetaObject metaObject);
 
 public slots:
     void newFile(QString filename = "dokument.txt");
@@ -84,6 +86,7 @@ private:
     bool _follow = false;
     QFileSystemWatcher *_watcher = nullptr;
     StatusBar *_statusBar = nullptr;
+    Clipboard _clipboard;
 };
 
 #endif // EDIT_H

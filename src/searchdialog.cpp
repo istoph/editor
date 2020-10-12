@@ -1,5 +1,21 @@
 #include "searchdialog.h"
 
+class MyInputBox : public InputBox {
+public:
+    MyInputBox(Tui::ZWidget *parent) : InputBox(parent) {};
+protected:
+    void keyEvent(Tui::ZKeyEvent *event) override {
+        QString text = event->text();
+        Clipboard *clipboard = findFacet<Clipboard>();
+
+        if(event->text() == "v" && event->modifiers() == Qt::Modifier::CTRL) {
+            insertAtCursorPosition(clipboard->getClipboard()[0]);
+        } else {
+            InputBox::keyEvent(event);
+        }
+    }
+};
+
 SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dialog(parent) {
     _replace = replace;
     setVisible(false);
@@ -23,9 +39,10 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
         Label *l = new Label(withMarkup, "F<m>i</m>nd   ", this);
         hbox->addWidget(l);
 
-        _searchText = new InputBox(this);
+        _searchText = new MyInputBox(this);
         l->setBuddy(_searchText);
         hbox->addWidget(_searchText);
+
         vbox->add(hbox);
     }
 
@@ -36,7 +53,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
         Label *l = new Label(withMarkup, "Replace", this);
         hbox->addWidget(l);
 
-        _replaceText = new InputBox(this);
+        _replaceText = new MyInputBox(this);
         l->setBuddy(_replaceText);
         hbox->addWidget(_replaceText);
         if(_replace) {

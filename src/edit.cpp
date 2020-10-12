@@ -368,6 +368,15 @@ void Editor::openFileDialog(QString path) {
     connect(openDialog, &OpenDialog::fileSelected, this, &Editor::openFile);
 }
 
+QObject * Editor::facet(const QMetaObject metaObject) {
+    if (metaObject.className()  == Clipboard::staticMetaObject.className()
+            ||metaObject.inherits(&Clipboard::staticMetaObject)) {
+        return &_clipboard;
+    } else {
+        return ZRoot::facet(metaObject);
+    }
+}
+
 SaveDialog * Editor::saveFileDialog() {
     SaveDialog * saveDialog = new SaveDialog(this, file);
     connect(saveDialog, &SaveDialog::fileSelected, this, &Editor::saveFile);

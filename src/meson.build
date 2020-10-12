@@ -4,6 +4,7 @@ tests = ['tests.cpp']
 
 #ide:editable-filelist
 editor_sources = [
+  'clipboard.cpp',
   'confirmsave.cpp',
   'edit.cpp',
   'file.cpp',
@@ -20,6 +21,7 @@ editor_sources = [
 
 #ide:editable-filelist
 editor_headers = [
+  'clipboard.h',
   'confirmsave.h',
   'edit.h',
   'file.h',

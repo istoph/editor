@@ -16,6 +16,7 @@
 #include <testtui_lib.h>
 #include <Tui/ZCommandNotifier.h>
 #include "searchcount.h"
+#include "clipboard.h"
 
 class File : public Tui::ZWidget {
     Q_OBJECT
@@ -152,7 +153,6 @@ private:
     int startSelectY = -1;
     int endSelectX = -1;
     int endSelectY = -1;
-    QVector<QString> _clipboard;
     bool overwrite = false;
     QVector<UndoStep> _undoSteps;
     int _currentUndoStep;
