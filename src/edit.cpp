@@ -1,5 +1,4 @@
 #include "edit.h"
-#include "tabdialog.h"
 
 Editor::Editor() {
     ensureCommandManager();

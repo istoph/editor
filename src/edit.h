@@ -18,6 +18,7 @@
 #include "scrollbar.h"
 #include "searchdialog.h"
 #include "statusbar.h"
+#include "tabdialog.h"
 #include "insertcharacter.h"
 #include "gotoline.h"
 #include "clipboard.h"
