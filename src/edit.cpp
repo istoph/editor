@@ -22,6 +22,7 @@ Editor::Editor() {
                             { "<m>P</m>aste", "Ctrl-V", "Paste", {}},
                             { "Select <m>a</m>ll", "Ctrl-A", "Selectall", {}},
                             { "Cut Line", "Ctrl-K", "Cutline", {}},
+                            { "Select Mode", "F4", "SelectMode", {}},
                             {},
                             { "Undo", "Ctrl-z", "Undo", {}},
                             { "Redo", "Ctrl-y", "Redo", {}},
@@ -149,6 +150,11 @@ Editor::Editor() {
     QObject::connect(new Tui::ZCommandNotifier("Cutline", this), &Tui::ZCommandNotifier::activated,
          [&] {
             file->cutline();
+        }
+    );
+    QObject::connect(new Tui::ZCommandNotifier("SelectMode", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            file->toggleSelectMode();
         }
     );
 

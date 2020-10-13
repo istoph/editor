@@ -91,6 +91,7 @@ public:
     int replaceAll(QString searchText, QString replaceText);
     QPoint getCursorPosition();
     void setCursorPosition(QPoint position);
+    void toggleSelectMode();
 
 public:
     bool newfile = true;
@@ -188,7 +189,6 @@ private:
     bool _selectMode = false;
     void setSelectMode(bool f4);
     bool getSelectMode();
-    void toggleSelectMode();
 };
 
 #endif // FILE_H
