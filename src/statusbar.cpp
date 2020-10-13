@@ -73,7 +73,7 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     auto *painter = event->painter();
 
     QString search;
-    search = _searchText +": "+ QString::number(_searchCount);
+    search = _searchText.left(25) +": "+ QString::number(_searchCount);
 
     QString text;
     if(_fileChanged) {
