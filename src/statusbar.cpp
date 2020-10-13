@@ -77,14 +77,14 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
 
     QString text;
     if(_fileChanged) {
-        text += " FILE CHANGED";
+        text += " | FILE CHANGED";
         bg = {0xFF,0xDD,0};
     }
     if(_selectMode) {
-        text += " SELECT MODE";
+        text += " | SELECT MODE";
     }
     if(_modifiedFile) {
-        text += " ";
+        text += " | ";
     }
     if(_stdin) {
         text += " | STDIN";
