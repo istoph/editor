@@ -75,6 +75,8 @@ private:
     void quit();
     void searchDialog();
     void replaceDialog();
+    void watcherAdd();
+    void watcherRemove();
 
 private:
     ScrollBar *_scrollbarHorizontal = nullptr;

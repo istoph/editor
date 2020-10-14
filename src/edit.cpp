@@ -343,29 +343,29 @@ void Editor::windowTitle(QString filename) {
 
 void Editor::newFile(QString filename) {
     closePipe();
-    _watcher->removePaths(_watcher->files());
+    watcherRemove();
     windowTitle(filename);
     file->newText();
     file->setFilename(filename, true);
     _statusBar->fileHasBeenChanged(false);
-    _watcher->addPath(file->getFilename());
+    watcherAdd();
 }
 
 void Editor::openFile(QString filename) {
     closePipe();
-    _watcher->removePaths(_watcher->files());
+    watcherRemove();
     windowTitle(filename);
     //reset couser position
     file->newText();
     file->setFilename(filename);
     file->openText();
     _statusBar->fileHasBeenChanged(false);
-    _watcher->addPath(file->getFilename());
+    watcherAdd();
 }
 
 void Editor::saveFile(QString filename) {
     file->setFilename(filename);
-    _watcher->removePaths(_watcher->files());
+    watcherRemove();
     if(file->saveText()) {
         windowTitle(filename);
         win->update();
@@ -379,7 +379,7 @@ void Editor::saveFile(QString filename) {
         e->setVisible(true);
         e->setFocus();
     }
-    _watcher->addPath(file->getFilename());
+    watcherAdd();
 
 }
 void Editor::openFileDialog(QString path) {
@@ -500,4 +500,16 @@ void Editor::setFollow(bool follow) {
 
 bool Editor::getFollow() {
     return _follow;
+}
+
+void Editor::watcherAdd() {
+    QFileInfo filenameInfo(file->getFilename());
+    if(filenameInfo.exists()) {
+        _watcher->addPath(file->getFilename());
+    }
+}
+void Editor::watcherRemove() {
+    if(_watcher->files().count() > 0) {
+        _watcher->removePaths(_watcher->files());
+    }
 }
