@@ -73,7 +73,8 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     auto *painter = event->painter();
 
     QString search;
-    search = _searchText.left(25) +": "+ QString::number(_searchCount);
+    int cutColums = terminal()->textMetrics().splitByColumns(_searchText, 25).codeUnits;
+    search = _searchText.left(cutColums) +": "+ QString::number(_searchCount);
 
     QString text;
     if(_fileChanged) {
