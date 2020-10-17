@@ -802,26 +802,28 @@ static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter searc
 }
 
 void File::runSearch(bool direction) {
-    const int gen = ++(*searchNextGeneration);
-    const bool efectivDirection = direction ^ _searchDirection;
+    if(_searchText != "") {
+        const int gen = ++(*searchNextGeneration);
+        const bool efectivDirection = direction ^ _searchDirection;
 
-    auto watcher = new QFutureWatcher<SearchLine>();
-    connect(watcher, &QFutureWatcher<SearchLine>::finished, this, [this, watcher, gen, efectivDirection]{
-        auto n = watcher->future().result();
-        if(gen == *searchNextGeneration && n.line > -1) {
-           searchSelect(n.line, n.found, efectivDirection);
+        auto watcher = new QFutureWatcher<SearchLine>();
+        connect(watcher, &QFutureWatcher<SearchLine>::finished, this, [this, watcher, gen, efectivDirection]{
+            auto n = watcher->future().result();
+            if(gen == *searchNextGeneration && n.line > -1) {
+               searchSelect(n.line, n.found, efectivDirection);
+            }
+            watcher->deleteLater();
+        });
+
+        SearchParameter search = { _searchText, _searchWrap, searchCaseSensitivity, _cursorPositionY, _cursorPositionX};
+        QFuture<SearchLine> future;
+        if(efectivDirection) {
+            future = QtConcurrent::run(conSearchNext, _text, search, gen, searchNextGeneration);
+        } else {
+            future = QtConcurrent::run(conSearchPrevious, _text, search, gen, searchNextGeneration);
         }
-        watcher->deleteLater();
-    });
-
-    SearchParameter search = { _searchText, _searchWrap, searchCaseSensitivity, _cursorPositionY, _cursorPositionX};
-    QFuture<SearchLine> future;
-    if(efectivDirection) {
-        future = QtConcurrent::run(conSearchNext, _text, search, gen, searchNextGeneration);
-    } else {
-        future = QtConcurrent::run(conSearchPrevious, _text, search, gen, searchNextGeneration);
+        watcher->setFuture(future);
     }
-    watcher->setFuture(future);
 }
 
 void File::searchSelect(int line, int found, bool direction) {
