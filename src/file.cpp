@@ -1463,41 +1463,49 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         saveUndoStep();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == Qt::ShiftModifier) {
-        if(isSelect()) {
-            QString l = " ";
-            int t_startSelectX = startSelectX;
-            int t_startSelectY = startSelectY;
-            int t_endSelectX = endSelectX;
-            int t_endSelectY = endSelectY;
+        if(!isSelect()) {
+            select(_cursorPositionX,_cursorPositionY);
+        }
+        int t_startSelectX, t_startSelectY, t_endSelectX, t_endSelectY;
+        if(startSelectY <= endSelectY) {
+            t_startSelectX = startSelectX;
+            t_startSelectY = startSelectY;
+            t_endSelectX = endSelectX;
+            t_endSelectY = endSelectY;
+        } else {
+            t_startSelectX = endSelectX;
+            t_startSelectY = endSelectY;
+            t_endSelectX = startSelectX;
+            t_endSelectY = startSelectY;
+        }
 
-            for(int selectedLine = startSelectY; selectedLine<=endSelectY; selectedLine++) {
-                if(_text[selectedLine][0] == '\t') {
-                   _text[selectedLine].remove(0,1);
-                   if(selectedLine == startSelectY) {
-                       --_cursorPositionX;
-                       t_startSelectX -= 1;
-                   }
-                   if (selectedLine == endSelectY) {
-                       t_endSelectX = -1;
-                   }
-                } else if (_text[selectedLine].mid(0,getTabsize()) == l.repeated(getTabsize())) {
-                    _text[selectedLine].remove(0,getTabsize());
-                    if(selectedLine == startSelectY) {
-                        _cursorPositionX -= getTabsize();
-                        t_startSelectX -= getTabsize();
-                    }
-                    if (selectedLine == endSelectY) {
-                        t_endSelectX -= getTabsize();
-                    }
+        for(int selectedLine = startSelectY; selectedLine<=endSelectY; selectedLine++) {
+            if(_text[selectedLine][0] == '\t') {
+               _text[selectedLine].remove(0,1);
+               if(selectedLine == startSelectY) {
+                   --_cursorPositionX;
+                   t_startSelectX -= 1;
+               }
+               if (selectedLine == endSelectY) {
+                   t_endSelectX = -1;
+               }
+            } else if (_text[selectedLine].mid(0,getTabsize()) == QString(" ").repeated(getTabsize())) {
+                _text[selectedLine].remove(0,getTabsize());
+                if(selectedLine == startSelectY) {
+                    _cursorPositionX -= getTabsize();
+                    t_startSelectX -= getTabsize();
+                }
+                if (selectedLine == endSelectY) {
+                    t_endSelectX -= getTabsize();
                 }
             }
-            resetSelect();
-            select(t_startSelectX, t_startSelectY);
-            select(t_endSelectX, t_endSelectY);
-            safeCursorPosition();
-            adjustScrollPosition();
-            saveUndoStep();
         }
+        resetSelect();
+        select(t_startSelectX, t_startSelectY);
+        select(t_endSelectX, t_endSelectY);
+        adjustScrollPosition();
+        safeCursorPosition();
+        saveUndoStep();
     } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {
         //STRG + C // Strg+Einfg
