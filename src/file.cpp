@@ -1609,6 +1609,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 }
 
 void File::adjustScrollPosition() {
+    _cursorPositionX = std::max(0,_cursorPositionX);
+    _cursorPositionY = std::max(0,_cursorPositionY);
     ZTextOption option = getTextOption();
     option.setWrapMode(ZTextOption::NoWrap);
     TextLayout lay = getTextLayoutForLine(option, _cursorPositionY);
