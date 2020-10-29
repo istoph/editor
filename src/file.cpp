@@ -479,6 +479,19 @@ void File::select(int x, int y) {
     endSelectY = y;
 }
 
+void File::selectLines(int startY, int endY) {
+    resetSelect();
+    if(startY > endY) {
+        select(_text[startY].size(), startY);
+        select(0, endY);
+        setCursorPosition({0,endY});
+    } else {
+        select(0, startY);
+        select(_text[endY].size(), endY);
+        setCursorPosition({_text[endY].size(), endY});
+    }
+}
+
 void File::resetSelect() {
     startSelectX = startSelectY = endSelectX = endSelectY = -1;
     setSelectMode(false);

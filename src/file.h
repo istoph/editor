@@ -57,6 +57,7 @@ public:
     void setWrapOption(bool wrap);
     bool getWrapOption();
     void select(int x, int y);
+    void selectLines(int startY, int endY);
     void resetSelect();
     QString getSelectText();
     bool isSelect(int x, int y);
