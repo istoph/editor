@@ -1429,96 +1429,67 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
         if(isSelect()) {
-            int t_startSelectX, t_startSelectY, t_endSelectX, t_endSelectY;
-            if(startSelectY <= endSelectY) {
-                t_startSelectX = startSelectX;
-                t_startSelectY = startSelectY;
-                t_endSelectX = endSelectX;
-                t_endSelectY = endSelectY;
-            } else {
-                t_startSelectX = endSelectX;
-                t_startSelectY = endSelectY;
-                t_endSelectX = startSelectX;
-                t_endSelectY = startSelectY;
-            }
-            for(int selectedLine = t_startSelectY; selectedLine<=t_endSelectY; selectedLine++) {
+            //Tabs an in Markierten zeilen hinzufügen
+            for(int selectedLine = std::min(startSelectY,endSelectY); selectedLine <= std::max(startSelectY,endSelectY); selectedLine++) {
                 if(getTabOption()) {
-                    QString l = " ";
-                    _text[selectedLine].insert(0, l.repeated(getTabsize()));
+                    _text[selectedLine].insert(0, QString(" ").repeated(getTabsize()));
                 } else {
                     _text[selectedLine].insert(0, '\t');
                 }
             }
-            resetSelect();
-            if(getTabOption()) {
-                _cursorPositionX += getTabsize();
-                select(t_startSelectX + getTabsize(), t_startSelectY);
-                select(t_endSelectX + getTabsize(), t_endSelectY);
-            } else {
-                ++_cursorPositionX;
-                select(t_startSelectX + 1, t_startSelectY);
-                select(t_endSelectX + 1, t_endSelectY);
-            }
+
+            //Zeilen neu Markieren
+            selectLines(startSelectY, endSelectY);
         } else {
+            //Ein Normaler Tab
             if(getTabOption()) {
                 for (int i=0; i<getTabsize(); i++) {
                     if(_cursorPositionX % getTabsize() == 0 && i != 0)
                         break;
                     _text[_cursorPositionY].insert(_cursorPositionX, ' ');
-                    ++_cursorPositionX;
+                    setCursorPosition({_cursorPositionX +1, _cursorPositionY});
                 }
             } else {
                 _text[_cursorPositionY].insert(_cursorPositionX, '\t');
-                ++_cursorPositionX;
+                setCursorPosition({_cursorPositionX +1, _cursorPositionY});
             }
         }
         safeCursorPosition();
-        adjustScrollPosition();
         saveUndoStep();
+
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == Qt::ShiftModifier) {
+        //Nich markierte Zeile verschiben
+        bool _resetSelect = false;
         if(!isSelect()) {
-            select(_cursorPositionX,_cursorPositionY);
-        }
-        int t_startSelectX, t_startSelectY, t_endSelectX, t_endSelectY;
-        if(startSelectY <= endSelectY) {
-            t_startSelectX = startSelectX;
-            t_startSelectY = startSelectY;
-            t_endSelectX = endSelectX;
-            t_endSelectY = endSelectY;
-        } else {
-            t_startSelectX = endSelectX;
-            t_startSelectY = endSelectY;
-            t_endSelectX = startSelectX;
-            t_endSelectY = startSelectY;
+            selectLines(_cursorPositionY, _cursorPositionY);
+            _resetSelect = true;
         }
 
-        for(int selectedLine = startSelectY; selectedLine<=endSelectY; selectedLine++) {
+        for(int selectedLine = std::min(startSelectY,endSelectY); selectedLine <= std::max(startSelectY,endSelectY); selectedLine++) {
             if(_text[selectedLine][0] == '\t') {
                _text[selectedLine].remove(0,1);
-               if(selectedLine == startSelectY) {
-                   --_cursorPositionX;
-                   t_startSelectX -= 1;
-               }
-               if (selectedLine == endSelectY) {
-                   t_endSelectX = -1;
-               }
             } else if (_text[selectedLine].mid(0,getTabsize()) == QString(" ").repeated(getTabsize())) {
                 _text[selectedLine].remove(0,getTabsize());
-                if(selectedLine == startSelectY) {
-                    _cursorPositionX -= getTabsize();
-                    t_startSelectX -= getTabsize();
-                }
-                if (selectedLine == endSelectY) {
-                    t_endSelectX -= getTabsize();
+            } else {
+                for(int i = 0; i < getTabsize(); i++) {
+                    if (_text[selectedLine].mid(0,1) == QString(" ")) {
+                        _text[selectedLine].remove(0,1);
+                    } else {
+                        break;
+                    }
                 }
             }
         }
-        resetSelect();
-        select(t_startSelectX, t_startSelectY);
-        select(t_endSelectX, t_endSelectY);
-        adjustScrollPosition();
+
+        if(_resetSelect) {
+            resetSelect();
+        } else {
+            selectLines(startSelectY, endSelectY);
+        }
+
         safeCursorPosition();
         saveUndoStep();
+
     } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {
         //STRG + C // Strg+Einfg
@@ -1556,67 +1527,63 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Up) {
         //Zeilen verschiben
-
-        //Nich markierte Zeile verschiben
-        bool _resetSelect = false;
-        if(!isSelect()) {
-            startSelectY = endSelectY = _cursorPositionY;
-            _resetSelect = true;
-        }
-        if(startSelectY > 0) {
-            //Zeilen Markieren
-            startSelectX = 0;
-            endSelectX = _text[endSelectY].size();
+        if(std::min(startSelectY, endSelectY) > 0) {
+            //Nich markierte Zeile verschiben
+            bool _resetSelect = false;
+            if(!isSelect()) {
+                selectLines(_cursorPositionY, _cursorPositionY);
+                _resetSelect = true;
+            }
 
             //Nach oben verschieben
-            _text.insert(endSelectY + 1, _text[startSelectY -1]);
-            _text.remove(startSelectY -1);
-
-            //Courser nachzeihen
-            if (_cursorPositionY > 0) {
-                --_cursorPositionY;
+            if(startSelectY > endSelectY) {
+                _text.insert(startSelectY + 1, _text[endSelectY -1]);
+                _text.remove(endSelectY -1);
+            } else {
+                _text.insert(endSelectY + 1, _text[startSelectY -1]);
+                _text.remove(startSelectY -1);
             }
 
             //Markirung Nachziehen
-            startSelectY -= 1;
-            endSelectY -= 1;
             if (_resetSelect) {
                 resetSelect();
+            } else {
+                selectLines(startSelectY -1, endSelectY -1);
             }
+
+            //Courser nachzeihen
+            setCursorPosition({0, std::min(startSelectY-1, endSelectY-1)});
             saveUndoStep();
-            adjustScrollPosition();
         }
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Down) {
         //Zeilen verschiben
-
-        //Nich markierte Zeile verschiben
-        bool _resetSelect = false;
-        if(!isSelect()) {
-            startSelectY = endSelectY = _cursorPositionY;
-            _resetSelect = true;
-        }
-        if(endSelectY + 1 < _text.size()) {
-            //Zeilen Markieren
-            startSelectX = 0;
-            endSelectX = _text[endSelectY].size();
+        if(std::max(startSelectY, endSelectY) < _text.size() -1) {
+            //Nich markierte Zeile verschiben
+            bool _resetSelect = false;
+            if(!isSelect()) {
+                selectLines(_cursorPositionY, _cursorPositionY);
+                _resetSelect = true;
+            }
 
             //Nach unten verschieben
-            _text.insert(startSelectY, _text[endSelectY + 1]);
-            _text.remove(endSelectY +2);
-
-            //Courser nachzeihen
-            if (_cursorPositionY < _text.size()) {
-                ++_cursorPositionY;
+            if(startSelectY > endSelectY) {
+                _text.insert(endSelectY, _text[startSelectY + 1]);
+                _text.remove(startSelectY +2);
+            } else {
+                _text.insert(startSelectY, _text[endSelectY + 1]);
+                _text.remove(endSelectY +2);
             }
 
             //Markirung Nachziehen
-            startSelectY += 1;
-            endSelectY += 1;
             if (_resetSelect) {
                 resetSelect();
+            } else {
+                selectLines(startSelectY +1, endSelectY +1);
             }
+
+            //Courser nachzeihen
+            setCursorPosition({std::max(startSelectX, endSelectX), std::max(startSelectY, endSelectY)});
             saveUndoStep();
-            adjustScrollPosition();
         }
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
         setSearchText("");
@@ -1630,8 +1597,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 }
 
 void File::adjustScrollPosition() {
-    _cursorPositionX = std::max(0,_cursorPositionX);
-    _cursorPositionY = std::max(0,_cursorPositionY);
     ZTextOption option = getTextOption();
     option.setWrapMode(ZTextOption::NoWrap);
     TextLayout lay = getTextLayoutForLine(option, _cursorPositionY);
