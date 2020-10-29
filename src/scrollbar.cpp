@@ -10,7 +10,7 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor controlbg = getColor("scrollbar.control.bg");
     Tui::ZColor fg = getColor("scrollbar.fg");
     Tui::ZColor bg = getColor("scrollbar.bg");
-
+    Tui::ZColor fgbehindText = {0xaa, 0xaa, 0xaa};
 
     int thumbHeight;
     int trackBarPosition = 0;
@@ -55,6 +55,7 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
         } else {
             for (int i = 0; i < geometry().height(); i++) {
                 painter->setBackground(0,i,{ 0, 0x00, 0x80});
+                painter->setForeground(0,i,fg);
             }
         }
         int y = 1 + trackBarPosition;
@@ -64,6 +65,7 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
                 painter->writeWithColors(0, y, "▓", controlfg, controlbg);
             } else {
                 painter->setBackground(0,y,{ 0, 0, 0xd9});
+                painter->setForeground(0,y,fgbehindText);
             }
             y+=1;
         }
@@ -74,6 +76,7 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
         } else {
             for (int i = 0; i < geometry().width(); i++) {
                 painter->setBackground(i,0,{ 0, 0x00, 0x80});
+                painter->setForeground(i,0,fgbehindText);
             }
         }
         int x = 1 + trackBarPosition;
@@ -83,6 +86,7 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
                 painter->writeWithColors(x, 0, "▓", controlfg, controlbg);
             } else {
                 painter->setBackground(x,0,{ 0, 0, 0xd9});
+                painter->setForeground(x,0,fgbehindText);
             }
             x+=1;
         }
