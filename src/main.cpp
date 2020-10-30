@@ -109,6 +109,9 @@ int main(int argc, char **argv) {
     bool hb = qsettings->value("highlight_bracket","false").toBool();
     root->file->setHighlightBracket(hb);
 
+    bool scpx0 = qsettings->value("select_cursor_position_x0","ture").toBool();
+    root->file->select_cursor_position_x0 = scpx0;
+
     QString logfile = qsettings->value("logfile", "").toString();
     if (logfile.isEmpty()) {
         QLoggingCategory::defaultCategory()->setEnabled(QtDebugMsg, false);

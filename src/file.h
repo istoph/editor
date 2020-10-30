@@ -95,6 +95,7 @@ public:
     QPoint getCursorPosition();
     void setCursorPosition(QPoint position);
     void toggleSelectMode();
+    bool select_cursor_position_x0;
 
 public:
     bool newfile = true;

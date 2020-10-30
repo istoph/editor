@@ -489,11 +489,11 @@ QPair<int,int> File::getSelectLines() {
     int endeY = _endSelectY;
 
     if(_startSelectY > _endSelectY) {
-        if (_startSelectX == 0) {
+        if (select_cursor_position_x0 && _startSelectX == 0) {
             startY--;
         }
     } else {
-        if (_endSelectX == 0) {
+        if (select_cursor_position_x0 && _endSelectX == 0) {
             endeY--;
         }
     }
