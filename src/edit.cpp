@@ -1,5 +1,10 @@
 #include "edit.h"
 
+#include <signal.h>
+
+#include <Tui/ZTerminal.h>
+#include <Tui/ZImage.h>
+
 Editor::Editor() {
     ensureCommandManager();
 
@@ -244,12 +249,21 @@ Editor::Editor() {
         }
     );
 
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forMnemonic("x"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+                     this, &Editor::showCommandLine);
+
+
     win = new WindowWidget(this);
     win->setBorderEdges({ Qt::TopEdge });
 
     //File
     file = new File(win);
     win->setWindowTitle(file->getFilename());
+
+    _commandLineWidget = new CommandLineWidget(this);
+    _commandLineWidget->setVisible(false);
+    connect(_commandLineWidget, &CommandLineWidget::dismissed, this, &Editor::commandLineDismissed);
+    connect(_commandLineWidget, &CommandLineWidget::execute, this, &Editor::commandLineExecute);
 
     _statusBar = new StatusBar(this);
     connect(file, &File::cursorPositionChanged, _statusBar, &StatusBar::cursorPosition);
@@ -287,11 +301,12 @@ Editor::Editor() {
     _winLayout->setBottomBorderLeftAdjust(-1);
     _winLayout->addCentralWidget(file);
 
-    VBoxLayout *rootLayout = new VBoxLayout();
-    setLayout(rootLayout);
-    rootLayout->addWidget(menu);
-    rootLayout->addWidget(win);
-    rootLayout->addWidget(_statusBar);
+    _rootLayout = new VBoxLayout();
+    setLayout(_rootLayout);
+    _rootLayout->addWidget(menu);
+    _rootLayout->addWidget(win);
+    _rootLayout->addWidget(_commandLineWidget);
+    _rootLayout->addWidget(_statusBar);
 
     _searchDialog = new SearchDialog(this, file);
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
@@ -458,6 +473,41 @@ void Editor::setWrap(bool wrap) {
         file->setWrapOption(false);
         _scrollbarHorizontal->setVisible(true);
         _winLayout->setRightBorderBottomAdjust(-1);
+    }
+}
+
+void Editor::showCommandLine() {
+    _statusBar->setVisible(false);
+    _commandLineWidget->setVisible(true);
+    // Force relayout, this should not be needed
+    _rootLayout->setGeometry(layoutArea());
+    _commandLineWidget->grabKeyboard();
+}
+
+void Editor::commandLineDismissed() {
+    _statusBar->setVisible(true);
+    _commandLineWidget->setVisible(false);
+    // Force relayout, this should not be needed
+    _rootLayout->setGeometry(layoutArea());
+}
+
+void Editor::commandLineExecute(QString cmd) {
+    commandLineDismissed();
+    if (cmd.startsWith("screenshot-tpi ")) {
+        QString filename = cmd.split(" ").value(1);
+        if (filename.size()) {
+            connect(terminal(), &Tui::ZTerminal::afterRendering, this, [this, filename, terminal=terminal()] {
+                terminal->grabCurrentImage().save(filename);
+                disconnect(terminal, &Tui::ZTerminal::afterRendering, this, 0);
+            });
+        }
+    } else if (cmd == "suspend") {
+        raise(SIGTSTP);
+    } else if (cmd == "shell") {
+        auto term = terminal();
+        term->pauseOperation();
+        system(qgetenv("SHELL"));
+        term->unpauseOperation();
     }
 }
 

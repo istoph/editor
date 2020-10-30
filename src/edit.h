@@ -22,6 +22,7 @@
 #include "insertcharacter.h"
 #include "gotoline.h"
 #include "clipboard.h"
+#include "commandlinewidget.h"
 
 #include <QDir>
 #include <QSettings>
@@ -59,9 +60,12 @@ public slots:
     void openFile(QString filename);
     void saveFile(QString filename);
     void setWrap(bool wrap);
+    void showCommandLine();
 
 private slots:
     void inputPipeReadable(int socket);
+    void commandLineDismissed();
+    void commandLineExecute(QString cmd);
 
 signals:
     void readFromStandadInput(bool activ);
@@ -90,6 +94,8 @@ private:
     bool _follow = false;
     QFileSystemWatcher *_watcher = nullptr;
     StatusBar *_statusBar = nullptr;
+    CommandLineWidget *_commandLineWidget = nullptr;
+    VBoxLayout *_rootLayout = nullptr; // only needed to workaround missing updating in ZLayout
     Clipboard _clipboard;
 };
 
