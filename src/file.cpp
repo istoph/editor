@@ -1452,13 +1452,14 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if(isSelect()) {
             //Tabs an in Markierten zeilen hinzufügen
             for(int selectedLine = std::min(getSelectLines().first, getSelectLines().second); selectedLine <= std::max(getSelectLines().first, getSelectLines().second); selectedLine++) {
-                if(getTabOption()) {
-                    _text[selectedLine].insert(0, QString(" ").repeated(getTabsize()));
-                } else {
-                    _text[selectedLine].insert(0, '\t');
+                if(_text[selectedLine].size() > 0) {
+                    if(getTabOption()) {
+                        _text[selectedLine].insert(0, QString(" ").repeated(getTabsize()));
+                    } else {
+                        _text[selectedLine].insert(0, '\t');
+                    }
                 }
             }
-
             //Zeilen neu Markieren
             selectLines(getSelectLines().first, getSelectLines().second);
         } else {
