@@ -12,6 +12,7 @@
 #include <QtConcurrent>
 #include <QFuture>
 #include <QFutureWatcher>
+#include <QPair>
 
 #include <testtui_lib.h>
 #include <Tui/ZCommandNotifier.h>
@@ -57,6 +58,7 @@ public:
     void setWrapOption(bool wrap);
     bool getWrapOption();
     void select(int x, int y);
+    QPair<int, int> getSelectLines();
     void selectLines(int startY, int endY);
     void resetSelect();
     QString getSelectText();

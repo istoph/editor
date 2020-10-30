@@ -479,6 +479,27 @@ void File::select(int x, int y) {
     endSelectY = y;
 }
 
+QPair<int,int> File::getSelectLines() {
+/*
+ * However other editors take that the chois
+ * when the mouse cursor is at the beginning of a line
+ * this line is not add to the selection.
+*/
+    int startY = startSelectY;
+    int endeY = endSelectY;
+
+    if(startSelectY > endSelectY) {
+        if (startSelectX == 0) {
+            startY--;
+        }
+    } else {
+        if (endSelectX == 0) {
+            endeY--;
+        }
+    }
+
+    return {std::max(0, startY), std::max(0, endeY)};
+}
 void File::selectLines(int startY, int endY) {
     resetSelect();
     if(startY > endY) {
@@ -1430,7 +1451,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
         if(isSelect()) {
             //Tabs an in Markierten zeilen hinzufügen
-            for(int selectedLine = std::min(startSelectY,endSelectY); selectedLine <= std::max(startSelectY,endSelectY); selectedLine++) {
+            for(int selectedLine = std::min(getSelectLines().first, getSelectLines().second); selectedLine <= std::max(getSelectLines().first, getSelectLines().second); selectedLine++) {
                 if(getTabOption()) {
                     _text[selectedLine].insert(0, QString(" ").repeated(getTabsize()));
                 } else {
@@ -1439,7 +1460,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             }
 
             //Zeilen neu Markieren
-            selectLines(startSelectY, endSelectY);
+            selectLines(getSelectLines().first, getSelectLines().second);
         } else {
             //Ein Normaler Tab
             if(getTabOption()) {
@@ -1465,7 +1486,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             _resetSelect = true;
         }
 
-        for(int selectedLine = std::min(startSelectY,endSelectY); selectedLine <= std::max(startSelectY,endSelectY); selectedLine++) {
+        for(int selectedLine = std::min(getSelectLines().first, getSelectLines().second); selectedLine <= std::max(getSelectLines().first, getSelectLines().second); selectedLine++) {
             if(_text[selectedLine][0] == '\t') {
                _text[selectedLine].remove(0,1);
             } else if (_text[selectedLine].mid(0,getTabsize()) == QString(" ").repeated(getTabsize())) {
@@ -1484,7 +1505,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if(_resetSelect) {
             resetSelect();
         } else {
-            selectLines(startSelectY, endSelectY);
+            selectLines(getSelectLines().first, getSelectLines().second);
         }
 
         safeCursorPosition();
@@ -1527,7 +1548,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Up) {
         //Zeilen verschiben
-        if(std::min(startSelectY, endSelectY) > 0) {
+        if(std::min(getSelectLines().first, getSelectLines().second) > 0) {
             //Nich markierte Zeile verschiben
             bool _resetSelect = false;
             if(!isSelect()) {
@@ -1536,28 +1557,28 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             }
 
             //Nach oben verschieben
-            if(startSelectY > endSelectY) {
-                _text.insert(startSelectY + 1, _text[endSelectY -1]);
-                _text.remove(endSelectY -1);
+            if(getSelectLines().first > getSelectLines().second) {
+                _text.insert(getSelectLines().first +1, _text[getSelectLines().second -1]);
+                _text.remove(getSelectLines().second -1);
             } else {
-                _text.insert(endSelectY + 1, _text[startSelectY -1]);
-                _text.remove(startSelectY -1);
+                _text.insert(getSelectLines().second +1, _text[getSelectLines().first -1]);
+                _text.remove(getSelectLines().first -1);
             }
 
             //Markirung Nachziehen
             if (_resetSelect) {
                 resetSelect();
             } else {
-                selectLines(startSelectY -1, endSelectY -1);
+                selectLines(getSelectLines().first -1, getSelectLines().second -1);
             }
 
             //Courser nachzeihen
-            setCursorPosition({0, std::min(startSelectY-1, endSelectY-1)});
+            setCursorPosition({0, std::min(getSelectLines().first -1, getSelectLines().second -1)});
             saveUndoStep();
         }
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Down) {
         //Zeilen verschiben
-        if(std::max(startSelectY, endSelectY) < _text.size() -1) {
+        if(std::max(getSelectLines().first, getSelectLines().second) < _text.size() -1) {
             //Nich markierte Zeile verschiben
             bool _resetSelect = false;
             if(!isSelect()) {
@@ -1566,23 +1587,23 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             }
 
             //Nach unten verschieben
-            if(startSelectY > endSelectY) {
-                _text.insert(endSelectY, _text[startSelectY + 1]);
-                _text.remove(startSelectY +2);
+            if(getSelectLines().first > getSelectLines().second) {
+                _text.insert(getSelectLines().second, _text[getSelectLines().first +1]);
+                _text.remove(getSelectLines().first +2);
             } else {
-                _text.insert(startSelectY, _text[endSelectY + 1]);
-                _text.remove(endSelectY +2);
+                _text.insert(getSelectLines().first, _text[getSelectLines().second +1]);
+                _text.remove(getSelectLines().second +2);
             }
 
             //Markirung Nachziehen
             if (_resetSelect) {
                 resetSelect();
             } else {
-                selectLines(startSelectY +1, endSelectY +1);
+                selectLines(getSelectLines().first +1, getSelectLines().second +1);
             }
 
             //Courser nachzeihen
-            setCursorPosition({std::max(startSelectX, endSelectX), std::max(startSelectY, endSelectY)});
+            setCursorPosition({std::max(startSelectX, endSelectX), std::max(getSelectLines().first, getSelectLines().second)});
             saveUndoStep();
         }
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
