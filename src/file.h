@@ -157,10 +157,10 @@ private:
     bool _tabOption = true;
     bool _wrapOption = false;
     bool _formatting_characters = true;
-    int startSelectX = -1;
-    int startSelectY = -1;
-    int endSelectX = -1;
-    int endSelectY = -1;
+    int _startSelectX = -1;
+    int _startSelectY = -1;
+    int _endSelectX = -1;
+    int _endSelectY = -1;
     bool overwrite = false;
     QVector<UndoStep> _undoSteps;
     int _currentUndoStep;

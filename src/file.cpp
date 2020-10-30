@@ -471,12 +471,12 @@ bool File::getWrapOption() {
 }
 
 void File::select(int x, int y) {
-    if(startSelectX == -1) {
-        startSelectX = x;
-        startSelectY = y;
+    if(_startSelectX == -1) {
+        _startSelectX = x;
+        _startSelectY = y;
     }
-    endSelectX = x;
-    endSelectY = y;
+    _endSelectX = x;
+    _endSelectY = y;
 }
 
 QPair<int,int> File::getSelectLines() {
@@ -485,15 +485,15 @@ QPair<int,int> File::getSelectLines() {
  * when the mouse cursor is at the beginning of a line
  * this line is not add to the selection.
 */
-    int startY = startSelectY;
-    int endeY = endSelectY;
+    int startY = _startSelectY;
+    int endeY = _endSelectY;
 
-    if(startSelectY > endSelectY) {
-        if (startSelectX == 0) {
+    if(_startSelectY > _endSelectY) {
+        if (_startSelectX == 0) {
             startY--;
         }
     } else {
-        if (endSelectX == 0) {
+        if (_endSelectX == 0) {
             endeY--;
         }
     }
@@ -514,7 +514,7 @@ void File::selectLines(int startY, int endY) {
 }
 
 void File::resetSelect() {
-    startSelectX = startSelectY = endSelectX = endSelectY = -1;
+    _startSelectX = _startSelectY = _endSelectX = _endSelectY = -1;
     setSelectMode(false);
 }
 
@@ -536,8 +536,8 @@ QString File::getSelectText() {
 }
 
 bool File::isSelect(int x, int y) {
-    auto startSelect = std::make_pair(startSelectY,startSelectX);
-    auto endSelect = std::make_pair(endSelectY,endSelectX);
+    auto startSelect = std::make_pair(_startSelectY,_startSelectX);
+    auto endSelect = std::make_pair(_endSelectY,_endSelectX);
     auto current = std::make_pair(y,x);
 
     if(startSelect > endSelect) {
@@ -551,7 +551,7 @@ bool File::isSelect(int x, int y) {
 }
 
 bool File::isSelect() {
-    if (startSelectX != -1) {
+    if (_startSelectX != -1) {
         return true;
     }
     return false;
@@ -569,8 +569,8 @@ bool File::delSelect() {
         return false;
     }
 
-    auto startSelect = Position(startSelectX, startSelectY);
-    auto endSelect = Position(endSelectX, endSelectY);
+    auto startSelect = Position(_startSelectX, _startSelectY);
+    auto endSelect = Position(_endSelectX, _endSelectY);
 
     if (startSelect > endSelect) {
         std::swap(startSelect, endSelect);
@@ -984,8 +984,8 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 
     ZTextOption option = getTextOption();
 
-    auto startSelect = std::make_pair(startSelectY,startSelectX);
-    auto endSelect = std::make_pair(endSelectY,endSelectX);
+    auto startSelect = std::make_pair(_startSelectY,_startSelectX);
+    auto endSelect = std::make_pair(_endSelectY,_endSelectX);
     if(startSelect > endSelect) {
         std::swap(startSelect,endSelect);
     }
@@ -1573,7 +1573,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             }
 
             //Courser nachzeihen
-            setCursorPosition({0, std::min(getSelectLines().first -1, getSelectLines().second -1)});
+            setCursorPosition({0, std::min(_startSelectY -1, _endSelectY -1)});
             saveUndoStep();
         }
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Down) {
@@ -1603,7 +1603,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             }
 
             //Courser nachzeihen
-            setCursorPosition({std::max(startSelectX, endSelectX), std::max(getSelectLines().first, getSelectLines().second)});
+            setCursorPosition({std::max(_startSelectX, _endSelectX), std::max(_startSelectY, _endSelectY)});
             saveUndoStep();
         }
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
