@@ -58,6 +58,7 @@ public:
     void setWrapOption(bool wrap);
     bool getWrapOption();
     void select(int x, int y);
+    void blockSelect(int x, int y);
     QPair<int, int> getSelectLines();
     void selectLines(int startY, int endY);
     void resetSelect();
@@ -73,6 +74,7 @@ public:
     void setGroupUndo(bool onoff);
     int getGroupUndo();
     void deletePreviousCharacterOrWord(TextLayout::CursorMode mode);
+    QPair<int, int> deletePreviousCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y);
     void deleteNextCharacterOrWord(TextLayout::CursorMode mode);
     int getVisibleLines();
     void appendLine(const QString &line);
@@ -191,6 +193,8 @@ private:
     Tui::ZCommandNotifier *_cmdSearchNext;
     Tui::ZCommandNotifier *_cmdSearchPrevious;
     bool _selectMode = false;
+    bool _blockSelect = false;
+    bool _blockSelectEdit = false;
     void setSelectMode(bool f4);
     bool getSelectMode();
 };
