@@ -19,6 +19,23 @@
 #include "searchcount.h"
 #include "clipboard.h"
 
+class RangeIterator {
+public:
+    int i;
+    int operator *(){ return i; };
+    bool operator !=(const RangeIterator & b) {return i!=b.i; }
+    int operator ++() { return i++; }
+};
+
+class Range {
+public:
+    int start;
+    int stop;
+    RangeIterator begin() { return RangeIterator {start};}
+    RangeIterator end() { return RangeIterator {stop};}
+};
+
+
 class File : public Tui::ZWidget {
     Q_OBJECT
 
@@ -76,6 +93,8 @@ public:
     void deletePreviousCharacterOrWord(TextLayout::CursorMode mode);
     QPair<int, int> deletePreviousCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y);
     void deleteNextCharacterOrWord(TextLayout::CursorMode mode);
+    QPair<int, int> deleteNextCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y);
+    QPoint addTabAt(QPoint cursor);
     int getVisibleLines();
     void appendLine(const QString &line);
     void insertAtCursorPosition(QString str);
@@ -148,6 +167,8 @@ private:
     bool highlightBracket();
     void searchSelect(int line, int found, bool direction);
     //void searchSelectPrevious(int line, int found);
+    Range getBlockSelectedLines();
+    void selectCursorPosition(Qt::KeyboardModifiers modifiers);
 
 private:
     QVector<QString> _text;
