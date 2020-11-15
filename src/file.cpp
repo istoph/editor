@@ -525,7 +525,7 @@ QPair<int,int> File::getSelectLines() {
 }
 void File::selectLines(int startY, int endY) {
     resetSelect();
-    if(startY >= endY) {
+    if(startY > endY) {
         select(_text[startY].size(), startY);
         select(0, endY);
         setCursorPosition({0,endY});
@@ -1643,17 +1643,18 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         adjustScrollPosition();
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Up) {
-        //Zeilen verschiben
+
+        //Nich markierte Zeile verschiben
+        bool _resetSelect = false;
+        if(!isSelect()) {
+            selectLines(_cursorPositionY, _cursorPositionY);
+            _resetSelect = true;
+        }
+
         if(std::min(getSelectLines().first, getSelectLines().second) > 0) {
-            //Nich markierte Zeile verschiben
-            bool _resetSelect = false;
-            if(!isSelect()) {
-                selectLines(_cursorPositionY, _cursorPositionY);
-                _resetSelect = true;
-            }
 
             //Nach oben verschieben
-            if(getSelectLines().first > getSelectLines().second) {
+            if(getSelectLines().first >= getSelectLines().second) {
                 _text.insert(getSelectLines().first +1, _text[getSelectLines().second -1]);
                 _text.remove(getSelectLines().second -1);
             } else {
@@ -1663,14 +1664,14 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
             //Markirung Nachziehen
             if (_resetSelect) {
+                setCursorPosition({0, std::min(_startSelectY -1, _endSelectY -1)});
                 resetSelect();
             } else {
                 selectLines(getSelectLines().first -1, getSelectLines().second -1);
             }
-
-            //Courser nachzeihen
-            setCursorPosition({0, std::min(_startSelectY -1, _endSelectY -1)});
             saveUndoStep();
+        } else if(_resetSelect) {
+            resetSelect();
         }
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Down) {
         //Zeilen verschiben
@@ -1693,13 +1694,11 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
             //Markirung Nachziehen
             if (_resetSelect) {
+                setCursorPosition({std::max(_startSelectX, _endSelectX), std::max(_startSelectY +1, _endSelectY +1)});
                 resetSelect();
             } else {
                 selectLines(getSelectLines().first +1, getSelectLines().second +1);
             }
-
-            //Courser nachzeihen
-            setCursorPosition({std::max(_startSelectX, _endSelectX), std::max(_startSelectY, _endSelectY)});
             saveUndoStep();
         }
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
