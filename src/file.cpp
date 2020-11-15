@@ -1029,11 +1029,12 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         std::swap(startSelect,endSelect);
     }
     QVector<TextLayout::FormatRange> highlights;
-    TextStyle base{fg, bg};
-    TextStyle formatingChar{Tui::Colors::darkGray, bg};
-    TextStyle selected{Tui::Colors::darkGray,fg,Tui::ZPainter::Attribute::Bold};
-    TextStyle blockSelected{fg,Tui::Colors::lightGray,Tui::ZPainter::Attribute::Blink | Tui::ZPainter::Attribute::Italic};
-    TextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
+    const TextStyle base{fg, bg};
+    const TextStyle formatingChar{Tui::Colors::darkGray, bg};
+    const TextStyle selected{Tui::Colors::darkGray,fg,Tui::ZPainter::Attribute::Bold};
+    const TextStyle blockSelected{fg,Tui::Colors::lightGray,Tui::ZPainter::Attribute::Blink | Tui::ZPainter::Attribute::Italic};
+    const TextStyle blockSelectedFormatingChar{Tui::Colors::darkGray, Tui::Colors::lightGray, Tui::ZPainter::Attribute::Blink};
+    const TextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
 
     //LineNumber
     int shiftLinenumber = 0;
@@ -1068,7 +1069,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         if(_blockSelect) {
             if (line >= std::min(startSelect.first, endSelect.first) && line <= std::max(endSelect.first, startSelect.first)) {
                 if(startSelect.second == endSelect.second) {
-                    highlights.append(TextLayout::FormatRange{startSelect.second, 1, blockSelected, selectedFormatingChar});
+                    highlights.append(TextLayout::FormatRange{startSelect.second, 1, blockSelected, blockSelectedFormatingChar});
                 } else {
                     highlights.append(TextLayout::FormatRange{std::min(startSelect.second, endSelect.second), std::max(startSelect.second, endSelect.second) - std::min(startSelect.second, endSelect.second), selected, selectedFormatingChar});
                 }
@@ -1650,9 +1651,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             selectLines(_cursorPositionY, _cursorPositionY);
             _resetSelect = true;
         }
-
         if(std::min(getSelectLines().first, getSelectLines().second) > 0) {
-
             //Nach oben verschieben
             if(getSelectLines().first >= getSelectLines().second) {
                 _text.insert(getSelectLines().first +1, _text[getSelectLines().second -1]);
@@ -1674,7 +1673,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             resetSelect();
         }
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Down) {
-        //Zeilen verschiben
         if(std::max(getSelectLines().first, getSelectLines().second) < _text.size() -1) {
             //Nich markierte Zeile verschiben
             bool _resetSelect = false;
