@@ -76,6 +76,7 @@ public:
     bool getWrapOption();
     void select(int x, int y);
     void blockSelect(int x, int y);
+    void blockSelectEdit(int x);
     QPair<int, int> getSelectLines();
     void selectLines(int startY, int endY);
     void resetSelect();
@@ -218,6 +219,7 @@ private:
     bool _blockSelectEdit = false;
     void setSelectMode(bool f4);
     bool getSelectMode();
+
 };
 
 #endif // FILE_H

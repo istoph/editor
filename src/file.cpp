@@ -483,6 +483,24 @@ void File::blockSelect(int x, int y) {
     _blockSelect = true;
     select(x, y);
 }
+void File::blockSelectEdit(int x) {
+    int startY = std::min(_startSelectY, _endSelectY);
+    int stopY = std::max(_endSelectY, _startSelectY);
+
+    if(std::max(_startSelectX, _endSelectX) - std::min(_startSelectX, _endSelectX) > 0) {
+        if(_cursorPositionX >= std::max(_startSelectX, _endSelectX)) {
+            x = std::max(0, x - (std::max(_startSelectX, _endSelectX) - std::min(_startSelectX, _endSelectX)));
+        }
+        delSelect();
+    }
+
+    _blockSelect = true;
+    _startSelectX = x;
+    _startSelectY = startY;
+    _endSelectX = x;
+    _endSelectY = stopY;
+    setCursorPosition({x,stopY});
+}
 
 QPair<int,int> File::getSelectLines() {
 /*
@@ -584,16 +602,16 @@ bool File::delSelect() {
 
     auto startSelect = Position(_startSelectX, _startSelectY);
     auto endSelect = Position(_endSelectX, _endSelectY);
-
     if (startSelect > endSelect) {
         std::swap(startSelect, endSelect);
     }
 
     if(_blockSelect) {
         for(int line: getBlockSelectedLines()) {
-        //for(int line = startSelect.y; line <= endSelect.y; line++) {
-            _text[line].remove(startSelect.x, endSelect.x - startSelect.x);
+            _text[line].remove(std::min(startSelect.x, endSelect.x),
+                               std::max(endSelect.x, startSelect.x) - std::min(startSelect.x, endSelect.x));
         }
+        setCursorPosition({std::min(startSelect.x, endSelect.x), startSelect.y});
     } else {
         if (startSelect.y == endSelect.y) {
             // selection only on one line
@@ -615,10 +633,8 @@ bool File::delSelect() {
                 }
             }
         }
+        setCursorPosition({startSelect.x, startSelect.y});
     }
-    _cursorPositionX = startSelect.x;
-    _cursorPositionY = startSelect.y;
-
     safeCursorPosition();
     resetSelect();
     saveUndoStep();
@@ -1016,7 +1032,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     TextStyle base{fg, bg};
     TextStyle formatingChar{Tui::Colors::darkGray, bg};
     TextStyle selected{Tui::Colors::darkGray,fg,Tui::ZPainter::Attribute::Bold};
-    TextStyle blockSelected{fg,Tui::Colors::lightGray,Tui::ZPainter::Attribute::Italic};
+    TextStyle blockSelected{fg,Tui::Colors::lightGray,Tui::ZPainter::Attribute::Blink | Tui::ZPainter::Attribute::Italic};
     TextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
 
     //LineNumber
@@ -1050,7 +1066,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 
         // selection
         if(_blockSelect) {
-            if (line >= startSelect.first && line <= endSelect.first) {
+            if (line >= std::min(startSelect.first, endSelect.first) && line <= std::max(endSelect.first, startSelect.first)) {
                 highlights.append(TextLayout::FormatRange{std::min(startSelect.second, endSelect.second), std::max(startSelect.second, endSelect.second) - std::min(startSelect.second, endSelect.second), selected, selectedFormatingChar});
                 if(startSelect.second == endSelect.second) {
                     highlights.append(TextLayout::FormatRange{startSelect.second, 1, blockSelected, selectedFormatingChar});
@@ -1345,14 +1361,12 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         //do not add the character
     } else if(text.size() && event->modifiers() == 0) {
         if(_blockSelect) {
-            //if (isSelect()) {
-                //_blockSelectEdit = true;
-                blockSelect(_cursorPositionX + text.size(), _cursorPositionY);
-                for(int line: getBlockSelectedLines()) {
-                //for(int line = std::min(_startSelectY,_endSelectY); line <= std::max(_startSelectY,_endSelectY); line++) {
-                    _text[line].insert(_cursorPositionX, text);
-                }
-            //}
+            blockSelectEdit(_cursorPositionX);
+            for(int line: getBlockSelectedLines()) {
+                _text[line].insert(_cursorPositionX, text);
+            }
+            //TODO: wo gehört der cursor hin?
+            blockSelectEdit(_cursorPositionX + text.size());
         } else {
             if(_text[_cursorPositionY].size() < _cursorPositionX) {
                 _text[_cursorPositionY].resize(_cursorPositionX, ' ');
@@ -1361,13 +1375,12 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 deleteNextCharacterOrWord(TextLayout::SkipCharacters);
             }
             _text[_cursorPositionY].insert(_cursorPositionX, text);
+            _cursorPositionX += text.size();
         }
-        _cursorPositionX += text.size();
         safeCursorPosition();
         adjustScrollPosition();
         saveUndoStep(text != " ");
     } else if(event->key() == Qt::Key_Left && (event->modifiers() == 0 || extendSelect || extendBlockSelect)) {
-    //} else if(event->key() == Qt::Key_Left && (event->modifiers() & ~(Qt::ShiftModifier | Qt::ControlModifier)) == 0) {
         selectCursorPosition(event->modifiers());
         if (_cursorPositionX > 0) {
             TextLayout lay(terminal()->textMetrics(), _text[_cursorPositionY]);
@@ -1383,7 +1396,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         selectCursorPosition(event->modifiers());
         _collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Right && (event->modifiers() == 0 || extendSelect || extendBlockSelect)) {
-    //} else if(event->key() == Qt::Key_Right && (event->modifiers() & ~(Qt::ShiftModifier | Qt::ControlModifier)) == 0) {
         selectCursorPosition(event->modifiers());
         if (_cursorPositionX < _text[_cursorPositionY].size()) {
             TextLayout lay(terminal()->textMetrics(), _text[_cursorPositionY]);
@@ -1532,8 +1544,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             for(int line: getBlockSelectedLines()) {
                 t = addTabAt({_cursorPositionX,line});
             }
-            setCursorPosition(t);
-            blockSelect(t.x(), t.y());
+            blockSelect(t.x(), _cursorPositionY);
+            setCursorPosition({t.x(), _cursorPositionY});
         } else if(isSelect()) {
             //Tabs an in Markierten zeilen hinzufügen
             for(int selectedLine = std::min(getSelectLines().first, getSelectLines().second); selectedLine <= std::max(getSelectLines().first, getSelectLines().second); selectedLine++) {
