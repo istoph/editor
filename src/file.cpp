@@ -525,7 +525,7 @@ QPair<int,int> File::getSelectLines() {
 }
 void File::selectLines(int startY, int endY) {
     resetSelect();
-    if(startY > endY) {
+    if(startY >= endY) {
         select(_text[startY].size(), startY);
         select(0, endY);
         setCursorPosition({0,endY});
@@ -1067,9 +1067,10 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         // selection
         if(_blockSelect) {
             if (line >= std::min(startSelect.first, endSelect.first) && line <= std::max(endSelect.first, startSelect.first)) {
-                highlights.append(TextLayout::FormatRange{std::min(startSelect.second, endSelect.second), std::max(startSelect.second, endSelect.second) - std::min(startSelect.second, endSelect.second), selected, selectedFormatingChar});
                 if(startSelect.second == endSelect.second) {
                     highlights.append(TextLayout::FormatRange{startSelect.second, 1, blockSelected, selectedFormatingChar});
+                } else {
+                    highlights.append(TextLayout::FormatRange{std::min(startSelect.second, endSelect.second), std::max(startSelect.second, endSelect.second) - std::min(startSelect.second, endSelect.second), selected, selectedFormatingChar});
                 }
             }
         } else {
@@ -1129,7 +1130,6 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 void File::deletePreviousCharacterOrWord(TextLayout::CursorMode mode) {
     QPair<int, int> t;
     if(_blockSelect) {
-        //_blockSelectEdit = true;
         if(_endSelectX > _startSelectX) {
             _endSelectX--;
         } else {
@@ -1365,7 +1365,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             for(int line: getBlockSelectedLines()) {
                 _text[line].insert(_cursorPositionX, text);
             }
-            //TODO: wo gehört der cursor hin?
             blockSelectEdit(_cursorPositionX + text.size());
         } else {
             if(_text[_cursorPositionY].size() < _cursorPositionX) {
@@ -1569,21 +1568,31 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == Qt::ShiftModifier) {
         //Nich markierte Zeile verschiben
-        bool _resetSelect = false;
-        if(!isSelect()) {
-            selectLines(_cursorPositionY, _cursorPositionY);
-            _resetSelect = true;
+        int selectedLine = _cursorPositionY;
+        int selectedEnd = _cursorPositionY;
+        if(isSelect()) {
+           selectedLine = std::min(getSelectLines().first, getSelectLines().second);
+           selectedEnd = std::max(getSelectLines().first, getSelectLines().second);
         }
 
-        for(int selectedLine = std::min(getSelectLines().first, getSelectLines().second); selectedLine <= std::max(getSelectLines().first, getSelectLines().second); selectedLine++) {
+        for(; selectedLine <= selectedEnd; selectedLine++) {
             if(_text[selectedLine][0] == '\t') {
                _text[selectedLine].remove(0,1);
+               if(selectedLine == _cursorPositionY && !isSelect()) {
+                   setCursorPosition({_cursorPositionX - 1,_cursorPositionY});
+               }
             } else if (_text[selectedLine].mid(0,getTabsize()) == QString(" ").repeated(getTabsize())) {
                 _text[selectedLine].remove(0,getTabsize());
+                if(selectedLine == _cursorPositionY && !isSelect()) {
+                    setCursorPosition({_cursorPositionX - getTabsize(),_cursorPositionY});
+                }
             } else {
                 for(int i = 0; i < getTabsize(); i++) {
                     if (_text[selectedLine].mid(0,1) == QString(" ")) {
                         _text[selectedLine].remove(0,1);
+                        if(selectedLine == _cursorPositionY && !isSelect()) {
+                            setCursorPosition({_cursorPositionX - 1,_cursorPositionY});
+                        }
                     } else {
                         break;
                     }
@@ -1591,9 +1600,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             }
         }
 
-        if(_resetSelect) {
-            resetSelect();
-        } else {
+        if(isSelect()) {
             selectLines(getSelectLines().first, getSelectLines().second);
         }
 
@@ -1708,13 +1715,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 }
 
 void File::selectCursorPosition(Qt::KeyboardModifiers modifiers) {
-    bool extendSelect = modifiers == Qt::ShiftModifier || getSelectMode();
-    bool extendBlockSelect = modifiers == (Qt::AltModifier | Qt::ShiftModifier);
-
-    if(extendSelect) {
+    if(modifiers == Qt::ShiftModifier || getSelectMode()) {
         select(_cursorPositionX, _cursorPositionY);
-    } else if (extendBlockSelect) {
-            blockSelect(_cursorPositionX, _cursorPositionY);
+    } else if (modifiers == (Qt::AltModifier | Qt::ShiftModifier)) {
+        blockSelect(_cursorPositionX, _cursorPositionY);
     } else {
         resetSelect();
     }

@@ -216,7 +216,6 @@ private:
     Tui::ZCommandNotifier *_cmdSearchPrevious;
     bool _selectMode = false;
     bool _blockSelect = false;
-    bool _blockSelectEdit = false;
     void setSelectMode(bool f4);
     bool getSelectMode();
 
