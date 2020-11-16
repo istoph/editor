@@ -65,6 +65,7 @@ public:
     void paste();
     bool isInsertable();
     void insertLinebreak();
+    QPoint insertLinebreakAtPosition(QPoint cursor);
     void gotoline(int y=0, int x=0);
     bool setTabsize(int tab);
     int getTabsize();
@@ -92,13 +93,14 @@ public:
     void setGroupUndo(bool onoff);
     int getGroupUndo();
     void deletePreviousCharacterOrWord(TextLayout::CursorMode mode);
-    QPair<int, int> deletePreviousCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y);
+    QPoint deletePreviousCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y);
     void deleteNextCharacterOrWord(TextLayout::CursorMode mode);
-    QPair<int, int> deleteNextCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y);
+    QPoint deleteNextCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y);
     QPoint addTabAt(QPoint cursor);
     int getVisibleLines();
     void appendLine(const QString &line);
-    void insertAtCursorPosition(QString str);
+    void insertAtCursorPosition(QVector<QString> str);
+    QPoint insertAtPosition(QVector<QString> str, QPoint cursor);
     bool isModified() const;
     void setSearchText(QString searchText);
     void setReplaceText(QString replaceText);
@@ -156,7 +158,6 @@ private:
     void safeCursorPosition();
     void saveUndoStep(bool collapsable=false);
     void checkUndo();
-    QString _filename;
     struct UndoStep {
         QVector<QString> text;
         int cursorPositionX;
@@ -170,8 +171,11 @@ private:
     //void searchSelectPrevious(int line, int found);
     Range getBlockSelectedLines();
     void selectCursorPosition(Qt::KeyboardModifiers modifiers);
+    void setSelectMode(bool f4);
+    bool getSelectMode();
 
 private:
+    QString _filename;
     QVector<QString> _text;
     int _cursorPositionX = 0;
     int _cursorPositionY = 0;
@@ -216,8 +220,7 @@ private:
     Tui::ZCommandNotifier *_cmdSearchPrevious;
     bool _selectMode = false;
     bool _blockSelect = false;
-    void setSelectMode(bool f4);
-    bool getSelectMode();
+
 
 };
 

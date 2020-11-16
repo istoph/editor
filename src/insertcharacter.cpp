@@ -94,7 +94,9 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent, File *file) : Dialog(pare
     QObject::connect(cancelBtn, &Button::clicked, this, &InsertCharacter::rejected);
     QObject::connect(insertButton, &Button::clicked, [=]{
         if(_check) {
-            file->insertAtCursorPosition(intToChar(_codepoint));
+            QVector<QString> str;
+            str.append(intToChar(_codepoint));
+            file->insertAtCursorPosition(str);
         }
         deleteLater();
     });
