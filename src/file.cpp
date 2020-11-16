@@ -477,7 +477,8 @@ void File::blockSelect(int x, int y) {
     _blockSelect = true;
     select(x, y);
 }
-void File::blockSelectEdit(int x) {
+bool File::blockSelectEdit(int x) {
+    bool del = false;
     int startY = std::min(_startSelectY, _endSelectY);
     int stopY = std::max(_endSelectY, _startSelectY);
 
@@ -486,6 +487,7 @@ void File::blockSelectEdit(int x) {
             x = std::max(0, x - (std::max(_startSelectX, _endSelectX) - std::min(_startSelectX, _endSelectX)));
         }
         delSelect();
+        del = true;
     }
 
     _blockSelect = true;
@@ -494,6 +496,7 @@ void File::blockSelectEdit(int x) {
     _endSelectX = x;
     _endSelectY = stopY;
     setCursorPosition({x,stopY});
+    return del;
 }
 
 QPair<int,int> File::getSelectLines() {
@@ -1124,11 +1127,12 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 void File::deletePreviousCharacterOrWord(TextLayout::CursorMode mode) {
     QPoint t;
     if(_blockSelect) {
-        blockSelectEdit(_cursorPositionX);
-        for(int line: getBlockSelectedLines()) {
-           t = deletePreviousCharacterOrWordAt(mode, _cursorPositionX, line);
+        if(!blockSelectEdit(_cursorPositionX)) {
+            for(int line: getBlockSelectedLines()) {
+               t = deletePreviousCharacterOrWordAt(mode, _cursorPositionX, line);
+            }
+            blockSelectEdit(std::max(0,_cursorPositionX -1));
         }
-        blockSelectEdit(std::max(0,_cursorPositionX -1));
     } else {
         t = deletePreviousCharacterOrWordAt(mode, _cursorPositionX, _cursorPositionY);
         setCursorPosition(t);
@@ -1162,9 +1166,10 @@ void File::deleteNextCharacterOrWord(TextLayout::CursorMode mode) {
                return;
            }
         }*/
-        blockSelectEdit(_cursorPositionX);
-        for(int line: getBlockSelectedLines()) {
-           t = deleteNextCharacterOrWordAt(mode, _cursorPositionX, line);
+        if(!blockSelectEdit(_cursorPositionX)) {
+            for(int line: getBlockSelectedLines()) {
+               t = deleteNextCharacterOrWordAt(mode, _cursorPositionX, line);
+            }
         }
     } else {
         t = deleteNextCharacterOrWordAt(mode, _cursorPositionX, _cursorPositionY);
