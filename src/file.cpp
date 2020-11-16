@@ -1235,15 +1235,25 @@ void File::insertAtCursorPosition(QVector<QString> str) {
     QPoint t;
     if(_blockSelect) {
         blockSelectEdit(_cursorPositionX);
-        int offset = 0;
-        for(int line: getBlockSelectedLines()) {
-            t = insertAtPosition(str, {_cursorPositionX, line + offset});
-            offset += str.size() -1;
-        }
-        if(offset > 0) {
-            resetSelect();
-        } else {
+        if(str.size() -1 == (std::max(_startSelectY, _endSelectY) - std::min(_startSelectY, _endSelectY))) {
+            QVector<QString> qst;
+            for(int line: getBlockSelectedLines()) {
+                qst.append(str.takeAt(0));
+                t = insertAtPosition(qst, {_cursorPositionX, line});
+                qst.clear();
+            }
             blockSelectEdit(t.x());
+        } else {
+            int offset = 0;
+            for(int line: getBlockSelectedLines()) {
+                t = insertAtPosition(str, {_cursorPositionX, line + offset});
+                offset += str.size() -1;
+            }
+            if(offset > 0) {
+                resetSelect();
+            } else {
+                blockSelectEdit(t.x());
+            }
         }
     } else {
         delSelect();
