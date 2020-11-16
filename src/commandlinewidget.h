@@ -9,6 +9,7 @@ class CommandLineWidget : public Tui::ZWidget {
     Q_OBJECT
 public:
     CommandLineWidget(Tui::ZWidget *parent);
+    void setCmdEntryText(QString text);
 
 public:
     QSize sizeHint() const override;

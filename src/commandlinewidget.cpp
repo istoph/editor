@@ -18,6 +18,10 @@ CommandLineWidget::CommandLineWidget(Tui::v0::ZWidget *parent) : Tui::ZWidget(pa
     cmdEntry.setPalette(pal);
 }
 
+void CommandLineWidget::setCmdEntryText(QString text) {
+    cmdEntry.setText(text);
+}
+
 QSize CommandLineWidget::sizeHint() const {
     return { 0, 1 };
 }

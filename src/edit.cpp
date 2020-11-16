@@ -501,6 +501,9 @@ void Editor::commandLineExecute(QString cmd) {
                 disconnect(terminal, &Tui::ZTerminal::afterRendering, this, 0);
             });
         }
+    } else if (cmd == "help") {
+        _commandLineWidget->setCmdEntryText("suspend shell");
+        showCommandLine();
     } else if (cmd == "suspend") {
         raise(SIGTSTP);
     } else if (cmd == "shell") {
