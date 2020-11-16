@@ -19,6 +19,23 @@
 #include "searchcount.h"
 #include "clipboard.h"
 
+class RangeIterator {
+public:
+    int i;
+    int operator *(){ return i; };
+    bool operator !=(const RangeIterator & b) {return i!=b.i; }
+    int operator ++() { return i++; }
+};
+
+class Range {
+public:
+    int start;
+    int stop;
+    RangeIterator begin() { return RangeIterator {start};}
+    RangeIterator end() { return RangeIterator {stop};}
+};
+
+
 class File : public Tui::ZWidget {
     Q_OBJECT
 
@@ -48,6 +65,7 @@ public:
     void paste();
     bool isInsertable();
     void insertLinebreak();
+    QPoint insertLinebreakAtPosition(QPoint cursor);
     void gotoline(int y=0, int x=0);
     bool setTabsize(int tab);
     int getTabsize();
@@ -58,6 +76,8 @@ public:
     void setWrapOption(bool wrap);
     bool getWrapOption();
     void select(int x, int y);
+    void blockSelect(int x, int y);
+    bool blockSelectEdit(int x);
     QPair<int, int> getSelectLines();
     void selectLines(int startY, int endY);
     void resetSelect();
@@ -73,10 +93,14 @@ public:
     void setGroupUndo(bool onoff);
     int getGroupUndo();
     void deletePreviousCharacterOrWord(TextLayout::CursorMode mode);
+    QPoint deletePreviousCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y);
     void deleteNextCharacterOrWord(TextLayout::CursorMode mode);
+    QPoint deleteNextCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y);
+    QPoint addTabAt(QPoint cursor);
     int getVisibleLines();
     void appendLine(const QString &line);
-    void insertAtCursorPosition(QString str);
+    void insertAtCursorPosition(QVector<QString> str);
+    QPoint insertAtPosition(QVector<QString> str, QPoint cursor);
     bool isModified() const;
     void setSearchText(QString searchText);
     void setReplaceText(QString replaceText);
@@ -134,7 +158,6 @@ private:
     void safeCursorPosition();
     void saveUndoStep(bool collapsable=false);
     void checkUndo();
-    QString _filename;
     struct UndoStep {
         QVector<QString> text;
         int cursorPositionX;
@@ -146,8 +169,13 @@ private:
     bool highlightBracket();
     void searchSelect(int line, int found, bool direction);
     //void searchSelectPrevious(int line, int found);
+    Range getBlockSelectedLines();
+    void selectCursorPosition(Qt::KeyboardModifiers modifiers);
+    void setSelectMode(bool f4);
+    bool getSelectMode();
 
 private:
+    QString _filename;
     QVector<QString> _text;
     int _cursorPositionX = 0;
     int _cursorPositionY = 0;
@@ -191,8 +219,9 @@ private:
     Tui::ZCommandNotifier *_cmdSearchNext;
     Tui::ZCommandNotifier *_cmdSearchPrevious;
     bool _selectMode = false;
-    void setSelectMode(bool f4);
-    bool getSelectMode();
+    bool _blockSelect = false;
+
+
 };
 
 #endif // FILE_H
