@@ -1131,20 +1131,15 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 void File::deletePreviousCharacterOrWord(TextLayout::CursorMode mode) {
     QPair<int, int> t;
     if(_blockSelect) {
-        if(_endSelectX > _startSelectX) {
-            _endSelectX--;
-        } else {
-            return;
-        }
+        blockSelectEdit(_cursorPositionX);
         for(int line: getBlockSelectedLines()) {
-        //for(int line = _startSelectY; line <= _endSelectY; line++) {
            t = deletePreviousCharacterOrWordAt(mode, _cursorPositionX, line);
         }
+        blockSelectEdit(std::max(0,_cursorPositionX -1));
     } else {
         t = deletePreviousCharacterOrWordAt(mode, _cursorPositionX, _cursorPositionY);
     }
-    _cursorPositionX = t.first;
-    _cursorPositionY = t.second;
+    setCursorPosition({t.first, t.second});
     safeCursorPosition();
     saveUndoStep();
 }
@@ -1156,7 +1151,7 @@ QPair<int, int> File::deletePreviousCharacterOrWordAt(TextLayout::CursorMode mod
         int leftBoundary = lay.previousCursorPosition(x, mode);
         _text[y].remove(leftBoundary, x - leftBoundary);
         x = leftBoundary;
-    } else if (y > 0) {
+    } else if (y > 0 && !_blockSelect) {
         x = _text[y -1].size();
         _text[y -1] += _text[y];
         _text.removeAt(y);
@@ -1168,25 +1163,24 @@ QPair<int, int> File::deletePreviousCharacterOrWordAt(TextLayout::CursorMode mod
 void File::deleteNextCharacterOrWord(TextLayout::CursorMode mode) {
     QPair<int, int> t;
     if(_blockSelect) {
-        delSelect();
         /*
         for(int line: getBlockSelectedLines()) {
            if(_text[line].size() <= _cursorPositionX) {
                return;
            }
-        }
+        }*/
+        blockSelectEdit(_cursorPositionX);
         for(int line: getBlockSelectedLines()) {
            t = deleteNextCharacterOrWordAt(mode, _cursorPositionX, line);
-        }*/
+        }
     } else {
         t = deleteNextCharacterOrWordAt(mode, _cursorPositionX, _cursorPositionY);
-        _cursorPositionX = t.first;
-        _cursorPositionY = t.second;
+        setCursorPosition({t.first, t.second});
     }
 }
 
 QPair<int, int> File::deleteNextCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y) {
-    if(y == _text.size() -1 && _text[y].size() == x) {
+    if(y == _text.size() -1 && _text[y].size() == x && !_blockSelect) {
         _nonewline = true;
     } else if(_text[y].size() > x) {
         TextLayout lay(terminal()->textMetrics(), _text[y]);
@@ -1194,7 +1188,7 @@ QPair<int, int> File::deleteNextCharacterOrWordAt(TextLayout::CursorMode mode, i
         int rightBoundary = lay.nextCursorPosition(x, mode);
         _text[y].remove(x, rightBoundary - x);
         saveUndoStep();
-    } else if(_text.count() > y +1) {
+    } else if(_text.count() > y +1 && !_blockSelect) {
         if(_text[y].size() < x) {
             _text[y].resize(x,' ');
         }
