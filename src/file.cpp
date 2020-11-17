@@ -1168,7 +1168,9 @@ void File::deleteNextCharacterOrWord(TextLayout::CursorMode mode) {
         }*/
         if(!blockSelectEdit(_cursorPositionX)) {
             for(int line: getBlockSelectedLines()) {
-               t = deleteNextCharacterOrWordAt(mode, _cursorPositionX, line);
+                if(_text[line].size() > _cursorPositionX) {
+                    t = deleteNextCharacterOrWordAt(mode, _cursorPositionX, line);
+                }
             }
         }
     } else {
@@ -1390,6 +1392,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _text[line].insert(_cursorPositionX, text);
             }
             blockSelectEdit(_cursorPositionX + text.size());
+            if (isOverwrite()) {
+                deleteNextCharacterOrWord(TextLayout::SkipCharacters);
+            }
         } else {
             if(_text[_cursorPositionY].size() < _cursorPositionX) {
                 _text[_cursorPositionY].resize(_cursorPositionX, ' ');
