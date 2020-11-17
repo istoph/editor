@@ -1570,11 +1570,11 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
         QPoint t;
         if (_blockSelect) {
+            blockSelectEdit(_cursorPositionX);
             for(int line: getBlockSelectedLines()) {
                 t = addTabAt({_cursorPositionX,line});
             }
-            blockSelect(t.x(), _cursorPositionY);
-            setCursorPosition({t.x(), _cursorPositionY});
+            blockSelectEdit(t.x());
         } else if(isSelect()) {
             //Tabs an in Markierten zeilen hinzufügen
             for(int selectedLine = std::min(getSelectLines().first, getSelectLines().second); selectedLine <= std::max(getSelectLines().first, getSelectLines().second); selectedLine++) {
