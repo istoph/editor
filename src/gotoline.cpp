@@ -32,7 +32,7 @@ GotoLine::GotoLine(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     Button *b0 = new Button(this);
     b0->setGeometry({3, 5, 7, 7});
-    b0->setText(" Cancle");
+    b0->setText(" Cancel");
     hbox2->addWidget(b0);
 
     Button *b1 = new Button(this);

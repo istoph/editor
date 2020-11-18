@@ -49,9 +49,9 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
         _dos->setCheckState(Qt::Unchecked);
     }
 
-    _cancleButton = new Button(this);
-    _cancleButton->setGeometry({25, 12, 12, 7});
-    _cancleButton->setText("Cancle");
+    _cancelButton = new Button(this);
+    _cancelButton->setGeometry({25, 12, 12, 7});
+    _cancelButton->setText("Cancel");
 
     _okButton = new Button(this);
     _okButton->setGeometry({37, 12, 10, 7});
@@ -67,7 +67,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
             file->setMsDosMode(false);
        }
     });
-    QObject::connect(_cancleButton, &Button::clicked, this, &SaveDialog::rejected);
+    QObject::connect(_cancelButton, &Button::clicked, this, &SaveDialog::rejected);
     QObject::connect(_okButton, &Button::clicked, this, &SaveDialog::saveFile);
 
     QRect r = geometry();

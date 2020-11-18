@@ -29,7 +29,7 @@ private:
     InputBox *_filenameText = nullptr;
     ListView *_folder = nullptr;
     Button *_okButton = nullptr;
-    Button *_cancleButton = nullptr;
+    Button *_cancelButton = nullptr;
     QDir _dir;
 
     void refreshFolder();

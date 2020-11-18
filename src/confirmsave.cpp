@@ -35,14 +35,14 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
 
     HBoxLayout* hbox = new HBoxLayout();
 
-    //Cancle
-    Button *bCancle = new Button(this);
+    //Cancel
+    Button *bCancel = new Button(this);
     if(!saveable) {
-        bCancle->setDefault(!saveable);
-        bCancle->setFocus();
+        bCancel->setDefault(!saveable);
+        bCancel->setFocus();
     }
-    bCancle->setText("Cancle");
-    hbox->addWidget(bCancle);
+    bCancel->setText("Cancel");
+    hbox->addWidget(bCancel);
 
     //Discard
     Button *bDiscard = new Button(this);
@@ -61,7 +61,7 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
     hbox->addWidget(bSave);
     vbox->add(hbox);
 
-    QObject::connect(bCancle, &Button::clicked, this, &ConfirmSave::rejected);
+    QObject::connect(bCancel, &Button::clicked, this, &ConfirmSave::rejected);
     QObject::connect(bDiscard, &Button::clicked, this, &ConfirmSave::exitSelected);
     QObject::connect(bSave, &Button::clicked, this, &ConfirmSave::saveSelected);
 

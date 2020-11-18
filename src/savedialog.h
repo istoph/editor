@@ -28,7 +28,7 @@ private:
     InputBox *_filenameText = nullptr;
     ListView *_folder = nullptr;
     CheckBox *_dos = nullptr;
-    Button *_cancleButton = nullptr;
+    Button *_cancelButton = nullptr;
     Button *_okButton = nullptr;
     QDir _dir;
 

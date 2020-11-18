@@ -42,7 +42,7 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent, File *file) : Dialog(pare
     HBoxLayout* hbox4 = new HBoxLayout();
     Button *cancelBtn = new Button(this);
     cancelBtn->setGeometry({3, 5, 7, 7});
-    cancelBtn->setText("Cancle");
+    cancelBtn->setText("Cancel");
     hbox4->addWidget(cancelBtn);
 
     Button *insertButton = new Button(this);
