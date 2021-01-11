@@ -374,11 +374,13 @@ void File::copy() {
 
 void File::paste() {
     Clipboard *clipboard = findFacet<Clipboard>();
-    insertAtCursorPosition(clipboard->getClipboard());
+    if(!clipboard->getClipboard().empty()) {
+        insertAtCursorPosition(clipboard->getClipboard());
 
-    safeCursorPosition();
-    adjustScrollPosition();
-    saveUndoStep();
+        safeCursorPosition();
+        adjustScrollPosition();
+        saveUndoStep();
+    }
 }
 
 bool File::isInsertable() {

@@ -9,7 +9,9 @@ protected:
         Clipboard *clipboard = findFacet<Clipboard>();
 
         if(event->text() == "v" && event->modifiers() == Qt::Modifier::CTRL) {
-            insertAtCursorPosition(clipboard->getClipboard()[0]);
+            if(!clipboard->getClipboard().empty()) {
+                insertAtCursorPosition(clipboard->getClipboard()[0]);
+            }
         } else {
             InputBox::keyEvent(event);
         }
