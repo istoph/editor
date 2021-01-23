@@ -157,8 +157,8 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
         _findNextBtn->setEnabled(newText.size());
         _replaceBtn->setEnabled(newText.size());
         _replaceAllBtn->setEnabled(newText.size());
-        file->setSearchText(_searchText->text());
         if(_searchText->text() != "" && _liveSearchBox->checkState() == Qt::Checked) {
+            file->setSearchText(_searchText->text());
             file->setSearchDirection(_forward->checked());
             if(_forward->checked()) {
                 file->setCursorPosition({file->getCursorPosition().x() - _searchText->text().size(), file->getCursorPosition().y()});
