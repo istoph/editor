@@ -149,33 +149,6 @@ int File::tabToSpace() {
     return count;
 }
 
-int File::replaceAll(QString searchText, QString replaceText) {
-    bool tmpwrap = getWrapOption();
-    int counter = 0;
-    setSearchText(searchText);
-    setReplaceText(replaceText);
-
-    setGroupUndo(true);
-    setWrapOption(false);
-
-    for (int line = 0; line < _text.size(); line++) {
-        int found = -1;
-        while(true) {
-           found = _text[line].indexOf(searchText, found + 1, searchCaseSensitivity);
-           searchSelect(line,found, true);
-           if(!isSelect()){
-               break;
-           }
-           setReplaceSelected();
-           counter++;
-        }
-    }
-    setWrapOption(tmpwrap);
-    setGroupUndo(false);
-
-    return counter;
-}
-
 QPoint File::getCursorPosition() {
     return {_cursorPositionX,_cursorPositionY};
 }
@@ -962,6 +935,29 @@ void File::searchSelect(int line, int found, int length, bool direction) {
         safeCursorPosition();
         adjustScrollPosition();
     }
+}
+
+int File::replaceAll(QString searchText, QString replaceText) {
+    int counter = 0;
+    setSearchText(searchText);
+    setReplaceText(replaceText);
+    setGroupUndo(true);
+
+    _cursorPositionY = 0;
+    _cursorPositionX = 0;
+    while(true) {
+        SearchParameter search = { _searchText, false, searchCaseSensitivity, _cursorPositionY, _cursorPositionX, _searchReg};
+        SearchLine sl = searchNext(_text, search);
+        if(sl.length == -1) {
+            break;
+        }
+        searchSelect(sl.line,sl.found, sl.length, true);
+        setReplaceSelected();
+        counter++;
+    }
+    setGroupUndo(false);
+
+    return counter;
 }
 
 Range File::getBlockSelectedLines() {
