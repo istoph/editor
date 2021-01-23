@@ -754,6 +754,9 @@ void File::setReplaceText(QString replaceText) {
    _replaceText = replaceText.replace("\\t","\t");
 }
 
+void File::setRegex(bool reg) {
+    _searchReg = reg;
+}
 void File::setSearchWrap(bool wrap) {
     _searchWrap = wrap;
 }

@@ -126,6 +126,7 @@ public:
 
     void setSearchWrap(bool wrap);
     bool getSearchWrap();
+    void setRegex(bool reg);
     void checkWritable();
     bool getWritable();
     void runSearch(bool direction);
@@ -198,6 +199,7 @@ private:
     QString _searchText;
     QString _replaceText;
     bool _searchWrap = true;
+    bool _searchReg = false;
     bool _searchDirection = true;
     std::shared_ptr<std::atomic<int>> searchGeneration = std::make_shared<std::atomic<int>>();
     std::shared_ptr<std::atomic<int>> searchNextGeneration = std::make_shared<std::atomic<int>>();

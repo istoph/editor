@@ -30,6 +30,7 @@ private:
     CheckBox *_caseMatchBox = nullptr;
     CheckBox *_parseBox = nullptr;
     CheckBox *_wrapBox = nullptr;
+    CheckBox *_regexMatchBox = nullptr;
     CheckBox *_liveSearchBox = nullptr;
     RadioButton *_forward = nullptr;
     RadioButton *_backward = nullptr;

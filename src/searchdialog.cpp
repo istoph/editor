@@ -77,9 +77,8 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
             CheckBox *wordMatchBox = new CheckBox(withMarkup, "Match <m>e</m>ntire word only", gbox);
             nbox->addWidget(wordMatchBox);
             wordMatchBox->setEnabled(false);
-            CheckBox *regexMatchBox = new CheckBox(withMarkup, "Re<m>g</m>ular expression", gbox);
-            nbox->addWidget(regexMatchBox);
-            regexMatchBox->setEnabled(false);
+            _regexMatchBox = new CheckBox(withMarkup, "Re<m>g</m>ular expression", gbox);
+            nbox->addWidget(_regexMatchBox);
             _liveSearchBox = new CheckBox(withMarkup, "<m>L</m>ive search", gbox);
             _liveSearchBox->setCheckState(Qt::Checked);
             nbox->addWidget(_liveSearchBox);
@@ -171,6 +170,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
 
     QObject::connect(_findNextBtn, &Button::clicked, [=]{
         file->setSearchText(_searchText->text());
+        file->setRegex(_regexMatchBox->checkState());
         file->setSearchDirection(_forward->checked());
         file->runSearch(false);
     });
@@ -178,12 +178,14 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
     QObject::connect(_replaceBtn, &Button::clicked, [=]{
         file->setSearchText(_searchText->text());
         file->setReplaceText(_replaceText->text());
+        file->setRegex(_regexMatchBox->checkState());
         file->setReplaceSelected();
         file->setSearchDirection(_forward->checked());
         file->runSearch(false);
     });
 
      QObject::connect(_replaceAllBtn, &Button::clicked, [=]{
+         file->setRegex(_regexMatchBox->checkState());
          file->replaceAll(_searchText->text(), _replaceText->text());
      });
 
