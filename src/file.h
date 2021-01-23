@@ -35,6 +35,8 @@ public:
     RangeIterator end() { return RangeIterator {stop};}
 };
 
+struct SearchLine;
+struct SearchParameter;
 
 class File : public Tui::ZWidget {
     Q_OBJECT
@@ -168,7 +170,8 @@ private:
     ZTextOption getTextOption();
     TextLayout getTextLayoutForLine(const ZTextOption &option, int line);
     bool highlightBracket();
-    void searchSelect(int line, int found, bool direction);
+    void searchSelect(int line, int found, int length, bool direction);
+    SearchLine searchNext(QVector<QString> text, SearchParameter search);
     //void searchSelectPrevious(int line, int found);
     Range getBlockSelectedLines();
     void selectCursorPosition(Qt::KeyboardModifiers modifiers);

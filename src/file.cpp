@@ -785,13 +785,25 @@ void File::setReplaceSelected() {
     if(isSelect()){
         setGroupUndo(true);
         delSelect();
+        bool esc=false;
         for (int i=0; i<_replaceText.size(); i++) {
-            _text[_cursorPositionY].insert(_cursorPositionX, _replaceText[i]);
-            _cursorPositionX++;
-            //_cursorPositionX += _replaceText[i].size();
-            //if(i+1<_replaceText.size()) {
-            //    insertLinebreak();
-            //}
+            if(esc) {
+                switch (_replaceText[i].unicode()) {
+                    case 'n':
+                        insertLinebreak();
+                        break;
+                    case 't':
+                        break;
+                }
+                esc = false;
+            } else {
+                if(_replaceText[i] == '\\') {
+                    esc = true;
+                } else {
+                    _text[_cursorPositionY].insert(_cursorPositionX, _replaceText[i]);
+                    _cursorPositionX++;
+                }
+            }
         }
         safeCursorPosition();
         adjustScrollPosition();
@@ -802,6 +814,7 @@ void File::setReplaceSelected() {
 struct SearchLine {
     int line;
     int found;
+    int length;
 };
 
 //This struct is for fucking QtConcurrent::run which only has five parameters
@@ -811,64 +824,100 @@ struct SearchParameter {
     Qt::CaseSensitivity caseSensitivity;
     int startAtLine;
     int startPosition;
+    bool reg;
 };
 
 static SearchLine conSearchNext(QVector<QString> text, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
     int start = search.startAtLine;
     int line = search.startAtLine;
     int found = search.startPosition -1;
+    bool reg = search.reg;
     int end = text.size();
+    QRegularExpression rx(search.searchText);
+    int length = 0;
+
     while (true) {
         for(;line < end; line++) {
-            found = text[line].indexOf(search.searchText, found + 1, search.caseSensitivity);
-            if(gen != *nextGeneration) {
-                return {-1, -1};
+            if(reg) {
+                QRegularExpressionMatchIterator remi = rx.globalMatch(text[line]);
+                while (remi.hasNext()) {
+                    QRegularExpressionMatch match = remi.next();
+                    if(nextGeneration != nullptr && gen != *nextGeneration) return {-1, -1, -1};
+                    if(match.capturedLength() <= 0) continue;
+                    if(match.capturedStart() < found +1) continue;
+                    found = match.capturedStart();
+                    length = match.capturedLength();
+                    return {line, found, length};
+                }
+                found = -1;
+            } else {
+                found = text[line].indexOf(search.searchText, found + 1, search.caseSensitivity);
+                length = search.searchText.size();
             }
-            if(found != -1) {
-                return {line, found};
-            }
+            if(nextGeneration != nullptr && gen != *nextGeneration) return {-1, -1, -1};
+            if(found != -1) return {line, found, length};
         }
         if(!search.searchWrap || start == 0) {
-            return {-1, -1};
+            return {-1, -1, -1};
         } else {
             end = std::min(start+1, text.size());
             start = line = 0;
         }
     }
-    return {-1, -1};
+    return {-1, -1, -1};
+}
+
+SearchLine File::searchNext(QVector<QString> text, SearchParameter search) {
+    return conSearchNext(text, search, 0, nullptr);
 }
 
 static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
     int start = search.startAtLine;
     int line = search.startAtLine;
+    bool reg = search.reg;
     int found = search.startPosition -1;
     if(found <= 0 && start > 0) {
         --line;
         found = text[line].size();
     }
     int end = 0;
+    QRegularExpression rx(search.searchText);
+    int length = 0;
     while (true) {
         for (; line >= end;) {
-            found = text[line].lastIndexOf(search.searchText, found -1, search.caseSensitivity);
-            if(gen != *nextGeneration) {
-                return {-1, -1};
+            if(reg) {
+                SearchLine t = {-1,-1,-1};
+                QRegularExpressionMatchIterator remi = rx.globalMatch(text[line]);
+                while (remi.hasNext()) {
+                    QRegularExpressionMatch match = remi.next();
+                    if(gen != *nextGeneration) return {-1, -1, -1};
+                    if(match.capturedLength() <= 0) continue;
+                    if(match.capturedStart() <= found - match.capturedLength()) {
+                        t = {line, match.capturedStart(), match.capturedLength()};
+                        continue;
+                    }
+                    break;
+                }
+                if(t.length > 0)
+                    return t;
+                found = -1;
+            } else {
+                found = text[line].lastIndexOf(search.searchText, found -1, search.caseSensitivity);
+                length = search.searchText.size();
             }
-            if(found != -1) {
-                return {line, found};
-            }
-            if(--line >= 0) {
-                found = text[line].size();
-            }
+            if(gen != *nextGeneration) return {-1, -1, -1};
+            if(found != -1) return {line, found, length};
+            if(--line >= 0) found = text[line].size();
         }
         if(!search.searchWrap || start == text.size()) {
-            return {-1, -1};
+            return {-1, -1, -1};
         } else {
             end = start;
             start = line = text.size() -1;
             found = text[text.size() -1].size();
         }
     }
-    return {-1, -1};
+    return {-1, -1, -1};
 }
 
 void File::runSearch(bool direction) {
@@ -880,12 +929,12 @@ void File::runSearch(bool direction) {
         connect(watcher, &QFutureWatcher<SearchLine>::finished, this, [this, watcher, gen, efectivDirection]{
             auto n = watcher->future().result();
             if(gen == *searchNextGeneration && n.line > -1) {
-               searchSelect(n.line, n.found, efectivDirection);
+               searchSelect(n.line, n.found, n.length, efectivDirection);
             }
             watcher->deleteLater();
         });
 
-        SearchParameter search = { _searchText, _searchWrap, searchCaseSensitivity, _cursorPositionY, _cursorPositionX};
+        SearchParameter search = { _searchText, _searchWrap, searchCaseSensitivity, _cursorPositionY, _cursorPositionX, _searchReg};
         QFuture<SearchLine> future;
         if(efectivDirection) {
             future = QtConcurrent::run(conSearchNext, _text, search, gen, searchNextGeneration);
@@ -896,16 +945,16 @@ void File::runSearch(bool direction) {
     }
 }
 
-void File::searchSelect(int line, int found, bool direction) {
+void File::searchSelect(int line, int found, int length, bool direction) {
     if (found != -1) {
         _cursorPositionY = line;
         _cursorPositionX = found;
         adjustScrollPosition();
         resetSelect();
         select(_cursorPositionX, _cursorPositionY);
-        select(_cursorPositionX + _searchText.size(), _cursorPositionY);
+        select(_cursorPositionX + length, _cursorPositionY);
         if(direction) {
-            _cursorPositionX += _searchText.size() -1;
+            setCursorPosition({_cursorPositionX + length -1, _cursorPositionY});
         }
         if(_cursorPositionY - 1 > 0) {
             _scrollPositionY = _cursorPositionY -1;
