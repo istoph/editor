@@ -1098,8 +1098,19 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         // search matches
         if(_searchText != "") {
             int found = -1;
-            while ((found = _text[line].indexOf(_searchText, found + 1, searchCaseSensitivity)) != -1) {
-                highlights.append(TextLayout::FormatRange{found, _searchText.size(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZPainter::Attribute::Bold}, selectedFormatingChar});
+            if(_searchReg) {
+                QRegularExpression rx(_searchText);
+                QRegularExpressionMatchIterator i = rx.globalMatch(_text[line]);
+                while (i.hasNext()) {
+                    QRegularExpressionMatch match = i.next();
+                    if(match.capturedLength() > 0) {
+                        highlights.append(TextLayout::FormatRange{match.capturedStart(), match.capturedLength(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZPainter::Attribute::Bold}, selectedFormatingChar});
+                    }
+                }
+            } else {
+                while ((found = _text[line].indexOf(_searchText, found + 1, searchCaseSensitivity)) != -1) {
+                    highlights.append(TextLayout::FormatRange{found, _searchText.size(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZPainter::Attribute::Bold}, selectedFormatingChar});
+                }
             }
         }
         if(_bracketX >= 0) {
