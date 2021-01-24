@@ -505,7 +505,7 @@ void Editor::commandLineExecute(QString cmd) {
         _commandLineWidget->setCmdEntryText("suspend shell");
         showCommandLine();
     } else if (cmd == "suspend") {
-        raise(SIGTSTP);
+        ::raise(SIGTSTP);
     } else if (cmd == "shell") {
         auto term = terminal();
         term->pauseOperation();

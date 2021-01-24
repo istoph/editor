@@ -233,5 +233,6 @@ void SearchDialog::open() {
     r.moveBottom(terminal()->mainWidget()->geometry().height()-3);
     setGeometry(r);
     setVisible(true);
+    raise();
     placeFocus()->setFocus();
 }
