@@ -1323,9 +1323,9 @@ void File::insertAtCursorPosition(QVector<QString> str) {
         t = insertAtPosition(str, {_cursorPositionX, _cursorPositionY});
         setCursorPosition(t);
     }
-    modifiedChanged(true);
     safeCursorPosition();
     adjustScrollPosition();
+    saveUndoStep();
 }
 
 QPoint File::insertAtPosition(QVector<QString> str, QPoint cursor) {
