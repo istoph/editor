@@ -45,7 +45,7 @@ void File::getAttributes() {
         return;
     }
     if(readAttributes()) {
-        QJsonObject data = _jo.value(_filename).toObject();
+        QJsonObject data = _jo.value(getFilename()).toObject();
         if(_text.size() > data.value("cursorPositionY").toInt() && _text[data.value("cursorPositionY").toInt()].size() +1 > data.value("cursorPositionX").toInt()) {
             _cursorPositionX = data.value("cursorPositionX").toInt();
             _cursorPositionY = data.value("cursorPositionY").toInt();
@@ -58,7 +58,7 @@ void File::getAttributes() {
 }
 
 bool File::writeAttributes() {
-    QFileInfo filenameInfo(_filename);
+    QFileInfo filenameInfo(getFilename());
     if(!filenameInfo.exists() || _attributesfile.isEmpty()) {
         return false;
     }
@@ -160,13 +160,11 @@ void File::setCursorPosition(QPoint position) {
 }
 
 bool File::setFilename(QString filename, bool newfile) {
+    QFileInfo filenameInfo(filename);
+    _filename = filenameInfo.absoluteFilePath();
     if(newfile) {
-        _filename = filename;
         this->newfile = false;
         saveUndoStep();
-    } else {
-        QFileInfo filenameInfo(filename);
-        _filename = filenameInfo.absoluteFilePath();
     }
     return true;
 }
@@ -198,7 +196,7 @@ bool File::newText() {
 }
 
 bool File::saveText() {
-    QSaveFile file(_filename);
+    QSaveFile file(getFilename());
     if (file.open(QIODevice::WriteOnly)) {
         for (int i=0; i<_text.size(); i++) {
             file.write(surrogate_escape::encode(_text[i]));
@@ -231,8 +229,15 @@ void File::checkWritable() {
 }
 
 bool File::getWritable() {
-    QFileInfo file(_filename);
-    return file.isWritable();
+    QFileInfo file(getFilename());
+    if(file.isWritable()) {
+        return true;
+    }
+    QFileInfo path(file.path());
+    if(!file.exists() && path.isWritable()) {
+        return true;
+    }
+    return false;
 }
 
 void File::setHighlightBracket(bool hb) {
@@ -244,7 +249,7 @@ bool File::getHighlightBracket() {
 }
 
 bool File::openText() {
-    QFile file(_filename);
+    QFile file(getFilename());
     newfile = false;
     if (file.open(QIODevice::ReadOnly)) {
         _text.clear();
