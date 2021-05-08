@@ -69,7 +69,7 @@ void StatusBar::fileHasBeenChanged(bool fileChanged) {
 }
 
 void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
-    Tui::ZColor bg = {0, 0xaa, 0xaa};
+    Tui::ZColor bg = getColor("chr.statusbarBg");
     auto *painter = event->painter();
 
     QString search;

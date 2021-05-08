@@ -48,9 +48,10 @@ Editor::Editor() {
                                  { "<m>W</m>rap long lines", "", "Wrap", {}},
                                  { "Following standard input", "", "Following", {}},
                                  { "Stop Input Pipe", "", "InputPipe", {}},
-                                 { "<m>H</m>ighlight Brackets", "", "Brackets", {}}
+                                 { "<m>H</m>ighlight Brackets", "", "Brackets", {}},
+                                 { "<m>T</m>heme", "", "Theme", {}}
                              }
-                           },
+                      },
                       { "Hel<m>p</m>", "", {}, {
                             { "<m>A</m>bout", "", "About", {}}
                         }
@@ -249,6 +250,11 @@ Editor::Editor() {
         }
     );
 
+    QObject::connect(new Tui::ZCommandNotifier("Theme", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            new ThemeDialog(this);
+        }
+    );
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forMnemonic("x"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
                      this, &Editor::showCommandLine);
 
@@ -461,6 +467,33 @@ void Editor::quit() {
         });
     } else {
         QCoreApplication::instance()->quit();
+    }
+}
+
+void Editor::setTheme(Theme theme) {
+    _theme = theme;
+    if (theme == Theme::dark) {
+        Tui::ZPalette tmpPalette = Tui::ZPalette::black();
+        tmpPalette.setColors({
+                                 {"chr.fgbehindText", { 0xaa, 0xaa, 0xaa}},
+                                 {"chr.trackBgColor", { 0x80, 0x80, 0x80}},
+                                 {"chr.thumbBgColor", { 0xd9, 0xd9, 0xd9}},
+                                 {"chr.linenumberFg", { 0xdd, 0xdd, 0xdd}},
+                                 {"chr.linenumberBg", { 0x80, 0x80, 0x80}},
+                                 {"chr.statusbarBg", Tui::Colors::darkGray},
+                             });
+        setPalette(tmpPalette);
+    } else if (theme == Theme::classic) {
+        Tui::ZPalette tmpPalette = Tui::ZPalette::classic();
+        tmpPalette.setColors({
+                                 {"chr.fgbehindText", { 0xaa, 0xaa, 0xaa}},
+                                 {"chr.trackBgColor", { 0,    0,    0x80}},
+                                 {"chr.thumbBgColor", { 0,    0,    0xd9}},
+                                 {"chr.linenumberFg", { 0xdd, 0xdd, 0xdd}},
+                                 {"chr.linenumberBg", { 0,    0,    0x80}},
+                                 {"chr.statusbarBg", {0, 0xaa, 0xaa}},
+                             });
+        setPalette(tmpPalette);
     }
 }
 

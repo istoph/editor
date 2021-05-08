@@ -10,7 +10,9 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor controlbg = getColor("scrollbar.control.bg");
     Tui::ZColor fg = getColor("scrollbar.fg");
     Tui::ZColor bg = getColor("scrollbar.bg");
-    Tui::ZColor fgbehindText = {0xaa, 0xaa, 0xaa};
+    Tui::ZColor fgbehindText =  getColor("chr.fgbehindText");
+    Tui::ZColor trackBgColor = getColor("chr.trackBgColor");
+    Tui::ZColor thumbBgColor = getColor("chr.thumbBgColor");
 
     int thumbHeight;
     int trackBarPosition = 0;
@@ -54,7 +56,7 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
             painter->clear(fg, bg);
         } else {
             for (int i = 0; i < geometry().height(); i++) {
-                painter->setBackground(0,i,{ 0, 0x00, 0x80});
+                painter->setBackground(0,i,trackBgColor);
                 painter->setForeground(0,i,fg);
             }
         }
@@ -64,7 +66,7 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
             if (!_transparent) {
                 painter->writeWithColors(0, y, "▓", controlfg, controlbg);
             } else {
-                painter->setBackground(0,y,{ 0, 0, 0xd9});
+                painter->setBackground(0,y,thumbBgColor);
                 painter->setForeground(0,y,fgbehindText);
             }
             y+=1;
@@ -75,7 +77,7 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
             painter->clear(fg, bg);
         } else {
             for (int i = 0; i < geometry().width(); i++) {
-                painter->setBackground(i,0,{ 0, 0x00, 0x80});
+                painter->setBackground(i,0,trackBgColor);
                 painter->setForeground(i,0,fgbehindText);
             }
         }
@@ -85,7 +87,7 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
             if (!_transparent) {
                 painter->writeWithColors(x, 0, "▓", controlfg, controlbg);
             } else {
-                painter->setBackground(x,0,{ 0, 0, 0xd9});
+                painter->setBackground(x,0,thumbBgColor);
                 painter->setForeground(x,0,fgbehindText);
             }
             x+=1;

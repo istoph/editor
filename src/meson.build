@@ -18,6 +18,7 @@ editor_sources = [
   'searchdialog.cpp',
   'statusbar.cpp',
   'tabdialog.cpp',
+  'themedialog.cpp',
 ]
 
 #ide:editable-filelist
@@ -36,6 +37,7 @@ editor_headers = [
   'searchdialog.h',
   'statusbar.h',
   'tabdialog.h',
+  'themedialog.h',
 ]
 
 executable('editor', main, editor_sources,

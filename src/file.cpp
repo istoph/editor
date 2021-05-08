@@ -1171,9 +1171,9 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         //linenumber
         if(_linenumber) {
             strlinenumber = QString::number(line + 1) + QString(" ").repeated(shiftLinenumber - QString::number(line + 1).size());
-            painter->writeWithColors(0, y, strlinenumber, {0xDD,0xDD,0xDD}, {0,0,0x80});
+            painter->writeWithColors(0, y, strlinenumber, getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
             for(int i = lay.lineCount() -1; i > 0; i--) {
-                painter->writeWithColors(0, y + i, QString(" ").repeated(shiftLinenumber), {0xDD,0xDD,0xDD}, {0,0,0x80});
+                painter->writeWithColors(0, y + i, QString(" ").repeated(shiftLinenumber), getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
             }
         }
         y += lay.lineCount();

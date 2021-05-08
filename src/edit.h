@@ -23,6 +23,7 @@
 #include "gotoline.h"
 #include "clipboard.h"
 #include "commandlinewidget.h"
+#include "themedialog.h"
 
 #include <QDir>
 #include <QSettings>
@@ -45,10 +46,15 @@ public:
     WindowWidget *file_goto_line;
     File *file;
     int tab = 8;
+    enum class Theme {
+        classic,
+        dark
+    };
 
 public:
     void closePipe();
     void watchPipe();
+    void setTheme(Theme theme);
     void setFollow(bool follow);
     bool getFollow();
     void windowTitle(QString filename);
@@ -87,6 +93,7 @@ private:
     WindowLayout *_winLayout = nullptr;
     SearchDialog *_searchDialog = nullptr;
     SearchDialog *_replaceDialog = nullptr;
+    ThemeDialog *_themeDialog = nullptr;
     QSocketNotifier *_pipeSocketNotifier = nullptr;
     QByteArray _pipeLineBuffer;
     Tui::ZCommandNotifier *_cmdFollow = nullptr;
@@ -97,6 +104,7 @@ private:
     CommandLineWidget *_commandLineWidget = nullptr;
     VBoxLayout *_rootLayout = nullptr; // only needed to workaround missing updating in ZLayout
     Clipboard _clipboard;
+    Theme _theme = Theme::classic;
 };
 
 #endif // EDIT_H
