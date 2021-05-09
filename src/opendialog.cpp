@@ -61,7 +61,8 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     _okButton->setDefault(true);
 
     QObject::connect(_folder, &ListView::enterPressed, [this](int selected){
-        userInput(_folder->items()[selected]);
+        (void)selected;
+        userInput(_folder->currentItem());
     });
     QObject::connect(_hiddenCheckBox, &CheckBox::stateChanged, this, [&]{
         refreshFolder();

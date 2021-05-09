@@ -35,7 +35,8 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     _folder->setFocus();
 
     connect(_folder, &ListView::enterPressed, [this](int selected){
-        userInput(_folder->items()[selected]);
+        (void)selected;
+        userInput(_folder->currentItem());
     });
     refreshFolder();
 
