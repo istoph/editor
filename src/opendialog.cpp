@@ -1,14 +1,17 @@
 #include "opendialog.h"
 
-void OpenDialog::refreshFolder()
-{
+void OpenDialog::refreshFolder() {
     QStringList items;
-    _dir.setSorting(QDir::DirsFirst | QDir::Name);
-    QFileInfoList list = _dir.entryInfoList();
-    _dir.setFilter(QDir::AllEntries);
+    QFileInfoList list; // = _dir.entryInfoList();
+    if(_hiddenCheckBox->checkState() == Qt::CheckState::Unchecked) {
+        _dir.setFilter(QDir::AllEntries);
+    } else {
+        _dir.setFilter(QDir::AllEntries | QDir::Hidden);
+    }
+    _dir.setSorting(QDir::DirsFirst |QDir::Name);
+    list = _dir.entryInfoList();
 
-    //TODO: das abschneiden muss das Lable machen ;)
-    _curentPath->setText(_dir.absolutePath().right(33));
+    _curentPath->setText(_dir.absolutePath());
     for (int i = 0; i < list.size(); ++i) {
         QFileInfo fileInfo = list.at(i);
         if(fileInfo.fileName() != ".") {
@@ -35,36 +38,38 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     setVisible(false);
     setContentsMargins({ 1, 1, 2, 1});
 
-    setGeometry({20, 2, 40, 14});
+    setGeometry({20, 2, 42, 14});
     setWindowTitle("File Open");
 
     _curentPath = new Label(this);
-    _curentPath->setGeometry({3,1,34,1});
+    _curentPath->setGeometry({3,1,36,1});
 
     _folder = new ListView(this);
-    _folder->setGeometry({3,2,34,8});
+    _folder->setGeometry({3,2,36,8});
     _folder->setFocus();
 
-    connect(_folder, &ListView::enterPressed, [this](int selected){
-        userInput(_folder->items()[selected]);
-    });
-    refreshFolder();
+    _hiddenCheckBox = new CheckBox(withMarkup, "<m>h</m>idden", this);
+    _hiddenCheckBox->setGeometry({3, 11, 13, 1});
+
+    _cancelButton = new Button(this);
+    _cancelButton->setGeometry({16, 11, 12, 1});
+    _cancelButton->setText("Cancel");
 
     _okButton = new Button(this);
-    _okButton->setGeometry({27, 11, 10, 7});
+    _okButton->setGeometry({29, 11, 10, 1});
     _okButton->setText("Open");
     _okButton->setDefault(true);
 
-    _cancelButton = new Button(this);
-    _cancelButton->setGeometry({14, 11, 12, 7});
-    _cancelButton->setText("Cancel");
-
-
-    //connect(filenameText, &InputBox::textChanged, this, &OpenDialog::filenameChanged);
-
+    QObject::connect(_folder, &ListView::enterPressed, [this](int selected){
+        userInput(_folder->items()[selected]);
+    });
+    QObject::connect(_hiddenCheckBox, &CheckBox::stateChanged, this, [&]{
+        refreshFolder();
+    });
     QObject::connect(_okButton, &Button::clicked, this, &OpenDialog::open);
     QObject::connect(_cancelButton, &Button::clicked, this, &OpenDialog::rejected);
 
+    refreshFolder();
     QRect r = geometry();
     r.moveCenter(terminal()->mainWidget()->geometry().center());
     setGeometry(r);

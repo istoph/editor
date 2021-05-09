@@ -28,6 +28,7 @@ private:
     Label *_curentPath = nullptr;
     InputBox *_filenameText = nullptr;
     ListView *_folder = nullptr;
+    CheckBox *_hiddenCheckBox = nullptr;
     Button *_okButton = nullptr;
     Button *_cancelButton = nullptr;
     QDir _dir;
