@@ -618,19 +618,18 @@ bool File::delSelect() {
 }
 
 void File::toggleOverwrite() {
-    // TODO: change courser modus _ []
-    // TODO: messages to statusbar
    if(isOverwrite()) {
-       this->overwrite = false;
+       _overwrite = false;
        setCursorStyle(Tui::CursorStyle::Underline);
     } else {
-       this->overwrite = true;
+       _overwrite = true;
        setCursorStyle(Tui::CursorStyle::Block);
     }
+    emitOverwrite(_overwrite);
 }
 
 bool File::isOverwrite() {
-    return this->overwrite;
+    return _overwrite;
 }
 
 void File::undo() {

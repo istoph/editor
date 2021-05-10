@@ -287,6 +287,7 @@ Editor::Editor() {
     connect(file, &File::modifiedSelectMode, _statusBar, &StatusBar::modifiedSelectMode);
     connect(file, &File::emitSearchCount, _statusBar, &StatusBar::searchCount);
     connect(file, &File::emitSearchText, _statusBar, &StatusBar::searchText);
+    connect(file, &File::emitOverwrite, _statusBar, &StatusBar::overwrite);
 
     ScrollBar *sc = new ScrollBar(win);
     sc->setTransparent(true);

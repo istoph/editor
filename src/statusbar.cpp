@@ -68,6 +68,11 @@ void StatusBar::fileHasBeenChanged(bool fileChanged) {
     update();
 }
 
+void StatusBar::overwrite(bool overwrite) {
+    _overwrite = overwrite;
+    update();
+}
+
 void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor bg = getColor("chr.statusbarBg");
     auto *painter = event->painter();
@@ -99,6 +104,11 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
             text += " | RO";
             bg = {0xff,0,0};
         }
+    }
+    if (_overwrite) {
+        text += " | OVR";
+    } else {
+        text += " | INS";
     }
     text += " | UTF-8 ";
     if (_msdosMode) {

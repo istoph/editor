@@ -150,6 +150,7 @@ signals:
     void modifiedSelectMode(bool f4);
     void emitSearchCount(int sc);
     void emitSearchText(QString searchText);
+    void emitOverwrite(bool overwrite);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event) override;
@@ -194,7 +195,7 @@ private:
     int _startSelectY = -1;
     int _endSelectX = -1;
     int _endSelectY = -1;
-    bool overwrite = false;
+    bool _overwrite = false;
     QVector<UndoStep> _undoSteps;
     int _currentUndoStep;
     bool _collapseUndoStep;

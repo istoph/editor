@@ -23,6 +23,7 @@ public slots:
     void msdosMode(bool msdos);
     void modifiedSelectMode(bool f4);
     void fileHasBeenChanged(bool fileChanged = true);
+    void overwrite(bool overwrite);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event);
@@ -42,6 +43,7 @@ private:
     bool _msdosMode = false;
     bool _selectMode = false;
     bool _fileChanged = false;
+    bool _overwrite;
 };
 
 #endif // STATUSBAR_H
