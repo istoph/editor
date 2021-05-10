@@ -220,6 +220,9 @@ private:
     bool _msdos = false;
     bool _linenumber = false;
 
+    Tui::ZCommandNotifier *_cmdCopy = nullptr;
+    Tui::ZCommandNotifier *_cmdCut = nullptr;
+    Tui::ZCommandNotifier *_cmdPaste = nullptr;
     Tui::ZCommandNotifier *_cmdUndo = nullptr;
     Tui::ZCommandNotifier *_cmdRedo = nullptr;
     Tui::ZCommandNotifier *_cmdSearchNext;

@@ -132,21 +132,6 @@ Editor::Editor() {
                      this, &Editor::quit);
 
     //Edit
-    QObject::connect(new Tui::ZCommandNotifier("Cut", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            file->cut();
-        }
-    );
-    QObject::connect(new Tui::ZCommandNotifier("Copy", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            file->copy();
-        }
-    );
-    QObject::connect(new Tui::ZCommandNotifier("Paste", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            file->paste();
-        }
-    );
     QObject::connect(new Tui::ZCommandNotifier("Selectall", this), &Tui::ZCommandNotifier::activated,
          [&] {
             file->selectAll();

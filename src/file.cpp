@@ -7,6 +7,15 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setCursorStyle(Tui::CursorStyle::Bar);
     setCursorColor(255, 255, 255);
     newText();
+    _cmdCopy = new Tui::ZCommandNotifier("Copy", this);
+    QObject::connect(_cmdCopy, &Tui::ZCommandNotifier::activated, this, [this]{copy();});
+    _cmdCopy->setEnabled(false);
+    _cmdCut = new Tui::ZCommandNotifier("Cut", this);
+    QObject::connect(_cmdCut, &Tui::ZCommandNotifier::activated, this, [this]{cut();});
+    _cmdCut->setEnabled(false);
+    _cmdPaste = new Tui::ZCommandNotifier("Paste", this);
+    QObject::connect(_cmdPaste, &Tui::ZCommandNotifier::activated, this, [this]{paste();});
+    _cmdPaste->setEnabled(false);
     _cmdUndo = new Tui::ZCommandNotifier("Undo", this);
     QObject::connect(_cmdUndo, &Tui::ZCommandNotifier::activated, this, [this]{undo();});
     _cmdUndo->setEnabled(false);
@@ -347,6 +356,7 @@ void File::copy() {
             }
         }
         clipboard->setClipboard(_clipboard);
+        _cmdPaste->setEnabled(true);
     }
 }
 
@@ -451,6 +461,9 @@ void File::select(int x, int y) {
     }
     _endSelectX = x;
     _endSelectY = y;
+
+    _cmdCopy->setEnabled(true);
+    _cmdCut->setEnabled(true);
 }
 
 void File::blockSelect(int x, int y) {
@@ -517,6 +530,9 @@ void File::resetSelect() {
     _startSelectX = _startSelectY = _endSelectX = _endSelectY = -1;
     _blockSelect = false;
     setSelectMode(false);
+
+    _cmdCopy->setEnabled(false);
+    _cmdCut->setEnabled(false);
 }
 
 QString File::getSelectText() {
