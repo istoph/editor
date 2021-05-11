@@ -244,6 +244,9 @@ Editor::Editor() {
                      this, &Editor::showCommandLine);
 
 
+    // Background
+    setFillChar(u'▒');
+
     win = new WindowWidget(this);
     win->setBorderEdges({ Qt::TopEdge });
 
@@ -478,6 +481,8 @@ void Editor::setTheme(Theme theme) {
                                  {"chr.linenumberFg", { 0xdd, 0xdd, 0xdd}},
                                  {"chr.linenumberBg", { 0,    0,    0x80}},
                                  {"chr.statusbarBg", {0, 0xaa, 0xaa}},
+                                 {"root.fg", {0xaa,0xaa,0xaa}},
+                                 {"root.bg", {0x0,0x0,0xaa}}
                              });
         setPalette(tmpPalette);
     }
