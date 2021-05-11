@@ -1406,8 +1406,18 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             event->key() != Qt::Key_PageUp &&
             event->key() != Qt::Key_PageDown &&
             event->key() != Qt::Key_Escape &&
+            event->key() != Qt::Key_F1 &&
+            event->key() != Qt::Key_F2 &&
             event->key() != Qt::Key_F3 &&
             event->key() != Qt::Key_F4 &&
+            event->key() != Qt::Key_F5 &&
+            event->key() != Qt::Key_F6 &&
+            event->key() != Qt::Key_F7 &&
+            event->key() != Qt::Key_F8 &&
+            event->key() != Qt::Key_F9 &&
+            event->key() != Qt::Key_F10 &&
+            event->key() != Qt::Key_F11 &&
+            event->key() != Qt::Key_F12 &&
             event->key() != Qt::Key_Tab &&
             event->modifiers() != Qt::ControlModifier &&
             !(event->text() == "S" && event->modifiers() == Qt::AltModifier) &&
@@ -1427,7 +1437,18 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     }
 
     if (
-        event->key() != Qt::Key_Tab &&
+            event->key() != Qt::Key_Tab &&
+            event->key() != Qt::Key_F1 &&
+            event->key() != Qt::Key_F2 &&
+            event->key() != Qt::Key_F3 &&
+            event->key() != Qt::Key_F5 &&
+            event->key() != Qt::Key_F6 &&
+            event->key() != Qt::Key_F7 &&
+            event->key() != Qt::Key_F8 &&
+            event->key() != Qt::Key_F9 &&
+            event->key() != Qt::Key_F10 &&
+            event->key() != Qt::Key_F11 &&
+            event->key() != Qt::Key_F12 &&
         (
 
             !extendSelect &&
