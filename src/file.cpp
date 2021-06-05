@@ -382,7 +382,7 @@ void File::insertLinebreak() {
 }
 
 QPoint File::insertLinebreakAtPosition(QPoint cursor) {
-    if(_nonewline && cursor.x() == _text.size() -1 && _text[cursor.y()].size() == cursor.x()) {
+    if(_nonewline && cursor.y() == _text.size() -1 && _text[cursor.y()].size() == cursor.x()) {
         _nonewline = false;
     } else {
         _text.insert(cursor.y() + 1,QString());
