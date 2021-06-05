@@ -67,7 +67,13 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     QObject::connect(_hiddenCheckBox, &CheckBox::stateChanged, this, [&]{
         refreshFolder();
     });
-    QObject::connect(_okButton, &Button::clicked, this, &OpenDialog::open);
+    QObject::connect(_okButton, &Button::clicked, [this] {
+        if(_folder->currentItem().right(1) == "/") {
+            userInput(_folder->currentItem());
+        } else {
+            open();
+        }
+    });
     QObject::connect(_cancelButton, &Button::clicked, this, &OpenDialog::rejected);
 
     refreshFolder();
