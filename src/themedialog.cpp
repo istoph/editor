@@ -2,7 +2,7 @@
 #include "edit.h"
 
 ThemeDialog::ThemeDialog(Editor *edit) : Dialog(edit) {
-
+    setDefaultPlacement(Qt::AlignBottom | Qt::AlignHCenter, {0, -2});
     WindowLayout *wl = new WindowLayout();
     this->setWindowTitle("Theme Color");
     setLayout(wl);
@@ -64,9 +64,5 @@ void ThemeDialog::close() {
 }
 
 void ThemeDialog::open() {
-    QRect r = geometry();
-    r.moveCenter(terminal()->mainWidget()->geometry().center());
-    r.moveBottom(terminal()->mainWidget()->geometry().height()-3);
-    setGeometry(r);
     raise();
 }

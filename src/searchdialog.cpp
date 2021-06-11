@@ -19,6 +19,7 @@ protected:
 };
 
 SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dialog(parent) {
+    setDefaultPlacement(Qt::AlignBottom | Qt::AlignHCenter, {0, -2});
     _replace = replace;
     setVisible(false);
     setContentsMargins({ 1, 1, 2, 1});
@@ -147,9 +148,9 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
     wl->addCentral(vbox);
 
     if(_replace) {
-        setGeometry({ 12, 5, 55, 14});
+        setGeometry({ 0, 0, 55, 14});
     } else {
-        setGeometry({ 12, 5, 55, 12});
+        setGeometry({ 0, 0, 55, 12});
     }
 
     QObject::connect(_searchText, &InputBox::textChanged, this, [this,file] (const QString& newText) {
@@ -228,10 +229,6 @@ void SearchDialog::setReplace(bool replace) {
 }
 
 void SearchDialog::open() {
-    QRect r = geometry();
-    r.moveCenter(terminal()->mainWidget()->geometry().center());
-    r.moveBottom(terminal()->mainWidget()->geometry().height()-3);
-    setGeometry(r);
     setVisible(true);
     raise();
     placeFocus()->setFocus();

@@ -30,6 +30,7 @@ void OpenDialog::refreshFolder() {
 }
 
 OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
+    setDefaultPlacement(Qt::AlignCenter);
     if(path.size()) {
         _dir.setPath(path);
     }
@@ -77,9 +78,6 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     QObject::connect(_cancelButton, &Button::clicked, this, &OpenDialog::rejected);
 
     refreshFolder();
-    QRect r = geometry();
-    r.moveCenter(terminal()->mainWidget()->geometry().center());
-    setGeometry(r);
     setVisible(true);
 }
 
