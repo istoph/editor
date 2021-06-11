@@ -398,8 +398,7 @@ void Editor::openFileDialog(QString path) {
 }
 
 QObject * Editor::facet(const QMetaObject metaObject) {
-    if (metaObject.className()  == Clipboard::staticMetaObject.className()
-            ||metaObject.inherits(&Clipboard::staticMetaObject)) {
+    if (metaObject.className()  == Clipboard::staticMetaObject.className()) {
         return &_clipboard;
     } else {
         return ZRoot::facet(metaObject);
