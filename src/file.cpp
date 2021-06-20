@@ -1373,6 +1373,12 @@ void File::pasteEvent(Tui::ZPasteEvent *event) {
     insertAtCursorPosition(text.split('\n').toVector());
 }
 
+void File::resizeEvent(Tui::ZResizeEvent *event) {
+    if (event->size().height() > 0 && event->size().width() > 0) {
+        adjustScrollPosition();
+    }
+}
+
 void File::setSelectMode(bool event) {
     _selectMode = event;
     modifiedSelectMode(_selectMode);
