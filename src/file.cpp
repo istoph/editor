@@ -56,11 +56,10 @@ void File::getAttributes() {
     if(readAttributes()) {
         QJsonObject data = _jo.value(getFilename()).toObject();
         if(_text.size() > data.value("cursorPositionY").toInt() && _text[data.value("cursorPositionY").toInt()].size() +1 > data.value("cursorPositionX").toInt()) {
-            _cursorPositionX = data.value("cursorPositionX").toInt();
-            _cursorPositionY = data.value("cursorPositionY").toInt();
+            setCursorPosition({data.value("cursorPositionX").toInt(), data.value("cursorPositionY").toInt()});
+            _saveCursorPositionX = _cursorPositionX;
             _scrollPositionX = data.value("scrollPositionX").toInt();
             _scrollPositionY = data.value("scrollPositionY").toInt();
-
             adjustScrollPosition();
         }
     }
@@ -159,12 +158,12 @@ int File::tabToSpace() {
 }
 
 QPoint File::getCursorPosition() {
-    return {_cursorPositionX,_cursorPositionY};
+    return {_cursorPositionX, _cursorPositionY};
 }
 
 void File::setCursorPosition(QPoint position) {
-    _cursorPositionY = std::max(std::min(position.y(), _text.size() -1),0);
-    _cursorPositionX = std::max(std::min(position.x(), _text[_cursorPositionY].size()),0);
+    _cursorPositionY = std::max(std::min(position.y(), _text.size() -1), 0);
+    _cursorPositionX = std::max(std::min(position.x(), _text[_cursorPositionY].size()), 0);
     adjustScrollPosition();
 }
 
