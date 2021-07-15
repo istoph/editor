@@ -59,6 +59,8 @@ public:
     bool getFollow();
     void windowTitle(QString filename);
     void openFileDialog(QString path = "");
+    void newFileMenue();
+    void openFileMenue();
     QObject *facet(const QMetaObject metaObject);
 
 public slots:
@@ -76,6 +78,7 @@ private slots:
 signals:
     void readFromStandadInput(bool activ);
     void followStandadInput(bool follow);
+    //void emitFollowMenueEnable(bool enable);
     void fileChanged(bool fileChanged);
 
 private:

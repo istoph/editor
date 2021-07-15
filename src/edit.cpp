@@ -14,10 +14,10 @@ Editor::Editor() {
                             { "<m>N</m>ew", "Ctrl-N", "New", {}},
                             { "<m>O</m>pen...", "Ctrl-O", "Open", {}},
                             { "<m>S</m>ave", "Ctrl-S", "Save", {}},
-                            { "Save <m>a</m>s...", "Ctrl-Shift-S", "SaveAs", {}},
+                            { "Save <m>a</m>s...", "", "SaveAs", {}},
                             { "<m>R</m>eload", "", "Reload", {}},
                             {},
-                            { "<m>Q</m>uit", "Ctrl-q", "Quit", {}}
+                            { "<m>Q</m>uit", "Ctrl-Q", "Quit", {}}
                         }
                       },
                       { "<m>E</m>dit", "", "", {
@@ -28,8 +28,8 @@ Editor::Editor() {
                             { "Cut Line", "Ctrl-K", "Cutline", {}},
                             { "Select Mode", "F4", "SelectMode", {}},
                             {},
-                            { "Undo", "Ctrl-z", "Undo", {}},
-                            { "Redo", "Ctrl-y", "Redo", {}},
+                            { "Undo", "Ctrl-Z", "Undo", {}},
+                            { "Redo", "Ctrl-Y", "Redo", {}},
                             {},
                             { "<m>S</m>earch", "Ctrl-F", "Search", {}},
                             { "Search <m>N</m>ext", "F3", "Search Next", {}},
@@ -42,9 +42,9 @@ Editor::Editor() {
                         }
                       },
                       { "<m>O</m>ptions", "", {}, {
-                                 { "<m>T</m>ab", "", "Tab", {}},
+                                 { "Formatting <m>T</m>ab", "", "Tab", {}},
                                  { "<m>L</m>ine Number", "", "LineNumber", {}},
-                                 { "<m>F</m>ormatting characters", "", "Formatting", {}},
+                                 { "Formatting <m>C</m>haracters", "", "Formatting", {}},
                                  { "<m>W</m>rap long lines", "", "Wrap", {}},
                                  { "Following standard input", "", "Following", {}},
                                  { "Stop Input Pipe", "", "InputPipe", {}},
@@ -58,65 +58,36 @@ Editor::Editor() {
                       }
                    });
 
-
-    //File
+    //New
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("n"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+            this, [&] {
+                Editor::newFileMenue();
+    });
     QObject::connect(new Tui::ZCommandNotifier("New", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            if(file->isModified()) {
-                ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::New);
-                QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
-                    delete confirmDialog;
-                    newFile();
-                });
+            [&] {
+                Editor::newFileMenue();
+    });
 
-                QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
-                    saveOrSaveas();
-                    delete confirmDialog;
-                    newFile();
-                });
-                QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
-                    delete confirmDialog;
-                });
-            } else {
-                newFile();
-            }
-
-        }
-    );
-
+    //Open
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("o"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+        this, [&] {
+            openFileMenue();
+    });
     QObject::connect(new Tui::ZCommandNotifier("Open", this), &Tui::ZCommandNotifier::activated,
         [&] {
-            if(file->isModified()) {
-                ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Open);
-                QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
-                    delete confirmDialog;
-                    openFileDialog();
-                });
-
-                QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
-                    saveOrSaveas();
-                    delete confirmDialog;
-                    openFileDialog();
-                });
-
-                QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
-                    delete confirmDialog;
-                });
-            } else {
-                openFileDialog();
-            }
+            openFileMenue();
         }
     );
 
-    //SAVE
+    //Save
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("s"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
             this, &Editor::saveOrSaveas);
     QObject::connect(new Tui::ZCommandNotifier("Save", this), &Tui::ZCommandNotifier::activated,
                     this, &Editor::saveOrSaveas);
 
-    //SAVE AS
+    //Save As
     //shortcut dose not work in vte, konsole, ...
-    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("S"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("S", Qt::ControlModifier | Qt::ShiftModifier), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
             this, &Editor::saveFileDialog);
     QObject::connect(new Tui::ZCommandNotifier("SaveAs", this), &Tui::ZCommandNotifier::activated,
                      this, &Editor::saveFileDialog);
@@ -125,7 +96,7 @@ Editor::Editor() {
     QObject::connect(new Tui::ZCommandNotifier("Reload", this), &Tui::ZCommandNotifier::activated,
                      this, &Editor::reload);
 
-    //QUIT
+    //Quit
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("q"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
             this, &Editor::quit);
     QObject::connect(new Tui::ZCommandNotifier("Quit", this), &Tui::ZCommandNotifier::activated,
@@ -137,6 +108,7 @@ Editor::Editor() {
             file->selectAll();
         }
     );
+
     QObject::connect(new Tui::ZCommandNotifier("Cutline", this), &Tui::ZCommandNotifier::activated,
          [&] {
             file->cutline();
@@ -148,7 +120,7 @@ Editor::Editor() {
         }
     );
 
-    //SEARCH
+    //Search
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, 0), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
           [&] {
             file->runSearch(false);
@@ -164,6 +136,8 @@ Editor::Editor() {
             searchDialog();
         }
     );
+
+    //Replace
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("r"), this, Qt::ApplicationShortcut),
                      &Tui::ZShortcut::activated, this, &Editor::replaceDialog);
     QObject::connect(new Tui::ZCommandNotifier("Replace", this), &Tui::ZCommandNotifier::activated,
@@ -171,11 +145,19 @@ Editor::Editor() {
             replaceDialog();
         }
     );
+
+    //InsertCharacter
     QObject::connect(new Tui::ZCommandNotifier("InsertCharacter", this), &Tui::ZCommandNotifier::activated,
          [&] {
             new InsertCharacter(this, file);
         }
     );
+
+    //Goto Line
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("g"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+        this, [&] {
+            new GotoLine(this, file);
+    });
     QObject::connect(new Tui::ZCommandNotifier("Gotoline", this), &Tui::ZCommandNotifier::activated,
          [&] {
             new GotoLine(this, file);
@@ -351,6 +333,27 @@ void Editor::windowTitle(QString filename) {
     win->setWindowTitle(filename);
 }
 
+void Editor::newFileMenue() {
+    if(file->isModified()) {
+        ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::New);
+        QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
+            delete confirmDialog;
+            newFile();
+        });
+
+        QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
+            saveOrSaveas();
+            delete confirmDialog;
+            newFile();
+        });
+        QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
+            delete confirmDialog;
+        });
+    } else {
+        newFile();
+    }
+}
+
 void Editor::newFile(QString filename) {
     closePipe();
     watcherRemove();
@@ -359,6 +362,28 @@ void Editor::newFile(QString filename) {
     file->setFilename(filename, true);
     _statusBar->fileHasBeenChanged(false);
     watcherAdd();
+}
+
+void Editor::openFileMenue() {
+    if(file->isModified()) {
+        ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Open);
+        QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
+            delete confirmDialog;
+            openFileDialog();
+        });
+
+        QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
+            saveOrSaveas();
+            delete confirmDialog;
+            openFileDialog();
+        });
+
+        QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
+            delete confirmDialog;
+        });
+    } else {
+        openFileDialog();
+    }
 }
 
 void Editor::openFile(QString filename) {
