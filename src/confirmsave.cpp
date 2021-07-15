@@ -12,6 +12,11 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
         title = "Save";
         nosave = "Discard";
         save = "Save";
+    } else if (type == Reload) {
+        title = "Reload";
+        nosave = "Discard and Reload";
+        save = "Reload";
+        saveable = false;
     } else {
         title = "Exit";
         nosave = "Quit";
@@ -58,7 +63,9 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
         bSave->setDefault(saveable);
         bSave->setFocus();
     }
-    hbox->addWidget(bSave);
+    if (type != Reload) {
+        hbox->addWidget(bSave);
+    }
     vbox->add(hbox);
 
     QObject::connect(bCancel, &Button::clicked, this, &ConfirmSave::rejected);

@@ -94,7 +94,22 @@ Editor::Editor() {
 
     //Reload
     QObject::connect(new Tui::ZCommandNotifier("Reload", this), &Tui::ZCommandNotifier::activated,
-                     this, &Editor::reload);
+         this, [&] {
+            if(file->isModified()) {
+                ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Reload);
+                QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
+                    delete confirmDialog;
+                    Editor::reload();
+                });
+
+                QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
+                    delete confirmDialog;
+                });
+            } else {
+                Editor::reload();
+            }
+
+    });
 
     //Quit
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("q"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
@@ -447,7 +462,6 @@ SaveDialog * Editor::saveOrSaveas() {
 }
 
 void Editor::reload() {
-    //TODO: ask if discard
     QPoint xy = file->getCursorPosition();
 
     file->openText();

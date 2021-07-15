@@ -8,7 +8,7 @@
 class ConfirmSave : public Dialog
 {
 public:
-    enum Type { New, Open, Quit };
+    enum Type { New, Open, Reload, Quit };
     Q_OBJECT
 public:
     explicit ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool saveable = true);
