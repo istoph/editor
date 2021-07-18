@@ -34,7 +34,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     _folder->setGeometry({3,3,44,6});
     _folder->setFocus();
 
-    connect(_folder, &ListView::enterPressed, [this](int selected){
+    QObject::connect(_folder, &ListView::enterPressed, [this](int selected){
         (void)selected;
         userInput(_folder->currentItem());
     });
@@ -113,7 +113,10 @@ void SaveDialog::filenameChanged(QString filename) {
 }
 
 void SaveDialog::userInput(QString filename) {
-    if(QFileInfo(_dir.filePath(filename)).isDir()) {
+    if(filename == "../") {
+        _dir.cdUp();
+        refreshFolder();
+    } else if(QFileInfo(_dir.filePath(filename)).isDir()) {
         _dir.setPath(_dir.filePath(filename));
         refreshFolder();
     } else {
