@@ -82,7 +82,7 @@ void SaveDialog::rejected() {
 }
 
 void SaveDialog::saveFile() {
-    fileSelected(_dir.absolutePath() + "/" + _filenameText->text());
+    fileSelected(_dir.absoluteFilePath(_filenameText->text()));
     deleteLater();
 }
 
