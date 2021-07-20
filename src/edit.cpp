@@ -426,6 +426,7 @@ void Editor::saveFile(QString filename) {
         e->setWindowTitle("Error");
         e->setMarkup("file could not be saved"); //Die Datei konnte nicht gespeicher werden!
         e->setGeometry({15,5,50,5});
+        e->setDefaultPlacement(Qt::AlignCenter);
         e->setVisible(true);
         e->setFocus();
     }
