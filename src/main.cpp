@@ -2,6 +2,7 @@
 #include <QLoggingCategory>
 #include <Tui/ZSimpleFileLogger.h>
 #include <Tui/ZSimpleStringLogger.h>
+#include <PosixSignalManager.h>
 
 int main(int argc, char **argv) {
 
@@ -199,6 +200,19 @@ int main(int argc, char **argv) {
     if(parser.isSet(follow)) {
         root->setFollow(true);
     }
+
+    QObject::connect(&terminal, &Tui::ZTerminal::terminalConnectionLost, [=] {
+        //TODO file save
+        //qDebug("%i terminalConnectionLost", (int)QCoreApplication::applicationPid());
+        QCoreApplication::quit();
+    });
+
+    std::unique_ptr<PosixSignalNotifier> sigIntNotifier;
+    sigIntNotifier = std::unique_ptr<PosixSignalNotifier>(new PosixSignalNotifier(SIGINT));
+    QObject::connect(sigIntNotifier.get(), &PosixSignalNotifier::activated, [] {
+        //qDebug("%i SIGINT", (int)QCoreApplication::applicationPid());
+        QCoreApplication::quit();
+    });
 
     root->file->setFocus();
     root->file->setCursorStyle(Tui::CursorStyle::Underline);
