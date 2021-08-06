@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
                 if(datei.isFile()) {
                     int maxMB = 100;
                     if(datei.size()/1024/1024 >= maxMB && !parser.isSet(bigOption) && !bigfile) {
-                        out << "The file is bigger then "<< maxMB << "MB ("<< datei.size()/1024/1024 <<"MB). Please start with -b for big files.\n";
+                        out << "The file is bigger then " << maxMB << "MB (" << datei.size()/1024/1024 << "MB). Please start with -b for big files.\n";
                         return 0;
                     }
                     root->openFile(datei.absoluteFilePath());

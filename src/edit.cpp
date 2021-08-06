@@ -305,7 +305,7 @@ Editor::Editor() {
                      _searchDialog, &SearchDialog::open);
 
     _replaceDialog = new SearchDialog(this, file, true);
-    QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("replace", this), &Tui::ZCommandNotifier::activated,
                      _replaceDialog, &SearchDialog::open);
 
     _watcher = new QFileSystemWatcher();
@@ -434,7 +434,7 @@ void Editor::saveFile(QString filename) {
 
 }
 void Editor::openFileDialog(QString path) {
-    OpenDialog * openDialog = new OpenDialog(this, path);
+    OpenDialog *openDialog = new OpenDialog(this, path);
     connect(openDialog, &OpenDialog::fileSelected, this, &Editor::openFile);
 }
 

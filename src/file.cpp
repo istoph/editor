@@ -137,7 +137,7 @@ int File::tabToSpace() {
             while (found != -1) {
                 int columnStart = lay.lineAt(0).cursorToX(found, TextLineRef::Leading);
                 int columnEnd = lay.lineAt(0).cursorToX(found, TextLineRef::Trailing);
-                _text[line].remove(found,1);
+                _text[line].remove(found, 1);
                 _text[line].insert(found, QString(" ").repeated(columnEnd-columnStart));
                 count++;
                 found = _text[line].lastIndexOf("\t", found);
