@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
     } else {
         Tui::ZSimpleFileLogger::install(logfile);
     }
-    qDebug("chr starting");
+    qDebug("%i chr starting", (int)QCoreApplication::applicationPid());
 
     // OPEN FILE
     int lineNumber = -1, lineChar = 0;
