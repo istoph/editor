@@ -395,24 +395,20 @@ QPoint File::insertLinebreakAtPosition(QPoint cursor) {
     return cursor;
 }
 
-void File::gotoline(int y, int x) {
-    _cursorPositionX = 0;
-    if(y <= 0) {
-        _cursorPositionY = 0;
-    } else if (_text.size() < y) {
-        _cursorPositionY = _text.size() -1;
-    } else {
-        _cursorPositionY = y -1;
+void File::gotoline(QString pos) {
+    int lineNumber = -1, lineChar = 0;
+    if(pos.mid(0,1) == "+") {
+        pos = pos.mid(1);
     }
-    if(x <= 0) {
-        _cursorPositionX = 0;
-    } else if (_text[_cursorPositionY].size() < x) {
-        _cursorPositionX = _text[_cursorPositionY].size() -1;
-    } else {
-        _cursorPositionX = x;
+    QStringList list1 = pos.split(',');
+    if(list1.count()>0) {
+        lineNumber = list1[0].toInt();
     }
+    if(list1.count()>1) {
+        lineChar = list1[1].toInt() -1;
+    }
+    setCursorPosition({lineChar, lineNumber});
     safeCursorPosition();
-    adjustScrollPosition();
 }
 
 bool File::setTabsize(int tab) {

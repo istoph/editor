@@ -130,23 +130,18 @@ int main(int argc, char **argv) {
     qDebug("%i chr starting", (int)QCoreApplication::applicationPid());
 
     // OPEN FILE
-    int lineNumber = -1, lineChar = 0;
+    //int lineNumber = -1, lineChar = 0;
+    QString gotoline = parser.value(numberOption);
     if(!args.isEmpty()) {
         QStringList p = args;
         if (p.first().mid(0,1) == "+") {
-            QString n = p.first().mid(1);
-            QStringList list1 = n.split(',');
-            if(list1.count()>0) {
-                lineNumber = list1[0].toInt();
-            }
-            if(list1.count()>1) {
-                lineChar = list1[1].toInt() -1;
-            }
+            gotoline = p.first().mid(1);
             p.removeFirst();
         }
         if (!p.isEmpty()) {
             if (p.first() != "-") {
                 QFileInfo datei(p.first());
+                p.removeFirst();
                 if(datei.isFile()) {
                     int maxMB = 100;
                     if(datei.size()/1024/1024 >= maxMB && !parser.isSet(bigOption) && !bigfile) {
@@ -178,23 +173,17 @@ int main(int argc, char **argv) {
             out << "Got file offset without file name.\n";
             return 0;
         }
+        if (!p.empty() && p.first().mid(0,1) == "+") {
+            gotoline = p.first().mid(1);
+            p.removeFirst();
+        }
     } else {
         root->newFile();
     }
 
     //Goto Line
-    if (lineNumber > 0 || lineChar > 0) {
-        root->file->gotoline(lineNumber,lineChar);
-    } else if(parser.isSet(numberOption)) {
-        QString n = parser.value(numberOption);
-        QStringList list1 = n.split(',');
-        if(list1.count()>0) {
-            lineNumber = list1[0].toInt();
-        }
-        if(list1.count()>1) {
-            lineChar = list1[1].toInt() -1;
-        }
-        root->file->gotoline(lineNumber,lineChar);
+    if (gotoline != "") {
+        root->file->gotoline(gotoline);
     }
 
     if(parser.isSet(follow)) {

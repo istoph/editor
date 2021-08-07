@@ -68,7 +68,7 @@ public:
     bool isInsertable();
     void insertLinebreak();
     QPoint insertLinebreakAtPosition(QPoint cursor);
-    void gotoline(int y=0, int x=0);
+    void gotoline(QString pos);
     bool setTabsize(int tab);
     int getTabsize();
     void setTabOption(bool tab);

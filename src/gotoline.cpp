@@ -45,10 +45,7 @@ GotoLine::GotoLine(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     QObject::connect(b0, &Button::clicked, this, &GotoLine::rejected);
     QObject::connect(b1, &Button::clicked, [=]{
-        if(i1->text().toInt() >= 0) {
-            file->gotoline(i1->text().toInt());
-            this->deleteLater();
-        }
-        //TODO: error message
+        file->gotoline(i1->text());
+        this->deleteLater();
     });
 }
