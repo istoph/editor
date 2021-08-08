@@ -6,7 +6,7 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setFocusPolicy(Qt::StrongFocus);
     setCursorStyle(Tui::CursorStyle::Bar);
     setCursorColor(255, 255, 255);
-    newText();
+    initText();
     _cmdCopy = new Tui::ZCommandNotifier("Copy", this);
     QObject::connect(_cmdCopy, &Tui::ZCommandNotifier::activated, this, [this]{copy();});
     _cmdCopy->setEnabled(false);
@@ -167,42 +167,48 @@ void File::setCursorPosition(QPoint position) {
     adjustScrollPosition();
 }
 
-QString File::emptyFilename() {
-    QString filename = "";
-    QString count = "";
-    for(int i=0; i >= 0; i++) {
-        filename = "dokument"+ count +".txt";
-        QFileInfo filenameInfo(filename);
-        if (!filenameInfo.exists()) {
-            filename = filenameInfo.absoluteFilePath();
-            break;
-        }
-        count = QString::number(i);
-    }
-    setFilename(filename);
-    return filename;
+void File::setSaveAs(bool state) {
+    _saveAs = state;
+}
+bool File::isSaveAs() {
+    return _saveAs;
 }
 
-bool File::setFilename(QString filename, bool newfile) {
-    if (filename == "-") {
-        _filename = "-";
-        this->newfile = true;
-    } else {
-        QFileInfo filenameInfo(filename);
-        _filename = filenameInfo.absoluteFilePath();
-        if(newfile) {
-            this->newfile = false;
-            saveUndoStep();
-        }
-        modifiedChanged(false);
-    }
+
+bool File::setFilename(QString filename) {
+    QFileInfo filenameInfo(filename);
+    _filename = filenameInfo.absoluteFilePath();
     return true;
 }
+
 QString File::getFilename() {
     return _filename;
 }
 
-bool File::newText() {
+bool File::newText(QString filename = "") {
+    initText();
+    if (filename == "") {
+        _filename = "NEWFILE";
+        setSaveAs(true);
+    } else {
+        setFilename(filename);
+        setSaveAs(false);
+    }
+    saveUndoStep(false);
+    modifiedChanged(false);
+    return true;
+}
+
+bool File::stdinText() {
+    _filename = "STDIN";
+    initText();
+    saveUndoStep(false);
+    modifiedChanged(true);
+    setSaveAs(true);
+    return true;
+}
+
+bool File::initText() {
     _text.clear();
     _text.append(QString());
     _undoSteps.clear();
@@ -240,7 +246,7 @@ bool File::saveText() {
         saveUndoStep();
         _savedUndoStep = _currentUndoStep;
         modifiedChanged(false);
-        newfile = false;
+        setSaveAs(false);
         update();
         writeAttributes();
         return true;
@@ -273,10 +279,11 @@ bool File::getHighlightBracket() {
     return _bracket;
 }
 
-bool File::openText() {
+bool File::openText(QString filename) {
+    setFilename(filename);
     QFile file(getFilename());
-    newfile = false;
     if (file.open(QIODevice::ReadOnly)) {
+        initText();
         _text.clear();
         QByteArray lineBuf;
         lineBuf.resize(16384);
@@ -321,6 +328,7 @@ bool File::openText() {
         }
         checkWritable();
         getAttributes();
+        setSaveAs(false);
 
         for (int l = 0; l < _text.size(); l++) {
             if(_text[l].size() >= 1 && _text[l].at(_text[l].size() -1) == QChar('\r')) {

@@ -56,12 +56,11 @@ public:
 public:
     File();
     explicit File(Tui::ZWidget *parent);
-    bool setFilename(QString _filename,  bool newfile = false);
+    bool setFilename(QString _filename);
     QString getFilename();
     QString emptyFilename();
-    bool newText();
     bool saveText();
-    bool openText();
+    bool openText(QString filename);
     void cut();
     void cutline();
     void copy();
@@ -125,8 +124,6 @@ public:
     bool select_cursor_position_x0;
 
 public:
-    bool newfile = true;
-
     void setSearchWrap(bool wrap);
     bool getSearchWrap();
     void setRegex(bool reg);
@@ -137,7 +134,10 @@ public:
     void searchSelect(int found = -1);
     void setLineNumber(bool linenumber);
     void toggleLineNumber();
-
+    void setSaveAs(bool state);
+    bool isSaveAs();
+    bool newText(QString filename);
+    bool stdinText();
 public slots:
     void followStandardInput(bool follow);
 
@@ -160,6 +160,7 @@ protected:
     void resizeEvent(Tui::ZResizeEvent *event) override;
 
 private:
+    bool initText();
     void adjustScrollPosition();
     void safeCursorPosition();
     void saveUndoStep(bool collapsable=false);
@@ -221,6 +222,7 @@ private:
     QString _attributesfile;
     bool _msdos = false;
     bool _linenumber = false;
+    bool _saveAs = true;
 
     Tui::ZCommandNotifier *_cmdCopy = nullptr;
     Tui::ZCommandNotifier *_cmdCut = nullptr;

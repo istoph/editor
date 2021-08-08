@@ -22,8 +22,8 @@ void readWrite(QString in) {
     QString out = in + "_dub";
 
     File *f = new File(nullptr);
-    f->setFilename(in);
-    CHECK(f->openText());
+    //f->setFilename(in);
+    CHECK(f->openText(in));
     f->setFilename(out);
     CHECK(f->saveText());
 

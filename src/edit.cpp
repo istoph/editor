@@ -327,7 +327,7 @@ void Editor::closePipe() {
 void Editor::watchPipe() {
     _pipeSocketNotifier = new QSocketNotifier(0, QSocketNotifier::Type::Read, this);
     QObject::connect(_pipeSocketNotifier, &QSocketNotifier::activated, this, &Editor::inputPipeReadable);
-    file->setFilename("-", true);
+    file->stdinText();
     readFromStandadInput(true);
 }
 
@@ -373,13 +373,7 @@ void Editor::newFileMenue() {
 void Editor::newFile(QString filename) {
     closePipe();
     watcherRemove();
-    if (filename == "") {
-        filename = file->emptyFilename();
-    } else {
-        file->setFilename(filename, true);
-    }
-    windowTitle(file->getFilename());
-    file->newText();
+    file->newText(filename);
     _statusBar->fileHasBeenChanged(false);
     watcherAdd();
 }
@@ -409,11 +403,7 @@ void Editor::openFileMenue() {
 void Editor::openFile(QString filename) {
     closePipe();
     watcherRemove();
-    windowTitle(filename);
-    //reset couser position
-    file->newText();
-    file->setFilename(filename);
-    file->openText();
+    file->openText(filename);
     _statusBar->fileHasBeenChanged(false);
     watcherAdd();
 }
@@ -458,7 +448,7 @@ SaveDialog * Editor::saveFileDialog() {
 }
 
 SaveDialog * Editor::saveOrSaveas() {
-    if (file->newfile) {
+    if (file->isSaveAs()) {
         SaveDialog *q = saveFileDialog();
         return q;
     } else {
@@ -470,7 +460,7 @@ SaveDialog * Editor::saveOrSaveas() {
 void Editor::reload() {
     QPoint xy = file->getCursorPosition();
 
-    file->openText();
+    file->openText(file->getFilename());
     _statusBar->fileHasBeenChanged(false);
 
     file->setCursorPosition(xy);
