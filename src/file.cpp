@@ -1885,6 +1885,9 @@ void File::selectCursorPosition(Qt::KeyboardModifiers modifiers) {
 }
 
 void File::adjustScrollPosition() {
+    if(geometry().width() <= 0 && geometry().height() <= 0) {
+        return;
+    }
     ZTextOption option = getTextOption();
     option.setWrapMode(ZTextOption::NoWrap);
     TextLayout lay = getTextLayoutForLine(option, _cursorPositionY);
