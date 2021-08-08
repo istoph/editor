@@ -58,6 +58,7 @@ public:
     explicit File(Tui::ZWidget *parent);
     bool setFilename(QString _filename,  bool newfile = false);
     QString getFilename();
+    QString emptyFilename();
     bool newText();
     bool saveText();
     bool openText();

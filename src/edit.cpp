@@ -327,6 +327,7 @@ void Editor::closePipe() {
 void Editor::watchPipe() {
     _pipeSocketNotifier = new QSocketNotifier(0, QSocketNotifier::Type::Read, this);
     QObject::connect(_pipeSocketNotifier, &QSocketNotifier::activated, this, &Editor::inputPipeReadable);
+    file->setFilename("-", true);
     readFromStandadInput(true);
 }
 
@@ -353,28 +354,32 @@ void Editor::newFileMenue() {
         ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::New);
         QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
             delete confirmDialog;
-            newFile();
+            newFile("");
         });
 
         QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
             saveOrSaveas();
             delete confirmDialog;
-            newFile();
+            newFile("");
         });
         QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
             delete confirmDialog;
         });
     } else {
-        newFile();
+        newFile("");
     }
 }
 
 void Editor::newFile(QString filename) {
     closePipe();
     watcherRemove();
-    windowTitle(filename);
+    if (filename == "") {
+        filename = file->emptyFilename();
+    } else {
+        file->setFilename(filename, true);
+    }
+    windowTitle(file->getFilename());
     file->newText();
-    file->setFilename(filename, true);
     _statusBar->fileHasBeenChanged(false);
     watcherAdd();
 }

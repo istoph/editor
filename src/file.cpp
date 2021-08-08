@@ -167,12 +167,34 @@ void File::setCursorPosition(QPoint position) {
     adjustScrollPosition();
 }
 
+QString File::emptyFilename() {
+    QString filename = "";
+    QString count = "";
+    for(int i=0; i >= 0; i++) {
+        filename = "dokument"+ count +".txt";
+        QFileInfo filenameInfo(filename);
+        if (!filenameInfo.exists()) {
+            filename = filenameInfo.absoluteFilePath();
+            break;
+        }
+        count = QString::number(i);
+    }
+    setFilename(filename);
+    return filename;
+}
+
 bool File::setFilename(QString filename, bool newfile) {
-    QFileInfo filenameInfo(filename);
-    _filename = filenameInfo.absoluteFilePath();
-    if(newfile) {
-        this->newfile = false;
-        saveUndoStep();
+    if (filename == "-") {
+        _filename = "-";
+        this->newfile = true;
+    } else {
+        QFileInfo filenameInfo(filename);
+        _filename = filenameInfo.absoluteFilePath();
+        if(newfile) {
+            this->newfile = false;
+            saveUndoStep();
+        }
+        modifiedChanged(false);
     }
     return true;
 }
@@ -181,11 +203,6 @@ QString File::getFilename() {
 }
 
 bool File::newText() {
-    if(getFilename().isEmpty()) {
-        setFilename("dokument.txt");
-        modifiedChanged(false);
-        newfile = true;
-    }
     _text.clear();
     _text.append(QString());
     _undoSteps.clear();

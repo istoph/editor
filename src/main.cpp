@@ -163,9 +163,10 @@ int main(int argc, char **argv) {
                 }
             } else {
                 if(parser.isSet(append)) {
+                    //TODO fix
                     root->openFile(parser.value(append));
                 } else {
-                    root->newFile();
+                    root->newFile("");
                 }
                 root->watchPipe();
             }
@@ -178,7 +179,7 @@ int main(int argc, char **argv) {
             p.removeFirst();
         }
     } else {
-        root->newFile();
+        root->newFile("");
     }
 
     //Goto Line
