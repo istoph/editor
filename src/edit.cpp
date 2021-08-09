@@ -5,6 +5,8 @@
 #include <Tui/ZTerminal.h>
 #include <Tui/ZImage.h>
 
+#include "confirmsave.h"
+
 Editor::Editor() {
     ensureCommandManager();
 
@@ -79,61 +81,12 @@ Editor::Editor() {
         }
     );
 
-    //Save
-    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("s"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
-            this, &Editor::saveOrSaveas);
-    QObject::connect(new Tui::ZCommandNotifier("Save", this), &Tui::ZCommandNotifier::activated,
-                    this, &Editor::saveOrSaveas);
-
-    //Save As
-    //shortcut dose not work in vte, konsole, ...
-    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("S", Qt::ControlModifier | Qt::ShiftModifier), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
-            this, &Editor::saveFileDialog);
-    QObject::connect(new Tui::ZCommandNotifier("SaveAs", this), &Tui::ZCommandNotifier::activated,
-                     this, &Editor::saveFileDialog);
-
-    //Reload
-    QObject::connect(new Tui::ZCommandNotifier("Reload", this), &Tui::ZCommandNotifier::activated,
-         this, [&] {
-            if(file->isModified()) {
-                ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Reload);
-                QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
-                    delete confirmDialog;
-                    Editor::reload();
-                });
-
-                QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
-                    delete confirmDialog;
-                });
-            } else {
-                Editor::reload();
-            }
-
-    });
 
     //Quit
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("q"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
             this, &Editor::quit);
     QObject::connect(new Tui::ZCommandNotifier("Quit", this), &Tui::ZCommandNotifier::activated,
                      this, &Editor::quit);
-
-    //Edit
-    QObject::connect(new Tui::ZCommandNotifier("Selectall", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            file->selectAll();
-        }
-    );
-
-    QObject::connect(new Tui::ZCommandNotifier("Cutline", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            file->cutline();
-        }
-    );
-    QObject::connect(new Tui::ZCommandNotifier("SelectMode", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            file->toggleSelectMode();
-        }
-    );
 
     //Search
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, 0), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
@@ -199,33 +152,6 @@ Editor::Editor() {
         }
     );
 
-    QObject::connect(new Tui::ZCommandNotifier("Wrap", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            setWrap(!file->getWrapOption());
-        }
-    );
-
-    _cmdInputPipe = new Tui::ZCommandNotifier("InputPipe", this);
-    _cmdInputPipe->setEnabled(false);
-    QObject::connect(_cmdInputPipe, &Tui::ZCommandNotifier::activated,
-         [&] {
-            closePipe();
-        }
-    );
-
-    _cmdFollow = new Tui::ZCommandNotifier("Following", this);
-    _cmdFollow->setEnabled(false);
-    QObject::connect(_cmdFollow, &Tui::ZCommandNotifier::activated,
-         [&] {
-            setFollow(!getFollow());
-        }
-    );
-
-    QObject::connect(this, &Editor::readFromStandadInput, this, [=](bool enable){
-        _cmdInputPipe->setEnabled(enable);
-        _cmdFollow->setEnabled(enable);
-    });
-
     QObject::connect(new Tui::ZCommandNotifier("Brackets", this), &Tui::ZCommandNotifier::activated,
          [&] {
             file->setHighlightBracket(!file->getHighlightBracket());
@@ -244,12 +170,8 @@ Editor::Editor() {
     // Background
     setFillChar(u'▒');
 
-    win = new WindowWidget(this);
-    win->setBorderEdges({ Qt::TopEdge });
-
-    //File
-    file = new File(win);
-    win->setWindowTitle(file->getFilename());
+    win = new FileWindow(this);
+    file = win->getFileWidget();
 
     _commandLineWidget = new CommandLineWidget(this);
     _commandLineWidget->setVisible(false);
@@ -260,38 +182,16 @@ Editor::Editor() {
     connect(file, &File::cursorPositionChanged, _statusBar, &StatusBar::cursorPosition);
     connect(file, &File::scrollPositionChanged, _statusBar, &StatusBar::scrollPosition);
     connect(file, &File::modifiedChanged, _statusBar, &StatusBar::setModified);
-    connect(file, &File::modifiedChanged, this,
-            [&] {
-                windowTitle(file->getFilename());
-            }
-    );
-    connect(this, &Editor::readFromStandadInput, _statusBar, &StatusBar::readFromStandardInput);
-    connect(this, &Editor::followStandadInput, _statusBar, &StatusBar::followStandardInput);
+    connect(win, &FileWindow::readFromStandadInput, _statusBar, &StatusBar::readFromStandardInput);
+    connect(win, &FileWindow::followStandadInput, _statusBar, &StatusBar::followStandardInput);
     connect(file, &File::setWritable, _statusBar, &StatusBar::setWritable);
     connect(file, &File::msdosMode, _statusBar, &StatusBar::msdosMode);
     connect(file, &File::modifiedSelectMode, _statusBar, &StatusBar::modifiedSelectMode);
     connect(file, &File::emitSearchCount, _statusBar, &StatusBar::searchCount);
     connect(file, &File::emitSearchText, _statusBar, &StatusBar::searchText);
     connect(file, &File::emitOverwrite, _statusBar, &StatusBar::overwrite);
+    connect(win, &FileWindow::fileChangedExternally, _statusBar, &StatusBar::fileHasBeenChangedExternally);
 
-    ScrollBar *sc = new ScrollBar(win);
-    sc->setTransparent(true);
-    connect(file, &File::scrollPositionChanged, sc, &ScrollBar::scrollPosition);
-    connect(file, &File::textMax, sc, &ScrollBar::positonMax);
-
-    _scrollbarHorizontal = new ScrollBar(win);
-    connect(file, &File::scrollPositionChanged, _scrollbarHorizontal, &ScrollBar::scrollPosition);
-    connect(file, &File::textMax, _scrollbarHorizontal, &ScrollBar::positonMax);
-    _scrollbarHorizontal->setTransparent(true);
-
-    _winLayout = new WindowLayout();
-    win->setLayout(_winLayout);
-    _winLayout->addRightBorderWidget(sc);
-    _winLayout->setRightBorderTopAdjust(-1);
-    _winLayout->setRightBorderBottomAdjust(-1);
-    _winLayout->addBottomBorderWidget(_scrollbarHorizontal);
-    _winLayout->setBottomBorderLeftAdjust(-1);
-    _winLayout->addCentralWidget(file);
 
     VBoxLayout *rootLayout = new VBoxLayout();
     setLayout(rootLayout);
@@ -307,29 +207,8 @@ Editor::Editor() {
     _replaceDialog = new SearchDialog(this, file, true);
     QObject::connect(new Tui::ZCommandNotifier("replace", this), &Tui::ZCommandNotifier::activated,
                      _replaceDialog, &SearchDialog::open);
-
-    _watcher = new QFileSystemWatcher();
-    QObject::connect(_watcher, &QFileSystemWatcher::fileChanged, this, [=]{
-        _statusBar->fileHasBeenChanged(true);
-    });
 }
 
-void Editor::closePipe() {
-    if(_pipeSocketNotifier != nullptr && _pipeSocketNotifier->isEnabled()) {
-        _pipeSocketNotifier->setEnabled(false);
-        _pipeSocketNotifier->deleteLater();
-        _pipeSocketNotifier = nullptr;
-        close(0);
-        readFromStandadInput(false);
-    }
-}
-
-void Editor::watchPipe() {
-    _pipeSocketNotifier = new QSocketNotifier(0, QSocketNotifier::Type::Read, this);
-    QObject::connect(_pipeSocketNotifier, &QSocketNotifier::activated, this, &Editor::inputPipeReadable);
-    file->stdinText();
-    readFromStandadInput(true);
-}
 
 void Editor::searchDialog() {
     _searchDialog->open();
@@ -341,41 +220,25 @@ void Editor::replaceDialog() {
     _replaceDialog->setSearchText(file->getSelectText());
 }
 
-void Editor::windowTitle(QString filename) {
-    terminal()->setTitle("chr - "+ filename);
-    if(file->isModified()) {
-        filename = "*" + filename;
-    }
-    win->setWindowTitle(filename);
-}
-
 void Editor::newFileMenue() {
     if(file->isModified()) {
         ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::New);
         QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
             delete confirmDialog;
-            newFile("");
+            win->newFile("");
         });
 
         QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
-            saveOrSaveas();
+            win->saveOrSaveas();
             delete confirmDialog;
-            newFile("");
+            win->newFile("");
         });
         QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
             delete confirmDialog;
         });
     } else {
-        newFile("");
+        win->newFile("");
     }
-}
-
-void Editor::newFile(QString filename) {
-    closePipe();
-    watcherRemove();
-    file->newText(filename);
-    _statusBar->fileHasBeenChanged(false);
-    watcherAdd();
 }
 
 void Editor::openFileMenue() {
@@ -387,7 +250,7 @@ void Editor::openFileMenue() {
         });
 
         QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
-            saveOrSaveas();
+            win->saveOrSaveas();
             delete confirmDialog;
             openFileDialog();
         });
@@ -400,37 +263,10 @@ void Editor::openFileMenue() {
     }
 }
 
-void Editor::openFile(QString filename) {
-    closePipe();
-    watcherRemove();
-    file->openText(filename);
-    _statusBar->fileHasBeenChanged(false);
-    watcherAdd();
-}
 
-void Editor::saveFile(QString filename) {
-    file->setFilename(filename);
-    watcherRemove();
-    if(file->saveText()) {
-        windowTitle(filename);
-        win->update();
-        _statusBar->fileHasBeenChanged(false);
-    } else {
-        Alert *e = new Alert(this);
-        e->addPaletteClass("red");
-        e->setWindowTitle("Error");
-        e->setMarkup("file could not be saved"); //Die Datei konnte nicht gespeicher werden!
-        e->setGeometry({15,5,50,5});
-        e->setDefaultPlacement(Qt::AlignCenter);
-        e->setVisible(true);
-        e->setFocus();
-    }
-    watcherAdd();
-
-}
 void Editor::openFileDialog(QString path) {
     OpenDialog *openDialog = new OpenDialog(this, path);
-    connect(openDialog, &OpenDialog::fileSelected, this, &Editor::openFile);
+    connect(openDialog, &OpenDialog::fileSelected, win, &FileWindow::openFile);
 }
 
 QObject * Editor::facet(const QMetaObject metaObject) {
@@ -439,31 +275,6 @@ QObject * Editor::facet(const QMetaObject metaObject) {
     } else {
         return ZRoot::facet(metaObject);
     }
-}
-
-SaveDialog * Editor::saveFileDialog() {
-    SaveDialog * saveDialog = new SaveDialog(this, file);
-    connect(saveDialog, &SaveDialog::fileSelected, this, &Editor::saveFile);
-    return saveDialog;
-}
-
-SaveDialog * Editor::saveOrSaveas() {
-    if (file->isSaveAs()) {
-        SaveDialog *q = saveFileDialog();
-        return q;
-    } else {
-        saveFile(file->getFilename());
-        return nullptr;
-    }
-}
-
-void Editor::reload() {
-    QPoint xy = file->getCursorPosition();
-
-    file->openText(file->getFilename());
-    _statusBar->fileHasBeenChanged(false);
-
-    file->setCursorPosition(xy);
 }
 
 void Editor::quit() {
@@ -477,7 +288,7 @@ void Editor::quit() {
 
         QObject::connect(quitDialog, &ConfirmSave::saveSelected, [=]{
             quitDialog->deleteLater();
-            SaveDialog *q = saveOrSaveas();
+            SaveDialog *q = win->saveOrSaveas();
             if (q) {
                 connect(q, &SaveDialog::fileSelected, QCoreApplication::instance(), &QCoreApplication::quit);
             } else {
@@ -522,18 +333,6 @@ void Editor::setTheme(Theme theme) {
     }
 }
 
-void Editor::setWrap(bool wrap) {
-    if (wrap) {
-        file->setWrapOption(true);
-        _scrollbarHorizontal->setVisible(false);
-        _winLayout->setRightBorderBottomAdjust(-2);
-    } else {
-        file->setWrapOption(false);
-        _scrollbarHorizontal->setVisible(true);
-        _winLayout->setRightBorderBottomAdjust(-1);
-    }
-}
-
 void Editor::showCommandLine() {
     _statusBar->setVisible(false);
     _commandLineWidget->setVisible(true);
@@ -567,58 +366,5 @@ void Editor::commandLineExecute(QString cmd) {
         term->pauseOperation();
         system(qgetenv("SHELL"));
         term->unpauseOperation();
-    }
-}
-
-void Editor::inputPipeReadable(int socket) {
-    char buff[1024];
-    int bytes = read(socket, buff, 1024);
-    if (bytes == 0) {
-        // EOF
-        if (!_pipeLineBuffer.isEmpty()) {
-            file->appendLine(surrogate_escape::decode(_pipeLineBuffer));
-        }
-        _pipeSocketNotifier->deleteLater();
-        _pipeSocketNotifier = nullptr;
-    } else if (bytes < 0) {
-        // TODO error handling
-        _pipeSocketNotifier->deleteLater();
-        _pipeSocketNotifier = nullptr;
-    } else {
-        _pipeLineBuffer.append(buff, bytes);
-        int index;
-        while ((index = _pipeLineBuffer.indexOf('\n')) != -1) {
-            file->appendLine(surrogate_escape::decode(_pipeLineBuffer.left(index)));
-            _pipeLineBuffer = _pipeLineBuffer.mid(index + 1);
-        }
-        file->modifiedChanged(true);
-    }
-
-    if(_pipeSocketNotifier == nullptr) {
-        readFromStandadInput(false);
-    } else {
-        readFromStandadInput(true);
-    }
-}
-
-void Editor::setFollow(bool follow) {
-    _follow = follow;
-    file->followStandardInput(getFollow());
-    followStandadInput(getFollow());
-}
-
-bool Editor::getFollow() {
-    return _follow;
-}
-
-void Editor::watcherAdd() {
-    QFileInfo filenameInfo(file->getFilename());
-    if(filenameInfo.exists()) {
-        _watcher->addPath(file->getFilename());
-    }
-}
-void Editor::watcherRemove() {
-    if(_watcher->files().count() > 0) {
-        _watcher->removePaths(_watcher->files());
     }
 }

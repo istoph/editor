@@ -22,7 +22,7 @@ public slots:
     void searchText(QString searchText);
     void msdosMode(bool msdos);
     void modifiedSelectMode(bool f4);
-    void fileHasBeenChanged(bool fileChanged = true);
+    void fileHasBeenChangedExternally(bool fileChanged = true);
     void overwrite(bool overwrite);
 
 protected:

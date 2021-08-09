@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
     root->file->setAttributesfile(attributesfile);
 
     bool wl = qsettings->value("wrap_lines","false").toBool();
-    root->setWrap(wl || parser.isSet(wraplines));
+    root->win->setWrap(wl || parser.isSet(wraplines));
 
     bool hb = qsettings->value("highlight_bracket","false").toBool();
     root->file->setHighlightBracket(hb);
@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
                         out << "The file is bigger then " << maxMB << "MB (" << datei.size()/1024/1024 << "MB). Please start with -b for big files.\n";
                         return 0;
                     }
-                    root->openFile(datei.absoluteFilePath());
+                    root->win->openFile(datei.absoluteFilePath());
                 } else if(datei.isDir()) {
                     QString tmp = datei.absoluteFilePath();
                     QTimer *t = new QTimer();
@@ -159,16 +159,16 @@ int main(int argc, char **argv) {
                     t->setSingleShot(true);
                     t->start(0);
                 } else {
-                    root->newFile(datei.absoluteFilePath());
+                    root->win->newFile(datei.absoluteFilePath());
                 }
             } else {
                 if(parser.isSet(append)) {
                     //TODO fix
-                    root->openFile(parser.value(append));
+                    root->win->openFile(parser.value(append));
                 } else {
-                    root->newFile("");
+                    root->win->newFile("");
                 }
-                root->watchPipe();
+                root->win->watchPipe();
             }
         } else {
             out << "Got file offset without file name.\n";
@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
             p.removeFirst();
         }
     } else {
-        root->newFile("");
+        root->win->newFile("");
     }
 
     //Goto Line
@@ -188,7 +188,7 @@ int main(int argc, char **argv) {
     }
 
     if(parser.isSet(follow)) {
-        root->setFollow(true);
+        root->win->setFollow(true);
     }
 
     QObject::connect(&terminal, &Tui::ZTerminal::terminalConnectionLost, [=] {

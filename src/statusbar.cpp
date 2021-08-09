@@ -63,7 +63,7 @@ void StatusBar::modifiedSelectMode(bool event) {
     update();
 }
 
-void StatusBar::fileHasBeenChanged(bool fileChanged) {
+void StatusBar::fileHasBeenChangedExternally(bool fileChanged) {
     _fileChanged = fileChanged;
     update();
 }
