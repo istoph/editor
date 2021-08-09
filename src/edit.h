@@ -105,7 +105,6 @@ private:
     QFileSystemWatcher *_watcher = nullptr;
     StatusBar *_statusBar = nullptr;
     CommandLineWidget *_commandLineWidget = nullptr;
-    VBoxLayout *_rootLayout = nullptr; // only needed to workaround missing updating in ZLayout
     Clipboard _clipboard;
     Theme _theme = Theme::classic;
 };

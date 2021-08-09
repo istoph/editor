@@ -293,12 +293,12 @@ Editor::Editor() {
     _winLayout->setBottomBorderLeftAdjust(-1);
     _winLayout->addCentralWidget(file);
 
-    _rootLayout = new VBoxLayout();
-    setLayout(_rootLayout);
-    _rootLayout->addWidget(menu);
-    _rootLayout->addWidget(win);
-    _rootLayout->addWidget(_commandLineWidget);
-    _rootLayout->addWidget(_statusBar);
+    VBoxLayout *rootLayout = new VBoxLayout();
+    setLayout(rootLayout);
+    rootLayout->addWidget(menu);
+    rootLayout->addWidget(win);
+    rootLayout->addWidget(_commandLineWidget);
+    rootLayout->addWidget(_statusBar);
 
     _searchDialog = new SearchDialog(this, file);
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
@@ -538,7 +538,6 @@ void Editor::showCommandLine() {
     _statusBar->setVisible(false);
     _commandLineWidget->setVisible(true);
     // Force relayout, this should not be needed
-    _rootLayout->setGeometry(layoutArea());
     _commandLineWidget->grabKeyboard();
 }
 
@@ -546,7 +545,6 @@ void Editor::commandLineDismissed() {
     _statusBar->setVisible(true);
     _commandLineWidget->setVisible(false);
     // Force relayout, this should not be needed
-    _rootLayout->setGeometry(layoutArea());
 }
 
 void Editor::commandLineExecute(QString cmd) {
