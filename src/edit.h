@@ -34,18 +34,13 @@ class Editor : public Tui::ZRoot {
     Q_OBJECT
 
 public:
-    Editor();
-
-    FileWindow *win;
-    WindowWidget *option_tab;
-    WindowWidget *file_open;
-    WindowWidget *file_goto_line;
-    File *file;
-    int tab = 8;
     enum class Theme {
         classic,
         dark
     };
+
+public:
+    Editor();
 
 public:
     void setTheme(Theme theme);
@@ -67,6 +62,10 @@ private:
     void searchDialog();
     void replaceDialog();
 
+public:
+    File *_file;
+    FileWindow *_win;
+
 private:
     SearchDialog *_searchDialog = nullptr;
     SearchDialog *_replaceDialog = nullptr;
@@ -75,6 +74,11 @@ private:
     CommandLineWidget *_commandLineWidget = nullptr;
     Clipboard _clipboard;
     Theme _theme = Theme::classic;
+
+    WindowWidget *_option_tab;
+    WindowWidget *_file_open;
+    WindowWidget *_file_goto_line;
+    int _tab = 8;
 };
 
 #endif // EDIT_H

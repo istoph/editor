@@ -85,16 +85,16 @@ int main(int argc, char **argv) {
     // Default settings
     QSettings * qsettings = new QSettings(configDir, QSettings::IniFormat);
     int tabsize = qsettings->value("tabsize","4").toInt();
-    root->file->setTabsize(tabsize);
+    root->_file->setTabsize(tabsize);
 
     bool tab = qsettings->value("tab","true").toBool();
-    root->file->setTabOption(tab);
+    root->_file->setTabOption(tab);
 
     bool ln = qsettings->value("line_number","0").toBool();
-    root->file->setLineNumber(ln || parser.isSet(lineNumberOption));
+    root->_file->setLineNumber(ln || parser.isSet(lineNumberOption));
 
     bool fb = qsettings->value("formatting_characters","1").toBool();
-    root->file->setFormattingCharacters(fb);
+    root->_file->setFormattingCharacters(fb);
 
     bool bigfile = qsettings->value("bigfile", "false").toBool();
 
@@ -102,16 +102,16 @@ int main(int argc, char **argv) {
     if(attributesfile.isEmpty()) {
         attributesfile = attributesfileDefault;
     }
-    root->file->setAttributesfile(attributesfile);
+    root->_file->setAttributesfile(attributesfile);
 
     bool wl = qsettings->value("wrap_lines","false").toBool();
-    root->win->setWrap(wl || parser.isSet(wraplines));
+    root->_win->setWrap(wl || parser.isSet(wraplines));
 
     bool hb = qsettings->value("highlight_bracket","false").toBool();
-    root->file->setHighlightBracket(hb);
+    root->_file->setHighlightBracket(hb);
 
     bool scpx0 = qsettings->value("select_cursor_position_x0","ture").toBool();
-    root->file->select_cursor_position_x0 = scpx0;
+    root->_file->select_cursor_position_x0 = scpx0;
 
     QString theme = qsettings->value("theme","classic").toString();
     if(theme.toLower() == "dark" || theme.toLower() == "black") {
@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
                         out << "The file is bigger then " << maxMB << "MB (" << datei.size()/1024/1024 << "MB). Please start with -b for big files.\n";
                         return 0;
                     }
-                    root->win->openFile(datei.absoluteFilePath());
+                    root->_win->openFile(datei.absoluteFilePath());
                 } else if(datei.isDir()) {
                     QString tmp = datei.absoluteFilePath();
                     QTimer *t = new QTimer();
@@ -159,16 +159,16 @@ int main(int argc, char **argv) {
                     t->setSingleShot(true);
                     t->start(0);
                 } else {
-                    root->win->newFile(datei.absoluteFilePath());
+                    root->_win->newFile(datei.absoluteFilePath());
                 }
             } else {
                 if(parser.isSet(append)) {
                     //TODO fix
-                    root->win->openFile(parser.value(append));
+                    root->_win->openFile(parser.value(append));
                 } else {
-                    root->win->newFile("");
+                    root->_win->newFile("");
                 }
-                root->win->watchPipe();
+                root->_win->watchPipe();
             }
         } else {
             out << "Got file offset without file name.\n";
@@ -179,16 +179,16 @@ int main(int argc, char **argv) {
             p.removeFirst();
         }
     } else {
-        root->win->newFile("");
+        root->_win->newFile("");
     }
 
     //Goto Line
     if (gotoline != "") {
-        root->file->gotoline(gotoline);
+        root->_file->gotoline(gotoline);
     }
 
     if(parser.isSet(follow)) {
-        root->win->setFollow(true);
+        root->_win->setFollow(true);
     }
 
     QObject::connect(&terminal, &Tui::ZTerminal::terminalConnectionLost, [=] {
@@ -204,8 +204,8 @@ int main(int argc, char **argv) {
         QCoreApplication::quit();
     });
 
-    root->file->setFocus();
-    root->file->setCursorStyle(Tui::CursorStyle::Underline);
+    root->_file->setFocus();
+    root->_file->setCursorStyle(Tui::CursorStyle::Underline);
 
     app.exec();
     if(Tui::ZSimpleStringLogger::getMessages().size() > 0) {

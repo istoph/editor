@@ -91,11 +91,11 @@ Editor::Editor() {
     //Search
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, 0), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
           [&] {
-            file->runSearch(false);
+            _file->runSearch(false);
           });
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, Qt::ShiftModifier), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
           [&] {
-            file->runSearch(true);
+            _file->runSearch(true);
           });
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("f"), this, Qt::ApplicationShortcut),
                      &Tui::ZShortcut::activated, this, &Editor::searchDialog);
@@ -117,44 +117,44 @@ Editor::Editor() {
     //InsertCharacter
     QObject::connect(new Tui::ZCommandNotifier("InsertCharacter", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            new InsertCharacter(this, file);
+            new InsertCharacter(this, _file);
         }
     );
 
     //Goto Line
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("g"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
         this, [&] {
-            new GotoLine(this, file);
+            new GotoLine(this, _file);
     });
     QObject::connect(new Tui::ZCommandNotifier("Gotoline", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            new GotoLine(this, file);
+            new GotoLine(this, _file);
         }
     );
 
     //Options
     QObject::connect(new Tui::ZCommandNotifier("Tab", this), &Tui::ZCommandNotifier::activated,
         [&] {
-            new TabDialog(file, this);
+            new TabDialog(_file, this);
         }
     );
 
     QObject::connect(new Tui::ZCommandNotifier("LineNumber", this), &Tui::ZCommandNotifier::activated,
         [&] {
-            file->toggleLineNumber();
+            _file->toggleLineNumber();
         }
     );
 
     QObject::connect(new Tui::ZCommandNotifier("Formatting", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            file->setFormattingCharacters(!file->getformattingCharacters());
+            _file->setFormattingCharacters(!_file->getformattingCharacters());
             update();
         }
     );
 
     QObject::connect(new Tui::ZCommandNotifier("Brackets", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            file->setHighlightBracket(!file->getHighlightBracket());
+            _file->setHighlightBracket(!_file->getHighlightBracket());
         }
     );
 
@@ -170,8 +170,8 @@ Editor::Editor() {
     // Background
     setFillChar(u'▒');
 
-    win = new FileWindow(this);
-    file = win->getFileWidget();
+    _win = new FileWindow(this);
+    _file = _win->getFileWidget();
 
     _commandLineWidget = new CommandLineWidget(this);
     _commandLineWidget->setVisible(false);
@@ -179,32 +179,32 @@ Editor::Editor() {
     connect(_commandLineWidget, &CommandLineWidget::execute, this, &Editor::commandLineExecute);
 
     _statusBar = new StatusBar(this);
-    connect(file, &File::cursorPositionChanged, _statusBar, &StatusBar::cursorPosition);
-    connect(file, &File::scrollPositionChanged, _statusBar, &StatusBar::scrollPosition);
-    connect(file, &File::modifiedChanged, _statusBar, &StatusBar::setModified);
-    connect(win, &FileWindow::readFromStandadInput, _statusBar, &StatusBar::readFromStandardInput);
-    connect(win, &FileWindow::followStandadInput, _statusBar, &StatusBar::followStandardInput);
-    connect(file, &File::setWritable, _statusBar, &StatusBar::setWritable);
-    connect(file, &File::msdosMode, _statusBar, &StatusBar::msdosMode);
-    connect(file, &File::modifiedSelectMode, _statusBar, &StatusBar::modifiedSelectMode);
-    connect(file, &File::emitSearchCount, _statusBar, &StatusBar::searchCount);
-    connect(file, &File::emitSearchText, _statusBar, &StatusBar::searchText);
-    connect(file, &File::emitOverwrite, _statusBar, &StatusBar::overwrite);
-    connect(win, &FileWindow::fileChangedExternally, _statusBar, &StatusBar::fileHasBeenChangedExternally);
+    connect(_file, &File::cursorPositionChanged, _statusBar, &StatusBar::cursorPosition);
+    connect(_file, &File::scrollPositionChanged, _statusBar, &StatusBar::scrollPosition);
+    connect(_file, &File::modifiedChanged, _statusBar, &StatusBar::setModified);
+    connect(_win, &FileWindow::readFromStandadInput, _statusBar, &StatusBar::readFromStandardInput);
+    connect(_win, &FileWindow::followStandadInput, _statusBar, &StatusBar::followStandardInput);
+    connect(_file, &File::setWritable, _statusBar, &StatusBar::setWritable);
+    connect(_file, &File::msdosMode, _statusBar, &StatusBar::msdosMode);
+    connect(_file, &File::modifiedSelectMode, _statusBar, &StatusBar::modifiedSelectMode);
+    connect(_file, &File::emitSearchCount, _statusBar, &StatusBar::searchCount);
+    connect(_file, &File::emitSearchText, _statusBar, &StatusBar::searchText);
+    connect(_file, &File::emitOverwrite, _statusBar, &StatusBar::overwrite);
+    connect(_win, &FileWindow::fileChangedExternally, _statusBar, &StatusBar::fileHasBeenChangedExternally);
 
 
     VBoxLayout *rootLayout = new VBoxLayout();
     setLayout(rootLayout);
     rootLayout->addWidget(menu);
-    rootLayout->addWidget(win);
+    rootLayout->addWidget(_win);
     rootLayout->addWidget(_commandLineWidget);
     rootLayout->addWidget(_statusBar);
 
-    _searchDialog = new SearchDialog(this, file);
+    _searchDialog = new SearchDialog(this, _file);
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
                      _searchDialog, &SearchDialog::open);
 
-    _replaceDialog = new SearchDialog(this, file, true);
+    _replaceDialog = new SearchDialog(this, _file, true);
     QObject::connect(new Tui::ZCommandNotifier("replace", this), &Tui::ZCommandNotifier::activated,
                      _replaceDialog, &SearchDialog::open);
 }
@@ -212,45 +212,45 @@ Editor::Editor() {
 
 void Editor::searchDialog() {
     _searchDialog->open();
-    _searchDialog->setSearchText(file->getSelectText());
+    _searchDialog->setSearchText(_file->getSelectText());
 }
 
 void Editor::replaceDialog() {
     _replaceDialog->open();
-    _replaceDialog->setSearchText(file->getSelectText());
+    _replaceDialog->setSearchText(_file->getSelectText());
 }
 
 void Editor::newFileMenue() {
-    if(file->isModified()) {
-        ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::New);
+    if(_file->isModified()) {
+        ConfirmSave *confirmDialog = new ConfirmSave(this, _file->getFilename(), ConfirmSave::New);
         QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
             delete confirmDialog;
-            win->newFile("");
+            _win->newFile("");
         });
 
         QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
-            win->saveOrSaveas();
+            _win->saveOrSaveas();
             delete confirmDialog;
-            win->newFile("");
+            _win->newFile("");
         });
         QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
             delete confirmDialog;
         });
     } else {
-        win->newFile("");
+        _win->newFile("");
     }
 }
 
 void Editor::openFileMenue() {
-    if(file->isModified()) {
-        ConfirmSave *confirmDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Open);
+    if(_file->isModified()) {
+        ConfirmSave *confirmDialog = new ConfirmSave(this, _file->getFilename(), ConfirmSave::Open);
         QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
             delete confirmDialog;
             openFileDialog();
         });
 
         QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
-            win->saveOrSaveas();
+            _win->saveOrSaveas();
             delete confirmDialog;
             openFileDialog();
         });
@@ -266,7 +266,7 @@ void Editor::openFileMenue() {
 
 void Editor::openFileDialog(QString path) {
     OpenDialog *openDialog = new OpenDialog(this, path);
-    connect(openDialog, &OpenDialog::fileSelected, win, &FileWindow::openFile);
+    connect(openDialog, &OpenDialog::fileSelected, _win, &FileWindow::openFile);
 }
 
 QObject * Editor::facet(const QMetaObject metaObject) {
@@ -278,9 +278,9 @@ QObject * Editor::facet(const QMetaObject metaObject) {
 }
 
 void Editor::quit() {
-    file->writeAttributes();
-    if(file->isModified()) {
-        ConfirmSave *quitDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Quit, file->getWritable());
+    _file->writeAttributes();
+    if(_file->isModified()) {
+        ConfirmSave *quitDialog = new ConfirmSave(this, _file->getFilename(), ConfirmSave::Quit, _file->getWritable());
 
         QObject::connect(quitDialog, &ConfirmSave::exitSelected, [=]{
             QCoreApplication::instance()->quit();
@@ -288,7 +288,7 @@ void Editor::quit() {
 
         QObject::connect(quitDialog, &ConfirmSave::saveSelected, [=]{
             quitDialog->deleteLater();
-            SaveDialog *q = win->saveOrSaveas();
+            SaveDialog *q = _win->saveOrSaveas();
             if (q) {
                 connect(q, &SaveDialog::fileSelected, QCoreApplication::instance(), &QCoreApplication::quit);
             } else {
