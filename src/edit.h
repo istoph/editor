@@ -16,6 +16,7 @@
 #include "opendialog.h"
 #include "scrollbar.h"
 #include "searchdialog.h"
+#include "statemux.h"
 #include "statusbar.h"
 #include "tabdialog.h"
 #include "insertcharacter.h"
@@ -58,6 +59,7 @@ private slots:
     void commandLineExecute(QString cmd);
 
 private:
+    FileWindow *createFileWindow();
     void quit();
     void searchDialog();
     void replaceDialog();
@@ -67,6 +69,7 @@ public:
     FileWindow *_win;
 
 private:
+    StateMux _mux;
     SearchDialog *_searchDialog = nullptr;
     SearchDialog *_replaceDialog = nullptr;
     ThemeDialog *_themeDialog = nullptr;

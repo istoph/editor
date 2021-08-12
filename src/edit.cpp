@@ -170,8 +170,6 @@ Editor::Editor() {
     // Background
     setFillChar(u'▒');
 
-    _win = new FileWindow(this);
-    _file = _win->getFileWidget();
 
     _commandLineWidget = new CommandLineWidget(this);
     _commandLineWidget->setVisible(false);
@@ -179,19 +177,11 @@ Editor::Editor() {
     connect(_commandLineWidget, &CommandLineWidget::execute, this, &Editor::commandLineExecute);
 
     _statusBar = new StatusBar(this);
-    connect(_file, &File::cursorPositionChanged, _statusBar, &StatusBar::cursorPosition);
-    connect(_file, &File::scrollPositionChanged, _statusBar, &StatusBar::scrollPosition);
-    connect(_file, &File::modifiedChanged, _statusBar, &StatusBar::setModified);
-    connect(_win, &FileWindow::readFromStandadInput, _statusBar, &StatusBar::readFromStandardInput);
-    connect(_win, &FileWindow::followStandadInput, _statusBar, &StatusBar::followStandardInput);
-    connect(_file, &File::setWritable, _statusBar, &StatusBar::setWritable);
-    connect(_file, &File::msdosMode, _statusBar, &StatusBar::msdosMode);
-    connect(_file, &File::modifiedSelectMode, _statusBar, &StatusBar::modifiedSelectMode);
-    connect(_file, &File::emitSearchCount, _statusBar, &StatusBar::searchCount);
-    connect(_file, &File::emitSearchText, _statusBar, &StatusBar::searchText);
-    connect(_file, &File::emitOverwrite, _statusBar, &StatusBar::overwrite);
-    connect(_win, &FileWindow::fileChangedExternally, _statusBar, &StatusBar::fileHasBeenChangedExternally);
 
+    _win = createFileWindow();
+    _file = _win->getFileWidget();
+
+    _mux.selectInput(_win);
 
     VBoxLayout *rootLayout = new VBoxLayout();
     setLayout(rootLayout);
@@ -209,6 +199,25 @@ Editor::Editor() {
                      _replaceDialog, &SearchDialog::open);
 }
 
+FileWindow *Editor::createFileWindow() {
+    FileWindow *win = new FileWindow(this);
+    File *file = win->getFileWidget();
+
+    _mux.connect(win, file, &File::cursorPositionChanged, _statusBar, &StatusBar::cursorPosition, 0, 0, 0);
+    _mux.connect(win, file, &File::scrollPositionChanged, _statusBar, &StatusBar::scrollPosition, 0, 0);
+    _mux.connect(win, file, &File::modifiedChanged, _statusBar, &StatusBar::setModified, false);
+    _mux.connect(win, win, &FileWindow::readFromStandadInput, _statusBar, &StatusBar::readFromStandardInput, false);
+    _mux.connect(win, win, &FileWindow::followStandadInput, _statusBar, &StatusBar::followStandardInput, false);
+    _mux.connect(win, file, &File::setWritable, _statusBar, &StatusBar::setWritable, true);
+    _mux.connect(win, file, &File::msdosMode, _statusBar, &StatusBar::msdosMode, false);
+    _mux.connect(win, file, &File::modifiedSelectMode, _statusBar, &StatusBar::modifiedSelectMode, false);
+    _mux.connect(win, file, &File::emitSearchCount, _statusBar, &StatusBar::searchCount, -1);
+    _mux.connect(win, file, &File::emitSearchText, _statusBar, &StatusBar::searchText, QString());
+    _mux.connect(win, file, &File::emitOverwrite, _statusBar, &StatusBar::overwrite, false);
+    _mux.connect(win, win, &FileWindow::fileChangedExternally, _statusBar, &StatusBar::fileHasBeenChangedExternally, false);
+
+    return win;
+}
 
 void Editor::searchDialog() {
     _searchDialog->open();

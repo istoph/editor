@@ -17,6 +17,7 @@ editor_sources = [
   'scrollbar.cpp',
   'searchcount.cpp',
   'searchdialog.cpp',
+  'statemux.cpp',
   'statusbar.cpp',
   'tabdialog.cpp',
   'themedialog.cpp',
