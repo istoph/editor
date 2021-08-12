@@ -69,6 +69,7 @@ public:
     FileWindow *_win;
 
 private:
+    MdiLayout *_mdiLayout;
     StateMux _mux;
     SearchDialog *_searchDialog = nullptr;
     SearchDialog *_replaceDialog = nullptr;

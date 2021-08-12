@@ -186,7 +186,9 @@ Editor::Editor() {
     VBoxLayout *rootLayout = new VBoxLayout();
     setLayout(rootLayout);
     rootLayout->addWidget(menu);
-    rootLayout->addWidget(_win);
+    _mdiLayout = new MdiLayout();
+    _mdiLayout->addWindow(_win);
+    rootLayout->add(_mdiLayout);
     rootLayout->addWidget(_commandLineWidget);
     rootLayout->addWidget(_statusBar);
 
