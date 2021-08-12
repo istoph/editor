@@ -58,6 +58,9 @@ private slots:
     void commandLineDismissed();
     void commandLineExecute(QString cmd);
 
+protected:
+    void terminalChanged() override;
+
 private:
     FileWindow *createFileWindow();
     void quit();

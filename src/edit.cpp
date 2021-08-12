@@ -379,3 +379,17 @@ void Editor::commandLineExecute(QString cmd) {
         term->unpauseOperation();
     }
 }
+
+void Editor::terminalChanged() {
+    QObject::connect(terminal(), &Tui::ZTerminal::focusChanged, this, [this] {
+        Tui::ZWidget *w = terminal()->focusWidget();
+        while (w && !qobject_cast<FileWindow*>(w)) {
+            w = w->parentWidget();
+        }
+        if (qobject_cast<FileWindow*>(w)) {
+            _win = qobject_cast<FileWindow*>(w);
+            _file = _win->getFileWidget();
+            _mux.selectInput(_win);
+        }
+    });
+}
