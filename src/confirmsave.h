@@ -8,10 +8,10 @@
 class ConfirmSave : public Dialog
 {
 public:
-    enum Type { New, Open, Reload, Quit };
+    enum Type { Reload, Close, Quit };
     Q_OBJECT
 public:
-    explicit ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool saveable = true);
+    explicit ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool saveable);
 
 signals:
     void saveSelected();

@@ -65,6 +65,7 @@ protected:
 private:
     FileWindow *createFileWindow();
     void quit();
+    void quitImpl(int i);
     void searchDialog();
     void replaceDialog();
 
@@ -75,6 +76,8 @@ public:
 private:
     MdiLayout *_mdiLayout;
     StateMux _mux;
+    QMap<QString, FileWindow*> _nameToWindow;
+    QVector<FileWindow*> _allWindows;
     SearchDialog *_searchDialog = nullptr;
     SearchDialog *_replaceDialog = nullptr;
     ThemeDialog *_themeDialog = nullptr;

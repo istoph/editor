@@ -18,6 +18,7 @@ Editor::Editor() {
                             { "<m>S</m>ave", "Ctrl-S", "Save", {}},
                             { "Save <m>a</m>s...", "", "SaveAs", {}},
                             { "<m>R</m>eload", "", "Reload", {}},
+                            { "<m>C</m>lose", "", "Close", {}},
                             {},
                             { "<m>Q</m>uit", "Ctrl-Q", "Quit", {}}
                         }
@@ -218,6 +219,45 @@ FileWindow *Editor::createFileWindow() {
     _mux.connect(win, file, &File::emitOverwrite, _statusBar, &StatusBar::overwrite, false);
     _mux.connect(win, win, &FileWindow::fileChangedExternally, _statusBar, &StatusBar::fileHasBeenChangedExternally, false);
 
+    _allWindows.append(win);
+
+    QObject::connect(win, &FileWindow::backingFileChanged, this, [this, win] (QString filename) {
+        QMutableMapIterator<QString, FileWindow*> iter(_nameToWindow);
+        while (iter.hasNext()) {
+            iter.next();
+            if (iter.value() == win) {
+                if (iter.key() == filename) {
+                    // Nothing changed
+                    return;
+                } else {
+                    iter.remove();
+                    break;
+                }
+            }
+        }
+        if (filename.size()) {
+            Q_ASSERT(!_nameToWindow.contains(filename));
+            _nameToWindow[filename] = win;
+        }
+    });
+
+    QObject::connect(win, &QObject::destroyed, this, [this, win] {
+        // remove from _nameToWindow map
+        QMutableMapIterator<QString, FileWindow*> iter(_nameToWindow);
+        while (iter.hasNext()) {
+            iter.next();
+            if (iter.value() == win) {
+                iter.remove();
+                break;
+            }
+        }
+        if (_win == win) {
+            _win = nullptr;
+            _file = nullptr;
+        }
+        _allWindows.removeAll(win);
+    });
+
     return win;
 }
 
@@ -232,52 +272,35 @@ void Editor::replaceDialog() {
 }
 
 void Editor::newFileMenue() {
-    if(_file->isModified()) {
-        ConfirmSave *confirmDialog = new ConfirmSave(this, _file->getFilename(), ConfirmSave::New);
-        QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
-            delete confirmDialog;
-            _win->newFile("");
-        });
-
-        QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
-            _win->saveOrSaveas();
-            delete confirmDialog;
-            _win->newFile("");
-        });
-        QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
-            delete confirmDialog;
-        });
-    } else {
-        _win->newFile("");
-    }
+    FileWindow *win = createFileWindow();
+    _mdiLayout->addWindow(win);
+    win->getFileWidget()->setFocus();
 }
 
 void Editor::openFileMenue() {
-    if(_file->isModified()) {
-        ConfirmSave *confirmDialog = new ConfirmSave(this, _file->getFilename(), ConfirmSave::Open);
-        QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
-            delete confirmDialog;
-            openFileDialog();
-        });
-
-        QObject::connect(confirmDialog, &ConfirmSave::saveSelected, [=]{
-            _win->saveOrSaveas();
-            delete confirmDialog;
-            openFileDialog();
-        });
-
-        QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
-            delete confirmDialog;
-        });
-    } else {
-        openFileDialog();
-    }
+    openFileDialog();
 }
 
 
 void Editor::openFileDialog(QString path) {
     OpenDialog *openDialog = new OpenDialog(this, path);
-    connect(openDialog, &OpenDialog::fileSelected, _win, &FileWindow::openFile);
+    connect(openDialog, &OpenDialog::fileSelected, this, [this] (QString fileName) {
+        QFileInfo filenameInfo(fileName);
+        QString absFileName = filenameInfo.absoluteFilePath();
+        if (_nameToWindow.contains(absFileName)) {
+            _nameToWindow.value(absFileName)->getFileWidget()->setFocus();
+            return;
+        }
+
+        if (!_win->getFileWidget()->isModified() && _win->getFileWidget()->getFilename() == "NEWFILE") {
+            _win->openFile(fileName);
+        } else {
+            FileWindow *win = createFileWindow();
+            _mdiLayout->addWindow(win);
+            win->openFile(fileName);
+            win->getFileWidget()->setFocus();
+        }
+    });
 }
 
 QObject * Editor::facet(const QMetaObject metaObject) {
@@ -288,22 +311,32 @@ QObject * Editor::facet(const QMetaObject metaObject) {
     }
 }
 
-void Editor::quit() {
-    _file->writeAttributes();
-    if(_file->isModified()) {
+void Editor::quitImpl(int i) {
+    if (i >= _allWindows.size()) {
+        QCoreApplication::instance()->quit();
+        return;
+    }
+
+    auto handleNext = [this, i] {
+        quitImpl(i + 1);
+    };
+
+    auto *file = _allWindows[i]->getFileWidget();
+    file->writeAttributes();
+    if(file->isModified()) {
         ConfirmSave *quitDialog = new ConfirmSave(this, _file->getFilename(), ConfirmSave::Quit, _file->getWritable());
 
         QObject::connect(quitDialog, &ConfirmSave::exitSelected, [=]{
-            QCoreApplication::instance()->quit();
+            handleNext();
         });
 
         QObject::connect(quitDialog, &ConfirmSave::saveSelected, [=]{
             quitDialog->deleteLater();
             SaveDialog *q = _win->saveOrSaveas();
             if (q) {
-                connect(q, &SaveDialog::fileSelected, QCoreApplication::instance(), &QCoreApplication::quit);
+                connect(q, &SaveDialog::fileSelected, this, handleNext);
             } else {
-                QCoreApplication::instance()->quit();
+                handleNext();
             }
         });
 
@@ -311,8 +344,17 @@ void Editor::quit() {
             quitDialog->deleteLater();
         });
     } else {
-        QCoreApplication::instance()->quit();
+        handleNext();
     }
+}
+
+void Editor::quit() {
+    if (_allWindows.isEmpty()) {
+        QCoreApplication::instance()->quit();
+        return;
+    }
+
+    quitImpl(0);
 }
 
 void Editor::setTheme(Theme theme) {

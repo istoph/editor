@@ -10,7 +10,6 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
 
     _file = new File(this);
 
-
     ScrollBar *sc = new ScrollBar(this);
     sc->setTransparent(true);
     connect(_file, &File::scrollPositionChanged, sc, &ScrollBar::scrollPosition);
@@ -68,7 +67,7 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
     QObject::connect(new Tui::ZCommandNotifier("Reload", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
          this, [this] {
             if(_file->isModified()) {
-                ConfirmSave *confirmDialog = new ConfirmSave(this, _file->getFilename(), ConfirmSave::Reload);
+                ConfirmSave *confirmDialog = new ConfirmSave(this, _file->getFilename(), ConfirmSave::Reload, false);
                 QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
                     delete confirmDialog;
                     FileWindow::reload();
@@ -81,6 +80,10 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
                 FileWindow::reload();
             }
 
+    });
+
+    QObject::connect(new Tui::ZCommandNotifier("Close", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated, this, [this]{
+        closeRequested();
     });
 
     //Edit
@@ -129,6 +132,9 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
     QObject::connect(_watcher, &QFileSystemWatcher::fileChanged, this, [=]{
         fileChangedExternally(true);
     });
+
+    _file->newText("");
+    backingFileChanged("");
 }
 
 File *FileWindow::getFileWidget() {
@@ -149,6 +155,7 @@ void FileWindow::setWrap(bool wrap) {
 
 void FileWindow::saveFile(QString filename) {
     _file->setFilename(filename);
+    backingFileChanged(_file->getFilename());
     watcherRemove();
     if(_file->saveText()) {
         //windowTitle(filename);
@@ -188,6 +195,11 @@ void FileWindow::newFile(QString filename) {
     closePipe();
     watcherRemove();
     _file->newText(filename);
+    if (filename.size()) {
+        backingFileChanged(_file->getFilename());
+    } else {
+        backingFileChanged("");
+    }
     fileChangedExternally(false);
     watcherAdd();
 }
@@ -196,6 +208,7 @@ void FileWindow::openFile(QString filename) {
     closePipe();
     watcherRemove();
     _file->openText(filename);
+    backingFileChanged(_file->getFilename());
     fileChangedExternally(false);
     watcherAdd();
 }
@@ -207,6 +220,31 @@ void FileWindow::reload() {
     fileChangedExternally(false);
 
     _file->setCursorPosition(xy);
+}
+
+void FileWindow::closeRequested() {
+    _file->writeAttributes();
+    if(_file->isModified()) {
+        ConfirmSave *closeDialog = new ConfirmSave(this, _file->getFilename(), ConfirmSave::Close, _file->getWritable());
+
+        QObject::connect(closeDialog, &ConfirmSave::exitSelected, this, &QObject::deleteLater);
+
+        QObject::connect(closeDialog, &ConfirmSave::saveSelected, [this, closeDialog]{
+            closeDialog->deleteLater();
+            SaveDialog *q = saveOrSaveas();
+            if (q) {
+                connect(q, &SaveDialog::fileSelected, this, &QObject::deleteLater);
+            } else {
+                deleteLater();
+            }
+        });
+
+        QObject::connect(closeDialog, &ConfirmSave::rejected, [=]{
+            closeDialog->deleteLater();
+        });
+    } else {
+        deleteLater();
+    }
 }
 
 void FileWindow::watcherAdd() {

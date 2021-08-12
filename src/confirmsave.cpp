@@ -4,12 +4,8 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
     QString mainLable = "Save: " + filename;
 
     QString title, nosave, save;
-    if(type == New) {
-        title = "Save";
-        nosave = "Discard";
-        save = "Save";
-    } else if (type == Open) {
-        title = "Save";
+    if(type == Close) {
+        title = "Close";
         nosave = "Discard";
         save = "Save";
     } else if (type == Reload) {

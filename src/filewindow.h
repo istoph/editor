@@ -31,8 +31,10 @@ signals:
     void readFromStandadInput(bool activ);
     void followStandadInput(bool follow);
     void fileChangedExternally(bool fileChangedExternally);
+    void backingFileChanged(QString filename);
 
 private:
+    void closeRequested();
     SaveDialog *saveFileDialog();
     void reload();
 
