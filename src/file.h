@@ -200,9 +200,9 @@ private:
     int _endSelectY = -1;
     bool _overwrite = false;
     QVector<UndoStep> _undoSteps;
-    int _currentUndoStep;
-    bool _collapseUndoStep;
-    int _savedUndoStep;
+    int _currentUndoStep = -1;
+    bool _collapseUndoStep = false;
+    int _savedUndoStep = -1;
     QString _searchText;
     QString _replaceText;
     bool _searchWrap = true;
@@ -229,8 +229,8 @@ private:
     Tui::ZCommandNotifier *_cmdPaste = nullptr;
     Tui::ZCommandNotifier *_cmdUndo = nullptr;
     Tui::ZCommandNotifier *_cmdRedo = nullptr;
-    Tui::ZCommandNotifier *_cmdSearchNext;
-    Tui::ZCommandNotifier *_cmdSearchPrevious;
+    Tui::ZCommandNotifier *_cmdSearchNext = nullptr;
+    Tui::ZCommandNotifier *_cmdSearchPrevious = nullptr;
     bool _selectMode = false;
     bool _blockSelect = false;
 
