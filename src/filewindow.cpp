@@ -167,7 +167,7 @@ void FileWindow::saveFile(QString filename) {
 }
 
 SaveDialog *FileWindow::saveFileDialog() {
-    SaveDialog * saveDialog = new SaveDialog(this, _file);
+    SaveDialog * saveDialog = new SaveDialog(this->parentWidget(), _file);
     connect(saveDialog, &SaveDialog::fileSelected, this, &FileWindow::saveFile);
     return saveDialog;
 }
