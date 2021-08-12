@@ -42,6 +42,7 @@ public:
 
 public:
     Editor();
+    ~Editor();
 
 public:
     void setTheme(Theme theme);

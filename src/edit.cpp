@@ -193,6 +193,14 @@ Editor::Editor() {
                      _replaceDialog, &SearchDialog::open);
 }
 
+Editor::~Editor() {
+    // Delete children here manually, instead of leaving it to QObject,
+    // to avoid children observing already destructed parent.
+    for (QObject *child : children()) {
+        delete child;
+    }
+}
+
 FileWindow *Editor::createFileWindow() {
     FileWindow *win = new FileWindow(this);
     File *file = win->getFileWidget();
