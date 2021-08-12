@@ -34,8 +34,10 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
     connect(_file, &File::modifiedChanged, this,
             [this] {
                 QString filename = _file->getFilename();
-                terminal()->setTitle("chr - "+ filename);
-                terminal()->setIconTitle("chr - "+ filename);
+                if (terminal()) {
+                    terminal()->setTitle("chr - "+ filename);
+                    terminal()->setIconTitle("chr - "+ filename);
+                }
                 if(_file->isModified()) {
                     filename = "*" + filename;
                 }
