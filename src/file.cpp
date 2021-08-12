@@ -7,26 +7,26 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setCursorStyle(Tui::CursorStyle::Bar);
     setCursorColor(255, 255, 255);
     initText();
-    _cmdCopy = new Tui::ZCommandNotifier("Copy", this);
+    _cmdCopy = new Tui::ZCommandNotifier("Copy", this, Qt::WindowShortcut);
     QObject::connect(_cmdCopy, &Tui::ZCommandNotifier::activated, this, [this]{copy();});
     _cmdCopy->setEnabled(false);
-    _cmdCut = new Tui::ZCommandNotifier("Cut", this);
+    _cmdCut = new Tui::ZCommandNotifier("Cut", this, Qt::WindowShortcut);
     QObject::connect(_cmdCut, &Tui::ZCommandNotifier::activated, this, [this]{cut();});
     _cmdCut->setEnabled(false);
-    _cmdPaste = new Tui::ZCommandNotifier("Paste", this);
+    _cmdPaste = new Tui::ZCommandNotifier("Paste", this, Qt::WindowShortcut);
     QObject::connect(_cmdPaste, &Tui::ZCommandNotifier::activated, this, [this]{paste();});
     _cmdPaste->setEnabled(false);
-    _cmdUndo = new Tui::ZCommandNotifier("Undo", this);
+    _cmdUndo = new Tui::ZCommandNotifier("Undo", this, Qt::WindowShortcut);
     QObject::connect(_cmdUndo, &Tui::ZCommandNotifier::activated, this, [this]{undo();});
     _cmdUndo->setEnabled(false);
-    _cmdRedo = new Tui::ZCommandNotifier("Redo", this);
+    _cmdRedo = new Tui::ZCommandNotifier("Redo", this, Qt::WindowShortcut);
     QObject::connect(_cmdRedo, &Tui::ZCommandNotifier::activated, this, [this]{redo();});
     _cmdRedo->setEnabled(false);
 
-    _cmdSearchNext = new Tui::ZCommandNotifier("Search Next", this);
+    _cmdSearchNext = new Tui::ZCommandNotifier("Search Next", this, Qt::WindowShortcut);
     QObject::connect(_cmdSearchNext, &Tui::ZCommandNotifier::activated, this, [this]{runSearch(false);});
     _cmdSearchNext->setEnabled(false);
-    _cmdSearchPrevious = new Tui::ZCommandNotifier("Search Previous", this);
+    _cmdSearchPrevious = new Tui::ZCommandNotifier("Search Previous", this, Qt::WindowShortcut);
     QObject::connect(_cmdSearchPrevious, &Tui::ZCommandNotifier::activated, this, [this]{runSearch(true);});
     _cmdSearchPrevious->setEnabled(false);
 
