@@ -26,10 +26,18 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     _cmdSearchNext = new Tui::ZCommandNotifier("Search Next", this, Qt::WindowShortcut);
     QObject::connect(_cmdSearchNext, &Tui::ZCommandNotifier::activated, this, [this]{runSearch(false);});
     _cmdSearchNext->setEnabled(false);
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, 0), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+          [this] {
+            runSearch(false);
+          });
+
     _cmdSearchPrevious = new Tui::ZCommandNotifier("Search Previous", this, Qt::WindowShortcut);
     QObject::connect(_cmdSearchPrevious, &Tui::ZCommandNotifier::activated, this, [this]{runSearch(true);});
     _cmdSearchPrevious->setEnabled(false);
-
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, Qt::ShiftModifier), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+          [this] {
+            runSearch(true);
+          });
 }
 
 bool File::readAttributes() {
