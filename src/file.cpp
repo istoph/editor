@@ -194,8 +194,8 @@ bool File::newText(QString filename = "") {
         setFilename(filename);
         setSaveAs(false);
     }
+    _savedUndoStep = _currentUndoStep + 1;
     saveUndoStep(false);
-    modifiedChanged(false);
     return true;
 }
 
@@ -213,6 +213,7 @@ bool File::initText() {
     _text.append(QString());
     _undoSteps.clear();
     _currentUndoStep = -1;
+    _savedUndoStep = -1;
     _collapseUndoStep = false;
     _scrollPositionX = 0;
     _scrollPositionY = 0;
@@ -320,11 +321,11 @@ bool File::openText(QString filename) {
         if (_text.isEmpty()) {
             _text.append("");
             _nonewline = true;
-            saveUndoStep();
             _savedUndoStep = -1;
-        } else {
             saveUndoStep();
-            _savedUndoStep = _currentUndoStep;
+        } else {
+            _savedUndoStep = _currentUndoStep + 1;
+            saveUndoStep();
         }
         checkWritable();
         getAttributes();
@@ -1014,7 +1015,7 @@ void File::saveUndoStep(bool collapsable) {
         _undoSteps.append({ _text, _cursorPositionX, _cursorPositionY});
         _currentUndoStep = _undoSteps.size() - 1;
         _collapseUndoStep = collapsable;
-        modifiedChanged(true);
+        modifiedChanged(isModified());
         checkUndo();
     }
 }
