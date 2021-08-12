@@ -43,27 +43,27 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
             }
     );
 
-    QObject::connect(new Tui::ZCommandNotifier("Wrap", this), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("Wrap", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
          [this] {
             setWrap(!_file->getWrapOption());
         }
     );
 
     //Save
-    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("s"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("s"), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
             this, &FileWindow::saveOrSaveas);
     QObject::connect(new Tui::ZCommandNotifier("Save", this), &Tui::ZCommandNotifier::activated,
                     this, &FileWindow::saveOrSaveas);
 
     //Save As
     //shortcut dose not work in vte, konsole, ...
-    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("S", Qt::ControlModifier | Qt::ShiftModifier), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("S", Qt::ControlModifier | Qt::ShiftModifier), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
             this, &FileWindow::saveFileDialog);
     QObject::connect(new Tui::ZCommandNotifier("SaveAs", this), &Tui::ZCommandNotifier::activated,
                      this, &FileWindow::saveFileDialog);
 
     //Reload
-    QObject::connect(new Tui::ZCommandNotifier("Reload", this), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("Reload", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
          this, [this] {
             if(_file->isModified()) {
                 ConfirmSave *confirmDialog = new ConfirmSave(this, _file->getFilename(), ConfirmSave::Reload);
@@ -82,18 +82,18 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
     });
 
     //Edit
-    QObject::connect(new Tui::ZCommandNotifier("Selectall", this), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("Selectall", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
          [this] {
             _file->selectAll();
         }
     );
 
-    QObject::connect(new Tui::ZCommandNotifier("Cutline", this), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("Cutline", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
          [this] {
             _file->cutline();
         }
     );
-    QObject::connect(new Tui::ZCommandNotifier("SelectMode", this), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("SelectMode", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
          [this] {
             _file->toggleSelectMode();
         }
@@ -101,7 +101,7 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
 
 
     // File follow and pipe
-    _cmdInputPipe = new Tui::ZCommandNotifier("InputPipe", this);
+    _cmdInputPipe = new Tui::ZCommandNotifier("InputPipe", this, Qt::WindowShortcut);
     _cmdInputPipe->setEnabled(false);
     QObject::connect(_cmdInputPipe, &Tui::ZCommandNotifier::activated,
          [&] {
@@ -109,7 +109,7 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
         }
     );
 
-    _cmdFollow = new Tui::ZCommandNotifier("Following", this);
+    _cmdFollow = new Tui::ZCommandNotifier("Following", this, Qt::WindowShortcut);
     _cmdFollow->setEnabled(false);
     QObject::connect(_cmdFollow, &Tui::ZCommandNotifier::activated,
          [&] {
