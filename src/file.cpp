@@ -464,6 +464,7 @@ bool File::getTabOption() {
 
 bool File::setFormattingCharacters(bool fb) {
     this->_formatting_characters = fb;
+    update();
     return true;
 }
 
