@@ -109,8 +109,14 @@ Editor::Editor() {
 
     //InsertCharacter
     QObject::connect(new Tui::ZCommandNotifier("InsertCharacter", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            new InsertCharacter(this, _file);
+         [this] {
+            QObject::connect(new InsertCharacter(this), &InsertCharacter::characterSelected, this, [this] (QString str) {
+                QVector<QString> vec;
+                vec.append(str);
+                if (_file) {
+                    _file->insertAtCursorPosition(vec);
+                }
+            });
         }
     );
 

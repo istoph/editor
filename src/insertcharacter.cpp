@@ -1,6 +1,6 @@
 #include "insertcharacter.h"
 
-InsertCharacter::InsertCharacter(Tui::ZWidget *parent, File *file) : Dialog(parent) {
+InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     setWindowTitle("Insert Character");
     setContentsMargins({ 1, 1, 1, 1});
 
@@ -92,11 +92,9 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent, File *file) : Dialog(pare
 
 
     QObject::connect(cancelBtn, &Button::clicked, this, &InsertCharacter::rejected);
-    QObject::connect(insertButton, &Button::clicked, [=]{
+    QObject::connect(insertButton, &Button::clicked, [this]{
         if(_check) {
-            QVector<QString> str;
-            str.append(intToChar(_codepoint));
-            file->insertAtCursorPosition(str);
+            Q_EMIT characterSelected(intToChar(_codepoint));
         }
         deleteLater();
     });

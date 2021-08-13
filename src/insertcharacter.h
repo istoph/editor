@@ -9,8 +9,11 @@ class InsertCharacter : public Dialog {
     Q_OBJECT
 
 public:
-    InsertCharacter(Tui::ZWidget *parent, File *file);
+    InsertCharacter(Tui::ZWidget *parent);
     void rejected();
+
+signals:
+    void characterSelected(QString);
 
 private:
     QString intToChar(int i);
