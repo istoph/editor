@@ -63,6 +63,7 @@ protected:
     void terminalChanged() override;
 
 private:
+    void setupSearchDialogs();
     FileWindow *createFileWindow();
     void quit();
     void quitImpl(int i);

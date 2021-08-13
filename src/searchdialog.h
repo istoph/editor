@@ -10,9 +10,19 @@ class SearchDialog : public Dialog {
     Q_OBJECT
 
 public:
-    SearchDialog(Tui::ZWidget *parent, File *file, bool replace = false);
+    SearchDialog(Tui::ZWidget *parent, bool replace = false);
     void setSearchText(QString text);
     void setReplace(bool replace);
+
+signals:
+    void caseSensitiveChanged(bool value);
+    void wrapChanged(bool value);
+    void forwardChanged(bool value);
+    void canceled();
+    void liveSearch(QString text, bool forward);
+    void findNext(QString text, bool regex, bool forward);
+    void replace1(QString text, QString replacement, bool regex, bool forward);
+    void replaceAll(QString text, QString replacement, bool regex);
 
 public slots:
     void open();
