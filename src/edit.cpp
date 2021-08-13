@@ -142,19 +142,25 @@ Editor::Editor() {
 
     QObject::connect(new Tui::ZCommandNotifier("LineNumber", this), &Tui::ZCommandNotifier::activated,
         [&] {
-            _file->toggleLineNumber();
+            if (_file) {
+                _file->toggleLineNumber();
+            }
         }
     );
 
     QObject::connect(new Tui::ZCommandNotifier("Formatting", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            _file->setFormattingCharacters(!_file->getformattingCharacters());
+            if (_file) {
+                _file->setFormattingCharacters(!_file->getformattingCharacters());
+            }
         }
     );
 
     QObject::connect(new Tui::ZCommandNotifier("Brackets", this), &Tui::ZCommandNotifier::activated,
          [&] {
-            _file->setHighlightBracket(!_file->getHighlightBracket());
+            if (_file) {
+                _file->setHighlightBracket(!_file->getHighlightBracket());
+            }
         }
     );
 
@@ -299,7 +305,7 @@ void Editor::openFileDialog(QString path) {
             return;
         }
 
-        if (!_win->getFileWidget()->isModified() && _win->getFileWidget()->getFilename() == "NEWFILE") {
+        if (_win && !_win->getFileWidget()->isModified() && _win->getFileWidget()->getFilename() == "NEWFILE") {
             _win->openFile(fileName);
         } else {
             FileWindow *win = createFileWindow();
