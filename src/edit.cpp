@@ -121,15 +121,17 @@ Editor::Editor() {
     );
 
     //Goto Line
+    auto gotoLine = [this] {
+        QObject::connect(new GotoLine(this), &GotoLine::lineSelected, this, [this] (int line) {
+            if (_file) {
+                _file->gotoline(QString::number(line));
+            }
+        });
+
+    };
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("g"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
-        this, [&] {
-            new GotoLine(this, _file);
-    });
-    QObject::connect(new Tui::ZCommandNotifier("Gotoline", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            new GotoLine(this, _file);
-        }
-    );
+        this, gotoLine);
+    QObject::connect(new Tui::ZCommandNotifier("Gotoline", this), &Tui::ZCommandNotifier::activated, this, gotoLine);
 
     //Options
     QObject::connect(new Tui::ZCommandNotifier("Tab", this), &Tui::ZCommandNotifier::activated,

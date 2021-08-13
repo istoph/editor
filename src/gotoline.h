@@ -11,7 +11,10 @@ public:
     Q_OBJECT
 
 public:
-    explicit GotoLine(Tui::ZWidget *parent, File *file);
+    explicit GotoLine(Tui::ZWidget *parent);
+
+signals:
+    void lineSelected(int line);
 };
 
 #endif // GOTOLINE_H

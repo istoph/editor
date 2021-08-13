@@ -1,6 +1,6 @@
 #include "gotoline.h"
 
-GotoLine::GotoLine(Tui::ZWidget *parent, File *file) : Dialog(parent) {
+GotoLine::GotoLine(Tui::ZWidget *parent) : Dialog(parent) {
 
     setWindowTitle("Goto Line");
     setContentsMargins({ 1, 1, 1, 1});
@@ -44,8 +44,8 @@ GotoLine::GotoLine(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     vbox->add(hbox2);
 
     QObject::connect(b0, &Button::clicked, this, &GotoLine::rejected);
-    QObject::connect(b1, &Button::clicked, [=]{
-        file->gotoline(i1->text());
+    QObject::connect(b1, &Button::clicked, this, [this, i1]{
+        lineSelected(i1->text().toInt());
         this->deleteLater();
     });
 }
