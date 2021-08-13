@@ -81,6 +81,7 @@ private:
     SearchDialog *_searchDialog = nullptr;
     SearchDialog *_replaceDialog = nullptr;
     ThemeDialog *_themeDialog = nullptr;
+    QPointer<TabDialog> _tabDialog = nullptr;
     StatusBar *_statusBar = nullptr;
     CommandLineWidget *_commandLineWidget = nullptr;
     Clipboard _clipboard;

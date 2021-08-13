@@ -136,7 +136,26 @@ Editor::Editor() {
     //Options
     QObject::connect(new Tui::ZCommandNotifier("Tab", this), &Tui::ZCommandNotifier::activated,
         [&] {
-            new TabDialog(_file, this);
+            if (_tabDialog) {
+                _tabDialog->setFocus();
+                _tabDialog->raise();
+            } else {
+                _tabDialog = new TabDialog(this);
+                _tabDialog->updateSettings(!_file->getTabOption(), _file->getTabsize());
+                QObject::connect(_tabDialog, &TabDialog::convert, this, [this] (bool useTabs, int indentSize) {
+                    if (_file) {
+                        _file->setTabOption(!useTabs);
+                        _file->setTabsize(indentSize);
+                        _file->tabToSpace();
+                    }
+                });
+                QObject::connect(_tabDialog, &TabDialog::settingsChanged, this, [this] (bool useTabs, int indentSize) {
+                    if (_file) {
+                        _file->setTabOption(!useTabs);
+                        _file->setTabsize(indentSize);
+                    }
+                });
+            }
         }
     );
 
@@ -444,7 +463,12 @@ void Editor::terminalChanged() {
         }
         if (qobject_cast<FileWindow*>(w)) {
             _win = qobject_cast<FileWindow*>(w);
-            _file = _win->getFileWidget();
+            if (_file != _win->getFileWidget()) {
+                _file = _win->getFileWidget();
+                if (_tabDialog) {
+                    _tabDialog->updateSettings(!_file->getTabOption(), _file->getTabsize());
+                }
+            }
             _mux.selectInput(_win);
         }
     });

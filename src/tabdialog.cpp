@@ -1,7 +1,7 @@
 #include "tabdialog.h"
 
 
-TabDialog::TabDialog(File *file, Tui::ZWidget *parent) : Dialog(parent) {
+TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
 
     setFocus();
     setWindowTitle("Formatting Tab");
@@ -12,15 +12,13 @@ TabDialog::TabDialog(File *file, Tui::ZWidget *parent) : Dialog(parent) {
     vbox->setSpacing(1);
 
     HBoxLayout* hbox1 = new HBoxLayout();
-    RadioButton *tabRadioButton = new RadioButton(this);
-    tabRadioButton->setMarkup("<m>T</m>ab");
-    tabRadioButton->setChecked(!file->getTabOption());
-    hbox1->addWidget(tabRadioButton);
+    _tabRadioButton = new RadioButton(this);
+    _tabRadioButton->setMarkup("<m>T</m>ab");
+    hbox1->addWidget(_tabRadioButton);
 
-    RadioButton *blankRadioButton = new RadioButton(this);
-    blankRadioButton->setMarkup("<m>B</m>lank");
-    blankRadioButton->setChecked(file->getTabOption());
-    hbox1->addWidget(blankRadioButton);
+    _blankRadioButton = new RadioButton(this);
+    _blankRadioButton->setMarkup("<m>B</m>lank");
+    hbox1->addWidget(_blankRadioButton);
 
     vbox->add(hbox1);
     vbox->addStretch();
@@ -30,11 +28,10 @@ TabDialog::TabDialog(File *file, Tui::ZWidget *parent) : Dialog(parent) {
     tabstopLable->setText("Tab Stops: ");
     hbox2->addWidget(tabstopLable);
 
-    InputBox *tabsizeInputBox = new InputBox(this);
-    tabsizeInputBox->setText(QString::number(file->getTabsize()));
-    tabsizeInputBox->setFocus();
-    tabsizeInputBox->setEnabled(true);
-    hbox2->addWidget(tabsizeInputBox);
+    _tabsizeInputBox = new InputBox(this);
+    _tabsizeInputBox->setFocus();
+    _tabsizeInputBox->setEnabled(true);
+    hbox2->addWidget(_tabsizeInputBox);
     vbox->add(hbox2);
 
     HBoxLayout* hbox3 = new HBoxLayout();
@@ -59,21 +56,18 @@ TabDialog::TabDialog(File *file, Tui::ZWidget *parent) : Dialog(parent) {
     hbox4->addWidget(saveButton);
     vbox->add(hbox4);
 
-    QObject::connect(convertButton, &Button::clicked, [=]{
-        file->setTabOption(blankRadioButton->checked());
-        file->setTabsize(tabsizeInputBox->text().toInt());
-        file->tabToSpace();
+    QObject::connect(convertButton, &Button::clicked, [this] {
+        convert(!_blankRadioButton->checked(), _tabsizeInputBox->text().toInt());
         deleteLater();
     });
 
-    QObject::connect(saveButton, &Button::clicked, [=]{
-        file->setTabOption(blankRadioButton->checked());
-        file->setTabsize(tabsizeInputBox->text().toInt());
+    QObject::connect(saveButton, &Button::clicked, [this] {
+        Q_EMIT settingsChanged(!_blankRadioButton->checked(), _tabsizeInputBox->text().toInt());
         deleteLater();
     });
 
-    QObject::connect(tabsizeInputBox, &InputBox::textChanged, [=]{
-        if(tabsizeInputBox->text().toInt() > 0 && tabsizeInputBox->text().toInt() < 100) {
+    QObject::connect(_tabsizeInputBox, &InputBox::textChanged, [this, convertButton, saveButton] {
+        if(_tabsizeInputBox->text().toInt() > 0 && _tabsizeInputBox->text().toInt() < 100) {
             convertButton->setEnabled(true);
             saveButton->setEnabled(true);
         } else {
@@ -82,7 +76,13 @@ TabDialog::TabDialog(File *file, Tui::ZWidget *parent) : Dialog(parent) {
         }
     });
 
-    QObject::connect(cancelButton, &Button::clicked, [=]{
+    QObject::connect(cancelButton, &Button::clicked, [this] {
         deleteLater();
     });
+}
+
+void TabDialog::updateSettings(bool useTabs, int indentSize) {
+    _tabRadioButton->setChecked(useTabs);
+    _blankRadioButton->setChecked(!useTabs);
+    _tabsizeInputBox->setText(QString::number(indentSize));
 }
