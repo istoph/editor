@@ -334,10 +334,11 @@ void Editor::quitImpl(int i) {
         quitImpl(i + 1);
     };
 
-    auto *file = _allWindows[i]->getFileWidget();
+    auto *win = _allWindows[i];
+    auto *file = win->getFileWidget();
     file->writeAttributes();
     if(file->isModified()) {
-        ConfirmSave *quitDialog = new ConfirmSave(this, _file->getFilename(), ConfirmSave::Quit, _file->getWritable());
+        ConfirmSave *quitDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Quit, file->getWritable());
 
         QObject::connect(quitDialog, &ConfirmSave::exitSelected, [=]{
             handleNext();
@@ -345,7 +346,7 @@ void Editor::quitImpl(int i) {
 
         QObject::connect(quitDialog, &ConfirmSave::saveSelected, [=]{
             quitDialog->deleteLater();
-            SaveDialog *q = _win->saveOrSaveas();
+            SaveDialog *q = win->saveOrSaveas();
             if (q) {
                 connect(q, &SaveDialog::fileSelected, this, handleNext);
             } else {
