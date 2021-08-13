@@ -18,7 +18,7 @@ protected:
     }
 };
 
-SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dialog(parent) {
+SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) {
     setDefaultPlacement(Qt::AlignBottom | Qt::AlignHCenter, {0, -2});
     _replace = replace;
     setVisible(false);
@@ -104,11 +104,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
             nbox->addWidget(_parseBox);
 
             _wrapBox = new CheckBox(withMarkup, "<m>W</m>rap around", gbox);
-            if(file->getSearchWrap()) {
-                _wrapBox->setCheckState(Qt::Checked);
-            } else {
-                _wrapBox->setCheckState(Qt::Unchecked);
-            }
+            _wrapBox->setCheckState(Qt::Checked);
             nbox->addWidget(_wrapBox);
 
             hbox->addWidget(gbox);
@@ -153,69 +149,44 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, File *file, bool replace) : Dia
         setGeometry({ 0, 0, 55, 12});
     }
 
-    QObject::connect(_searchText, &InputBox::textChanged, this, [this,file] (const QString& newText) {
+    QObject::connect(_searchText, &InputBox::textChanged, this, [this] (const QString& newText) {
         _findNextBtn->setEnabled(newText.size());
         _replaceBtn->setEnabled(newText.size());
         _replaceAllBtn->setEnabled(newText.size());
         if(_searchText->text() != "" && _liveSearchBox->checkState() == Qt::Checked) {
-            file->setSearchText(_searchText->text());
-            file->setSearchDirection(_forward->checked());
-            if(_forward->checked()) {
-                file->setCursorPosition({file->getCursorPosition().x() - _searchText->text().size(), file->getCursorPosition().y()});
-            } else {
-                file->setCursorPosition({file->getCursorPosition().x() + _searchText->text().size(), file->getCursorPosition().y()});
-            }
-            file->runSearch(false);
+            Q_EMIT liveSearch(_searchText->text(), _forward->checked());
         }
     });
 
-    QObject::connect(_findNextBtn, &Button::clicked, [=]{
-        file->setSearchText(_searchText->text());
-        file->setRegex(_regexMatchBox->checkState());
-        file->setSearchDirection(_forward->checked());
-        file->runSearch(false);
+    QObject::connect(_findNextBtn, &Button::clicked, [this]{
+        Q_EMIT findNext(_searchText->text(), _regexMatchBox->checkState(), _forward->checked());
     });
 
-    QObject::connect(_replaceBtn, &Button::clicked, [=]{
-        file->setSearchText(_searchText->text());
-        file->setReplaceText(_replaceText->text());
-        file->setRegex(_regexMatchBox->checkState());
-        file->setReplaceSelected();
-        file->setSearchDirection(_forward->checked());
-        file->runSearch(false);
+    QObject::connect(_replaceBtn, &Button::clicked, [this]{
+        Q_EMIT replace1(_searchText->text(), _replaceText->text(), _regexMatchBox->checkState(), _forward->checked());
     });
 
      QObject::connect(_replaceAllBtn, &Button::clicked, [=]{
-         file->setRegex(_regexMatchBox->checkState());
-         file->replaceAll(_searchText->text(), _replaceText->text());
+         Q_EMIT replaceAll(_searchText->text(), _replaceText->text(), _regexMatchBox->checkState());
      });
 
     QObject::connect(_cancelBtn, &Button::clicked, [=]{
-        file->setSearchText("");
-        file->resetSelect();
+        Q_EMIT canceled();
         setVisible(false);
     });
 
-    QObject::connect(_caseMatchBox, &CheckBox::stateChanged, [=]{
+    QObject::connect(_caseMatchBox, &CheckBox::stateChanged, [this]{
         _caseSensitive = !_caseSensitive;
-        if(_caseSensitive) {
-            file->searchCaseSensitivity = Qt::CaseInsensitive;
-        } else {
-            file->searchCaseSensitivity = Qt::CaseSensitive;
-        }
+        Q_EMIT caseSensitiveChanged(_caseSensitive);
         update();
     });
 
     QObject::connect(_wrapBox, &CheckBox::stateChanged, [=]{
-        if (_wrapBox->checkState() == Qt::Checked) {
-            file->setSearchWrap(true);
-        } else {
-            file->setSearchWrap(false);
-        }
+        Q_EMIT wrapChanged(_wrapBox->checkState());
     });
 
     QObject::connect(_forward, &RadioButton::toggled, [=](bool state){
-        file->setSearchDirection(state);
+        Q_EMIT forwardChanged(state);
     });
 }
 

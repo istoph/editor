@@ -216,14 +216,6 @@ Editor::Editor() {
     rootLayout->add(_mdiLayout);
     rootLayout->addWidget(_commandLineWidget);
     rootLayout->addWidget(_statusBar);
-
-    _searchDialog = new SearchDialog(this, _file);
-    QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
-                     _searchDialog, &SearchDialog::open);
-
-    _replaceDialog = new SearchDialog(this, _file, true);
-    QObject::connect(new Tui::ZCommandNotifier("replace", this), &Tui::ZCommandNotifier::activated,
-                     _replaceDialog, &SearchDialog::open);
 }
 
 Editor::~Editor() {
@@ -291,6 +283,99 @@ FileWindow *Editor::createFileWindow() {
     });
 
     return win;
+}
+
+void Editor::setupSearchDialogs() {
+    auto searchCancled = [this] {
+        if (_file) {
+            _file->setSearchText("");
+            _file->resetSelect();
+        }
+    };
+
+    auto searchCaseSensitiveChanged = [this](bool value) {
+        if (_file) {
+            if(value) {
+                _file->searchCaseSensitivity = Qt::CaseInsensitive;
+            } else {
+                _file->searchCaseSensitivity = Qt::CaseSensitive;
+            }
+        }
+    };
+
+    auto searchWrapChanged = [this](bool value) {
+        if (_file) {
+            if (value) {
+                _file->setSearchWrap(true);
+            } else {
+                _file->setSearchWrap(false);
+            }
+        }
+    };
+
+    auto searchForwardChanged = [this](bool value) {
+        if (_file) {
+            _file->setSearchDirection(value);
+        }
+    };
+
+    auto liveSearch = [this](QString text, bool forward) {
+        if (_file) {
+            _file->setSearchText(text);
+            _file->setSearchDirection(forward);
+            if(forward) {
+                _file->setCursorPosition({_file->getCursorPosition().x() - text.size(), _file->getCursorPosition().y()});
+            } else {
+                _file->setCursorPosition({_file->getCursorPosition().x() + text.size(), _file->getCursorPosition().y()});
+            }
+            _file->runSearch(false);
+        }
+    };
+
+    auto searchNext = [this](QString text, bool regex, bool forward) {
+        if (_file) {
+            _file->setSearchText(text);
+            _file->setRegex(regex);
+            _file->setSearchDirection(forward);
+            _file->runSearch(false);
+        }
+    };
+
+    _searchDialog = new SearchDialog(this);
+    QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
+                     _searchDialog, &SearchDialog::open);
+    QObject::connect(_searchDialog, &SearchDialog::canceled, this, searchCancled);
+    QObject::connect(_searchDialog, &SearchDialog::caseSensitiveChanged, this, searchCaseSensitiveChanged);
+    QObject::connect(_searchDialog, &SearchDialog::wrapChanged, this, searchWrapChanged);
+    QObject::connect(_searchDialog, &SearchDialog::forwardChanged, this, searchForwardChanged);
+    QObject::connect(_searchDialog, &SearchDialog::liveSearch, this, liveSearch);
+    QObject::connect(_searchDialog, &SearchDialog::findNext, this, searchNext);
+
+    _replaceDialog = new SearchDialog(this, true);
+    QObject::connect(new Tui::ZCommandNotifier("replace", this), &Tui::ZCommandNotifier::activated,
+                     _replaceDialog, &SearchDialog::open);
+    QObject::connect(_replaceDialog, &SearchDialog::canceled, this, searchCancled);
+    QObject::connect(_replaceDialog, &SearchDialog::caseSensitiveChanged, this, searchCaseSensitiveChanged);
+    QObject::connect(_replaceDialog, &SearchDialog::wrapChanged, this, searchWrapChanged);
+    QObject::connect(_replaceDialog, &SearchDialog::forwardChanged, this, searchForwardChanged);
+    QObject::connect(_replaceDialog, &SearchDialog::liveSearch, this, liveSearch);
+    QObject::connect(_replaceDialog, &SearchDialog::findNext, this, searchNext);
+    QObject::connect(_replaceDialog, &SearchDialog::replace1, this, [this] (QString text, QString replacement, bool regex, bool forward) {
+        if (_file) {
+            _file->setSearchText(text);
+            _file->setReplaceText(replacement);
+            _file->setRegex(regex);
+            _file->setReplaceSelected();
+            _file->setSearchDirection(forward);
+            _file->runSearch(false);
+        }
+    });
+    QObject::connect(_replaceDialog, &SearchDialog::replaceAll, this, [this] (QString text, QString replacement, bool regex) {
+        if (_file) {
+            _file->setRegex(regex);
+            _file->replaceAll(text, replacement);
+        }
+    });
 }
 
 void Editor::searchDialog() {
