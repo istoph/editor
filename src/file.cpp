@@ -436,14 +436,14 @@ QPoint File::insertLinebreakAtPosition(QPoint cursor) {
 
 void File::gotoline(QString pos) {
     int lineNumber = -1, lineChar = 0;
-    if(pos.mid(0,1) == "+") {
+    if (pos.mid(0,1) == "+") {
         pos = pos.mid(1);
     }
     QStringList list1 = pos.split(',');
-    if(list1.count()>0) {
+    if (list1.count() > 0) {
         lineNumber = list1[0].toInt();
     }
-    if(list1.count()>1) {
+    if (list1.count() > 1) {
         lineChar = list1[1].toInt() -1;
     }
     setCursorPosition({lineChar, lineNumber});
