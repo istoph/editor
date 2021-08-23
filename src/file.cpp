@@ -177,6 +177,16 @@ QPoint File::getCursorPosition() {
 void File::setCursorPosition(QPoint position) {
     _cursorPositionY = std::max(std::min(position.y(), _text.size() -1), 0);
     _cursorPositionX = std::max(std::min(position.x(), _text[_cursorPositionY].size()), 0);
+
+    //We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
+    if (_cursorPositionX > 0) {
+        TextLayout lay(terminal()->textMetrics(), _text[_cursorPositionY]);
+        lay.doLayout(65000);
+        auto mode = TextLayout::SkipCharacters;
+        _cursorPositionX = lay.previousCursorPosition(_cursorPositionX, mode);
+        _cursorPositionX = lay.nextCursorPosition(_cursorPositionX, mode);
+    }
+
     adjustScrollPosition();
 }
 
