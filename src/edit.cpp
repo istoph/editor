@@ -484,6 +484,7 @@ void Editor::quitImpl(int i) {
         ConfirmSave *quitDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Quit, file->getWritable());
 
         QObject::connect(quitDialog, &ConfirmSave::exitSelected, [=]{
+            quitDialog->deleteLater();
             handleNext();
         });
 
