@@ -12,12 +12,12 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
 
     ScrollBar *sc = new ScrollBar(this);
     sc->setTransparent(true);
-    connect(_file, &File::scrollPositionChanged, sc, &ScrollBar::scrollPosition);
-    connect(_file, &File::textMax, sc, &ScrollBar::positonMax);
+    QObject::connect(_file, &File::scrollPositionChanged, sc, &ScrollBar::scrollPosition);
+    QObject::connect(_file, &File::textMax, sc, &ScrollBar::positonMax);
 
     _scrollbarHorizontal = new ScrollBar(this);
-    connect(_file, &File::scrollPositionChanged, _scrollbarHorizontal, &ScrollBar::scrollPosition);
-    connect(_file, &File::textMax, _scrollbarHorizontal, &ScrollBar::positonMax);
+    QObject::connect(_file, &File::scrollPositionChanged, _scrollbarHorizontal, &ScrollBar::scrollPosition);
+    QObject::connect(_file, &File::textMax, _scrollbarHorizontal, &ScrollBar::positonMax);
     _scrollbarHorizontal->setTransparent(true);
 
     _winLayout = new WindowLayout();
@@ -30,7 +30,7 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
     _winLayout->addCentralWidget(_file);
 
 
-    connect(_file, &File::modifiedChanged, this,
+    QObject::connect(_file, &File::modifiedChanged, this,
             [this] {
                 QString filename = _file->getFilename();
                 if (terminal()) {
