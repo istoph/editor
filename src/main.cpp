@@ -85,16 +85,17 @@ int main(int argc, char **argv) {
     // Default settings
     QSettings * qsettings = new QSettings(configDir, QSettings::IniFormat);
     int tabsize = qsettings->value("tabsize","4").toInt();
-    root->_file->setTabsize(tabsize);
+    Settings settings;
+    settings.tabSize = tabsize;
 
     bool tab = qsettings->value("tab","true").toBool();
-    root->_file->setTabOption(tab);
+    settings.tabOption = tab;
 
     bool ln = qsettings->value("line_number","0").toBool();
-    root->_file->setLineNumber(ln || parser.isSet(lineNumberOption));
+    settings.showLineNumber = ln || parser.isSet(lineNumberOption);
 
     bool fb = qsettings->value("formatting_characters","1").toBool();
-    root->_file->setFormattingCharacters(fb);
+    settings.formattingCharacters = fb;
 
     bool bigfile = qsettings->value("bigfile", "false").toBool();
 
@@ -102,16 +103,18 @@ int main(int argc, char **argv) {
     if(attributesfile.isEmpty()) {
         attributesfile = attributesfileDefault;
     }
-    root->_file->setAttributesfile(attributesfile);
+    settings.attributesFile = attributesfile;
 
     bool wl = qsettings->value("wrap_lines","false").toBool();
-    root->_win->setWrap(wl || parser.isSet(wraplines));
+    settings.wrap = wl || parser.isSet(wraplines);
 
     bool hb = qsettings->value("highlight_bracket","false").toBool();
-    root->_file->setHighlightBracket(hb);
+    settings.highlightBracket = hb;
 
-    bool scpx0 = qsettings->value("select_cursor_position_x0","ture").toBool();
-    root->_file->select_cursor_position_x0 = scpx0;
+    bool scpx0 = qsettings->value("select_cursor_position_x0","true").toBool();
+    settings.select_cursor_position_x0 = scpx0;
+
+    root->setInitialFileSettings(settings);
 
     QString theme = qsettings->value("theme","classic").toString();
     if(theme.toLower() == "dark" || theme.toLower() == "black") {
@@ -148,7 +151,7 @@ int main(int argc, char **argv) {
                         out << "The file is bigger then " << maxMB << "MB (" << datei.size()/1024/1024 << "MB). Please start with -b for big files.\n";
                         return 0;
                     }
-                    root->_win->openFile(datei.absoluteFilePath());
+                    root->openFile(datei.absoluteFilePath());
                 } else if(datei.isDir()) {
                     QString tmp = datei.absoluteFilePath();
                     QTimer *t = new QTimer();
@@ -159,16 +162,16 @@ int main(int argc, char **argv) {
                     t->setSingleShot(true);
                     t->start(0);
                 } else {
-                    root->_win->newFile(datei.absoluteFilePath());
+                    root->newFile(datei.absoluteFilePath());
                 }
             } else {
                 if(parser.isSet(append)) {
                     //TODO fix
-                    root->_win->openFile(parser.value(append));
+                    root->openFile(parser.value(append));
                 } else {
-                    root->_win->newFile("");
+                    root->newFile("");
                 }
-                root->_win->watchPipe();
+                root->watchPipe();
             }
         } else {
             out << "Got file offset without file name.\n";
@@ -179,16 +182,16 @@ int main(int argc, char **argv) {
             p.removeFirst();
         }
     } else {
-        root->_win->newFile("");
+        root->newFile("");
     }
 
     //Goto Line
     if (gotoline != "") {
-        root->_file->gotoline(gotoline);
+        root->gotoLineInCurrentFile(gotoline);
     }
 
     if(parser.isSet(follow)) {
-        root->_win->setFollow(true);
+        root->followInCurrentFile();
     }
 
     QObject::connect(&terminal, &Tui::ZTerminal::terminalConnectionLost, [=] {
@@ -203,9 +206,6 @@ int main(int argc, char **argv) {
         //qDebug("%i SIGINT", (int)QCoreApplication::applicationPid());
         QCoreApplication::quit();
     });
-
-    root->_file->setFocus();
-    root->_file->setCursorStyle(Tui::CursorStyle::Underline);
 
     app.exec();
     if(Tui::ZSimpleStringLogger::getMessages().size() > 0) {
