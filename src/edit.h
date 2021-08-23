@@ -31,6 +31,18 @@
 #include <QCommandLineParser>
 #include <QFileSystemWatcher>
 
+class Settings {
+public:
+    int tabSize = 4;
+    bool tabOption = true;
+    bool formattingCharacters = true;
+    bool wrap = false;
+    bool highlightBracket = false;
+    bool showLineNumber = false;
+    QString attributesFile;
+    bool select_cursor_position_x0 = true;
+};
+
 class Editor : public Tui::ZRoot {
     Q_OBJECT
 
@@ -46,10 +58,19 @@ public:
 
 public:
     void setTheme(Theme theme);
+    void setInitialFileSettings(const Settings &initial);
     void windowTitle(QString filename);
+    void openFile(QString fileName);
     void openFileDialog(QString path = "");
-    void newFileMenue();
+    void newFile(QString filename = "");
     void openFileMenue();
+
+    void gotoLineInCurrentFile(QString lineInfo);
+    void followInCurrentFile();
+
+    void watchPipe();
+
+public:
     QObject *facet(const QMetaObject metaObject);
 
 public slots:
@@ -70,11 +91,9 @@ private:
     void searchDialog();
     void replaceDialog();
 
-public:
+private:
     File *_file;
     FileWindow *_win;
-
-private:
     MdiLayout *_mdiLayout;
     StateMux _mux;
     QMap<QString, FileWindow*> _nameToWindow;
@@ -87,6 +106,7 @@ private:
     CommandLineWidget *_commandLineWidget = nullptr;
     Clipboard _clipboard;
     Theme _theme = Theme::classic;
+    Settings initialFileSettings;
 
     WindowWidget *_option_tab;
     WindowWidget *_file_open;

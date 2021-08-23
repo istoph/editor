@@ -6,6 +6,7 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setFocusPolicy(Qt::StrongFocus);
     setCursorStyle(Tui::CursorStyle::Bar);
     setCursorColor(255, 255, 255);
+    setCursorStyle(Tui::CursorStyle::Underline);
     initText();
     _cmdCopy = new Tui::ZCommandNotifier("Copy", this, Qt::WindowShortcut);
     QObject::connect(_cmdCopy, &Tui::ZCommandNotifier::activated, this, [this]{copy();});
@@ -118,6 +119,10 @@ void File::setAttributesfile(QString attributesfile) {
         QFileInfo i(attributesfile);
         _attributesfile = i.absoluteFilePath();
     }
+}
+
+QString File::getAttributesfile() {
+    return _attributesfile;
 }
 
 bool File::getMsDosMode() {
@@ -794,6 +799,10 @@ void File::setSearchDirection(bool searchDirection) {
 
 void File::setLineNumber(bool linenumber) {
     _linenumber = linenumber;
+}
+
+bool File::getLineNumber() {
+    return _linenumber;
 }
 
 void File::toggleLineNumber() {

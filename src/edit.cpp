@@ -64,11 +64,11 @@ Editor::Editor() {
     //New
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("n"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
             this, [&] {
-                Editor::newFileMenue();
+                Editor::newFile();
     });
     QObject::connect(new Tui::ZCommandNotifier("New", this), &Tui::ZCommandNotifier::activated,
             [&] {
-                Editor::newFileMenue();
+                Editor::newFile();
     });
 
     //Open
@@ -203,19 +203,14 @@ Editor::Editor() {
 
     _statusBar = new StatusBar(this);
 
-    _win = createFileWindow();
-    _file = _win->getFileWidget();
-
-    _mux.selectInput(_win);
-
     VBoxLayout *rootLayout = new VBoxLayout();
     setLayout(rootLayout);
     rootLayout->addWidget(menu);
     _mdiLayout = new MdiLayout();
-    _mdiLayout->addWindow(_win);
     rootLayout->add(_mdiLayout);
     rootLayout->addWidget(_commandLineWidget);
     rootLayout->addWidget(_statusBar);
+    setupSearchDialogs();
 }
 
 Editor::~Editor() {
@@ -281,6 +276,26 @@ FileWindow *Editor::createFileWindow() {
         }
         _allWindows.removeAll(win);
     });
+
+    if (_win) {
+        file->setTabsize(_file->getTabsize());
+        file->setLineNumber(_file->getLineNumber());
+        file->setTabOption(_file->getTabOption());
+        file->setFormattingCharacters(_file->getformattingCharacters());
+        win->setWrap(_file->getWrapOption());
+        file->setHighlightBracket(_file->getHighlightBracket());
+        file->setAttributesfile(_file->getAttributesfile());
+        file->select_cursor_position_x0 = _file->select_cursor_position_x0;
+    } else {
+        file->setTabsize(initialFileSettings.tabSize);
+        file->setLineNumber(initialFileSettings.showLineNumber);
+        file->setTabOption(initialFileSettings.tabOption);
+        file->setFormattingCharacters(initialFileSettings.formattingCharacters);
+        win->setWrap(initialFileSettings.wrap);
+        file->setHighlightBracket(initialFileSettings.highlightBracket);
+        file->setAttributesfile(initialFileSettings.attributesFile);
+        file->select_cursor_position_x0 = initialFileSettings.select_cursor_position_x0;
+    }
 
     return win;
 }
@@ -388,8 +403,11 @@ void Editor::replaceDialog() {
     _replaceDialog->setSearchText(_file->getSelectText());
 }
 
-void Editor::newFileMenue() {
+void Editor::newFile(QString filename) {
     FileWindow *win = createFileWindow();
+    if (filename.size()) {
+        win->getFileWidget()->newText(filename);
+    }
     _mdiLayout->addWindow(win);
     win->getFileWidget()->setFocus();
 }
@@ -398,25 +416,46 @@ void Editor::openFileMenue() {
     openFileDialog();
 }
 
+void Editor::gotoLineInCurrentFile(QString lineInfo) {
+    if (_file) {
+        _file->gotoline(lineInfo);
+    }
+}
+
+void Editor::followInCurrentFile() {
+    if (_win) {
+        _win->setFollow(true);
+    }
+}
+
+void Editor::watchPipe() {
+    if (_win) {
+        _win->watchPipe();
+    }
+}
+
+void Editor::openFile(QString fileName) {
+    QFileInfo filenameInfo(fileName);
+    QString absFileName = filenameInfo.absoluteFilePath();
+    if (_nameToWindow.contains(absFileName)) {
+        _nameToWindow.value(absFileName)->getFileWidget()->setFocus();
+        return;
+    }
+
+    if (_win && !_win->getFileWidget()->isModified() && _win->getFileWidget()->getFilename() == "NEWFILE") {
+        _win->openFile(fileName);
+    } else {
+        FileWindow *win = createFileWindow();
+        _mdiLayout->addWindow(win);
+        win->openFile(fileName);
+        win->getFileWidget()->setFocus();
+    }
+}
 
 void Editor::openFileDialog(QString path) {
     OpenDialog *openDialog = new OpenDialog(this, path);
     connect(openDialog, &OpenDialog::fileSelected, this, [this] (QString fileName) {
-        QFileInfo filenameInfo(fileName);
-        QString absFileName = filenameInfo.absoluteFilePath();
-        if (_nameToWindow.contains(absFileName)) {
-            _nameToWindow.value(absFileName)->getFileWidget()->setFocus();
-            return;
-        }
-
-        if (_win && !_win->getFileWidget()->isModified() && _win->getFileWidget()->getFilename() == "NEWFILE") {
-            _win->openFile(fileName);
-        } else {
-            FileWindow *win = createFileWindow();
-            _mdiLayout->addWindow(win);
-            win->openFile(fileName);
-            win->getFileWidget()->setFocus();
-        }
+        openFile(fileName);
     });
 }
 
@@ -502,6 +541,10 @@ void Editor::setTheme(Theme theme) {
                              });
         setPalette(tmpPalette);
     }
+}
+
+void Editor::setInitialFileSettings(const Settings &initial) {
+    initialFileSettings = initial;
 }
 
 void Editor::showCommandLine() {

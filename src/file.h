@@ -114,6 +114,7 @@ public:
     void getAttributes();
     bool writeAttributes();
     void setAttributesfile(QString attributesfile);
+    QString getAttributesfile();
     bool getMsDosMode();
     void setMsDosMode(bool msdos);
     int tabToSpace();
@@ -133,6 +134,7 @@ public:
     void setSearchDirection(bool searchDirection);
     void searchSelect(int found = -1);
     void setLineNumber(bool linenumber);
+    bool getLineNumber();
     void toggleLineNumber();
     void setSaveAs(bool state);
     bool isSaveAs();
