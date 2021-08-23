@@ -1,4 +1,6 @@
 #include "edit.h"
+#include "filelistparser.h"
+
 #include <QLoggingCategory>
 #include <Tui/ZSimpleFileLogger.h>
 #include <Tui/ZSimpleStringLogger.h>
@@ -16,10 +18,6 @@ int main(int argc, char **argv) {
     parser.addVersionOption();
 
     // Line Number
-    QCommandLineOption numberOption({"n","number"},
-                                    QCoreApplication::translate("main", "The cursor will be positioned on line \"num\".  If \"num\" is missing, the cursor will be positioned on the last line."),
-                                    QCoreApplication::translate("main", "num"));
-    parser.addOption(numberOption);
 
     QCommandLineOption lineNumberOption({"l","linenumber"},
                                     QCoreApplication::translate("main", "The line numbers are displayed"));
@@ -133,26 +131,25 @@ int main(int argc, char **argv) {
     qDebug("%i chr starting", (int)QCoreApplication::applicationPid());
 
     // OPEN FILE
-    //int lineNumber = -1, lineChar = 0;
-    QString gotoline = parser.value(numberOption);
-    if(!args.isEmpty()) {
-        QStringList p = args;
-        if (p.first().mid(0,1) == "+") {
-            gotoline = p.first().mid(1);
-            p.removeFirst();
+    if(args.empty()) {
+        root->newFile("");
+    } else {
+        QVector<FileListEntry> fles = parseFileList(args);
+        if (fles.empty()) {
+            out << "Got file offset without file name.\n";
+            return 0;
         }
-        if (!p.isEmpty()) {
-            if (p.first() != "-") {
-                QFileInfo datei(p.first());
-                p.removeFirst();
-                if(datei.isFile()) {
-                    int maxMB = 100;
-                    if(datei.size()/1024/1024 >= maxMB && !parser.isSet(bigOption) && !bigfile) {
-                        out << "The file is bigger then " << maxMB << "MB (" << datei.size()/1024/1024 << "MB). Please start with -b for big files.\n";
-                        return 0;
-                    }
-                    root->openFile(datei.absoluteFilePath());
-                } else if(datei.isDir()) {
+        for (FileListEntry fle: fles) {
+            if (fle.fileName == "-") {
+                if(parser.isSet(append)) {
+                    root->openFile(parser.value(append));
+                } else {
+                    root->newFile("");
+                }
+                root->watchPipe();
+            } else {
+                QFileInfo datei(fle.fileName);
+                if(datei.isDir()) {
                     QString tmp = datei.absoluteFilePath();
                     QTimer *t = new QTimer();
                     QObject::connect(t, &QTimer::timeout, t, [t, root, tmp] {
@@ -161,33 +158,21 @@ int main(int argc, char **argv) {
                     });
                     t->setSingleShot(true);
                     t->start(0);
+                } else if(datei.isFile()){
+                    int maxMB = 100;
+                    if(datei.size()/1024/1024 >= maxMB && !parser.isSet(bigOption) && !bigfile) {
+                        out << "The file is bigger then " << maxMB << "MB (" << datei.size()/1024/1024 << "MB). Please start with -b for big files.\n";
+                        return 0;
+                    }
+                    root->openFile(datei.absoluteFilePath());
+                    if (fle.pos != "") {
+                        root->gotoLineInCurrentFile(fle.pos);
+                    }
                 } else {
                     root->newFile(datei.absoluteFilePath());
                 }
-            } else {
-                if(parser.isSet(append)) {
-                    //TODO fix
-                    root->openFile(parser.value(append));
-                } else {
-                    root->newFile("");
-                }
-                root->watchPipe();
             }
-        } else {
-            out << "Got file offset without file name.\n";
-            return 0;
         }
-        if (!p.empty() && p.first().mid(0,1) == "+") {
-            gotoline = p.first().mid(1);
-            p.removeFirst();
-        }
-    } else {
-        root->newFile("");
-    }
-
-    //Goto Line
-    if (gotoline != "") {
-        root->gotoLineInCurrentFile(gotoline);
     }
 
     if(parser.isSet(follow)) {

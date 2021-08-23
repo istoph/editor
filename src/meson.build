@@ -1,6 +1,10 @@
 main = ['main.cpp']
 
-tests = ['tests.cpp']
+#ide:editable-filelist
+tests = [
+  'tests.cpp',
+  'filelistparsertests.cpp'
+]
 
 #ide:editable-filelist
 editor_sources = [
@@ -9,6 +13,7 @@ editor_sources = [
   'confirmsave.cpp',
   'edit.cpp',
   'file.cpp',
+  'filelistparser.cpp',
   'filewindow.cpp',
   'gotoline.cpp',
   'insertcharacter.cpp',
