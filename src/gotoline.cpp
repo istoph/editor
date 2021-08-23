@@ -9,7 +9,7 @@ GotoLine::GotoLine(Tui::ZWidget *parent) : Dialog(parent) {
     setLayout(vbox);
     vbox->setSpacing(1);
 
-    HBoxLayout* hbox1 = new HBoxLayout();
+    HBoxLayout *hbox1 = new HBoxLayout();
 
     //file_goto_line = new Dialog(this);
     //file_goto_line->setGeometry({20, 2, 40, 8});
@@ -28,7 +28,7 @@ GotoLine::GotoLine(Tui::ZWidget *parent) : Dialog(parent) {
     vbox->add(hbox1);
     vbox->addStretch();
 
-    HBoxLayout* hbox2 = new HBoxLayout();
+    HBoxLayout *hbox2 = new HBoxLayout();
 
     Button *b0 = new Button(this);
     b0->setGeometry({3, 5, 7, 7});
@@ -45,7 +45,7 @@ GotoLine::GotoLine(Tui::ZWidget *parent) : Dialog(parent) {
 
     QObject::connect(b0, &Button::clicked, this, &GotoLine::rejected);
     QObject::connect(b1, &Button::clicked, this, [this, i1]{
-        lineSelected(i1->text().toInt());
+        lineSelected(i1->text());
         this->deleteLater();
     });
 }

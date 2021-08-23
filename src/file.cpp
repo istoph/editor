@@ -451,7 +451,7 @@ void File::gotoline(QString pos) {
     }
     QStringList list1 = pos.split(',');
     if (list1.count() > 0) {
-        lineNumber = list1[0].toInt();
+        lineNumber = list1[0].toInt() -1;
     }
     if (list1.count() > 1) {
         lineChar = list1[1].toInt() -1;

@@ -122,9 +122,9 @@ Editor::Editor() {
 
     //Goto Line
     auto gotoLine = [this] {
-        QObject::connect(new GotoLine(this), &GotoLine::lineSelected, this, [this] (int line) {
+        QObject::connect(new GotoLine(this), &GotoLine::lineSelected, this, [this] (QString line) {
             if (_file) {
-                _file->gotoline(QString::number(line));
+                _file->gotoline(line);
             }
         });
 

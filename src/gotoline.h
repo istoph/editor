@@ -14,7 +14,7 @@ public:
     explicit GotoLine(Tui::ZWidget *parent);
 
 signals:
-    void lineSelected(int line);
+    void lineSelected(QString line);
 };
 
 #endif // GOTOLINE_H
