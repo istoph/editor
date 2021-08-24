@@ -52,8 +52,8 @@ int main(int argc, char **argv) {
                                     QCoreApplication::translate("main", "config"));
     parser.addOption(configOption);
 
-    // Dokument
-    parser.addPositionalArgument("file", QCoreApplication::translate("main", "The file to open."));
+    parser.addPositionalArgument("[[+line[,char]] file …]", QCoreApplication::translate("main", "Optional is the line number, several files can be opened in multiple windows."));
+    parser.addPositionalArgument("[/directory]", QCoreApplication::translate("main", "Or a directory can be specified to search in the open dialog."));
     parser.process(app);
 
     parser.parse(QCoreApplication::arguments());
