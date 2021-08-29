@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN
 
-#include "third-party/catch.hpp"
+#include "../third-party/catch.hpp"
 #include "file.h"
 #include <QCryptographicHash>
 
