@@ -23,7 +23,6 @@ int main(int argc, char **argv) {
                                     QCoreApplication::translate("main", "The line numbers are displayed"));
     parser.addOption(lineNumberOption);
 
-
     QCommandLineOption append({"a","append"},
                               QCoreApplication::translate("main", "Only with read from standard input, then append to a file"),
                               QCoreApplication::translate("main", "file"));
@@ -89,7 +88,7 @@ int main(int argc, char **argv) {
     bool tab = qsettings->value("tab","true").toBool();
     settings.tabOption = tab;
 
-    bool ln = qsettings->value("line_number","0").toBool();
+    bool ln = qsettings->value("line_number","0").toBool() || qsettings->value("linenumber","0").toBool();
     settings.showLineNumber = ln || parser.isSet(lineNumberOption);
 
     bool fb = qsettings->value("formatting_characters","1").toBool();
