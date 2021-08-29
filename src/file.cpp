@@ -1441,6 +1441,13 @@ void File::toggleSelectMode() {
     setSelectMode(!_selectMode);
 }
 
+bool File::isNewFile() {
+    if (_filename == "NEWFILE") {
+        return true;
+    }
+    return false;
+}
+
 void File::keyEvent(Tui::ZKeyEvent *event) {
     QString text = event->text();
     bool extendSelect = event->modifiers() == Qt::ShiftModifier || getSelectMode();

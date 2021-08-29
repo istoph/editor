@@ -123,6 +123,7 @@ public:
     void setCursorPosition(QPoint position);
     void toggleSelectMode();
     bool select_cursor_position_x0;
+    bool isNewFile();
 
 public:
     void setSearchWrap(bool wrap);

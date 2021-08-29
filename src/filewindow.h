@@ -50,6 +50,7 @@ private:
     QFileSystemWatcher *_watcher = nullptr;
 
     bool _follow = false;
+    Tui::ZCommandNotifier *_cmdReload = nullptr;
     Tui::ZCommandNotifier *_cmdFollow = nullptr;
     Tui::ZCommandNotifier *_cmdInputPipe = nullptr;
     QSocketNotifier *_pipeSocketNotifier = nullptr;

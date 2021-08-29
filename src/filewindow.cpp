@@ -39,6 +39,11 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
                 }
                 if(_file->isModified()) {
                     filename = "*" + filename;
+                    if (!_file->isNewFile()) {
+                        _cmdReload->setEnabled(true);
+                    }
+                } else {
+                    _cmdReload->setEnabled(false);
                 }
                 setWindowTitle(filename);
             }
@@ -64,22 +69,23 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
                      this, &FileWindow::saveFileDialog);
 
     //Reload
-    QObject::connect(new Tui::ZCommandNotifier("Reload", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
+    _cmdReload = new Tui::ZCommandNotifier("Reload", this, Qt::WindowShortcut);
+    _cmdReload->setEnabled(false);
+    QObject::connect(_cmdReload, &Tui::ZCommandNotifier::activated,
          this, [this] {
-            if(_file->isModified()) {
-                ConfirmSave *confirmDialog = new ConfirmSave(this, _file->getFilename(), ConfirmSave::Reload, false);
-                QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
-                    delete confirmDialog;
+                if(_file->isModified()) {
+                    ConfirmSave *confirmDialog = new ConfirmSave(this->parentWidget(), _file->getFilename(), ConfirmSave::Reload, false);
+                    QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
+                        confirmDialog->deleteLater();
+                        FileWindow::reload();
+                    });
+
+                    QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
+                        confirmDialog->deleteLater();
+                    });
+                } else {
                     FileWindow::reload();
-                });
-
-                QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
-                    delete confirmDialog;
-                });
-            } else {
-                FileWindow::reload();
-            }
-
+                }
     });
 
     QObject::connect(new Tui::ZCommandNotifier("Close", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated, this, [this]{

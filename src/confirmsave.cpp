@@ -1,9 +1,7 @@
 #include "confirmsave.h"
 
 ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool saveable) : Dialog(parent) {
-    QString mainLable = "Save: " + filename;
-
-    QString title, nosave, save;
+    QString title, nosave, save, mainLable;
     if(type == Close) {
         title = "Close";
         nosave = "Discard";
@@ -18,6 +16,8 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
         nosave = "Quit";
         save = "Save and Quit";
     }
+    mainLable = title + ": " + filename;
+
     //Dialog Box
     setWindowTitle(title);
     //setMinimumSize(50,8);
