@@ -86,6 +86,7 @@ protected:
 private:
     void setupSearchDialogs();
     FileWindow *createFileWindow();
+    QVector<MenuItem> createWindowMenu();
     void quit();
     void quitImpl(int i);
     void searchDialog();
