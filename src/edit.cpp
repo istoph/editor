@@ -217,6 +217,7 @@ Editor::Editor() {
         auto code = [this, windowNumber = i] {
             if (windowNumber < _allWindows.size()) {
                 auto *win = _allWindows[windowNumber];
+                raiseOnFocus(win);
                 auto *widget = win->placeFocus();
                 if (widget) {
                     widget->setFocus();
