@@ -55,6 +55,7 @@ Editor::Editor() {
                                  { "<m>T</m>heme", "", "Theme", {}}
                              }
                       },
+                      {"<m>W</m>indow", this, [this] { return createWindowMenu(); }},
                       { "Hel<m>p</m>", "", {}, {
                             { "<m>A</m>bout", "", "About", {}}
                         }
@@ -191,6 +192,44 @@ Editor::Editor() {
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forMnemonic("x"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
                      this, &Editor::showCommandLine);
 
+    QObject::connect(new Tui::ZCommandNotifier("NextWindow", this), &Tui::ZCommandNotifier::activated,
+        [this] {
+            focusNextWindow();
+        }
+    );
+    QObject::connect(new Tui::ZCommandNotifier("PreviousWindow", this), &Tui::ZCommandNotifier::activated,
+        [this] {
+            focusPreviousWindow();
+        }
+    );
+    QObject::connect(new Tui::ZCommandNotifier("TileVert", this), &Tui::ZCommandNotifier::activated,
+        [this] {
+            _mdiLayout->setMode(MdiLayout::LayoutMode::TileV);
+        }
+    );
+    QObject::connect(new Tui::ZCommandNotifier("TileHorz", this), &Tui::ZCommandNotifier::activated,
+        [this] {
+            _mdiLayout->setMode(MdiLayout::LayoutMode::TileH);
+        }
+    );
+
+    for (int i = 0; i < 10; i++) {
+        auto code = [this, windowNumber = i] {
+            if (windowNumber < _allWindows.size()) {
+                auto *win = _allWindows[windowNumber];
+                auto *widget = win->placeFocus();
+                if (widget) {
+                    widget->setFocus();
+                }
+            }
+        };
+
+        QObject::connect(new Tui::ZCommandNotifier(QStringLiteral("SwitchToWindow%0").arg(QString::number(i + 1)), this),
+                         &Tui::ZCommandNotifier::activated, code);
+        QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forMnemonic(QString::number(i + 1)), this, Qt::ApplicationShortcut),
+                         &Tui::ZShortcut::activated, this, code);
+
+    }
 
     // Background
     setFillChar(u'▒');
@@ -298,6 +337,27 @@ FileWindow *Editor::createFileWindow() {
     }
 
     return win;
+}
+
+QVector<MenuItem> Editor::createWindowMenu() {
+    QVector<MenuItem> subitems = {
+        {"<m>N</m>ext", "F6", "NextWindow", {}},
+        {"<m>P</m>revious", "Shift-F6", "PreviousWindow", {}},
+        {"Tile <m>V</m>ertically", "", "TileVert", {}},
+        {"Tile <m>H</m>orizontally", "", "TileHorz", {}},
+    };
+
+    if (_allWindows.size()) {
+        subitems.append(MenuItem{});
+        for (int i = 0; i < std::min(10, _allWindows.size()); i++) {
+            subitems.append(MenuItem{_allWindows[i]->getFileWidget()->getFilename(),
+                                     QStringLiteral("Alt-%0").arg(QString::number(i + 1)),
+                                     QStringLiteral("SwitchToWindow%0").arg(QString::number(i + 1)),
+                                     {}});
+        }
+    }
+
+    return subitems;
 }
 
 void Editor::setupSearchDialogs() {
