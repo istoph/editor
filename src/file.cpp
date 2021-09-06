@@ -1062,8 +1062,7 @@ ZTextOption File::getTextOption() {
 TextLayout File::getTextLayoutForLine(const ZTextOption &option, int line) {
     TextLayout lay(terminal()->textMetrics(), _text[line]);
     lay.setTextOption(option);
-    lay.doLayout(rect().width());
-
+    lay.doLayout(std::max(rect().width() - shiftLinenumber(), 0));
     return lay;
 }
 
@@ -1124,6 +1123,13 @@ bool File::highlightBracket() {
     return false;
 }
 
+int File::shiftLinenumber() {
+    if(_linenumber) {
+        return QString::number(_text.size()).size() + 1;
+    }
+    return 0;
+}
+
 void File::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor bg;
     Tui::ZColor fg;
@@ -1151,12 +1157,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     const TextStyle blockSelectedFormatingChar{Tui::Colors::darkGray, Tui::Colors::lightGray, Tui::ZPainter::Attribute::Blink};
     const TextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
 
-    //LineNumber
-    int shiftLinenumber = 0;
     QString strlinenumber;
-    if(_linenumber) {
-        shiftLinenumber = QString::number(_text.size()).size() + 1;
-    }
     int y = 0;
     int tmpLastLineWidth = 0;
     for (int line = _scrollPositionY; y < rect().height() && line < _text.size(); line++) {
@@ -1215,41 +1216,41 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 highlights.append(TextLayout::FormatRange{startSelect.second, endSelect.second - startSelect.second, selected, selectedFormatingChar});
             }
         }
-        lay.draw(*painter, {-_scrollPositionX + shiftLinenumber, y}, base, &formatingChar, highlights);
+        lay.draw(*painter, {-_scrollPositionX + shiftLinenumber(), y}, base, &formatingChar, highlights);
         if (getformattingCharacters()) {
             TextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
             tmpLastLineWidth = lastLine.width();
             if (isSelect(_text[line].size(), line)) {
-                painter->writeWithAttributes(-_scrollPositionX + lastLine.width() + shiftLinenumber, y + lastLine.y(), QStringLiteral("¶"),
+                painter->writeWithAttributes(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), QStringLiteral("¶"),
                                              selectedFormatingChar.foregroundColor(), selectedFormatingChar.backgroundColor(), selectedFormatingChar.attributes());
             } else {
-                painter->writeWithAttributes(-_scrollPositionX + lastLine.width() + shiftLinenumber, y + lastLine.y(), QStringLiteral("¶"),
+                painter->writeWithAttributes(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), QStringLiteral("¶"),
                                              formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
             }
         }
         if (_cursorPositionY == line) {
             if (focus()) {
-                lay.showCursor(*painter, {-_scrollPositionX + shiftLinenumber, y}, _cursorPositionX);
+                lay.showCursor(*painter, {-_scrollPositionX + shiftLinenumber(), y}, _cursorPositionX);
             }
         }
         //linenumber
         if(_linenumber) {
-            strlinenumber = QString::number(line + 1) + QString(" ").repeated(shiftLinenumber - QString::number(line + 1).size());
+            strlinenumber = QString::number(line + 1) + QString(" ").repeated(shiftLinenumber() - QString::number(line + 1).size());
             painter->writeWithColors(0, y, strlinenumber, getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
             for(int i = lay.lineCount() -1; i > 0; i--) {
-                painter->writeWithColors(0, y + i, QString(" ").repeated(shiftLinenumber), getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
+                painter->writeWithColors(0, y + i, QString(" ").repeated(shiftLinenumber()), getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
             }
         }
         y += lay.lineCount();
     }
     if (_nonewline) {
         if (getformattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
-            painter->writeWithAttributes(-_scrollPositionX + tmpLastLineWidth + shiftLinenumber, y-1, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+            painter->writeWithAttributes(-_scrollPositionX + tmpLastLineWidth + shiftLinenumber(), y-1, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
         }
-        painter->writeWithAttributes(0 + shiftLinenumber, y, "\\ No newline at end of file", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+        painter->writeWithAttributes(0 + shiftLinenumber(), y, "\\ No newline at end of file", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
     } else {
         if (getformattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
-            painter->writeWithAttributes(0 + shiftLinenumber, y, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+            painter->writeWithAttributes(0 + shiftLinenumber(), y, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
         }
     }
 }

@@ -184,6 +184,7 @@ private:
     void selectCursorPosition(Qt::KeyboardModifiers modifiers);
     void setSelectMode(bool f4);
     bool getSelectMode();
+    int shiftLinenumber();
 
 private:
     QString _filename;
@@ -236,7 +237,6 @@ private:
     Tui::ZCommandNotifier *_cmdSearchPrevious = nullptr;
     bool _selectMode = false;
     bool _blockSelect = false;
-
 
 };
 
