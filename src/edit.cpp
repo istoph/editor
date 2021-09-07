@@ -212,8 +212,13 @@ Editor::Editor() {
             _mdiLayout->setMode(MdiLayout::LayoutMode::TileH);
         }
     );
+    QObject::connect(new Tui::ZCommandNotifier("TileFull", this), &Tui::ZCommandNotifier::activated,
+        [this] {
+            _mdiLayout->setMode(MdiLayout::LayoutMode::Base);
+        }
+    );
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 24; i++) {
         auto code = [this, windowNumber = i] {
             if (windowNumber < _allWindows.size()) {
                 auto *win = _allWindows[windowNumber];
@@ -227,14 +232,14 @@ Editor::Editor() {
 
         QObject::connect(new Tui::ZCommandNotifier(QStringLiteral("SwitchToWindow%0").arg(QString::number(i + 1)), this),
                          &Tui::ZCommandNotifier::activated, code);
-        QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forMnemonic(QString::number(i + 1)), this, Qt::ApplicationShortcut),
+        if (i < 9) {
+            QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forMnemonic(QString::number(i + 1)), this, Qt::ApplicationShortcut),
                          &Tui::ZShortcut::activated, this, code);
-
+        }
     }
 
     // Background
     setFillChar(u'▒');
-
 
     _commandLineWidget = new CommandLineWidget(this);
     _commandLineWidget->setVisible(false);
@@ -346,16 +351,25 @@ QVector<MenuItem> Editor::createWindowMenu() {
         {"<m>P</m>revious", "Shift-F6", "PreviousWindow", {}},
         {"Tile <m>V</m>ertically", "", "TileVert", {}},
         {"Tile <m>H</m>orizontally", "", "TileHorz", {}},
+        {"Tile <m>F</m>ullscreen", "", "TileFull", {}},
     };
 
     if (_allWindows.size()) {
         subitems.append(MenuItem{});
-        for (int i = 0; i < std::min(10, _allWindows.size()); i++) {
-            subitems.append(MenuItem{_allWindows[i]->getFileWidget()->getFilename(),
-                                     QStringLiteral("Alt-%0").arg(QString::number(i + 1)),
-                                     QStringLiteral("SwitchToWindow%0").arg(QString::number(i + 1)),
-                                     {}});
+        for (int i = 0; i < _allWindows.size(); i++) {
+            if (i < 9) {
+                subitems.append(MenuItem{_allWindows[i]->getFileWidget()->getFilename(),
+                                         QStringLiteral("Alt-%0").arg(QString::number(i + 1)),
+                                         QStringLiteral("SwitchToWindow%0").arg(QString::number(i + 1)),
+                                         {}});
+            } else {
+                subitems.append(MenuItem{_allWindows[i]->getFileWidget()->getFilename(),
+                                         "",
+                                         QStringLiteral("SwitchToWindow%0").arg(QString::number(i + 1)),
+                                         {}});
+            }
         }
+
     }
 
     return subitems;
