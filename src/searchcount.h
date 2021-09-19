@@ -1,9 +1,10 @@
 #ifndef SEARCHCOUNT_H
 #define SEARCHCOUNT_H
 
+#include <memory>
+
 #include <QObject>
 #include <QVector>
-#include <memory>
 
 class SearchCount : public QObject {
     Q_OBJECT

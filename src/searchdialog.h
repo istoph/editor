@@ -1,6 +1,10 @@
 #ifndef SEARCHDIALOG_H
 #define SEARCHDIALOG_H
 
+#include <Tui/ZButton.h>
+#include <Tui/ZCheckBox.h>
+#include <Tui/ZRadioButton.h>
+
 #include <testtui_lib.h>
 
 #include "file.h"
@@ -31,19 +35,19 @@ private:
     bool _replace = false;
     InputBox *_searchText = nullptr;
     InputBox *_replaceText = nullptr;
-    Button *_findNextBtn = nullptr;
-    Button *_findPreviousBtn = nullptr;
-    Button *_cancelBtn = nullptr;
-    Button *_replaceBtn = nullptr;
-    Button *_replaceAllBtn = nullptr;
+    Tui::ZButton *_findNextBtn = nullptr;
+    Tui::ZButton *_findPreviousBtn = nullptr;
+    Tui::ZButton *_cancelBtn = nullptr;
+    Tui::ZButton *_replaceBtn = nullptr;
+    Tui::ZButton *_replaceAllBtn = nullptr;
     bool _caseSensitive = true;
-    CheckBox *_caseMatchBox = nullptr;
-    CheckBox *_parseBox = nullptr;
-    CheckBox *_wrapBox = nullptr;
-    CheckBox *_regexMatchBox = nullptr;
-    CheckBox *_liveSearchBox = nullptr;
-    RadioButton *_forward = nullptr;
-    RadioButton *_backward = nullptr;
+    Tui::ZCheckBox *_caseMatchBox = nullptr;
+    Tui::ZCheckBox *_parseBox = nullptr;
+    Tui::ZCheckBox *_wrapBox = nullptr;
+    Tui::ZCheckBox *_regexMatchBox = nullptr;
+    Tui::ZCheckBox *_liveSearchBox = nullptr;
+    Tui::ZRadioButton *_forward = nullptr;
+    Tui::ZRadioButton *_backward = nullptr;
 };
 
 #endif // SEARCHDIALOG_H

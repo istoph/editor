@@ -28,7 +28,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     setGeometry({10, 2, 50, 15});
     setWindowTitle("Save as...");
 
-    _curentPath = new Label(this);
+    _curentPath = new Tui::ZLabel(this);
     _curentPath->setGeometry({2,2,45,1});
     _folder = new ListView(this);
     _folder->setGeometry({3,3,44,6});
@@ -42,7 +42,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     _filenameText = new InputBox(this);
     _filenameText->setGeometry({3,10,44,1});
-    _dos = new CheckBox(withMarkup, "<m>D</m>OS Mode", this);
+    _dos = new Tui::ZCheckBox(Tui::withMarkup, "<m>D</m>OS Mode", this);
     _dos->setGeometry({2, 12, 16, 7});
     if(file->getMsDosMode()) {
         _dos->setCheckState(Qt::Checked);
@@ -50,26 +50,26 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
         _dos->setCheckState(Qt::Unchecked);
     }
 
-    _cancelButton = new Button(this);
+    _cancelButton = new Tui::ZButton(this);
     _cancelButton->setGeometry({25, 12, 12, 7});
     _cancelButton->setText("Cancel");
 
-    _okButton = new Button(this);
+    _okButton = new Tui::ZButton(this);
     _okButton->setGeometry({37, 12, 10, 7});
     _okButton->setText("Save");
     _okButton->setDefault(true);
     _okButton->setEnabled(false);
 
     QObject::connect(_filenameText, &InputBox::textChanged, this, &SaveDialog::filenameChanged);
-    QObject::connect(_dos, &CheckBox::stateChanged, [=] {
+    QObject::connect(_dos, &Tui::ZCheckBox::stateChanged, [=] {
        if(_dos->checkState() == Qt::Checked) {
             file->setMsDosMode(true);
        } else {
             file->setMsDosMode(false);
        }
     });
-    QObject::connect(_cancelButton, &Button::clicked, this, &SaveDialog::rejected);
-    QObject::connect(_okButton, &Button::clicked, this, &SaveDialog::saveFile);
+    QObject::connect(_cancelButton, &Tui::ZButton::clicked, this, &SaveDialog::rejected);
+    QObject::connect(_okButton, &Tui::ZButton::clicked, this, &SaveDialog::saveFile);
 
     QRect r = geometry();
     r.moveCenter(terminal()->mainWidget()->geometry().center());

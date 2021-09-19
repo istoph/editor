@@ -1,10 +1,16 @@
 #ifndef EDIT_H
 #define EDIT_H
 
+#include <QCommandLineParser>
 #include <QCoreApplication>
+#include <QDir>
+#include <QFileSystemWatcher>
+#include <QSettings>
 #include <QSocketNotifier>
+#include <QTextStream>
 
 #include <Tui/ZCommandNotifier.h>
+#include <Tui/ZMenuItem.h>
 #include <Tui/ZPalette.h>
 #include <Tui/ZRoot.h>
 #include <Tui/ZSymbol.h>
@@ -25,11 +31,6 @@
 #include "commandlinewidget.h"
 #include "themedialog.h"
 
-#include <QDir>
-#include <QSettings>
-#include <QTextStream>
-#include <QCommandLineParser>
-#include <QFileSystemWatcher>
 
 class Settings {
 public:
@@ -86,7 +87,7 @@ protected:
 private:
     void setupSearchDialogs();
     FileWindow *createFileWindow();
-    QVector<MenuItem> createWindowMenu();
+    QVector<Tui::ZMenuItem> createWindowMenu();
     void quit();
     void quitImpl(int i);
     void searchDialog();

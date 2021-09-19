@@ -4,18 +4,20 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QFuture>
+#include <QFutureWatcher>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QPair>
 #include <QSaveFile>
 #include <QTextStream>
 #include <QtConcurrent>
-#include <QFuture>
-#include <QFutureWatcher>
-#include <QPair>
+
+#include <Tui/ZCommandNotifier.h>
 
 #include <testtui_lib.h>
-#include <Tui/ZCommandNotifier.h>
+
 #include "searchcount.h"
 #include "clipboard.h"
 

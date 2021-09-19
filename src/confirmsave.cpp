@@ -1,5 +1,8 @@
 #include "confirmsave.h"
 
+#include <Tui/ZButton.h>
+#include <Tui/ZLabel.h>
+
 ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool saveable) : Dialog(parent) {
     QString title, nosave, save, mainLable;
     if(type == Close) {
@@ -29,7 +32,7 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
     vbox->setSpacing(1);
 
     //Lable
-    Label *l1 = new Label(this);
+    Tui::ZLabel *l1 = new Tui::ZLabel(this);
     l1->setText("Save: " + filename);
     vbox->addWidget(l1);
     vbox->addStretch();
@@ -37,7 +40,7 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
     HBoxLayout* hbox = new HBoxLayout();
 
     //Cancel
-    Button *bCancel = new Button(this);
+    Tui::ZButton *bCancel = new Tui::ZButton(this);
     if(!saveable) {
         bCancel->setDefault(!saveable);
         bCancel->setFocus();
@@ -46,13 +49,13 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
     hbox->addWidget(bCancel);
 
     //Discard
-    Button *bDiscard = new Button(this);
+    Tui::ZButton *bDiscard = new Tui::ZButton(this);
     bDiscard->setText(nosave);
     hbox->addWidget(bDiscard);
     hbox->setSpacing(1);
 
     //Save
-    Button *bSave = new Button(this);
+    Tui::ZButton *bSave = new Tui::ZButton(this);
     bSave->setText(save);
     bSave->setEnabled(saveable);
     if (saveable) {
@@ -64,8 +67,8 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
     }
     vbox->add(hbox);
 
-    QObject::connect(bCancel, &Button::clicked, this, &ConfirmSave::rejected);
-    QObject::connect(bDiscard, &Button::clicked, this, &ConfirmSave::exitSelected);
-    QObject::connect(bSave, &Button::clicked, this, &ConfirmSave::saveSelected);
+    QObject::connect(bCancel, &Tui::ZButton::clicked, this, &ConfirmSave::rejected);
+    QObject::connect(bDiscard, &Tui::ZButton::clicked, this, &ConfirmSave::exitSelected);
+    QObject::connect(bSave, &Tui::ZButton::clicked, this, &ConfirmSave::saveSelected);
 
 }

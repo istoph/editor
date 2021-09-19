@@ -2,9 +2,9 @@
 #define STATEMUX_H
 
 #include <functional>
+#include <memory>
 #include <utility>
 #include <vector>
-#include <memory>
 
 #include <QObject>
 

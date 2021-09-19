@@ -1,5 +1,8 @@
 #ifndef THEME_H
 #define THEME_H
+
+#include <Tui/ZButton.h>
+
 #include <testtui_lib.h>
 
 class Editor;
@@ -16,8 +19,8 @@ public slots:
 
 private:
     ListView *_lv = nullptr;
-    Button *_cancelButton = nullptr;
-    Button *_okButton = nullptr;
+    Tui::ZButton *_cancelButton = nullptr;
+    Tui::ZButton *_okButton = nullptr;
 };
 
 #endif // THEME_H

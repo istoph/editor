@@ -1,6 +1,8 @@
 #ifndef TABDIALOG_H
 #define TABDIALOG_H
 
+#include <Tui/ZRadioButton.h>
+
 #include <testtui_lib.h>
 
 #include "file.h"
@@ -18,8 +20,8 @@ signals:
     void settingsChanged(bool useTabs, int indentSize);
 
 private:
-    RadioButton *_tabRadioButton = nullptr;
-    RadioButton *_blankRadioButton = nullptr;
+    Tui::ZRadioButton *_tabRadioButton = nullptr;
+    Tui::ZRadioButton *_blankRadioButton = nullptr;
     InputBox *_tabsizeInputBox = nullptr;
 };
 

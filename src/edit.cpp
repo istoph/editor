@@ -2,15 +2,16 @@
 
 #include <signal.h>
 
-#include <Tui/ZTerminal.h>
 #include <Tui/ZImage.h>
+#include <Tui/ZMenubar.h>
+#include <Tui/ZTerminal.h>
 
 #include "confirmsave.h"
 
 Editor::Editor() {
     ensureCommandManager();
 
-    Menubar *menu = new Menubar(this);
+    Tui::ZMenubar *menu = new Tui::ZMenubar(this);
     menu->setItems({
                       { "<m>F</m>ile", "", {}, {
                             { "<m>N</m>ew", "Ctrl-N", "New", {}},
@@ -345,8 +346,8 @@ FileWindow *Editor::createFileWindow() {
     return win;
 }
 
-QVector<MenuItem> Editor::createWindowMenu() {
-    QVector<MenuItem> subitems = {
+QVector<Tui::ZMenuItem> Editor::createWindowMenu() {
+    QVector<Tui::ZMenuItem> subitems = {
         {"<m>N</m>ext", "F6", "NextWindow", {}},
         {"<m>P</m>revious", "Shift-F6", "PreviousWindow", {}},
         {"Tile <m>V</m>ertically", "", "TileVert", {}},
@@ -355,15 +356,15 @@ QVector<MenuItem> Editor::createWindowMenu() {
     };
 
     if (_allWindows.size()) {
-        subitems.append(MenuItem{});
+        subitems.append(Tui::ZMenuItem{});
         for (int i = 0; i < _allWindows.size(); i++) {
             if (i < 9) {
-                subitems.append(MenuItem{_allWindows[i]->getFileWidget()->getFilename(),
+                subitems.append(Tui::ZMenuItem{_allWindows[i]->getFileWidget()->getFilename(),
                                          QStringLiteral("Alt-%0").arg(QString::number(i + 1)),
                                          QStringLiteral("SwitchToWindow%0").arg(QString::number(i + 1)),
                                          {}});
             } else {
-                subitems.append(MenuItem{_allWindows[i]->getFileWidget()->getFilename(),
+                subitems.append(Tui::ZMenuItem{_allWindows[i]->getFileWidget()->getFilename(),
                                          "",
                                          QStringLiteral("SwitchToWindow%0").arg(QString::number(i + 1)),
                                          {}});

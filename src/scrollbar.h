@@ -1,9 +1,9 @@
 #ifndef SCROLLBAR_H
 #define SCROLLBAR_H
 
-#include <testtui_lib.h>
-
 #include <QTimer>
+
+#include <testtui_lib.h>
 
 class ScrollBar : public Tui::ZWidget {
     Q_OBJECT

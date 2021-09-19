@@ -1,5 +1,8 @@
 #include "searchdialog.h"
 
+#include <Tui/ZButton.h>
+#include <Tui/ZLabel.h>
+
 class MyInputBox : public InputBox {
 public:
     MyInputBox(Tui::ZWidget *parent) : InputBox(parent) {};
@@ -39,7 +42,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
         HBoxLayout* hbox = new HBoxLayout();
         hbox->setSpacing(2);
 
-        Label *l = new Label(withMarkup, "F<m>i</m>nd   ", this);
+        Tui::ZLabel *l = new Tui::ZLabel(Tui::withMarkup, "F<m>i</m>nd   ", this);
         hbox->addWidget(l);
 
         _searchText = new MyInputBox(this);
@@ -53,7 +56,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
         HBoxLayout* hbox = new HBoxLayout();
         hbox->setSpacing(2);
 
-        Label *l = new Label(withMarkup, "Replace", this);
+        Tui::ZLabel *l = new Tui::ZLabel(Tui::withMarkup, "Replace", this);
         hbox->addWidget(l);
 
         _replaceText = new MyInputBox(this);
@@ -73,14 +76,14 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
             VBoxLayout *nbox = new VBoxLayout();
             gbox->setLayout(nbox);
 
-            _caseMatchBox = new CheckBox(withMarkup, "<m>M</m>atch case", gbox);
+            _caseMatchBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>M</m>atch case", gbox);
             nbox->addWidget(_caseMatchBox);
-            CheckBox *wordMatchBox = new CheckBox(withMarkup, "Match <m>e</m>ntire word only", gbox);
+            Tui::ZCheckBox *wordMatchBox = new Tui::ZCheckBox(Tui::withMarkup, "Match <m>e</m>ntire word only", gbox);
             nbox->addWidget(wordMatchBox);
             wordMatchBox->setEnabled(false);
-            _regexMatchBox = new CheckBox(withMarkup, "Re<m>g</m>ular expression", gbox);
+            _regexMatchBox = new Tui::ZCheckBox(Tui::withMarkup, "Re<m>g</m>ular expression", gbox);
             nbox->addWidget(_regexMatchBox);
-            _liveSearchBox = new CheckBox(withMarkup, "<m>L</m>ive search", gbox);
+            _liveSearchBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>L</m>ive search", gbox);
             _liveSearchBox->setCheckState(Qt::Checked);
             nbox->addWidget(_liveSearchBox);
 
@@ -92,18 +95,18 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
             VBoxLayout *nbox = new VBoxLayout();
             gbox->setLayout(nbox);
 
-            _forward = new RadioButton(withMarkup, "<m>F</m>orward", gbox);
+            _forward = new Tui::ZRadioButton(Tui::withMarkup, "<m>F</m>orward", gbox);
             _forward->setChecked(true);
             nbox->addWidget(_forward);
-            _backward = new RadioButton(withMarkup, "<m>B</m>ackward", gbox);
+            _backward = new Tui::ZRadioButton(Tui::withMarkup, "<m>B</m>ackward", gbox);
             nbox->addWidget(_backward);
 
-            _parseBox = new CheckBox(withMarkup, "escape sequence", gbox);
+            _parseBox = new Tui::ZCheckBox(Tui::withMarkup, "escape sequence", gbox);
             _parseBox->setCheckState(Qt::Checked);
             _parseBox->setEnabled(false);
             nbox->addWidget(_parseBox);
 
-            _wrapBox = new CheckBox(withMarkup, "<m>W</m>rap around", gbox);
+            _wrapBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>W</m>rap around", gbox);
             _wrapBox->setCheckState(Qt::Checked);
             nbox->addWidget(_wrapBox);
 
@@ -120,20 +123,20 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
         hbox->setSpacing(1);
         hbox->addStretch();
 
-        _findNextBtn = new Button(withMarkup, "<m>N</m>ext", this);
+        _findNextBtn = new Tui::ZButton(Tui::withMarkup, "<m>N</m>ext", this);
         _findNextBtn->setDefault(true);
         hbox->addWidget(_findNextBtn);
 
-        _replaceBtn = new Button(withMarkup, "<m>R</m>eplace", this);
+        _replaceBtn = new Tui::ZButton(Tui::withMarkup, "<m>R</m>eplace", this);
 
-        _replaceAllBtn = new Button(withMarkup, "<m>A</m>ll", this);
+        _replaceAllBtn = new Tui::ZButton(Tui::withMarkup, "<m>A</m>ll", this);
 
         if(_replace) {
             hbox->addWidget(_replaceBtn);
             hbox->addWidget(_replaceAllBtn);
         }
 
-        _cancelBtn = new Button(withMarkup, "<m>C</m>lose", this);
+        _cancelBtn = new Tui::ZButton(Tui::withMarkup, "<m>C</m>lose", this);
         hbox->addWidget(_cancelBtn);
 
         hbox->addSpacing(3);
@@ -158,34 +161,34 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
         }
     });
 
-    QObject::connect(_findNextBtn, &Button::clicked, [this]{
+    QObject::connect(_findNextBtn, &Tui::ZButton::clicked, [this]{
         Q_EMIT findNext(_searchText->text(), _regexMatchBox->checkState(), _forward->checked());
     });
 
-    QObject::connect(_replaceBtn, &Button::clicked, [this]{
+    QObject::connect(_replaceBtn, &Tui::ZButton::clicked, [this]{
         Q_EMIT replace1(_searchText->text(), _replaceText->text(), _regexMatchBox->checkState(), _forward->checked());
     });
 
-     QObject::connect(_replaceAllBtn, &Button::clicked, [=]{
+     QObject::connect(_replaceAllBtn, &Tui::ZButton::clicked, [=]{
          Q_EMIT replaceAll(_searchText->text(), _replaceText->text(), _regexMatchBox->checkState());
      });
 
-    QObject::connect(_cancelBtn, &Button::clicked, [=]{
+    QObject::connect(_cancelBtn, &Tui::ZButton::clicked, [=]{
         Q_EMIT canceled();
         setVisible(false);
     });
 
-    QObject::connect(_caseMatchBox, &CheckBox::stateChanged, [this]{
+    QObject::connect(_caseMatchBox, &Tui::ZCheckBox::stateChanged, [this]{
         _caseSensitive = !_caseSensitive;
         Q_EMIT caseSensitiveChanged(_caseSensitive);
         update();
     });
 
-    QObject::connect(_wrapBox, &CheckBox::stateChanged, [=]{
+    QObject::connect(_wrapBox, &Tui::ZCheckBox::stateChanged, [=]{
         Q_EMIT wrapChanged(_wrapBox->checkState());
     });
 
-    QObject::connect(_forward, &RadioButton::toggled, [=](bool state){
+    QObject::connect(_forward, &Tui::ZRadioButton::toggled, [=](bool state){
         Q_EMIT forwardChanged(state);
     });
 }

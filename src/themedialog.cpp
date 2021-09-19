@@ -24,10 +24,10 @@ ThemeDialog::ThemeDialog(Editor *edit) : Dialog(edit) {
         HBoxLayout* hbox = new HBoxLayout();
         hbox->addStretch();
 
-        _cancelButton = new Button(withMarkup, "<m>C</m>ancel", this);
+        _cancelButton = new Tui::ZButton(Tui::withMarkup, "<m>C</m>ancel", this);
         hbox->addWidget(_cancelButton);
 
-        _okButton = new Button(withMarkup, "<m>O</m>K", this);
+        _okButton = new Tui::ZButton(Tui::withMarkup, "<m>O</m>K", this);
         _okButton->setDefault(true);
         hbox->addWidget(_okButton);
         vbox->add(hbox);
@@ -35,7 +35,7 @@ ThemeDialog::ThemeDialog(Editor *edit) : Dialog(edit) {
     wl->addCentral(vbox);
     setGeometry({ 6, 5, 30, 8});
 
-    QObject::connect(_cancelButton, &Button::clicked, [=]{
+    QObject::connect(_cancelButton, &Tui::ZButton::clicked, [=]{
         close();
     });
 
@@ -48,7 +48,7 @@ ThemeDialog::ThemeDialog(Editor *edit) : Dialog(edit) {
         close();
     });
 
-    QObject::connect(_okButton, &Button::clicked, [=]{
+    QObject::connect(_okButton, &Tui::ZButton::clicked, [=]{
         if(_lv->currentItem() == "Dark") {
             edit->setTheme(Editor::Theme::dark);
         } else {

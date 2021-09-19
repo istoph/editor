@@ -42,21 +42,21 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     setGeometry({20, 2, 42, 14});
     setWindowTitle("File Open");
 
-    _curentPath = new Label(this);
+    _curentPath = new Tui::ZLabel(this);
     _curentPath->setGeometry({3,1,36,1});
 
     _folder = new ListView(this);
     _folder->setGeometry({3,2,36,8});
     _folder->setFocus();
 
-    _hiddenCheckBox = new CheckBox(withMarkup, "<m>h</m>idden", this);
+    _hiddenCheckBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>h</m>idden", this);
     _hiddenCheckBox->setGeometry({3, 11, 13, 1});
 
-    _cancelButton = new Button(this);
+    _cancelButton = new Tui::ZButton(this);
     _cancelButton->setGeometry({16, 11, 12, 1});
     _cancelButton->setText("Cancel");
 
-    _okButton = new Button(this);
+    _okButton = new Tui::ZButton(this);
     _okButton->setGeometry({29, 11, 10, 1});
     _okButton->setText("Open");
     _okButton->setDefault(true);
@@ -65,17 +65,17 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
         (void)selected;
         userInput(_folder->currentItem());
     });
-    QObject::connect(_hiddenCheckBox, &CheckBox::stateChanged, this, [&]{
+    QObject::connect(_hiddenCheckBox, &Tui::ZCheckBox::stateChanged, this, [&]{
         refreshFolder();
     });
-    QObject::connect(_okButton, &Button::clicked, [this] {
+    QObject::connect(_okButton, &Tui::ZButton::clicked, [this] {
         if(_folder->currentItem().right(1) == "/") {
             userInput(_folder->currentItem());
         } else {
             open();
         }
     });
-    QObject::connect(_cancelButton, &Button::clicked, this, &OpenDialog::rejected);
+    QObject::connect(_cancelButton, &Tui::ZButton::clicked, this, &OpenDialog::rejected);
 
     refreshFolder();
     setVisible(true);

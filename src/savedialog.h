@@ -1,8 +1,13 @@
 #ifndef SAVEDIALOG_H
 #define SAVEDIALOG_H
 
-#include <testtui_lib.h>
 #include <QDir>
+
+#include <Tui/ZButton.h>
+#include <Tui/ZCheckBox.h>
+#include <Tui/ZLabel.h>
+
+#include <testtui_lib.h>
 
 #include "file.h"
 
@@ -24,12 +29,12 @@ private:
     void userInput(QString filename);
 
 private:
-    Label *_curentPath = nullptr;
+    Tui::ZLabel *_curentPath = nullptr;
     InputBox *_filenameText = nullptr;
     ListView *_folder = nullptr;
-    CheckBox *_dos = nullptr;
-    Button *_cancelButton = nullptr;
-    Button *_okButton = nullptr;
+    Tui::ZCheckBox *_dos = nullptr;
+    Tui::ZButton *_cancelButton = nullptr;
+    Tui::ZButton *_okButton = nullptr;
     QDir _dir;
 
     void refreshFolder();

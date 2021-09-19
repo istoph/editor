@@ -1,8 +1,13 @@
 #ifndef OPENDIALOG_H
 #define OPENDIALOG_H
 
-#include <testtui_lib.h>
 #include <QDir>
+
+#include <Tui/ZButton.h>
+#include <Tui/ZCheckBox.h>
+#include <Tui/ZLabel.h>
+
+#include <testtui_lib.h>
 
 #include "file.h"
 
@@ -25,12 +30,12 @@ private:
     void userInput(QString filename);
 
 private:
-    Label *_curentPath = nullptr;
+    Tui::ZLabel *_curentPath = nullptr;
     InputBox *_filenameText = nullptr;
     ListView *_folder = nullptr;
-    CheckBox *_hiddenCheckBox = nullptr;
-    Button *_okButton = nullptr;
-    Button *_cancelButton = nullptr;
+    Tui::ZCheckBox *_hiddenCheckBox = nullptr;
+    Tui::ZButton *_okButton = nullptr;
+    Tui::ZButton *_cancelButton = nullptr;
     QDir _dir;
 
     void refreshFolder();

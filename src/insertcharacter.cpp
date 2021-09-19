@@ -1,5 +1,8 @@
 #include "insertcharacter.h"
 
+#include <Tui/ZButton.h>
+#include <Tui/ZLabel.h>
+
 InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     setWindowTitle("Insert Character");
     setContentsMargins({ 1, 1, 1, 1});
@@ -9,7 +12,7 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     vbox->setSpacing(1);
 
     HBoxLayout* hbox1 = new HBoxLayout();
-    Label *hexLabel = new Label(this);
+    Tui::ZLabel *hexLabel = new Tui::ZLabel(this);
     hexLabel->setText("Hex:   0x");
     hbox1->addWidget(hexLabel);
 
@@ -21,7 +24,7 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     vbox->addStretch();
 
     HBoxLayout* hbox2 = new HBoxLayout();
-    Label *intLabel = new Label(this);
+    Tui::ZLabel *intLabel = new Tui::ZLabel(this);
     intLabel->setText("Int:     ");
     hbox2->addWidget(intLabel);
 
@@ -33,19 +36,19 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
 
     HBoxLayout* hbox3 = new HBoxLayout();
     //replace it with something that can also display all characters
-    Label *previewLabel = new Label(this);
+    Tui::ZLabel *previewLabel = new Tui::ZLabel(this);
     previewLabel->setText("Preview: ");
     hbox3->addWidget(previewLabel);
 
     vbox->add(hbox3);
 
     HBoxLayout* hbox4 = new HBoxLayout();
-    Button *cancelBtn = new Button(this);
+    Tui::ZButton *cancelBtn = new Tui::ZButton(this);
     cancelBtn->setGeometry({3, 5, 7, 7});
     cancelBtn->setText("Cancel");
     hbox4->addWidget(cancelBtn);
 
-    Button *insertButton = new Button(this);
+    Tui::ZButton *insertButton = new Tui::ZButton(this);
     insertButton->setGeometry({15, 5, 7, 7});
     insertButton->setText("Insert");
     insertButton->setDefault(true);
@@ -91,8 +94,8 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     });
 
 
-    QObject::connect(cancelBtn, &Button::clicked, this, &InsertCharacter::rejected);
-    QObject::connect(insertButton, &Button::clicked, [this]{
+    QObject::connect(cancelBtn, &Tui::ZButton::clicked, this, &InsertCharacter::rejected);
+    QObject::connect(insertButton, &Tui::ZButton::clicked, [this]{
         if(_check) {
             Q_EMIT characterSelected(intToChar(_codepoint));
         }

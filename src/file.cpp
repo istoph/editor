@@ -1150,12 +1150,12 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         std::swap(startSelect,endSelect);
     }
     QVector<TextLayout::FormatRange> highlights;
-    const TextStyle base{fg, bg};
-    const TextStyle formatingChar{Tui::Colors::darkGray, bg};
-    const TextStyle selected{Tui::Colors::darkGray,fg,Tui::ZPainter::Attribute::Bold};
-    const TextStyle blockSelected{fg,Tui::Colors::lightGray,Tui::ZPainter::Attribute::Blink | Tui::ZPainter::Attribute::Italic};
-    const TextStyle blockSelectedFormatingChar{Tui::Colors::darkGray, Tui::Colors::lightGray, Tui::ZPainter::Attribute::Blink};
-    const TextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
+    const Tui::ZTextStyle base{fg, bg};
+    const Tui::ZTextStyle formatingChar{Tui::Colors::darkGray, bg};
+    const Tui::ZTextStyle selected{Tui::Colors::darkGray,fg,Tui::ZPainter::Attribute::Bold};
+    const Tui::ZTextStyle blockSelected{fg,Tui::Colors::lightGray,Tui::ZPainter::Attribute::Blink | Tui::ZPainter::Attribute::Italic};
+    const Tui::ZTextStyle blockSelectedFormatingChar{Tui::Colors::darkGray, Tui::Colors::lightGray, Tui::ZPainter::Attribute::Blink};
+    const Tui::ZTextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
 
     QString strlinenumber;
     int y = 0;
