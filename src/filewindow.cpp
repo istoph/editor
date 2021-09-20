@@ -182,8 +182,8 @@ void FileWindow::saveFile(QString filename) {
 }
 
 SaveDialog *FileWindow::saveFileDialog() {
-    SaveDialog * saveDialog = new SaveDialog(this->parentWidget(), _file);
-    connect(saveDialog, &SaveDialog::fileSelected, this, &FileWindow::saveFile);
+    SaveDialog *saveDialog = new SaveDialog(parentWidget(), _file);
+    QObject::connect(saveDialog, &SaveDialog::fileSelected, this, &FileWindow::saveFile);
     return saveDialog;
 }
 
@@ -239,7 +239,7 @@ void FileWindow::closeRequested() {
             closeDialog->deleteLater();
             SaveDialog *q = saveOrSaveas();
             if (q) {
-                connect(q, &SaveDialog::fileSelected, this, &QObject::deleteLater);
+                QObject::connect(q, &SaveDialog::fileSelected, this, &QObject::deleteLater);
             } else {
                 deleteLater();
             }

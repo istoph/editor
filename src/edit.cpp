@@ -244,8 +244,8 @@ Editor::Editor() {
 
     _commandLineWidget = new CommandLineWidget(this);
     _commandLineWidget->setVisible(false);
-    connect(_commandLineWidget, &CommandLineWidget::dismissed, this, &Editor::commandLineDismissed);
-    connect(_commandLineWidget, &CommandLineWidget::execute, this, &Editor::commandLineExecute);
+    QObject::connect(_commandLineWidget, &CommandLineWidget::dismissed, this, &Editor::commandLineDismissed);
+    QObject::connect(_commandLineWidget, &CommandLineWidget::execute, this, &Editor::commandLineExecute);
 
     _statusBar = new StatusBar(this);
 
@@ -530,7 +530,7 @@ void Editor::openFile(QString fileName) {
 
 void Editor::openFileDialog(QString path) {
     OpenDialog *openDialog = new OpenDialog(this, path);
-    connect(openDialog, &OpenDialog::fileSelected, this, [this] (QString fileName) {
+    QObject::connect(openDialog, &OpenDialog::fileSelected, this, [this] (QString fileName) {
         openFile(fileName);
     });
 }
@@ -568,7 +568,7 @@ void Editor::quitImpl(int i) {
             quitDialog->deleteLater();
             SaveDialog *q = win->saveOrSaveas();
             if (q) {
-                connect(q, &SaveDialog::fileSelected, this, handleNext);
+                QObject::connect(q, &SaveDialog::fileSelected, this, handleNext);
             } else {
                 handleNext();
             }

@@ -783,7 +783,7 @@ void File::setSearchText(QString searchText) {
 
     QtConcurrent::run([this](QVector<QString> text, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
         SearchCount sc;
-        connect(&sc, &SearchCount::searchCount, this, &File::emitSearchCount);
+        QObject::connect(&sc, &SearchCount::searchCount, this, &File::emitSearchCount);
         sc.run(text, searchText, caseSensitivity, gen, searchGen);
     },_text, _searchText, searchCaseSensitivity, gen, searchGeneration);
 }
@@ -968,7 +968,7 @@ void File::runSearch(bool direction) {
         const bool efectivDirection = direction ^ _searchDirection;
 
         auto watcher = new QFutureWatcher<SearchLine>();
-        connect(watcher, &QFutureWatcher<SearchLine>::finished, this, [this, watcher, gen, efectivDirection]{
+        QObject::connect(watcher, &QFutureWatcher<SearchLine>::finished, this, [this, watcher, gen, efectivDirection]{
             auto n = watcher->future().result();
             if(gen == *searchNextGeneration && n.line > -1) {
                searchSelect(n.line, n.found, n.length, efectivDirection);
