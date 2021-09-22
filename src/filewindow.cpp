@@ -137,6 +137,7 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
     _watcher = new QFileSystemWatcher();
     QObject::connect(_watcher, &QFileSystemWatcher::fileChanged, this, [=]{
         fileChangedExternally(true);
+        _cmdReload->setEnabled(true);
     });
 
     _file->newText("");
