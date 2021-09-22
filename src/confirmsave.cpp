@@ -9,17 +9,19 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
         title = "Close";
         nosave = "Discard";
         save = "Save";
+        mainLable = "Save: " + filename;
     } else if (type == Reload) {
         title = "Reload";
         nosave = "Discard and Reload";
         save = "Reload";
         saveable = false;
+        mainLable = title + ": " + filename;
     } else {
         title = "Exit";
         nosave = "Quit";
         save = "Save and Quit";
+        mainLable = "Unsaved: " + filename;
     }
-    mainLable = title + ": " + filename;
 
     //Dialog Box
     setWindowTitle(title);
@@ -33,7 +35,7 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
 
     //Lable
     Tui::ZLabel *l1 = new Tui::ZLabel(this);
-    l1->setText("Save: " + filename);
+    l1->setText(mainLable);
     vbox->addWidget(l1);
     vbox->addStretch();
 
