@@ -537,6 +537,10 @@ bool File::blockSelectEdit(int x) {
     return del;
 }
 
+QPair<int,int> File::getSelectLinesSort() {
+    auto lines = getSelectLines();
+    return {std::min(lines.first, lines.second), std::max(lines.first, lines.second)};
+}
 QPair<int,int> File::getSelectLines() {
 /*
  * However other editors take that the chois
@@ -1409,6 +1413,12 @@ QPoint File::insertAtPosition(QVector<QString> str, QPoint cursor) {
     return cursor;
 }
 
+void File::sortSelecedLines() {
+    if(isSelect()) {
+        auto lines = getSelectLinesSort();
+        std::sort(_text.begin() + lines.first, _text.begin() + lines.second);
+    }
+}
 
 void File::pasteEvent(Tui::ZPasteEvent *event) {
     QString text = event->text();
@@ -1483,7 +1493,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             event->key() != Qt::Key_F12 &&
             event->key() != Qt::Key_Tab &&
             event->modifiers() != Qt::ControlModifier &&
-            !(event->text() == "S" && event->modifiers() == Qt::AltModifier) &&
+            !(event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == Qt::AltModifier | Qt::ShiftModifier)) &&
             !_blockSelect
             ) {
         //Markierte Zeichen Löschen
@@ -1541,7 +1551,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                  event->key() != Qt::Key_Left
              )
         ) && event->key() != Qt::Key_F4 && !_blockSelect
-        && !(event->text() == "S" && event->modifiers() == Qt::AltModifier)) {
+        && !(event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == Qt::AltModifier | Qt::ShiftModifier))) {
         resetSelect();
         adjustScrollPosition();
     }
@@ -1575,9 +1585,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         safeCursorPosition();
         adjustScrollPosition();
         saveUndoStep(text != " ");
-    } else if (event->text() == "S" && event->modifiers() == Qt::AltModifier && isSelect()) {
-        // Alt + Shift + s sort selecte lines
-        std::sort(_text.begin() + _startSelectY, _text.begin() + _endSelectY + 1);
+    } else if (event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == Qt::AltModifier | Qt::ShiftModifier)  && isSelect()) {
+        // Alt + Shift + s sort selected lines
+        sortSelecedLines();
         update();
     } else if(event->key() == Qt::Key_Left && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier || extendSelect || extendBlockSelect)) {
         selectCursorPosition(event->modifiers());

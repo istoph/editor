@@ -42,7 +42,9 @@ Editor::Editor() {
                             {},
                             { "Insert C<m>h</m>aracter...", "", "InsertCharacter", {}},
                             {},
-                            { "<m>G</m>oto line", "Ctrl-G", "Gotoline", {}}
+                            { "<m>G</m>oto Line", "Ctrl-G", "Gotoline", {}},
+                            {},
+                            { "Sort Selcted Lines", "Alt-Shift-S", "SortSelectedLines", {}}
                         }
                       },
                       { "<m>O</m>ptions", "", {}, {
@@ -129,11 +131,17 @@ Editor::Editor() {
                 _file->gotoline(line);
             }
         });
-
     };
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("g"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
         this, gotoLine);
     QObject::connect(new Tui::ZCommandNotifier("Gotoline", this), &Tui::ZCommandNotifier::activated, this, gotoLine);
+
+    //Sorrt Seleced Lines
+    QObject::connect(new Tui::ZCommandNotifier("SortSelectedLines", this), &Tui::ZCommandNotifier::activated, this, [this] {
+        if (_file) {
+            _file->sortSelecedLines();
+        }
+    });
 
     //Options
     QObject::connect(new Tui::ZCommandNotifier("Tab", this), &Tui::ZCommandNotifier::activated,

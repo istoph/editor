@@ -82,6 +82,7 @@ public:
     void select(int x, int y);
     void blockSelect(int x, int y);
     bool blockSelectEdit(int x);
+    QPair<int, int> getSelectLinesSort();
     QPair<int, int> getSelectLines();
     void selectLines(int startY, int endY);
     void resetSelect();
@@ -143,6 +144,8 @@ public:
     bool isSaveAs();
     bool newText(QString filename);
     bool stdinText();
+    void sortSelecedLines();
+
 public slots:
     void followStandardInput(bool follow);
 
