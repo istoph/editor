@@ -83,8 +83,24 @@ void SaveDialog::rejected() {
 }
 
 void SaveDialog::saveFile() {
-    fileSelected(_dir.absoluteFilePath(_filenameText->text()));
-    deleteLater();
+    QString fileName = _dir.absoluteFilePath(_filenameText->text());
+    if(_dir.exists(fileName)) {
+
+        OverwriteDialog *overwriteDialog = new OverwriteDialog(parentWidget(), fileName);
+        overwriteDialog->setFocus();
+        QObject::connect(overwriteDialog, &OverwriteDialog::confirm, this,
+                         [this, overwriteDialog, fileName](bool value) {
+                            if (value) {
+                                fileSelected(fileName);
+                                deleteLater();
+                            }
+                            overwriteDialog->deleteLater();
+                         }
+        );
+    } else {
+        fileSelected(fileName);
+        deleteLater();
+    }
 }
 
 void SaveDialog::filenameChanged(QString filename) {

@@ -10,6 +10,7 @@
 #include <testtui_lib.h>
 
 #include "file.h"
+#include "overwritedialog.h"
 
 class SaveDialog : public Dialog {
     Q_OBJECT
