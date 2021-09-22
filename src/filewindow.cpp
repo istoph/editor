@@ -58,14 +58,14 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
     //Save
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("s"), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
             this, &FileWindow::saveOrSaveas);
-    QObject::connect(new Tui::ZCommandNotifier("Save", this), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("Save", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
                     this, &FileWindow::saveOrSaveas);
 
     //Save As
     //shortcut dose not work in vte, konsole, ...
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("S", Qt::ControlModifier | Qt::ShiftModifier), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
             this, &FileWindow::saveFileDialog);
-    QObject::connect(new Tui::ZCommandNotifier("SaveAs", this), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("SaveAs", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
                      this, &FileWindow::saveFileDialog);
 
     //Reload
