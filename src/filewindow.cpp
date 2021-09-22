@@ -220,12 +220,13 @@ void FileWindow::openFile(QString filename) {
 }
 
 void FileWindow::reload() {
+    closePipe();
     QPoint xy = _file->getCursorPosition();
-
+    watcherRemove();
     _file->openText(_file->getFilename());
     fileChangedExternally(false);
-
     _file->setCursorPosition(xy);
+    watcherAdd();
 }
 
 void FileWindow::closeRequested() {
