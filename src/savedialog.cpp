@@ -4,6 +4,7 @@ void SaveDialog::refreshFolder() {
     QStringList items;
     QFileInfoList list = _dir.entryInfoList();
     _dir.setFilter(QDir::AllEntries);
+    _dir.setSorting(QDir::DirsFirst | QDir::Name);
     _curentPath->setText(_dir.absolutePath().right(44));
     for (int i = 0; i < list.size(); ++i) {
         QFileInfo fileInfo = list.at(i);
