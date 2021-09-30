@@ -273,7 +273,7 @@ void FileWindow::closePipe() {
         _pipeSocketNotifier->setEnabled(false);
         _pipeSocketNotifier->deleteLater();
         _pipeSocketNotifier = nullptr;
-        close(0);
+        ::close(0);
         readFromStandadInput(false);
     }
 }
