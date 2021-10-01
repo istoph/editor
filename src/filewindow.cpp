@@ -235,7 +235,10 @@ void FileWindow::closeRequested() {
     if(_file->isModified()) {
         ConfirmSave *closeDialog = new ConfirmSave(this->parentWidget(), _file->getFilename(), ConfirmSave::Close, _file->getWritable());
 
-        QObject::connect(closeDialog, &ConfirmSave::exitSelected, this, &QObject::deleteLater);
+        QObject::connect(closeDialog, &ConfirmSave::exitSelected, this, [this, closeDialog] {
+            closeDialog->deleteLater();
+            deleteLater();
+        });
 
         QObject::connect(closeDialog, &ConfirmSave::saveSelected, [this, closeDialog]{
             closeDialog->deleteLater();
