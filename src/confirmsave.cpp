@@ -8,7 +8,11 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
     if(type == Close) {
         title = "Close";
         nosave = "Discard";
-        save = "Save";
+        if (saveable) {
+            save = "Save";
+        } else {
+            save = "Save as";
+        }
         mainLable = "Save: " + filename;
     } else if (type == Reload) {
         title = "Reload";
@@ -25,8 +29,6 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
 
     //Dialog Box
     setWindowTitle(title);
-    //setMinimumSize(50,8);
-
     setContentsMargins({ 1, 1, 1, 1});
 
     VBoxLayout *vbox = new VBoxLayout();
@@ -44,7 +46,7 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
     //Cancel
     Tui::ZButton *bCancel = new Tui::ZButton(this);
     if(!saveable) {
-        bCancel->setDefault(!saveable);
+        bCancel->setDefault(true);
         bCancel->setFocus();
     }
     bCancel->setText("Cancel");
@@ -59,9 +61,8 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
     //Save
     Tui::ZButton *bSave = new Tui::ZButton(this);
     bSave->setText(save);
-    bSave->setEnabled(saveable);
-    if (saveable) {
-        bSave->setDefault(saveable);
+    if(saveable) {
+        bSave->setDefault(true);
         bSave->setFocus();
     }
     if (type != Reload) {

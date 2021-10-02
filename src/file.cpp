@@ -334,10 +334,13 @@ bool File::openText(QString filename) {
             }
 
             QString text = surrogate_escape::decode(lineBuf.constData(), lineBytes);
-
             _text.append(text);
         }
-
+        if (file.isWritable()) {
+            setSaveAs(false);
+        } else {
+            setSaveAs(true);
+        }
         file.close();
         _undoSteps.clear();
         _currentUndoStep = -1;
@@ -352,7 +355,6 @@ bool File::openText(QString filename) {
         }
         checkWritable();
         getAttributes();
-        setSaveAs(false);
 
         for (int l = 0; l < _text.size(); l++) {
             if(_text[l].size() >= 1 && _text[l].at(_text[l].size() -1) == QChar('\r')) {
