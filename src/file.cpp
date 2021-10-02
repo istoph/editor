@@ -217,8 +217,7 @@ bool File::newText(QString filename = "") {
         setFilename(filename);
         setSaveAs(false);
     }
-    _savedUndoStep = _currentUndoStep + 1;
-    saveUndoStep(false);
+    modifiedChanged(false);
     return true;
 }
 
@@ -234,15 +233,12 @@ bool File::stdinText() {
 bool File::initText() {
     _text.clear();
     _text.append(QString());
-    _undoSteps.clear();
-    _currentUndoStep = -1;
-    _savedUndoStep = -1;
-    _collapseUndoStep = false;
     _scrollPositionX = 0;
     _scrollPositionY = 0;
     _cursorPositionX = 0;
     _cursorPositionY = 0;
     _saveCursorPositionX = 0;
+    initalUndoStep();
     cursorPositionChanged(0, 0, 0);
     scrollPositionChanged(0, 0);
     setMsDosMode(false);
@@ -267,8 +263,7 @@ bool File::saveText() {
         }
 
         file.commit();
-        saveUndoStep();
-        _savedUndoStep = _currentUndoStep;
+        initalUndoStep();
         modifiedChanged(false);
         setSaveAs(false);
         update();
@@ -342,19 +337,16 @@ bool File::openText(QString filename) {
             setSaveAs(true);
         }
         file.close();
-        _undoSteps.clear();
-        _currentUndoStep = -1;
+
         if (_text.isEmpty()) {
             _text.append("");
             _nonewline = true;
-            _savedUndoStep = -1;
-            saveUndoStep();
-        } else {
-            _savedUndoStep = _currentUndoStep + 1;
-            saveUndoStep();
         }
+
         checkWritable();
         getAttributes();
+        initalUndoStep();
+        modifiedChanged(false);
 
         for (int l = 0; l < _text.size(); l++) {
             if(_text[l].size() >= 1 && _text[l].at(_text[l].size() -1) == QChar('\r')) {
@@ -752,6 +744,16 @@ void File::setGroupUndo(bool onoff) {
 
 int File::getGroupUndo() {
     return _groupUndo;
+}
+
+void File::initalUndoStep() {
+    _undoSteps.clear();
+    _collapseUndoStep = false;
+    _groupUndo = 0;
+    _currentUndoStep = -1;
+    _savedUndoStep = -1;
+    saveUndoStep();
+    _savedUndoStep = _currentUndoStep;
 }
 
 bool File::isModified() const {

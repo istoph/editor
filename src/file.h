@@ -171,6 +171,7 @@ private:
     bool initText();
     void adjustScrollPosition();
     void safeCursorPosition();
+    void initalUndoStep();
     void saveUndoStep(bool collapsable=false);
     void checkUndo();
     struct UndoStep {
