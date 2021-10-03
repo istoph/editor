@@ -97,19 +97,13 @@ Editor::Editor() {
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("f"), this, Qt::ApplicationShortcut),
                      &Tui::ZShortcut::activated, this, &Editor::searchDialog);
     QObject::connect(new Tui::ZCommandNotifier("Search", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            searchDialog();
-        }
-    );
+                     this, &Editor::searchDialog);
 
     //Replace
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("r"), this, Qt::ApplicationShortcut),
                      &Tui::ZShortcut::activated, this, &Editor::replaceDialog);
     QObject::connect(new Tui::ZCommandNotifier("Replace", this), &Tui::ZCommandNotifier::activated,
-         [&] {
-            replaceDialog();
-        }
-    );
+                     this, &Editor::replaceDialog);
 
     //InsertCharacter
     QObject::connect(new Tui::ZCommandNotifier("InsertCharacter", this), &Tui::ZCommandNotifier::activated,
@@ -478,13 +472,17 @@ void Editor::setupSearchDialogs() {
 }
 
 void Editor::searchDialog() {
-    _searchDialog->open();
-    _searchDialog->setSearchText(_file->getSelectText());
+    if (_file) {
+        _searchDialog->open();
+        _searchDialog->setSearchText(_file->getSelectText());
+    }
 }
 
 void Editor::replaceDialog() {
-    _replaceDialog->open();
-    _replaceDialog->setSearchText(_file->getSelectText());
+    if (_file) {
+        _replaceDialog->open();
+       _replaceDialog->setSearchText(_file->getSelectText());
+    }
 }
 
 void Editor::newFile(QString filename) {
