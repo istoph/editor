@@ -11,6 +11,7 @@ editor_sources = [
   'clipboard.cpp',
   'commandlinewidget.cpp',
   'confirmsave.cpp',
+  'document.cpp',
   'edit.cpp',
   'file.cpp',
   'filelistparser.cpp',

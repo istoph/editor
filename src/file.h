@@ -18,6 +18,7 @@
 
 #include <testtui_lib.h>
 
+#include "document.h"
 #include "searchcount.h"
 #include "clipboard.h"
 
@@ -193,8 +194,7 @@ private:
     int shiftLinenumber();
 
 private:
-    QString _filename;
-    QVector<QString> _text;
+    Document _doc;
     int _cursorPositionX = 0;
     int _cursorPositionY = 0;
     int _scrollPositionX = 0;
