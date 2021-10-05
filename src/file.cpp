@@ -18,10 +18,10 @@ File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     QObject::connect(_cmdPaste, &Tui::ZCommandNotifier::activated, this, [this]{paste();});
     _cmdPaste->setEnabled(false);
     _cmdUndo = new Tui::ZCommandNotifier("Undo", this, Qt::WindowShortcut);
-    QObject::connect(_cmdUndo, &Tui::ZCommandNotifier::activated, this, [this]{undo();});
+    QObject::connect(_cmdUndo, &Tui::ZCommandNotifier::activated, this, [this]{_doc.undo(this);});
     _cmdUndo->setEnabled(false);
     _cmdRedo = new Tui::ZCommandNotifier("Redo", this, Qt::WindowShortcut);
-    QObject::connect(_cmdRedo, &Tui::ZCommandNotifier::activated, this, [this]{redo();});
+    QObject::connect(_cmdRedo, &Tui::ZCommandNotifier::activated, this, [this]{_doc.redo(this);});
     _cmdRedo->setEnabled(false);
 
     _cmdSearchNext = new Tui::ZCommandNotifier("Search Next", this, Qt::WindowShortcut);
@@ -164,8 +164,8 @@ int File::tabToSpace() {
         _cursorPositionX = newCursorPosition;
     }
 
-    if(count>0){
-        saveUndoStep();
+    if (count > 0) {
+        _doc.saveUndoStep(this);
     }
     return count;
 }
@@ -224,7 +224,7 @@ bool File::newText(QString filename = "") {
 bool File::stdinText() {
     _doc._filename = "STDIN";
     initText();
-    saveUndoStep(false);
+    _doc.saveUndoStep(this, false);
     modifiedChanged(true);
     setSaveAs(true);
     return true;
@@ -238,7 +238,7 @@ bool File::initText() {
     _cursorPositionX = 0;
     _cursorPositionY = 0;
     _saveCursorPositionX = 0;
-    initalUndoStep();
+    _doc.initalUndoStep(this);
     cursorPositionChanged(0, 0, 0);
     scrollPositionChanged(0, 0);
     setMsDosMode(false);
@@ -263,7 +263,7 @@ bool File::saveText() {
         }
 
         file.commit();
-        initalUndoStep();
+        _doc.initalUndoStep(this);
         modifiedChanged(false);
         setSaveAs(false);
         update();
@@ -345,7 +345,7 @@ bool File::openText(QString filename) {
 
         checkWritable();
         getAttributes();
-        initalUndoStep();
+        _doc.initalUndoStep(this);
         modifiedChanged(false);
 
         for (int l = 0; l < _doc._text.size(); l++) {
@@ -379,7 +379,7 @@ void File::cutline() {
     select(_doc._text[_cursorPositionY].size(),_cursorPositionY);
     //select(0,_cursorPositionY +1);
     cut();
-    saveUndoStep();
+    _doc.saveUndoStep(this);
 }
 
 void File::copy() {
@@ -409,7 +409,7 @@ void File::paste() {
 
         safeCursorPosition();
         adjustScrollPosition();
-        saveUndoStep();
+        _doc.saveUndoStep(this);
     }
 }
 
@@ -672,7 +672,7 @@ bool File::delSelect() {
     }
     safeCursorPosition();
     resetSelect();
-    saveUndoStep();
+    _doc.saveUndoStep(this);
     return true;
 }
 
@@ -691,83 +691,14 @@ bool File::isOverwrite() {
     return _overwrite;
 }
 
-void File::undo() {
-    if(_undoSteps.isEmpty()) {
-        return;
-    }
-
-    if (_currentUndoStep == 0) {
-        return;
-    }
-
-    --_currentUndoStep;
-
-    _doc._text = _undoSteps[_currentUndoStep].text;
-    _cursorPositionX = _undoSteps[_currentUndoStep].cursorPositionX;
-    _cursorPositionY = _undoSteps[_currentUndoStep].cursorPositionY;
-    modifiedChanged(isModified());
-    checkUndo();
-    safeCursorPosition();
-    adjustScrollPosition();
-}
-
-void File::redo() {
-    if(_undoSteps.isEmpty()) {
-        return;
-    }
-
-    if (_currentUndoStep + 1 >= _undoSteps.size()) {
-        return;
-    }
-
-    ++_currentUndoStep;
-
-    _doc._text = _undoSteps[_currentUndoStep].text;
-    _cursorPositionX = _undoSteps[_currentUndoStep].cursorPositionX;
-    _cursorPositionY = _undoSteps[_currentUndoStep].cursorPositionY;
-    modifiedChanged(isModified());
-    checkUndo();
-    safeCursorPosition();
-    adjustScrollPosition();
-}
-
-void File::setGroupUndo(bool onoff) {
-    if(onoff) {
-        _groupUndo++;
-    } else if(_groupUndo <= 1) {
-        _groupUndo = 0;
-        saveUndoStep();
-    } else {
-        _groupUndo--;
-    }
-}
-
-int File::getGroupUndo() {
-    return _groupUndo;
-}
-
-void File::initalUndoStep() {
-    _undoSteps.clear();
-    _collapseUndoStep = false;
-    _groupUndo = 0;
-    _currentUndoStep = -1;
-    _savedUndoStep = -1;
-    saveUndoStep();
-    _savedUndoStep = _currentUndoStep;
-}
-
-bool File::isModified() const {
-    return _currentUndoStep != _savedUndoStep;
-}
-
 void File::checkUndo() {
     if(_cmdUndo != nullptr) {
-        if(_currentUndoStep != _savedUndoStep) {
+        if(_doc._currentUndoStep != _doc._savedUndoStep) {
             _cmdUndo->setEnabled(true);
         } else {
             _cmdUndo->setEnabled(false);
         }
-        if(_undoSteps.size() > _currentUndoStep +1) {
+        if(_doc._undoSteps.size() > _doc._currentUndoStep +1) {
             _cmdRedo->setEnabled(true);
         } else {
             _cmdRedo->setEnabled(false);
@@ -833,7 +764,7 @@ void File::followStandardInput(bool follow) {
 
 void File::setReplaceSelected() {
     if(isSelect()){
-        setGroupUndo(true);
+        _doc.setGroupUndo(this, true);
         delSelect();
         bool esc=false;
         for (int i=0; i<_replaceText.size(); i++) {
@@ -857,7 +788,7 @@ void File::setReplaceSelected() {
         }
         safeCursorPosition();
         adjustScrollPosition();
-        setGroupUndo(false);
+        _doc.setGroupUndo(this, false);
     }
 }
 
@@ -1018,7 +949,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
     int counter = 0;
     setSearchText(searchText);
     setReplaceText(replaceText);
-    setGroupUndo(true);
+    _doc.setGroupUndo(this, true);
 
     _cursorPositionY = 0;
     _cursorPositionX = 0;
@@ -1032,7 +963,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
         setReplaceSelected();
         counter++;
     }
-    setGroupUndo(false);
+    _doc.setGroupUndo(this, false);
 
     return counter;
 }
@@ -1041,20 +972,6 @@ Range File::getBlockSelectedLines() {
     return Range {std::min(_startSelectY, _endSelectY), std::max(_startSelectY, _endSelectY) + 1};
 }
 
-void File::saveUndoStep(bool collapsable) {
-    if(getGroupUndo() == 0) {
-        if (_currentUndoStep + 1 != _undoSteps.size()) {
-            _undoSteps.resize(_currentUndoStep + 1);
-        } else if (_collapseUndoStep && collapsable && _currentUndoStep != _savedUndoStep) {
-            _undoSteps.removeLast();
-        }
-        _undoSteps.append({ _doc._text, _cursorPositionX, _cursorPositionY});
-        _currentUndoStep = _undoSteps.size() - 1;
-        _collapseUndoStep = collapsable;
-        modifiedChanged(isModified());
-        checkUndo();
-    }
-}
 
 ZTextOption File::getTextOption() {
     ZTextOption option;
@@ -1277,7 +1194,7 @@ void File::deletePreviousCharacterOrWord(TextLayout::CursorMode mode) {
         setCursorPosition(t);
     }
     safeCursorPosition();
-    saveUndoStep();
+    _doc.saveUndoStep(this);
 }
 
 QPoint File::deletePreviousCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y) {
@@ -1326,14 +1243,14 @@ QPoint File::deleteNextCharacterOrWordAt(TextLayout::CursorMode mode, int x, int
         lay.doLayout(rect().width());
         int rightBoundary = lay.nextCursorPosition(x, mode);
         _doc._text[y].remove(x, rightBoundary - x);
-        saveUndoStep();
+        _doc.saveUndoStep(this);
     } else if(_doc._text.count() > y +1 && !_blockSelect) {
         if(_doc._text[y].size() < x) {
             _doc._text[y].resize(x,' ');
         }
         _doc._text[y] += _doc._text[y + 1];
         _doc._text.removeAt(y +1);
-        saveUndoStep();
+        _doc.saveUndoStep(this);
     }
     return {x,y};
 }
@@ -1368,7 +1285,7 @@ void File::appendLine(const QString &line) {
     if(_follow) {
         _cursorPositionY = _doc._text.size() -1;
     }
-    saveUndoStep();
+    _doc.saveUndoStep(this);
     adjustScrollPosition();
 }
 
@@ -1403,7 +1320,7 @@ void File::insertAtCursorPosition(QVector<QString> str) {
     }
     safeCursorPosition();
     adjustScrollPosition();
-    saveUndoStep();
+    _doc.saveUndoStep(this);
 }
 
 QPoint File::insertAtPosition(QVector<QString> str, QPoint cursor) {
@@ -1588,7 +1505,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         safeCursorPosition();
         adjustScrollPosition();
-        saveUndoStep(text != " ");
+        _doc.saveUndoStep(this, text != " ");
     } else if (event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == Qt::AltModifier | Qt::ShiftModifier)  && isSelect()) {
         // Alt + Shift + s sort selected lines
         sortSelecedLines();
@@ -1607,7 +1524,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         safeCursorPosition();
         adjustScrollPosition();
         selectCursorPosition(event->modifiers());
-        _collapseUndoStep = false;
+        _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Right && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier || extendSelect || extendBlockSelect)) {
         selectCursorPosition(event->modifiers());
         if (_cursorPositionX < _doc._text[_cursorPositionY].size()) {
@@ -1622,7 +1539,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         safeCursorPosition();
         adjustScrollPosition();
         selectCursorPosition(event->modifiers());
-        _collapseUndoStep = false;
+        _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Down && (event->modifiers() == 0 || extendSelect || extendBlockSelect)) {
         selectCursorPosition(event->modifiers());
         if (_doc._text.size() -1 > _cursorPositionY) {
@@ -1633,7 +1550,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         adjustScrollPosition();
         selectCursorPosition(event->modifiers());
-        _collapseUndoStep = false;
+        _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Up && (event->modifiers() == 0 || extendSelect || extendBlockSelect)) {
         selectCursorPosition(event->modifiers());
         if (_cursorPositionY > 0) {
@@ -1644,7 +1561,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         adjustScrollPosition();
         selectCursorPosition(event->modifiers());
-        _collapseUndoStep = false;
+        _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == 0 || extendSelect || extendBlockSelect)) {
         selectCursorPosition(event->modifiers());
         if(_cursorPositionX == 0) {
@@ -1660,7 +1577,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         selectCursorPosition(event->modifiers());
         safeCursorPosition();
         adjustScrollPosition();
-        _collapseUndoStep = false;
+        _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == Qt::ControlModifier || event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) )) {
         if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
             select(_cursorPositionX, _cursorPositionY);
@@ -1671,14 +1588,14 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         safeCursorPosition();
         adjustScrollPosition();
-        _collapseUndoStep = false;
+        _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_End && (event->modifiers() == 0 || extendSelect)) {
         selectCursorPosition(event->modifiers());
         _cursorPositionX = _doc._text[_cursorPositionY].size();
         selectCursorPosition(event->modifiers());
         safeCursorPosition();
         adjustScrollPosition();
-        _collapseUndoStep = false;
+        _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_End && (event->modifiers() == Qt::ControlModifier || (event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)))) {
         selectCursorPosition(event->modifiers());
         _cursorPositionY = _doc._text.size() -1;
@@ -1687,7 +1604,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         selectCursorPosition(event->modifiers());
         safeCursorPosition();
         adjustScrollPosition();
-        _collapseUndoStep = false;
+        _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_PageDown && (event->modifiers() == 0 || extendSelect)) {
         if(extendSelect) {
             select(_cursorPositionX, _cursorPositionY);
@@ -1703,7 +1620,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         safeCursorPosition();
         adjustScrollPosition();
-        _collapseUndoStep = false;
+        _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_PageDown && ( event->modifiers() == Qt::ControlModifier ||
               (event->modifiers() == Qt::ControlModifier && event->modifiers() == Qt::ControlModifier) ) ) {
         if(extendSelect) {
@@ -1717,7 +1634,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         safeCursorPosition();
         adjustScrollPosition();
-        _collapseUndoStep = false;
+        _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_PageUp && (event->modifiers() == Qt::ControlModifier ||
               (event->modifiers() == Qt::ControlModifier || event->modifiers() == Qt::ControlModifier) ) ) {
         if(extendSelect) {
@@ -1730,7 +1647,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
           select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
-        _collapseUndoStep = false;
+        _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_PageUp && (event->modifiers() == 0 || extendSelect)) {
         if(extendSelect) {
             select(_cursorPositionX, _cursorPositionY);
@@ -1746,11 +1663,11 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             select(_cursorPositionX, _cursorPositionY);
         }
         adjustScrollPosition();
-        _collapseUndoStep = false;
+        _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Enter && (event->modifiers() & ~Qt::KeypadModifier) == 0) {
         insertLinebreak();
         safeCursorPosition();
-        saveUndoStep();
+        _doc.saveUndoStep(this);
         adjustScrollPosition();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
         QPoint t;
@@ -1779,7 +1696,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             setCursorPosition(t);
         }
         safeCursorPosition();
-        saveUndoStep();
+        _doc.saveUndoStep(this);
 
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == Qt::ShiftModifier) {
         //Nich markierte Zeile verschiben
@@ -1820,7 +1737,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
 
         safeCursorPosition();
-        saveUndoStep();
+        _doc.saveUndoStep(this);
 
     } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {
@@ -1835,13 +1752,13 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         //STRG + X // Umschalt+Entf
         cut();
     } else if (event->text() == "z" && event->modifiers() == Qt::ControlModifier) {
-        undo();
+        _doc.undo(this);
     } else if (event->text() == "y" && event->modifiers() == Qt::ControlModifier) {
-        redo();
+        _doc.redo(this);
     } else if (event->text() == "a" && event->modifiers() == Qt::ControlModifier) {
         //STRG + a
         selectAll();
-        _collapseUndoStep = false;
+        _doc._collapseUndoStep = false;
     } else if (event->text() == "k" && event->modifiers() == Qt::ControlModifier) {
         //STRG + k //cut and copy line
         cutline();
@@ -1882,7 +1799,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             } else {
                 selectLines(getSelectLines().first -1, getSelectLines().second -1);
             }
-            saveUndoStep();
+            _doc.saveUndoStep(this);
         } else if(_resetSelect) {
             resetSelect();
         }
@@ -1911,7 +1828,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             } else {
                 selectLines(getSelectLines().first +1, getSelectLines().second +1);
             }
-            saveUndoStep();
+            _doc.saveUndoStep(this);
         }
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
         setSearchText("");

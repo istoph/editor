@@ -94,10 +94,6 @@ public:
     bool delSelect();
     void toggleOverwrite();
     bool isOverwrite();
-    void undo();
-    void redo();
-    void setGroupUndo(bool onoff);
-    int getGroupUndo();
     void deletePreviousCharacterOrWord(TextLayout::CursorMode mode);
     QPoint deletePreviousCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y);
     void deleteNextCharacterOrWord(TextLayout::CursorMode mode);
@@ -107,7 +103,7 @@ public:
     void appendLine(const QString &line);
     void insertAtCursorPosition(QVector<QString> str);
     QPoint insertAtPosition(QVector<QString> str, QPoint cursor);
-    bool isModified() const;
+    bool isModified() const { return _doc.isModified(); };
     void setSearchText(QString searchText);
     void setReplaceText(QString replaceText);
     void setReplaceSelected();
@@ -172,14 +168,7 @@ private:
     bool initText();
     void adjustScrollPosition();
     void safeCursorPosition();
-    void initalUndoStep();
-    void saveUndoStep(bool collapsable=false);
     void checkUndo();
-    struct UndoStep {
-        QVector<QString> text;
-        int cursorPositionX;
-        int cursorPositionY;
-    };
 
     ZTextOption getTextOption();
     TextLayout getTextLayoutForLine(const ZTextOption &option, int line);
@@ -209,10 +198,6 @@ private:
     int _endSelectX = -1;
     int _endSelectY = -1;
     bool _overwrite = false;
-    QVector<UndoStep> _undoSteps;
-    int _currentUndoStep = -1;
-    bool _collapseUndoStep = false;
-    int _savedUndoStep = -1;
     QString _searchText;
     QString _replaceText;
     bool _searchWrap = true;
@@ -226,7 +211,6 @@ private:
     int _bracketX = -1;
     int _bracketY = -1;
     bool _bracket = false;
-    int _groupUndo = 0;
     QJsonObject _jo;
     bool _noattr = false;
     QString _attributesfile;
@@ -244,6 +228,7 @@ private:
     bool _selectMode = false;
     bool _blockSelect = false;
 
+    friend class Document;
 };
 
 #endif // FILE_H
