@@ -331,12 +331,13 @@ bool File::openText(QString filename) {
             QString text = surrogate_escape::decode(lineBuf.constData(), lineBytes);
             _doc._text.append(text);
         }
-        if (file.isWritable()) {
+        file.close();
+
+        if (getWritable()) {
             setSaveAs(false);
         } else {
             setSaveAs(true);
         }
-        file.close();
 
         if (_doc._text.isEmpty()) {
             _doc._text.append("");
