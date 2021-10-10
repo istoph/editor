@@ -247,7 +247,10 @@ bool File::initText() {
 }
 
 bool File::saveText() {
-    QSaveFile file(getFilename());
+    // QSaveFile does not take over the user and group. Therefore this should only be used if
+    // user and group are the same and the editor also runs under this user.
+    QFile file(getFilename());
+    //QSaveFile file(getFilename());
     if (file.open(QIODevice::WriteOnly)) {
         for (int i=0; i<_doc._text.size(); i++) {
             file.write(surrogate_escape::encode(_doc._text[i]));
@@ -262,7 +265,8 @@ bool File::saveText() {
             }
         }
 
-        file.commit();
+        //file.commit();
+        file.close();
         _doc.initalUndoStep(this);
         modifiedChanged(false);
         setSaveAs(false);
