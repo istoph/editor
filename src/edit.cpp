@@ -495,7 +495,11 @@ void Editor::newFile(QString filename) {
 }
 
 void Editor::openFileMenue() {
-    openFileDialog();
+    if (_file) {
+        openFileDialog(_file->getFilename());
+    } else {
+        openFileDialog();
+    }
 }
 
 void Editor::gotoLineInCurrentFile(QString lineInfo) {
