@@ -8,10 +8,10 @@ void OpenDialog::refreshFolder() {
     } else {
         _dir.setFilter(QDir::AllEntries | QDir::Hidden);
     }
-    _dir.setSorting(QDir::DirsFirst |QDir::Name);
+    _dir.setSorting(QDir::DirsFirst | QDir::Name);
     list = _dir.entryInfoList();
 
-    _curentPath->setText(_dir.absolutePath());
+    _curentPath->setText(_dir.absolutePath().right(44));
     for (int i = 0; i < list.size(); ++i) {
         QFileInfo fileInfo = list.at(i);
         if(fileInfo.fileName() != ".") {
@@ -31,33 +31,31 @@ void OpenDialog::refreshFolder() {
 
 OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     setDefaultPlacement(Qt::AlignCenter);
+    setGeometry({0, 0, 50, 15});
+    setWindowTitle("Open File");
+    setContentsMargins({ 1, 1, 2, 1});
+
     if(path.size()) {
         _dir.setPath(path);
     }
     _dir.makeAbsolute();
 
-    setVisible(false);
-    setContentsMargins({ 1, 1, 2, 1});
-
-    setGeometry({20, 2, 42, 14});
-    setWindowTitle("File Open");
-
     _curentPath = new Tui::ZLabel(this);
-    _curentPath->setGeometry({3,1,36,1});
+    _curentPath->setGeometry({2,2,45,1});
 
     _folder = new ListView(this);
-    _folder->setGeometry({3,2,36,8});
+    _folder->setGeometry({3,3,44,8});
     _folder->setFocus();
 
     _hiddenCheckBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>h</m>idden", this);
-    _hiddenCheckBox->setGeometry({3, 11, 13, 1});
+    _hiddenCheckBox->setGeometry({3, 12, 13, 1});
 
     _cancelButton = new Tui::ZButton(this);
-    _cancelButton->setGeometry({16, 11, 12, 1});
+    _cancelButton->setGeometry({25, 12, 12, 1});
     _cancelButton->setText("Cancel");
 
     _okButton = new Tui::ZButton(this);
-    _okButton->setGeometry({29, 11, 10, 1});
+    _okButton->setGeometry({37, 12, 10, 1});
     _okButton->setText("Open");
     _okButton->setDefault(true);
 
@@ -78,7 +76,6 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     QObject::connect(_cancelButton, &Tui::ZButton::clicked, this, &OpenDialog::rejected);
 
     refreshFolder();
-    setVisible(true);
 }
 
 void OpenDialog::open() {

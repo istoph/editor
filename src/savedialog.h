@@ -33,6 +33,7 @@ private:
     Tui::ZLabel *_curentPath = nullptr;
     InputBox *_filenameText = nullptr;
     ListView *_folder = nullptr;
+    Tui::ZCheckBox *_hiddenCheckBox = nullptr;
     Tui::ZCheckBox *_dos = nullptr;
     Tui::ZButton *_cancelButton = nullptr;
     Tui::ZButton *_okButton = nullptr;
