@@ -270,6 +270,7 @@ bool File::saveText() {
         _doc.initalUndoStep(this);
         modifiedChanged(false);
         setSaveAs(false);
+        checkWritable();
         update();
         writeAttributes();
         return true;
