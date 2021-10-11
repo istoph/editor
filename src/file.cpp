@@ -1697,8 +1697,17 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             //Zeilen neu Markieren
             selectLines(getSelectLines().first, getSelectLines().second);
         } else {
-            //Ein Normaler Tab
-            t = addTabAt({_cursorPositionX,_cursorPositionY});
+            if(_tabOption) {
+                // If spaces in front of a tab
+                int i = 0;
+                for(; _doc._text[_cursorPositionY][i] == ' '; i++);
+                if(i > _cursorPositionX) {
+                    _cursorPositionX = i;
+                    setCursorPosition({i, _cursorPositionY});
+                }
+            }
+            // a normal tab
+            t = addTabAt({_cursorPositionX, _cursorPositionY});
             setCursorPosition(t);
         }
         safeCursorPosition();
