@@ -4,6 +4,7 @@
 #include <Tui/ZLabel.h>
 
 InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
+    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose | Tui::ZWindow::MoveOption);
     setWindowTitle("Insert Character");
     setContentsMargins({ 1, 1, 1, 1});
 

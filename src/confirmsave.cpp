@@ -4,6 +4,7 @@
 #include <Tui/ZLabel.h>
 
 ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool saveable) : Dialog(parent) {
+    setOptions(Tui::ZWindow::MoveOption);
     QString title, nosave, save, mainLable;
     if(type == Close) {
         title = "Close";

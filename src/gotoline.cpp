@@ -4,7 +4,7 @@
 #include <Tui/ZLabel.h>
 
 GotoLine::GotoLine(Tui::ZWidget *parent) : Dialog(parent) {
-
+    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose | Tui::ZWindow::MoveOption);
     setWindowTitle("Goto Line");
     setContentsMargins({ 1, 1, 1, 1});
 

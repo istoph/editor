@@ -2,6 +2,7 @@
 #include "edit.h"
 
 ThemeDialog::ThemeDialog(Editor *edit) : Dialog(edit) {
+    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose | Tui::ZWindow::MoveOption);
     setDefaultPlacement(Qt::AlignBottom | Qt::AlignHCenter, {0, -2});
     WindowLayout *wl = new WindowLayout();
     this->setWindowTitle("Theme Color");

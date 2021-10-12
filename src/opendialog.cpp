@@ -30,6 +30,7 @@ void OpenDialog::refreshFolder() {
 }
 
 OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
+    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose | Tui::ZWindow::MoveOption);
     setDefaultPlacement(Qt::AlignCenter);
     setGeometry({0, 0, 50, 15});
     setWindowTitle("Open File");
