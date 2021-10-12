@@ -76,6 +76,8 @@ public:
     int getTabsize();
     void setTabOption(bool tab);
     bool getTabOption();
+    void setEatSpaceBeforeTabs(bool eat);
+    bool eatSpaceBeforeTabs();
     bool setFormattingCharacters(bool fb);
     bool getformattingCharacters();
     void setWrapOption(bool wrap);
@@ -143,6 +145,7 @@ public:
     bool stdinText();
     void sortSelecedLines();
 
+
 public slots:
     void followStandardInput(bool follow);
 
@@ -191,6 +194,7 @@ private:
     int _lastCursorPositionX = -1;
     int _tabsize = 8;
     bool _tabOption = true;
+    bool _eatSpaceBeforeTabs = true;
     bool _wrapOption = false;
     bool _formatting_characters = true;
     int _startSelectX = -1;

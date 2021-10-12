@@ -88,6 +88,9 @@ int main(int argc, char **argv) {
     bool tab = qsettings->value("tab","true").toBool();
     settings.tabOption = tab;
 
+    bool eatSpaceBeforeTabs = qsettings->value("eatSpaceBeforeTabs","true").toBool();
+    settings.eatSpaceBeforeTabs = eatSpaceBeforeTabs;
+
     bool ln = qsettings->value("line_number","0").toBool() || qsettings->value("linenumber","0").toBool();
     settings.showLineNumber = ln || parser.isSet(lineNumberOption);
 

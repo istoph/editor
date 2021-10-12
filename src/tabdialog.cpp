@@ -1,8 +1,5 @@
 #include "tabdialog.h"
 
-#include <Tui/ZButton.h>
-#include <Tui/ZLabel.h>
-
 TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
 
     setFocus();
@@ -13,7 +10,7 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
     setLayout(vbox);
     vbox->setSpacing(1);
 
-    HBoxLayout* hbox1 = new HBoxLayout();
+    HBoxLayout *hbox1 = new HBoxLayout();
     _tabRadioButton = new Tui::ZRadioButton(this);
     _tabRadioButton->setMarkup("<m>T</m>ab");
     hbox1->addWidget(_tabRadioButton);
@@ -25,7 +22,7 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
     vbox->add(hbox1);
     vbox->addStretch();
 
-    HBoxLayout* hbox2 = new HBoxLayout();
+    HBoxLayout *hbox2 = new HBoxLayout();
     Tui::ZLabel *tabstopLable = new Tui::ZLabel(this);
     tabstopLable->setText("Tab Stops: ");
     hbox2->addWidget(tabstopLable);
@@ -35,8 +32,9 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
     _tabsizeInputBox->setEnabled(true);
     hbox2->addWidget(_tabsizeInputBox);
     vbox->add(hbox2);
+    vbox->addStretch();
 
-    HBoxLayout* hbox3 = new HBoxLayout();
+    HBoxLayout *hbox3 = new HBoxLayout();
     Tui::ZLabel *tabtospaceLabel = new Tui::ZLabel(this);
     tabtospaceLabel->setText("Tab to Space: ");
     hbox3->addWidget(tabtospaceLabel);
@@ -46,17 +44,25 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
     convertButton->setDefault(true);
     hbox3->addWidget(convertButton);
     vbox->add(hbox3);
+    vbox->addStretch();
 
-    HBoxLayout* hbox4 = new HBoxLayout();
+    HBoxLayout *hbox4 = new HBoxLayout();
+    _eatSpaceBoforeTabBox = new Tui::ZCheckBox(this);
+    _eatSpaceBoforeTabBox->setMarkup("<m>e</m>at space before tab");
+    hbox4->addWidget(_eatSpaceBoforeTabBox);
+    vbox->add(hbox4);
+    vbox->addStretch();
+
+    HBoxLayout *hbox5 = new HBoxLayout();
     Tui::ZButton *cancelButton = new Tui::ZButton(this);
     cancelButton->setText("Cancel");
-    hbox4->addWidget(cancelButton);
+    hbox5->addWidget(cancelButton);
 
     Tui::ZButton *saveButton = new Tui::ZButton(this);
     saveButton->setText("Save");
     saveButton->setDefault(true);
-    hbox4->addWidget(saveButton);
-    vbox->add(hbox4);
+    hbox5->addWidget(saveButton);
+    vbox->add(hbox5);
 
     QObject::connect(convertButton, &Tui::ZButton::clicked, [this] {
         convert(!_blankRadioButton->checked(), _tabsizeInputBox->text().toInt());
@@ -64,7 +70,13 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
     });
 
     QObject::connect(saveButton, &Tui::ZButton::clicked, [this] {
-        Q_EMIT settingsChanged(!_blankRadioButton->checked(), _tabsizeInputBox->text().toInt());
+        bool eat;
+        if (_eatSpaceBoforeTabBox->checkState() == Qt::CheckState::Checked) {
+            eat = true;
+        } else {
+            eat = false;
+        }
+        Q_EMIT settingsChanged(!_blankRadioButton->checked(), _tabsizeInputBox->text().toInt(), eat);
         deleteLater();
     });
 
@@ -83,8 +95,13 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
     });
 }
 
-void TabDialog::updateSettings(bool useTabs, int indentSize) {
+void TabDialog::updateSettings(bool useTabs, int indentSize, bool eatSpaceBeforeTabs) {
     _tabRadioButton->setChecked(useTabs);
     _blankRadioButton->setChecked(!useTabs);
     _tabsizeInputBox->setText(QString::number(indentSize));
+    if(eatSpaceBeforeTabs) {
+        _eatSpaceBoforeTabBox->setCheckState(Qt::CheckState::Checked);
+    } else {
+        _eatSpaceBoforeTabBox->setCheckState(Qt::CheckState::Unchecked);
+    }
 }

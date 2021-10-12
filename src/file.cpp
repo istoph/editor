@@ -477,6 +477,14 @@ bool File::getTabOption() {
     return this->_tabOption;
 }
 
+void File::setEatSpaceBeforeTabs(bool eat) {
+    _eatSpaceBeforeTabs = eat;
+}
+
+bool File::eatSpaceBeforeTabs() {
+    return _eatSpaceBeforeTabs;
+}
+
 bool File::setFormattingCharacters(bool fb) {
     this->_formatting_characters = fb;
     update();
@@ -1697,7 +1705,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             //Zeilen neu Markieren
             selectLines(getSelectLines().first, getSelectLines().second);
         } else {
-            if(_tabOption) {
+            if(_eatSpaceBeforeTabs && _tabOption) {
                 // If spaces in front of a tab
                 int i = 0;
                 for(; _doc._text[_cursorPositionY][i] == ' '; i++);

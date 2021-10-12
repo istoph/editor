@@ -145,7 +145,7 @@ Editor::Editor() {
                 _tabDialog->raise();
             } else {
                 _tabDialog = new TabDialog(this);
-                _tabDialog->updateSettings(!_file->getTabOption(), _file->getTabsize());
+                _tabDialog->updateSettings(!_file->getTabOption(), _file->getTabsize(), _file->eatSpaceBeforeTabs());
                 QObject::connect(_tabDialog, &TabDialog::convert, this, [this] (bool useTabs, int indentSize) {
                     if (_file) {
                         _file->setTabOption(!useTabs);
@@ -153,10 +153,11 @@ Editor::Editor() {
                         _file->tabToSpace();
                     }
                 });
-                QObject::connect(_tabDialog, &TabDialog::settingsChanged, this, [this] (bool useTabs, int indentSize) {
+                QObject::connect(_tabDialog, &TabDialog::settingsChanged, this, [this] (bool useTabs, int indentSize, bool eatSpaceBeforeTabs) {
                     if (_file) {
                         _file->setTabOption(!useTabs);
                         _file->setTabsize(indentSize);
+                        _file->setEatSpaceBeforeTabs(eatSpaceBeforeTabs);
                     }
                 });
             }
@@ -329,6 +330,7 @@ FileWindow *Editor::createFileWindow() {
         file->setTabsize(_file->getTabsize());
         file->setLineNumber(_file->getLineNumber());
         file->setTabOption(_file->getTabOption());
+        file->setEatSpaceBeforeTabs(_file->eatSpaceBeforeTabs());
         file->setFormattingCharacters(_file->getformattingCharacters());
         win->setWrap(_file->getWrapOption());
         file->setHighlightBracket(_file->getHighlightBracket());
@@ -338,6 +340,7 @@ FileWindow *Editor::createFileWindow() {
         file->setTabsize(initialFileSettings.tabSize);
         file->setLineNumber(initialFileSettings.showLineNumber);
         file->setTabOption(initialFileSettings.tabOption);
+        file->setEatSpaceBeforeTabs(initialFileSettings.eatSpaceBeforeTabs);
         file->setFormattingCharacters(initialFileSettings.formattingCharacters);
         win->setWrap(initialFileSettings.wrap);
         file->setHighlightBracket(initialFileSettings.highlightBracket);
@@ -681,7 +684,7 @@ void Editor::terminalChanged() {
             if (_file != _win->getFileWidget()) {
                 _file = _win->getFileWidget();
                 if (_tabDialog) {
-                    _tabDialog->updateSettings(!_file->getTabOption(), _file->getTabsize());
+                    _tabDialog->updateSettings(!_file->getTabOption(), _file->getTabsize(), _file->eatSpaceBeforeTabs());
                 }
             }
             _mux.selectInput(_win);
