@@ -1,34 +1,5 @@
 #include "opendialog.h"
 
-void OpenDialog::refreshFolder() {
-    QStringList items;
-    QFileInfoList list; // = _dir.entryInfoList();
-    if(_hiddenCheckBox->checkState() == Qt::CheckState::Unchecked) {
-        _dir.setFilter(QDir::AllEntries);
-    } else {
-        _dir.setFilter(QDir::AllEntries | QDir::Hidden);
-    }
-    _dir.setSorting(QDir::DirsFirst | QDir::Name);
-    list = _dir.entryInfoList();
-
-    _curentPath->setText(_dir.absolutePath().right(44));
-    for (int i = 0; i < list.size(); ++i) {
-        QFileInfo fileInfo = list.at(i);
-        if(fileInfo.fileName() != ".") {
-            if(fileInfo.fileName() == "..") {
-                if(_dir.path() != "/") {
-                    items.insert(0,"../");
-                }
-            } else if(fileInfo.isDir()) {
-                items.append(fileInfo.fileName()+"/");
-            } else {
-                items.append(fileInfo.fileName());
-            }
-        }
-    }
-    _folder->setItems(items);
-}
-
 OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose | Tui::ZWindow::MoveOption);
     setDefaultPlacement(Qt::AlignCenter);
@@ -45,12 +16,16 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     _curentPath = new Tui::ZLabel(this);
     _curentPath->setGeometry({2,2,45,1});
 
+    _hiddenCheckBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>h</m>idden", this);
+    _hiddenCheckBox->setGeometry({3, 12, 13, 1});
+
+    _model = std::make_unique<DlgFileModel>(_dir);
+    _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
+
     _folder = new ListView(this);
     _folder->setGeometry({3,3,44,8});
     _folder->setFocus();
-
-    _hiddenCheckBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>h</m>idden", this);
-    _hiddenCheckBox->setGeometry({3, 12, 13, 1});
+    _folder->setModel(_model.get());
 
     _cancelButton = new Tui::ZButton(this);
     _cancelButton->setGeometry({25, 12, 12, 1});
@@ -66,7 +41,7 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
         userInput(_folder->currentItem());
     });
     QObject::connect(_hiddenCheckBox, &Tui::ZCheckBox::stateChanged, this, [&]{
-        refreshFolder();
+        _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
     });
     QObject::connect(_okButton, &Tui::ZButton::clicked, [this] {
         if(_folder->currentItem().right(1) == "/") {
@@ -82,7 +57,6 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
 
 void OpenDialog::open() {
     // TODO: error message
-    //fileSelected(filenameText->text());
     fileSelected(_folder->currentItem());
     deleteLater();
 }
@@ -94,6 +68,12 @@ void OpenDialog::filenameChanged(QString filename) {
 
 void OpenDialog::pathSelected(QString path) {
     _dir.setPath(path);
+}
+
+void OpenDialog::refreshFolder() {
+    _model->setDirectory(_dir);
+    _curentPath->setText(_dir.absolutePath().right(44));
+    _folder->setCurrentIndex(_model->index(0, 0));
 }
 
 void OpenDialog::userInput(QString filename) {

@@ -11,6 +11,7 @@
 
 #include "file.h"
 #include "overwritedialog.h"
+#include "dlgfilemodel.h"
 
 class SaveDialog : public Dialog {
     Q_OBJECT
@@ -28,6 +29,7 @@ signals:
 private:
     void filenameChanged(QString filename);
     void userInput(QString filename);
+    void refreshFolder();
 
 private:
     Tui::ZLabel *_curentPath = nullptr;
@@ -38,8 +40,8 @@ private:
     Tui::ZButton *_cancelButton = nullptr;
     Tui::ZButton *_okButton = nullptr;
     QDir _dir;
+    std::unique_ptr<DlgFileModel> _model;
 
-    void refreshFolder();
 };
 
 #endif // SAVEDIALOG_H

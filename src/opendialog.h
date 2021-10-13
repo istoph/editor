@@ -10,6 +10,8 @@
 #include <testtui_lib.h>
 
 #include "file.h"
+#include "dlgfilemodel.h"
+
 
 class OpenDialog : public Dialog {
     Q_OBJECT
@@ -28,6 +30,7 @@ signals:
 private:
     void filenameChanged(QString filename);
     void userInput(QString filename);
+    void refreshFolder();
 
 private:
     Tui::ZLabel *_curentPath = nullptr;
@@ -37,8 +40,7 @@ private:
     Tui::ZButton *_okButton = nullptr;
     Tui::ZButton *_cancelButton = nullptr;
     QDir _dir;
-
-    void refreshFolder();
+    std::unique_ptr<DlgFileModel> _model;
 };
 
 #endif // OPENDIALOG_H

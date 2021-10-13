@@ -1,34 +1,5 @@
 #include "savedialog.h"
 
-void SaveDialog::refreshFolder() {
-    QStringList items;
-    QFileInfoList list;
-    if(_hiddenCheckBox->checkState() == Qt::CheckState::Unchecked) {
-        _dir.setFilter(QDir::AllEntries);
-    } else {
-        _dir.setFilter(QDir::AllEntries | QDir::Hidden);
-    }
-    _dir.setSorting(QDir::DirsFirst | QDir::Name);
-    list = _dir.entryInfoList();
-
-    _curentPath->setText(_dir.absolutePath().right(44));
-    for (int i = 0; i < list.size(); ++i) {
-        QFileInfo fileInfo = list.at(i);
-        if(fileInfo.fileName() != ".") {
-            if(fileInfo.fileName() == "..") {
-                if(_dir.path() != "/") {
-                    items.insert(0,"../");
-                }
-            } else if(fileInfo.isDir()) {
-                items.append(fileInfo.fileName()+"/");
-            } else {
-                items.append(fileInfo.fileName());
-            }
-        }
-    }
-    _folder->setItems(items);
-}
-
 SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     setDefaultPlacement(Qt::AlignCenter);
     setGeometry({0, 0, 50, 15});
@@ -39,15 +10,19 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     _curentPath = new Tui::ZLabel(this);
     _curentPath->setGeometry({2,2,45,1});
 
+    _hiddenCheckBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>h</m>idden", this);
+    _hiddenCheckBox->setGeometry({3, 11, 13, 1});
+
+    _model = std::make_unique<DlgFileModel>(_dir);
+    _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
+
     _folder = new ListView(this);
     _folder->setGeometry({3,3,44,6});
     _folder->setFocus();
+    _folder->setModel(_model.get());
 
     _filenameText = new InputBox(this);
     _filenameText->setGeometry({3,10,44,1});
-
-    _hiddenCheckBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>h</m>idden", this);
-    _hiddenCheckBox->setGeometry({3, 11, 13, 1});
 
     _dos = new Tui::ZCheckBox(Tui::withMarkup, "<m>D</m>OS Mode", this);
     _dos->setGeometry({3, 12, 16, 1});
@@ -67,14 +42,13 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     _okButton->setDefault(true);
     _okButton->setEnabled(false);
 
-
     QObject::connect(_folder, &ListView::enterPressed, [this](int selected){
         (void)selected;
         userInput(_folder->currentItem());
     });
     QObject::connect(_filenameText, &InputBox::textChanged, this, &SaveDialog::filenameChanged);
     QObject::connect(_hiddenCheckBox, &Tui::ZCheckBox::stateChanged, this, [&]{
-        refreshFolder();
+        _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
     });
     QObject::connect(_dos, &Tui::ZCheckBox::stateChanged, [=] {
        if(_dos->checkState() == Qt::Checked) {
@@ -92,10 +66,6 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     setGeometry(r);
 
     refreshFolder();
-}
-
-void SaveDialog::rejected() {
-    deleteLater();
 }
 
 void SaveDialog::saveFile() {
@@ -145,15 +115,28 @@ void SaveDialog::filenameChanged(QString filename) {
     _okButton->setEnabled(ok);
 }
 
+void SaveDialog::refreshFolder() {
+    _model->setDirectory(_dir);
+    _curentPath->setText(_dir.absolutePath().right(44));
+    _folder->setCurrentIndex(_model->index(0, 0));
+}
+
 void SaveDialog::userInput(QString filename) {
-    if(filename == "../") {
-        _dir.cdUp();
-        refreshFolder();
+    QString tmp = filename.left(filename.size()-1);
+    if(QFileInfo(_dir.filePath(filename)).isDir() && QFileInfo(_dir.filePath(tmp)).isSymLink()) {
+       _dir.setPath(_dir.filePath(QFileInfo(_dir.filePath(tmp)).readLink()));
+       _dir.makeAbsolute();
+       refreshFolder();
     } else if(QFileInfo(_dir.filePath(filename)).isDir()) {
         _dir.setPath(_dir.filePath(filename));
+        _dir.makeAbsolute();
         refreshFolder();
     } else {
         _filenameText->setText(filename);
         _filenameText->setFocus();
     }
+}
+
+void SaveDialog::rejected() {
+    deleteLater();
 }
