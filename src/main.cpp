@@ -94,8 +94,9 @@ int main(int argc, char **argv) {
     bool ln = qsettings->value("line_number","0").toBool() || qsettings->value("linenumber","0").toBool();
     settings.showLineNumber = ln || parser.isSet(lineNumberOption);
 
-    bool fb = qsettings->value("formatting_characters","1").toBool();
-    settings.formattingCharacters = fb;
+    settings.formattingCharacters = qsettings->value("formatting_characters","0").toBool();
+    settings.colorTabs = qsettings->value("color_tabs","0").toBool();
+    settings.colorSpaceEnd = qsettings->value("color_space_end","0").toBool();
 
     bool bigfile = qsettings->value("bigfile", "false").toBool();
 

@@ -30,6 +30,7 @@
 #include "clipboard.h"
 #include "commandlinewidget.h"
 #include "themedialog.h"
+#include "formattingdialog.h"
 
 
 class Settings {
@@ -37,7 +38,9 @@ public:
     int tabSize = 4;
     bool tabOption = true;
     bool eatSpaceBeforeTabs = true;
-    bool formattingCharacters = true;
+    bool formattingCharacters = false;
+    bool colorSpaceEnd = false;
+    bool colorTabs = false;
     bool wrap = false;
     bool highlightBracket = false;
     bool showLineNumber = false;

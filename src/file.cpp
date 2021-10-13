@@ -137,7 +137,7 @@ void File::setMsDosMode(bool msdos) {
 int File::tabToSpace() {
     int count = 0;
 
-    ZTextOption option = getTextOption();
+    ZTextOption option = getTextOption(false);
     option.setWrapMode(ZTextOption::NoWrap);
 
     TextLayout lay = getTextLayoutForLine(option, _cursorPositionY);
@@ -477,22 +477,33 @@ bool File::getTabOption() {
     return this->_tabOption;
 }
 
+bool File::formattingCharacters() {
+    return _formattingCharacters;
+}
+void File::setFormattingCharacters(bool formattingCharacters) {
+    _formattingCharacters = formattingCharacters;
+}
+
+bool File::colorTabs() {
+    return _colorTabs;
+}
+void File::setColorTabs(bool colorTabs) {
+    _colorTabs = colorTabs;
+}
+
+bool File::colorSpaceEnd() {
+    return _colorSpaceEnd;
+}
+void File::setColorSpaceEnd(bool colorSpaceEnd) {
+    _colorSpaceEnd = colorSpaceEnd;
+}
+
 void File::setEatSpaceBeforeTabs(bool eat) {
     _eatSpaceBeforeTabs = eat;
 }
 
 bool File::eatSpaceBeforeTabs() {
     return _eatSpaceBeforeTabs;
-}
-
-bool File::setFormattingCharacters(bool fb) {
-    this->_formatting_characters = fb;
-    update();
-    return true;
-}
-
-bool File::getformattingCharacters() {
-    return _formatting_characters;
 }
 
 void File::setWrapOption(bool wrap) {
@@ -986,15 +997,70 @@ Range File::getBlockSelectedLines() {
     return Range {std::min(_startSelectY, _endSelectY), std::max(_startSelectY, _endSelectY) + 1};
 }
 
-
-ZTextOption File::getTextOption() {
+ZTextOption File::getTextOption(bool lineWithCursor) {
     ZTextOption option;
     option.setWrapMode(_wrapOption ? ZTextOption::WrapAnywhere : ZTextOption::NoWrap);
     option.setTabStopDistance(_tabsize);
-    if (getformattingCharacters()) {
-        option.setFlags(ZTextOption::ShowTabsAndSpaces);
-    }
 
+    ZTextOption::Flags flags;
+    if (formattingCharacters()) {
+        flags |= ZTextOption::ShowTabsAndSpaces;
+    }
+    if(colorTabs()) {
+        flags |= ZTextOption::ShowTabsAndSpacesWithColors;
+        if (getTabOption()) {
+            option.setTabColor([] (int pos, int size, int hidden, const Tui::ZTextStyle &base, const Tui::ZTextStyle &formating, const FormatRange* range) -> Tui::ZTextStyle {
+                (void)formating;
+                if (range) {
+                    if (pos == hidden) {
+                        return { range->format.foregroundColor(), {0xff, 0x80, 0xff} };
+                    }
+                    return { range->format.foregroundColor(), {0xff, 0xb0, 0xff} };
+                }
+                if (pos == hidden) {
+                    return { base.foregroundColor(), {base.backgroundColor().red() + 0x60,
+                                    base.backgroundColor().green(),
+                                    base.backgroundColor().blue()} };
+
+                }
+                return { base.foregroundColor(), {base.backgroundColor().red() + 0x40,
+                                base.backgroundColor().green(),
+                                base.backgroundColor().blue()} };
+            });
+        } else {
+            option.setTabColor([] (int pos, int size, int hidden, const Tui::ZTextStyle &base, const Tui::ZTextStyle &formating, const FormatRange* range) -> Tui::ZTextStyle {
+                (void)formating;
+                if (range) {
+                    if (pos == hidden) {
+                        return { range->format.foregroundColor(), {0x80, 0xff, 0xff} };
+                    }
+                    return { range->format.foregroundColor(), {0xb0, 0xff, 0xff} };
+                }
+                if (pos == hidden) {
+                    return { base.foregroundColor(), {base.backgroundColor().red(),
+                                    base.backgroundColor().green() + 0x60,
+                                    base.backgroundColor().blue()} };
+
+                }
+                return { base.foregroundColor(), {base.backgroundColor().red(),
+                                base.backgroundColor().green() + 0x40,
+                                base.backgroundColor().blue()} };
+            });
+        }
+    }
+    if (colorSpaceEnd()) {
+        flags |= ZTextOption::ShowTabsAndSpacesWithColors;
+        if (!lineWithCursor) {
+            option.setTrailingWhitespaceColor([] (const Tui::ZTextStyle &base, const Tui::ZTextStyle &formating, const FormatRange* range) -> Tui::ZTextStyle {
+                (void)formating;
+                if (range) {
+                    return { range->format.foregroundColor(), {0xff, 0x80, 0x80} };
+                }
+                return { base.foregroundColor(), {0x80, 0, 0} };
+            });
+        }
+    }
+    option.setFlags(flags);
     return option;
 }
 
@@ -1081,7 +1147,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     auto *painter = event->painter();
     painter->clear(fg, bg);
 
-    ZTextOption option = getTextOption();
+    ZTextOption option = getTextOption(false);
 
     auto startSelect = std::make_pair(_startSelectY,_startSelectX);
     auto endSelect = std::make_pair(_endSelectY,_endSelectX);
@@ -1100,7 +1166,12 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     int y = 0;
     int tmpLastLineWidth = 0;
     for (int line = _scrollPositionY; y < rect().height() && line < _doc._text.size(); line++) {
-        TextLayout lay = getTextLayoutForLine(option, line);
+        TextLayout lay = [&] {
+                if (line == _cursorPositionY && _doc._text[_cursorPositionY].size() == _cursorPositionX) {
+                    return getTextLayoutForLine(getTextOption(true), line);
+                }
+                return getTextLayoutForLine(option, line);
+            }();
 
         // highlights
         highlights.clear();
@@ -1156,7 +1227,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
             }
         }
         lay.draw(*painter, {-_scrollPositionX + shiftLinenumber(), y}, base, &formatingChar, highlights);
-        if (getformattingCharacters()) {
+        if (formattingCharacters()) {
             TextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
             tmpLastLineWidth = lastLine.width();
             if (isSelect(_doc._text[line].size(), line)) {
@@ -1183,12 +1254,12 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         y += lay.lineCount();
     }
     if (_nonewline) {
-        if (getformattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
+        if (formattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
             painter->writeWithAttributes(-_scrollPositionX + tmpLastLineWidth + shiftLinenumber(), y-1, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
         }
         painter->writeWithAttributes(0 + shiftLinenumber(), y, "\\ No newline at end of file", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
     } else {
-        if (getformattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
+        if (formattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
             painter->writeWithAttributes(0 + shiftLinenumber(), y, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
         }
     }
@@ -1558,7 +1629,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         selectCursorPosition(event->modifiers());
         if (_doc._text.size() -1 > _cursorPositionY) {
             ++_cursorPositionY;
-            TextLayout lay = getTextLayoutForLine(getTextOption(), _cursorPositionY);
+            TextLayout lay = getTextLayoutForLine(getTextOption(false), _cursorPositionY);
             TextLineRef la = lay.lineAt(0);
             _cursorPositionX = la.xToCursor(_saveCursorPositionX);
         }
@@ -1569,7 +1640,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         selectCursorPosition(event->modifiers());
         if (_cursorPositionY > 0) {
             --_cursorPositionY;
-            TextLayout lay = getTextLayoutForLine(getTextOption(), _cursorPositionY);
+            TextLayout lay = getTextLayoutForLine(getTextOption(false), _cursorPositionY);
             TextLineRef la = lay.lineAt(0);
             _cursorPositionX = la.xToCursor(_saveCursorPositionX);
         }
@@ -1879,7 +1950,7 @@ void File::adjustScrollPosition() {
     if(geometry().width() <= 0 && geometry().height() <= 0) {
         return;
     }
-    ZTextOption option = getTextOption();
+    ZTextOption option = getTextOption(false);
     option.setWrapMode(ZTextOption::NoWrap);
     TextLayout lay = getTextLayoutForLine(option, _cursorPositionY);
     int cursorColumn = lay.lineAt(0).cursorToX(_cursorPositionX, TextLineRef::Leading);
@@ -1913,7 +1984,7 @@ void File::adjustScrollPosition() {
             _scrollPositionY = std::max(0,_doc._text.size() - geometry().height() +1);
         }
     } else {
-        option = getTextOption();
+        option = getTextOption(false);
         int y = 0;
         QVector<int> sizes;
         for (int line = _scrollPositionY; line <= _cursorPositionY && line < _doc._text.size(); line++) {
@@ -1951,7 +2022,7 @@ void File::adjustScrollPosition() {
 }
 
 void File::safeCursorPosition() {
-    TextLayout lay = getTextLayoutForLine(getTextOption(), _cursorPositionY);
+    TextLayout lay = getTextLayoutForLine(getTextOption(false), _cursorPositionY);
     TextLineRef tlr = lay.lineForTextPosition(_cursorPositionX);
     _saveCursorPositionX = tlr.cursorToX(_cursorPositionX, TextLineRef::Leading);
 }

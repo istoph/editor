@@ -50,7 +50,7 @@ Editor::Editor() {
                       { "<m>O</m>ptions", "", {}, {
                                  { "Formatting <m>T</m>ab", "", "Tab", {}},
                                  { "<m>L</m>ine Number", "", "LineNumber", {}},
-                                 { "Formatting <m>C</m>haracters", "", "Formatting", {}},
+                                 { "<m>F</m>ormatting", "", "Formatting", {}},
                                  { "<m>W</m>rap long lines", "", "Wrap", {}},
                                  { "Following standard input", "", "Following", {}},
                                  { "Stop Input Pipe", "", "InputPipe", {}},
@@ -176,9 +176,23 @@ Editor::Editor() {
 
     QObject::connect(new Tui::ZCommandNotifier("Formatting", this), &Tui::ZCommandNotifier::activated,
          [&] {
+            FormattingDialog *_formattingDialog = new FormattingDialog(this);
             if (_file) {
-                _file->setFormattingCharacters(!_file->getformattingCharacters());
+                _formattingDialog->updateSettings(_file->formattingCharacters(), _file->colorTabs(), _file->colorSpaceEnd());
+            } else {
+                _formattingDialog->updateSettings(initialFileSettings.formattingCharacters, initialFileSettings.colorTabs, initialFileSettings.colorSpaceEnd);
             }
+            QObject::connect(_formattingDialog, &FormattingDialog::settingsChanged, this, [this] (bool formattingCharacters, bool colorTabs, bool colorSpaceEnd) {
+                             if (_file) {
+                                 _file->setFormattingCharacters(formattingCharacters);
+                                 _file->setColorTabs(colorTabs);
+                                 _file->setColorSpaceEnd(colorSpaceEnd);
+                             } else {
+                                 initialFileSettings.formattingCharacters = formattingCharacters;
+                                 initialFileSettings.colorTabs = colorTabs;
+                                 initialFileSettings.colorSpaceEnd = colorSpaceEnd;
+                             }
+                         });
         }
     );
 
@@ -333,7 +347,9 @@ FileWindow *Editor::createFileWindow() {
         file->setLineNumber(_file->getLineNumber());
         file->setTabOption(_file->getTabOption());
         file->setEatSpaceBeforeTabs(_file->eatSpaceBeforeTabs());
-        file->setFormattingCharacters(_file->getformattingCharacters());
+        file->setFormattingCharacters(_file->formattingCharacters());
+        file->setColorTabs(_file->colorTabs());
+        file->setColorSpaceEnd(_file->colorSpaceEnd());
         win->setWrap(_file->getWrapOption());
         file->setHighlightBracket(_file->getHighlightBracket());
         file->setAttributesfile(_file->getAttributesfile());
@@ -344,6 +360,8 @@ FileWindow *Editor::createFileWindow() {
         file->setTabOption(initialFileSettings.tabOption);
         file->setEatSpaceBeforeTabs(initialFileSettings.eatSpaceBeforeTabs);
         file->setFormattingCharacters(initialFileSettings.formattingCharacters);
+        file->setColorTabs(initialFileSettings.colorTabs);
+        file->setColorSpaceEnd(initialFileSettings.colorSpaceEnd);
         win->setWrap(initialFileSettings.wrap);
         file->setHighlightBracket(initialFileSettings.highlightBracket);
         file->setAttributesfile(initialFileSettings.attributesFile);

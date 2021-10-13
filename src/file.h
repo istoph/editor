@@ -78,8 +78,12 @@ public:
     bool getTabOption();
     void setEatSpaceBeforeTabs(bool eat);
     bool eatSpaceBeforeTabs();
-    bool setFormattingCharacters(bool fb);
-    bool getformattingCharacters();
+    bool formattingCharacters();
+    void setFormattingCharacters(bool formattingCharacters);
+    bool colorTabs();
+    void setColorTabs(bool colorTabs);
+    bool colorSpaceEnd();
+    void setColorSpaceEnd(bool colorSpaceEnd);
     void setWrapOption(bool wrap);
     bool getWrapOption();
     void select(int x, int y);
@@ -145,7 +149,6 @@ public:
     bool stdinText();
     void sortSelecedLines();
 
-
 public slots:
     void followStandardInput(bool follow);
 
@@ -173,7 +176,7 @@ private:
     void safeCursorPosition();
     void checkUndo();
 
-    ZTextOption getTextOption();
+    ZTextOption getTextOption(bool lineWithCursor);
     TextLayout getTextLayoutForLine(const ZTextOption &option, int line);
     bool highlightBracket();
     void searchSelect(int line, int found, int length, bool direction);
@@ -221,6 +224,9 @@ private:
     bool _msdos = false;
     bool _linenumber = false;
     bool _saveAs = true;
+    bool _formattingCharacters = true;
+    bool _colorTabs = true;
+    bool _colorSpaceEnd = true;
 
     Tui::ZCommandNotifier *_cmdCopy = nullptr;
     Tui::ZCommandNotifier *_cmdCut = nullptr;
