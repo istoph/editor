@@ -145,7 +145,9 @@ Editor::Editor() {
                 _tabDialog->raise();
             } else {
                 _tabDialog = new TabDialog(this);
-                _tabDialog->updateSettings(!_file->getTabOption(), _file->getTabsize(), _file->eatSpaceBeforeTabs());
+                if (_file) {
+                    _tabDialog->updateSettings(!_file->getTabOption(), _file->getTabsize(), _file->eatSpaceBeforeTabs());
+                }
                 QObject::connect(_tabDialog, &TabDialog::convert, this, [this] (bool useTabs, int indentSize) {
                     if (_file) {
                         _file->setTabOption(!useTabs);
