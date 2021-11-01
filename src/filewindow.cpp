@@ -240,7 +240,7 @@ void FileWindow::closeRequested() {
             deleteLater();
         });
 
-        QObject::connect(closeDialog, &ConfirmSave::saveSelected, [this, closeDialog]{
+        QObject::connect(closeDialog, &ConfirmSave::saveSelected, this, [this, closeDialog]{
             closeDialog->deleteLater();
             SaveDialog *q = saveOrSaveas();
             if (q) {
