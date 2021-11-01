@@ -46,6 +46,7 @@ private:
 private:
     File *_file = nullptr;
     ScrollBar *_scrollbarHorizontal = nullptr;
+    ScrollBar *_scrollbarVertical = nullptr;
     WindowLayout *_winLayout = nullptr;
     QFileSystemWatcher *_watcher = nullptr;
 
