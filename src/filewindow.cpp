@@ -230,6 +230,49 @@ void FileWindow::reload() {
     watcherAdd();
 }
 
+void FileWindow::resizeEvent(Tui::ZResizeEvent *event) {
+    updateBorders();
+    WindowWidget::resizeEvent(event);
+}
+
+void FileWindow::moveEvent(Tui::ZMoveEvent *event) {
+    updateBorders();
+    WindowWidget::moveEvent(event);
+}
+
+void FileWindow::updateBorders() {
+    auto * const term = terminal();
+    if (!term) return;
+    Qt::Edges borders = Qt::TopEdge;
+    QRect g = geometry();
+    bool touchesLeftEdge = (g.x() == 0);
+    bool touchesRightEdge = (g.right() == term->mainWidget()->geometry().width() - 1);
+    if (!touchesRightEdge || !touchesLeftEdge) {
+        borders |= Qt::LeftEdge;
+        borders |= Qt::RightEdge;
+        _winLayout->setRightBorderTopAdjust(0);
+        _winLayout->setRightBorderBottomAdjust(0);
+        _scrollbarVertical->setTransparent(false);
+    } else {
+        _winLayout->setRightBorderTopAdjust(-1);
+        _winLayout->setRightBorderBottomAdjust(-1);
+        _scrollbarVertical->setTransparent(true);
+    }
+    if (g.bottom() != term->mainWidget()->geometry().height() - 2) {
+        borders |= Qt::BottomEdge;
+        _scrollbarHorizontal->setTransparent(false);
+        _winLayout->setBottomBorderLeftAdjust(borders.testFlag(Qt::LeftEdge) ? 0 : -1);
+    } else {
+        _winLayout->setBottomBorderLeftAdjust(-1);
+        _scrollbarHorizontal->setTransparent(true);
+    }
+    setBorderEdges(borders);
+    // TODO: This needs to work without manually forcing relayout
+    QTimer::singleShot(0, [this] {
+        terminal()->requestLayout(this);
+    });
+}
+
 void FileWindow::closeRequested() {
     _file->writeAttributes();
     if(_file->isModified()) {

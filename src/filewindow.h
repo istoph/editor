@@ -33,7 +33,12 @@ signals:
     void fileChangedExternally(bool fileChangedExternally);
     void backingFileChanged(QString filename);
 
+protected:
+    void resizeEvent(Tui::ZResizeEvent *event) override;
+    void moveEvent(Tui::ZMoveEvent *event) override;
+
 private:
+    void updateBorders();
     void closeRequested();
     SaveDialog *saveFileDialog();
     void reload();
