@@ -34,6 +34,7 @@ signals:
     void backingFileChanged(QString filename);
 
 protected:
+    void closeEvent(Tui::ZCloseEvent *event) override;
     void resizeEvent(Tui::ZResizeEvent *event) override;
     void moveEvent(Tui::ZMoveEvent *event) override;
 

@@ -230,6 +230,13 @@ void FileWindow::reload() {
     watcherAdd();
 }
 
+void FileWindow::closeEvent(Tui::ZCloseEvent *event) {
+    if (!event->skipChecks().contains("unsaved")) {
+        closeRequested();
+        event->ignore();
+    }
+}
+
 void FileWindow::resizeEvent(Tui::ZResizeEvent *event) {
     updateBorders();
     WindowWidget::resizeEvent(event);
@@ -287,9 +294,11 @@ void FileWindow::closeRequested() {
             closeDialog->deleteLater();
             SaveDialog *q = saveOrSaveas();
             if (q) {
-                QObject::connect(q, &SaveDialog::fileSelected, this, &QObject::deleteLater);
+                QObject::connect(q, &SaveDialog::fileSelected, this, [this] {
+                    closeSkipCheck({"unsaved"});
+                });
             } else {
-                deleteLater();
+                closeSkipCheck({"unsaved"});
             }
         });
 
