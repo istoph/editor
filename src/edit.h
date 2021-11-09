@@ -114,9 +114,9 @@ private:
     Theme _theme = Theme::classic;
     Settings initialFileSettings;
 
-    WindowWidget *_option_tab;
-    WindowWidget *_file_open;
-    WindowWidget *_file_goto_line;
+    WindowWidget *_option_tab = nullptr;
+    WindowWidget *_file_open = nullptr;
+    WindowWidget *_file_goto_line = nullptr;
     int _tab = 8;
 };
 
