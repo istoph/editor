@@ -1,7 +1,7 @@
 #include "tabdialog.h"
 
 TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
-    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption);
+    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setFocus();
     setWindowTitle("Formatting Tab");
     setContentsMargins({ 1, 1, 1, 1});

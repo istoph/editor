@@ -3,7 +3,8 @@
 SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     setDefaultPlacement(Qt::AlignCenter);
     setGeometry({0, 0, 50, 15});
-    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose | Tui::ZWindow::MoveOption);
+    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
+               | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setWindowTitle("Save as...");
     setContentsMargins({ 1, 1, 2, 1});
 

@@ -1,6 +1,7 @@
 #include "overwritedialog.h"
 
 OverwriteDialog::OverwriteDialog(Tui::ZWidget *parent, QString fileName) : Dialog(parent) {
+    setOptions(Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setContentsMargins({ 1, 1, 2, 1});
     setWindowTitle("Overwrite?");
 

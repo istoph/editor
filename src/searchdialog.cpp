@@ -22,8 +22,7 @@ protected:
 };
 
 SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) {
-    setOptions(Tui::ZWindow::MoveOption);
-    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption);
+    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setDefaultPlacement(Qt::AlignBottom | Qt::AlignHCenter, {0, -2});
     _replace = replace;
     setVisible(false);

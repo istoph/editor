@@ -1,7 +1,7 @@
 #include "formattingdialog.h"
 
 FormattingDialog::FormattingDialog(Tui::ZWidget *parent) : Dialog(parent) {
-    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption);
+    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setFocus();
     setWindowTitle("Formatting");
     setContentsMargins({ 1, 1, 1, 1});
