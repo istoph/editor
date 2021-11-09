@@ -6,6 +6,9 @@
 
 
 FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
+    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
+               | Tui::ZWindow::MoveOption | Tui::ZWindow::ResizeOption
+               | Tui::ZWindow::AutomaticOption);
     setBorderEdges({ Qt::TopEdge });
 
     _file = new File(this);
