@@ -1650,7 +1650,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == 0 || extendSelect || extendBlockSelect)) {
         selectCursorPosition(event->modifiers());
         if(_cursorPositionX == 0) {
-            for (int i = 0; i < _doc._text[_cursorPositionY].size()-1; i++) {
+            for (int i = 0; i <= _doc._text[_cursorPositionY].size()-1; i++) {
                 if(_doc._text[_cursorPositionY][i] != ' ' && _doc._text[_cursorPositionY][i] != '\t') {
                     _cursorPositionX = i;
                     break;
