@@ -118,6 +118,8 @@ private:
     WindowWidget *_file_open = nullptr;
     WindowWidget *_file_goto_line = nullptr;
     int _tab = 8;
+    Tui::ZWindow *pendingKeySequence = nullptr;
+    QTimer pendingKeySequenceTimer;
 };
 
 #endif // EDIT_H

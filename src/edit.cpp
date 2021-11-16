@@ -5,6 +5,7 @@
 #include <Tui/ZImage.h>
 #include <Tui/ZMenubar.h>
 #include <Tui/ZTerminal.h>
+#include <Tui/ZTextLine.h>
 
 #include "confirmsave.h"
 
@@ -709,5 +710,29 @@ void Editor::terminalChanged() {
             }
             _mux.selectInput(_win);
         }
+    });
+
+    Tui::ZPendingKeySequenceCallbacks pending;
+    pending.setPendingSequenceStarted([this] {
+        pendingKeySequenceTimer.setInterval(2000);
+        pendingKeySequenceTimer.setSingleShot(true);
+        pendingKeySequenceTimer.start();
+    });
+    pending.setPendingSequenceFinished([this] (bool matched) {
+        pendingKeySequenceTimer.stop();
+        if (pendingKeySequence) {
+            pendingKeySequence->deleteLater();
+            pendingKeySequence = nullptr;
+        }
+    });
+    terminal()->registerPendingKeySequenceCallbacks(pending);
+
+    QObject::connect(&pendingKeySequenceTimer, &QTimer::timeout, this, [this] {
+        pendingKeySequence = new Tui::ZWindow(this);
+        auto *layout = new WindowLayout();
+        pendingKeySequence->setLayout(layout);
+        layout->addCentralWidget(new Tui::ZTextLine("Incomplete key sequence. Press 2nd key.", pendingKeySequence));
+        pendingKeySequence->setGeometry({{0,0}, pendingKeySequence->sizeHint()});
+        pendingKeySequence->setDefaultPlacement(Qt::AlignCenter);
     });
 }
