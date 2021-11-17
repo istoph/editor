@@ -76,7 +76,7 @@ public:
     void watchPipe();
 
 public:
-    QObject *facet(const QMetaObject metaObject);
+    QObject *facet(const QMetaObject &metaObject) override;
 
 public slots:
     void showCommandLine();
