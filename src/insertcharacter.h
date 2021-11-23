@@ -3,6 +3,9 @@
 
 #include <testtui_lib.h>
 
+#include <Tui/ZColor.h>
+#include <Tui/ZPalette.h>
+
 #include "file.h"
 
 class InsertCharacter : public Dialog {

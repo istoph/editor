@@ -13,7 +13,7 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     setLayout(vbox);
     vbox->setSpacing(1);
 
-    HBoxLayout* hbox1 = new HBoxLayout();
+    HBoxLayout *hbox1 = new HBoxLayout();
     Tui::ZLabel *hexLabel = new Tui::ZLabel(this);
     hexLabel->setText("Hex:   0x");
     hbox1->addWidget(hexLabel);
@@ -25,7 +25,7 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     vbox->add(hbox1);
     vbox->addStretch();
 
-    HBoxLayout* hbox2 = new HBoxLayout();
+    HBoxLayout *hbox2 = new HBoxLayout();
     Tui::ZLabel *intLabel = new Tui::ZLabel(this);
     intLabel->setText("Int:     ");
     hbox2->addWidget(intLabel);
@@ -36,15 +36,18 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     vbox->add(hbox2);
     vbox->addStretch();
 
-    HBoxLayout* hbox3 = new HBoxLayout();
-    //replace it with something that can also display all characters
-    Tui::ZLabel *previewLabel = new Tui::ZLabel(this);
-    previewLabel->setText("Preview: ");
-    hbox3->addWidget(previewLabel);
+    HBoxLayout *hbox3 = new HBoxLayout();
+    InputBox *preview = new InputBox(this);
 
+    Tui::ZPalette tmpPalette = Tui::ZPalette::classic();
+    tmpPalette.setColors({{"lineedit.bg", Tui::Colors::lightGray}, {"lineedit.fg", Tui::Colors::black}});
+    preview->setPalette(tmpPalette);
+    preview->setText(" Preview: ");
+    preview->setEnabled(false);
+    hbox3->addWidget(preview);
     vbox->add(hbox3);
 
-    HBoxLayout* hbox4 = new HBoxLayout();
+    HBoxLayout *hbox4 = new HBoxLayout();
     Tui::ZButton *cancelBtn = new Tui::ZButton(this);
     cancelBtn->setGeometry({3, 5, 7, 7});
     cancelBtn->setText("Cancel");
@@ -63,13 +66,13 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
         if(hexInputBox->focus()) {
             _codepoint = hexInputBox->text().toInt(&_check, 16);
             if(_check && _codepoint >= 0) {
-                previewLabel->setText("Preview: "+ intToChar(_codepoint));
+                preview->setText(" Preview: "+ intToChar(_codepoint));
                 intInputBox->setText(QString::number(_codepoint, 10).toUpper());
                 cancelBtn->setDefault(false);
                 insertButton->setDefault(true);
                 insertButton->setEnabled(true);
             } else {
-                previewLabel->setText("Preview: ERROR");
+                preview->setText(" Preview: ERROR");
                 insertButton->setEnabled(false);
                 insertButton->setDefault(false);
                 cancelBtn->setDefault(true);
@@ -81,13 +84,13 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
         if(intInputBox->focus()) {
             _codepoint = intInputBox->text().toInt(&_check, 10);
             if(_check && _codepoint >= 0) {
-                previewLabel->setText("Preview: "+ intToChar(_codepoint));
+                preview->setText(" Preview: "+ intToChar(_codepoint));
                 hexInputBox->setText(QString::number(_codepoint, 16).toUpper());
                 cancelBtn->setDefault(false);
                 insertButton->setDefault(true);
                 insertButton->setEnabled(true);
             } else {
-                previewLabel->setText("Preview: ERROR");
+                preview->setText(" Preview: ERROR");
                 insertButton->setEnabled(false);
                 insertButton->setDefault(false);
                 cancelBtn->setDefault(true);
@@ -111,11 +114,11 @@ void InsertCharacter::rejected() {
 
 QString InsertCharacter::intToChar(int i) {
     if(i < 0 || i > 0x10FFFF) {
-        return 0;
+        return "";
     } else if(i <= 0xFFFF) {
-        return QString(1,QChar(i)).toUtf8();
+        return QString(1, QChar(i));
     } else if (i <= 0x10FFFF){
-        return (QString(1,QChar::highSurrogate(i))+QString(1,QChar::lowSurrogate(i))).toUtf8();
+        return (QString(1, QChar::highSurrogate(i)) + QString(1, QChar::lowSurrogate(i)));
     }
-    return 0;
+    return "";
 }
