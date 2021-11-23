@@ -1067,7 +1067,11 @@ ZTextOption File::getTextOption(bool lineWithCursor) {
 TextLayout File::getTextLayoutForLine(const ZTextOption &option, int line) {
     TextLayout lay(terminal()->textMetrics(), _doc._text[line]);
     lay.setTextOption(option);
-    lay.doLayout(std::max(rect().width() - shiftLinenumber(), 0));
+    if (_wrapOption) {
+        lay.doLayout(std::max(rect().width() - shiftLinenumber(), 0));
+    } else {
+        lay.doLayout(std::numeric_limits<unsigned short>::max() - 1);
+    }
     return lay;
 }
 

@@ -21,6 +21,7 @@
 #include "document.h"
 #include "searchcount.h"
 #include "clipboard.h"
+#include "limits"
 
 class RangeIterator {
 public:
