@@ -1959,10 +1959,11 @@ void File::adjustScrollPosition() {
     TextLayout lay = getTextLayoutForLine(option, _cursorPositionY);
     int cursorColumn = lay.lineAt(0).cursorToX(_cursorPositionX, TextLineRef::Leading);
 
+    int viewWidth = geometry().width() - shiftLinenumber();
     //x
     if (!_wrapOption) {
-        if (cursorColumn - _scrollPositionX >= geometry().width()) {
-             _scrollPositionX = cursorColumn - geometry().width() + 1;
+        if (cursorColumn - _scrollPositionX >= viewWidth) {
+             _scrollPositionX = cursorColumn - viewWidth + 1;
         }
         if (cursorColumn > 0) {
             if (cursorColumn - _scrollPositionX < 1) {
@@ -1971,6 +1972,8 @@ void File::adjustScrollPosition() {
         } else {
             _scrollPositionX = 0;
         }
+    } else {
+        _scrollPositionX = 0;
     }
 
     //y
@@ -2020,7 +2023,7 @@ void File::adjustScrollPosition() {
         if(max < _doc._text[i].count())
             max = _doc._text[i].count();
     }
-    textMax(max - geometry().width(),_doc._text.count() - geometry().height());
+    textMax(max - viewWidth, _doc._text.count() - geometry().height());
 
     update();
 }
