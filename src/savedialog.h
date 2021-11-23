@@ -38,7 +38,7 @@ private:
     Tui::ZCheckBox *_hiddenCheckBox = nullptr;
     Tui::ZCheckBox *_dos = nullptr;
     Tui::ZButton *_cancelButton = nullptr;
-    Tui::ZButton *_okButton = nullptr;
+    Tui::ZButton *_saveButton = nullptr;
     QDir _dir;
     std::unique_ptr<DlgFileModel> _model;
 

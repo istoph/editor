@@ -11,11 +11,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     _curentPath = new Tui::ZLabel(this);
     _curentPath->setGeometry({2,2,45,1});
 
-    _hiddenCheckBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>h</m>idden", this);
-    _hiddenCheckBox->setGeometry({3, 11, 13, 1});
-
     _model = std::make_unique<DlgFileModel>(_dir);
-    _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
 
     _folder = new ListView(this);
     _folder->setGeometry({3,3,44,6});
@@ -24,6 +20,10 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     _filenameText = new InputBox(this);
     _filenameText->setGeometry({3,10,44,1});
+
+    _hiddenCheckBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>h</m>idden", this);
+    _hiddenCheckBox->setGeometry({3, 11, 13, 1});
+    _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
 
     _dos = new Tui::ZCheckBox(Tui::withMarkup, "<m>D</m>OS Mode", this);
     _dos->setGeometry({3, 12, 16, 1});
@@ -37,11 +37,11 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     _cancelButton->setGeometry({25, 12, 12, 1});
     _cancelButton->setText("Cancel");
 
-    _okButton = new Tui::ZButton(this);
-    _okButton->setGeometry({37, 12, 10, 1});
-    _okButton->setText("Save");
-    _okButton->setDefault(true);
-    _okButton->setEnabled(false);
+    _saveButton = new Tui::ZButton(this);
+    _saveButton->setGeometry({37, 12, 10, 1});
+    _saveButton->setText("Save");
+    _saveButton->setDefault(true);
+    _saveButton->setEnabled(false);
 
     QObject::connect(_folder, &ListView::enterPressed, [this](int selected){
         (void)selected;
@@ -60,7 +60,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     });
     QObject::connect(_cancelButton, &Tui::ZButton::clicked, this, &SaveDialog::rejected);
     QObject::connect(this, &Dialog::rejected, this, &SaveDialog::rejected);
-    QObject::connect(_okButton, &Tui::ZButton::clicked, this, &SaveDialog::saveFile);
+    QObject::connect(_saveButton, &Tui::ZButton::clicked, this, &SaveDialog::saveFile);
 
     QRect r = geometry();
     r.moveCenter(terminal()->mainWidget()->geometry().center());
@@ -113,7 +113,7 @@ void SaveDialog::filenameChanged(QString filename) {
             }
         }
     }
-    _okButton->setEnabled(ok);
+    _saveButton->setEnabled(ok);
 }
 
 void SaveDialog::refreshFolder() {
