@@ -191,8 +191,16 @@ private:
 
 private:
     Document _doc;
+    // this will move into TextCursor with time
     int _cursorPositionX = 0;
     int _cursorPositionY = 0;
+    int _startSelectX = -1;
+    int _startSelectY = -1;
+    int _endSelectX = -1;
+    int _endSelectY = -1;
+    int _saveCursorPositionX = 0;
+    // </>
+
     int _scrollPositionX = 0;
     int _scrollPositionY = 0;
     int _tabsize = 8;
@@ -200,10 +208,6 @@ private:
     bool _eatSpaceBeforeTabs = true;
     bool _wrapOption = false;
     bool _formatting_characters = true;
-    int _startSelectX = -1;
-    int _startSelectY = -1;
-    int _endSelectX = -1;
-    int _endSelectY = -1;
     bool _overwrite = false;
     QString _searchText;
     QString _replaceText;
@@ -214,7 +218,6 @@ private:
     std::shared_ptr<std::atomic<int>> searchNextGeneration = std::make_shared<std::atomic<int>>();
     bool _follow = false;
     bool _nonewline = false;
-    int _saveCursorPositionX = 0;
     int _bracketX = -1;
     int _bracketY = -1;
     bool _bracket = false;
