@@ -671,7 +671,10 @@ bool File::delSelect() {
             _doc._text[line].remove(std::min(startSelect.x, endSelect.x),
                                std::max(endSelect.x, startSelect.x) - std::min(startSelect.x, endSelect.x));
         }
-        setCursorPosition({std::min(startSelect.x, endSelect.x), startSelect.y});
+        const int pos = std::min(startSelect.x, endSelect.x);
+        setCursorPosition({pos, startSelect.y});
+        _endSelectX = pos;
+        _startSelectX = pos;
     } else {
         if (startSelect.y == endSelect.y) {
             // selection only on one line
@@ -694,9 +697,9 @@ bool File::delSelect() {
             }
         }
         setCursorPosition({startSelect.x, startSelect.y});
+        safeCursorPosition();
+        resetSelect();
     }
-    safeCursorPosition();
-    resetSelect();
     _doc.saveUndoStep(this);
     return true;
 }
