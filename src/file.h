@@ -195,7 +195,6 @@ private:
     int _cursorPositionY = 0;
     int _scrollPositionX = 0;
     int _scrollPositionY = 0;
-    int _lastCursorPositionX = -1;
     int _tabsize = 8;
     bool _tabOption = true;
     bool _eatSpaceBeforeTabs = true;
