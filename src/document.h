@@ -26,6 +26,7 @@ public:
 public:
     QString _filename;
     QVector<QString> _text;
+    bool _nonewline = false;
 
     QVector<UndoStep> _undoSteps;
     int _currentUndoStep = -1;

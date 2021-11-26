@@ -254,7 +254,7 @@ bool File::saveText() {
     if (file.open(QIODevice::WriteOnly)) {
         for (int i=0; i<_doc._text.size(); i++) {
             file.write(surrogate_escape::encode(_doc._text[i]));
-            if(i+1 == _doc._text.size() && _nonewline) {
+            if(i+1 == _doc._text.size() && _doc._nonewline) {
                 // omit newline
             } else {
                 if(getMsDosMode()) {
@@ -313,7 +313,7 @@ bool File::openText(QString filename) {
         lineBuf.resize(16384);
         while (!file.atEnd()) { // each line
             int lineBytes = 0;
-            _nonewline = true;
+            _doc._nonewline = true;
             while (!file.atEnd()) { // chunks of the line
                 int res = file.readLine(lineBuf.data() + lineBytes, lineBuf.size() - 1 - lineBytes);
                 if (res < 0) {
@@ -323,7 +323,7 @@ bool File::openText(QString filename) {
                     lineBytes += res;
                     if (lineBuf[lineBytes - 1] == '\n') {
                         --lineBytes; // remove \n
-                        _nonewline = false;
+                        _doc._nonewline = false;
                         break;
                     } else if (lineBytes == lineBuf.size() - 2) {
                         lineBuf.resize(lineBuf.size() * 2);
@@ -346,7 +346,7 @@ bool File::openText(QString filename) {
 
         if (_doc._text.isEmpty()) {
             _doc._text.append("");
-            _nonewline = true;
+            _doc._nonewline = true;
         }
 
         checkWritable();
@@ -430,8 +430,8 @@ void File::insertLinebreak() {
 }
 
 QPoint File::insertLinebreakAtPosition(QPoint cursor) {
-    if(_nonewline && cursor.y() == _doc._text.size() -1 && _doc._text[cursor.y()].size() == cursor.x()) {
-        _nonewline = false;
+    if(_doc._nonewline && cursor.y() == _doc._text.size() -1 && _doc._text[cursor.y()].size() == cursor.x()) {
+        _doc._nonewline = false;
     } else {
         _doc._text.insert(cursor.y() + 1,QString());
         if (_doc._text[cursor.y()].size() > cursor.x()) {
@@ -1260,7 +1260,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         }
         y += lay.lineCount();
     }
-    if (_nonewline) {
+    if (_doc._nonewline) {
         if (formattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
             painter->writeWithAttributes(-_scrollPositionX + tmpLastLineWidth + shiftLinenumber(), y-1, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
         }
@@ -1329,7 +1329,7 @@ void File::deleteNextCharacterOrWord(TextLayout::CursorMode mode) {
 
 QPoint File::deleteNextCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y) {
     if(y == _doc._text.size() -1 && _doc._text[y].size() == x && !_blockSelect) {
-        _nonewline = true;
+        _doc._nonewline = true;
     } else if(_doc._text[y].size() > x) {
         TextLayout lay(terminal()->textMetrics(), _doc._text[y]);
         lay.doLayout(rect().width());

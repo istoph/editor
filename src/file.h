@@ -217,7 +217,6 @@ private:
     std::shared_ptr<std::atomic<int>> searchGeneration = std::make_shared<std::atomic<int>>();
     std::shared_ptr<std::atomic<int>> searchNextGeneration = std::make_shared<std::atomic<int>>();
     bool _follow = false;
-    bool _nonewline = false;
     int _bracketX = -1;
     int _bracketY = -1;
     bool _bracket = false;
