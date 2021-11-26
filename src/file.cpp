@@ -389,7 +389,7 @@ void File::cutline() {
 }
 
 void File::copy() {
-    if(isSelect()) {
+    if(_cursor.hasAnySelection()) {
         Clipboard *clipboard = findFacet<Clipboard>();
         QVector<QString> _clipboard;
         _clipboard.append("");
