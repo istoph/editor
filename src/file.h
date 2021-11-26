@@ -29,6 +29,8 @@ struct SearchParameter;
 class File : public Tui::ZWidget {
     Q_OBJECT
 
+    friend class TextCursor;
+    friend class DocumentTestHelper;
 public:
     using Position = TextCursor::Position;
 
@@ -166,6 +168,7 @@ private:
 
 private:
     Document _doc;
+    TextCursor _cursor;
     // this will move into TextCursor with time
     int _cursorPositionX = 0;
     int _cursorPositionY = 0;

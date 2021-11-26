@@ -2,7 +2,7 @@
 
 #include <Tui/ZCommandNotifier.h>
 
-File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
+File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent), _cursor(&_doc, this) {
     setFocusPolicy(Qt::StrongFocus);
     setCursorStyle(Tui::CursorStyle::Bar);
     setCursorColor(255, 255, 255);

@@ -5,6 +5,8 @@
 #include <QVector>
 
 class File;
+class Document;
+
 class RangeIterator {
 public:
     int i;
@@ -33,9 +35,44 @@ public:
         friend bool operator==(const Position& a, const Position& b);
     };
 
+
+public:
+    TextCursor(Document *doc, File *file);
+
+    void insertText(const QString &text);
+    void removeSelectedText();
+    void clearSelection();
+
+    // for hasSelection() == true
+    Position selectionStartPos() const;
+    Position selectionEndPos() const;
+
+    // for hasBlockSelection() == true
+    Position selectionBlockStartPos() const;
+    Position selectionBlockEndPos() const;
+
+    bool hasSelection() const;
+    bool hasBlockSelection() const;
+    bool hasAnySelection() const;
+
+    bool hasMultiInsert() const;
+
+    bool atStart() const;
+    bool atEnd() const;
+    bool atLineStart() const;
+    bool atLineEnd() const;
+
+    // rethink these later:
+    Range getBlockSelectedLines();
+    Position insertLineBreakAt(Position pos);
+
+private:
+    Document *_doc;
+    File *_file;
 };
 
 class Document {
+    friend class TextCursor;
 public:
     bool isModified() const;
 
@@ -51,6 +88,14 @@ public:
         int cursorPositionX;
         int cursorPositionY;
     };
+
+private: // TextCursor interface
+    void removeFromLine(int line, int codeUnitStart, int codeUnits);
+    void insertIntoLine(int line, int codeUnitStart, const QString &data);
+    void appendToLine(int line, const QString &data);
+    void removeLines(int start, int count);
+    void insertLine(int before, const QString &data);
+    void splitLine(TextCursor::Position pos);
 
 public:
     QString _filename;

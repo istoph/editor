@@ -3,7 +3,8 @@ main = ['main.cpp']
 #ide:editable-filelist
 tests = [
   'tests.cpp',
-  'filelistparsertests.cpp'
+  'documenttests.cpp',
+  'filelistparsertests.cpp',
 ]
 
 #ide:editable-filelist
