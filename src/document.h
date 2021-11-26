@@ -21,6 +21,19 @@ public:
     RangeIterator end() { return RangeIterator {stop};}
 };
 
+class TextCursor {
+public:
+    struct Position {
+        int x = 0; // TODO: -> codeUnit
+        int y = 0; // TODO: -> line
+
+        Position(int x, int y) : x(x), y(y) {}
+        friend bool operator<(const Position& a, const Position& b);
+        friend bool operator>(const Position& a, const Position& b);
+        friend bool operator==(const Position& a, const Position& b);
+    };
+
+};
 
 class Document {
 public:

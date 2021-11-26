@@ -2037,15 +2037,4 @@ void File::safeCursorPosition() {
     _saveCursorPositionX = tlr.cursorToX(_cursorPositionX, TextLineRef::Leading);
 }
 
-bool operator<(const File::Position &a, const File::Position &b) {
-    return std::tie(a.y, a.x) < std::tie(b.y, b.x);
-}
-
-bool operator>(const File::Position &a, const File::Position &b) {
-    return std::tie(a.y, a.x) > std::tie(b.y, b.x);
-}
-
-bool operator==(const File::Position &a, const File::Position &b) {
-    return std::tie(a.x, a.y) < std::tie(b.x, b.y);
-}
 

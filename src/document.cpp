@@ -85,3 +85,15 @@ void Document::saveUndoStep(File *file, bool collapsable) {
         file->checkUndo();
     }
 }
+
+bool operator<(const TextCursor::Position &a, const TextCursor::Position &b) {
+    return std::tie(a.y, a.x) < std::tie(b.y, b.x);
+}
+
+bool operator>(const TextCursor::Position &a, const TextCursor::Position &b) {
+    return std::tie(a.y, a.x) > std::tie(b.y, b.x);
+}
+
+bool operator==(const TextCursor::Position &a, const TextCursor::Position &b) {
+    return std::tie(a.x, a.y) < std::tie(b.x, b.y);
+}
