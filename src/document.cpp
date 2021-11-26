@@ -241,7 +241,7 @@ TextCursor::Position TextCursor::selectionBlockEndPos() const {
 }
 
 bool TextCursor::hasSelection() const {
-    return _file->_startSelectX != -1 && !hasBlockSelection();
+    return _file->_startSelectX != -1 && !hasBlockSelection() && !hasMultiInsert();
 }
 
 bool TextCursor::hasBlockSelection() const {
