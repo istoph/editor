@@ -5,6 +5,22 @@
 #include <QVector>
 
 class File;
+class RangeIterator {
+public:
+    int i;
+    int operator *(){ return i; };
+    bool operator !=(const RangeIterator & b) {return i!=b.i; }
+    int operator ++() { return i++; }
+};
+
+class Range {
+public:
+    int start;
+    int stop;
+    RangeIterator begin() { return RangeIterator {start};}
+    RangeIterator end() { return RangeIterator {stop};}
+};
+
 
 class Document {
 public:
