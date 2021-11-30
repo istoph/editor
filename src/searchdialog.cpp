@@ -38,38 +38,41 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
     }
 
     VBoxLayout *vbox = new VBoxLayout();
+    Tui::ZLabel *labelFind;
     vbox->setSpacing(1);
     {
-        HBoxLayout* hbox = new HBoxLayout();
+        HBoxLayout *hbox = new HBoxLayout();
         hbox->setSpacing(2);
 
-        Tui::ZLabel *l = new Tui::ZLabel(Tui::withMarkup, "F<m>i</m>nd   ", this);
-        hbox->addWidget(l);
+        labelFind = new Tui::ZLabel(Tui::withMarkup, "F<m>i</m>nd", this);
+        hbox->addWidget(labelFind);
 
         _searchText = new MyInputBox(this);
-        l->setBuddy(_searchText);
+        labelFind->setBuddy(_searchText);
         hbox->addWidget(_searchText);
 
         vbox->add(hbox);
     }
 
     {
-        HBoxLayout* hbox = new HBoxLayout();
+        HBoxLayout *hbox = new HBoxLayout();
         hbox->setSpacing(2);
 
-        Tui::ZLabel *l = new Tui::ZLabel(Tui::withMarkup, "Replace", this);
-        hbox->addWidget(l);
+        Tui::ZLabel *labelReplace = new Tui::ZLabel(Tui::withMarkup, "Replace", this);
+        hbox->addWidget(labelReplace);
 
         _replaceText = new MyInputBox(this);
-        l->setBuddy(_replaceText);
+        labelReplace->setBuddy(_replaceText);
         hbox->addWidget(_replaceText);
         if(_replace) {
+            labelFind->setMinimumSize(labelReplace->sizeHint());
             vbox->add(hbox);
         }
+
     }
 
     {
-        HBoxLayout* hbox = new HBoxLayout();
+        HBoxLayout *hbox = new HBoxLayout();
         hbox->setSpacing(3);
 
         {
@@ -120,7 +123,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
     vbox->addStretch();
 
     {
-        HBoxLayout* hbox = new HBoxLayout();
+        HBoxLayout *hbox = new HBoxLayout();
         hbox->setSpacing(1);
         hbox->addStretch();
 

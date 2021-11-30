@@ -276,7 +276,6 @@ Editor::Editor() {
     rootLayout->add(_mdiLayout);
     rootLayout->addWidget(_commandLineWidget);
     rootLayout->addWidget(_statusBar);
-    setupSearchDialogs();
 }
 
 Editor::~Editor() {
@@ -735,4 +734,5 @@ void Editor::terminalChanged() {
         pendingKeySequence->setGeometry({{0,0}, pendingKeySequence->sizeHint()});
         pendingKeySequence->setDefaultPlacement(Qt::AlignCenter);
     });
+    setupSearchDialogs();
 }
