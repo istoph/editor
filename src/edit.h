@@ -114,9 +114,9 @@ private:
     Theme _theme = Theme::classic;
     Settings initialFileSettings;
 
-    WindowWidget *_option_tab = nullptr;
-    WindowWidget *_file_open = nullptr;
-    WindowWidget *_file_goto_line = nullptr;
+    Tui::ZWindow *_option_tab = nullptr;
+    Tui::ZWindow *_file_open = nullptr;
+    Tui::ZWindow *_file_goto_line = nullptr;
     int _tab = 8;
     Tui::ZWindow *pendingKeySequence = nullptr;
     QTimer pendingKeySequenceTimer;

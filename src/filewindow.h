@@ -8,7 +8,7 @@
 #include "scrollbar.h"
 
 
-class FileWindow : public WindowWidget {
+class FileWindow : public Tui::ZWindow {
     Q_OBJECT
 public:
     FileWindow(Tui::ZWidget *parent);

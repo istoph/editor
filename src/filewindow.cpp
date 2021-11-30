@@ -5,7 +5,7 @@
 #include "confirmsave.h"
 
 
-FileWindow::FileWindow(Tui::ZWidget *parent) : WindowWidget(parent) {
+FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
                | Tui::ZWindow::MoveOption | Tui::ZWindow::ResizeOption
                | Tui::ZWindow::AutomaticOption);
@@ -242,12 +242,12 @@ void FileWindow::closeEvent(Tui::ZCloseEvent *event) {
 
 void FileWindow::resizeEvent(Tui::ZResizeEvent *event) {
     updateBorders();
-    WindowWidget::resizeEvent(event);
+    Tui::ZWindow::resizeEvent(event);
 }
 
 void FileWindow::moveEvent(Tui::ZMoveEvent *event) {
     updateBorders();
-    WindowWidget::moveEvent(event);
+    Tui::ZWindow::moveEvent(event);
 }
 
 void FileWindow::updateBorders() {
