@@ -9,7 +9,7 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     setContentsMargins({ 1, 1, 2, 1});
 
     if(path.size()) {
-        QFileInfo fi(path);
+        QFileInfo fi(path + "/");
         _dir.setPath(fi.absolutePath());
     }
     _dir.makeAbsolute();
