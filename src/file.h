@@ -62,8 +62,8 @@ public:
     void setColorTabs(bool colorTabs);
     bool colorSpaceEnd();
     void setColorSpaceEnd(bool colorSpaceEnd);
-    void setWrapOption(bool wrap);
-    bool getWrapOption();
+    void setWrapOption(ZTextOption::WrapMode wrap);
+    ZTextOption::WrapMode getWrapOption();
     void select(int x, int y);
     void blockSelect(int x, int y);
     bool blockSelectEdit(int x);
@@ -184,7 +184,7 @@ private:
     int _tabsize = 8;
     bool _tabOption = true;
     bool _eatSpaceBeforeTabs = true;
-    bool _wrapOption = false;
+    ZTextOption::WrapMode _wrapOption = ZTextOption::NoWrap;
     bool _formatting_characters = true;
     bool _overwrite = false;
     QString _searchText;

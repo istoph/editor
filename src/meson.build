@@ -31,6 +31,7 @@ editor_sources = [
   'statusbar.cpp',
   'tabdialog.cpp',
   'themedialog.cpp',
+  'wrapdialog.cpp',
 ]
 
 #ide:editable-filelist
@@ -54,6 +55,7 @@ editor_headers = [
   'statusbar.h',
   'tabdialog.h',
   'themedialog.h',
+  'wrapdialog.h',
 ]
 
 editor_lib = static_library('editor', editor_sources,

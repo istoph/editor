@@ -506,7 +506,7 @@ bool File::eatSpaceBeforeTabs() {
     return _eatSpaceBeforeTabs;
 }
 
-void File::setWrapOption(bool wrap) {
+void File::setWrapOption(ZTextOption::WrapMode wrap) {
     _wrapOption = wrap;
     if (_wrapOption) {
         _scrollPositionX = 0;
@@ -514,7 +514,7 @@ void File::setWrapOption(bool wrap) {
     adjustScrollPosition();
 }
 
-bool File::getWrapOption() {
+ZTextOption::WrapMode File::getWrapOption() {
     return _wrapOption;
 }
 
@@ -1002,7 +1002,7 @@ Range File::getBlockSelectedLines() {
 
 ZTextOption File::getTextOption(bool lineWithCursor) {
     ZTextOption option;
-    option.setWrapMode(_wrapOption ? ZTextOption::WrapAnywhere : ZTextOption::NoWrap);
+    option.setWrapMode(_wrapOption);
     option.setTabStopDistance(_tabsize);
 
     ZTextOption::Flags flags;

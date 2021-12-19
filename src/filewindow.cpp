@@ -52,11 +52,9 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
             }
     );
 
+    //Wrap
     QObject::connect(new Tui::ZCommandNotifier("Wrap", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
-         [this] {
-            setWrap(!_file->getWrapOption());
-        }
-    );
+                    this, &FileWindow::wrapDialog);
 
     //Save
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("s"), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
@@ -151,15 +149,17 @@ File *FileWindow::getFileWidget() {
     return _file;
 }
 
-void FileWindow::setWrap(bool wrap) {
-    if (wrap) {
-        _file->setWrapOption(true);
-        _scrollbarHorizontal->setVisible(false);
-        _winLayout->setRightBorderBottomAdjust(-2);
-    } else {
-        _file->setWrapOption(false);
+void FileWindow::setWrap(ZTextOption::WrapMode wrap) {
+    _file->setWrapOption(wrap);
+    if(wrap == ZTextOption::NoWrap) {
         _scrollbarHorizontal->setVisible(true);
         _winLayout->setRightBorderBottomAdjust(-1);
+    } else if (wrap == ZTextOption::WordWrap) {
+        _scrollbarHorizontal->setVisible(false);
+        _winLayout->setRightBorderBottomAdjust(-2);
+    } else if (wrap == ZTextOption::WrapAnywhere) {
+        _scrollbarHorizontal->setVisible(false);
+        _winLayout->setRightBorderBottomAdjust(-2);
     }
 }
 
@@ -183,6 +183,11 @@ void FileWindow::saveFile(QString filename) {
     }
     watcherAdd();
 
+}
+
+WrapDialog *FileWindow::wrapDialog() {
+    WrapDialog *wrapDialog = new WrapDialog(parentWidget(), _file);
+    return wrapDialog;
 }
 
 SaveDialog *FileWindow::saveFileDialog() {

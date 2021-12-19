@@ -107,7 +107,11 @@ int main(int argc, char **argv) {
     settings.attributesFile = attributesfile;
 
     bool wl = qsettings->value("wrap_lines","false").toBool();
-    settings.wrap = wl || parser.isSet(wraplines);
+    if (wl || parser.isSet(wraplines)) {
+        settings.wrap = ZTextOption::WordWrap;
+    } else {
+        settings.wrap = ZTextOption::NoWrap;
+    }
 
     bool hb = qsettings->value("highlight_bracket","false").toBool();
     settings.highlightBracket = hb;

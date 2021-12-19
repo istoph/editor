@@ -6,6 +6,7 @@
 #include "file.h"
 #include "savedialog.h"
 #include "scrollbar.h"
+#include "wrapdialog.h"
 
 
 class FileWindow : public Tui::ZWindow {
@@ -15,7 +16,7 @@ public:
 
 public:
     File *getFileWidget();
-    void setWrap(bool wrap);
+    void setWrap(ZTextOption::WrapMode wrap);
     void saveFile(QString filename);
     void newFile(QString filename);
     void openFile(QString filename);
@@ -42,6 +43,7 @@ private:
     void updateBorders();
     void closeRequested();
     SaveDialog *saveFileDialog();
+    WrapDialog *wrapDialog();
     void reload();
 
     void watcherAdd();
