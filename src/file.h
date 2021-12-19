@@ -15,6 +15,8 @@
 #include <QtConcurrent>
 
 #include <Tui/ZCommandNotifier.h>
+#include <Tui/ZTextLayout.h>
+#include <Tui/ZTextOption.h>
 
 #include <testtui_lib.h>
 
@@ -62,8 +64,8 @@ public:
     void setColorTabs(bool colorTabs);
     bool colorSpaceEnd();
     void setColorSpaceEnd(bool colorSpaceEnd);
-    void setWrapOption(ZTextOption::WrapMode wrap);
-    ZTextOption::WrapMode getWrapOption();
+    void setWrapOption(Tui::ZTextOption::WrapMode wrap);
+    Tui::ZTextOption::WrapMode getWrapOption();
     void select(int x, int y);
     void blockSelect(int x, int y);
     bool blockSelectEdit(int x);
@@ -78,10 +80,10 @@ public:
     bool delSelect();
     void toggleOverwrite();
     bool isOverwrite();
-    void deletePreviousCharacterOrWord(TextLayout::CursorMode mode);
-    QPoint deletePreviousCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y);
-    void deleteNextCharacterOrWord(TextLayout::CursorMode mode);
-    QPoint deleteNextCharacterOrWordAt(TextLayout::CursorMode mode, int x, int y);
+    void deletePreviousCharacterOrWord(Tui::ZTextLayout::CursorMode mode);
+    QPoint deletePreviousCharacterOrWordAt(Tui::ZTextLayout::CursorMode mode, int x, int y);
+    void deleteNextCharacterOrWord(Tui::ZTextLayout::CursorMode mode);
+    QPoint deleteNextCharacterOrWordAt(Tui::ZTextLayout::CursorMode mode, int x, int y);
     QPoint addTabAt(QPoint cursor);
     int getVisibleLines();
     void appendLine(const QString &line);
@@ -155,8 +157,8 @@ private:
     void safeCursorPosition();
     void checkUndo();
 
-    ZTextOption getTextOption(bool lineWithCursor);
-    TextLayout getTextLayoutForLine(const ZTextOption &option, int line);
+    Tui::ZTextOption getTextOption(bool lineWithCursor);
+    Tui::ZTextLayout getTextLayoutForLine(const Tui::ZTextOption &option, int line);
     bool highlightBracket();
     void searchSelect(int line, int found, int length, bool direction);
     SearchLine searchNext(QVector<QString> text, SearchParameter search);
@@ -185,7 +187,7 @@ private:
     int _tabsize = 8;
     bool _tabOption = true;
     bool _eatSpaceBeforeTabs = true;
-    ZTextOption::WrapMode _wrapOption = ZTextOption::NoWrap;
+    Tui::ZTextOption::WrapMode _wrapOption = Tui::ZTextOption::NoWrap;
     bool _formatting_characters = true;
     bool _overwrite = false;
     QString _searchText;

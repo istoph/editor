@@ -187,7 +187,7 @@ TEST_CASE("actions") {
     }
 
     SECTION("scroll") {
-        auto testCase = GENERATE(ZTextOption::WrapMode::NoWrap, ZTextOption::WrapMode::WordWrap, ZTextOption::WrapMode::WrapAnywhere);
+        auto testCase = GENERATE(Tui::ZTextOption::WrapMode::NoWrap, Tui::ZTextOption::WrapMode::WordWrap, Tui::ZTextOption::WrapMode::WrapAnywhere);
         f->setWrapOption(testCase);
         //TODO
         CHECK(f->getScrollPosition() == QPoint{0,0});

@@ -16,7 +16,7 @@ public:
 
 public:
     File *getFileWidget();
-    void setWrap(ZTextOption::WrapMode wrap);
+    void setWrap(Tui::ZTextOption::WrapMode wrap);
     void saveFile(QString filename);
     void newFile(QString filename);
     void openFile(QString filename);

@@ -41,7 +41,7 @@ public:
     bool formattingCharacters = false;
     bool colorSpaceEnd = false;
     bool colorTabs = false;
-    ZTextOption::WrapMode wrap = ZTextOption::NoWrap;
+    Tui::ZTextOption::WrapMode wrap = Tui::ZTextOption::NoWrap;
     bool highlightBracket = false;
     bool showLineNumber = false;
     QString attributesFile;

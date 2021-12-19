@@ -149,15 +149,15 @@ File *FileWindow::getFileWidget() {
     return _file;
 }
 
-void FileWindow::setWrap(ZTextOption::WrapMode wrap) {
+void FileWindow::setWrap(Tui::ZTextOption::WrapMode wrap) {
     _file->setWrapOption(wrap);
-    if(wrap == ZTextOption::NoWrap) {
+    if(wrap == Tui::ZTextOption::NoWrap) {
         _scrollbarHorizontal->setVisible(true);
         _winLayout->setRightBorderBottomAdjust(-1);
-    } else if (wrap == ZTextOption::WordWrap) {
+    } else if (wrap == Tui::ZTextOption::WordWrap) {
         _scrollbarHorizontal->setVisible(false);
         _winLayout->setRightBorderBottomAdjust(-2);
-    } else if (wrap == ZTextOption::WrapAnywhere) {
+    } else if (wrap == Tui::ZTextOption::WrapAnywhere) {
         _scrollbarHorizontal->setVisible(false);
         _winLayout->setRightBorderBottomAdjust(-2);
     }

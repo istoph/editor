@@ -108,9 +108,9 @@ int main(int argc, char **argv) {
 
     bool wl = qsettings->value("wrap_lines","false").toBool();
     if (wl || parser.isSet(wraplines)) {
-        settings.wrap = ZTextOption::WordWrap;
+        settings.wrap = Tui::ZTextOption::WordWrap;
     } else {
-        settings.wrap = ZTextOption::NoWrap;
+        settings.wrap = Tui::ZTextOption::NoWrap;
     }
 
     bool hb = qsettings->value("highlight_bracket","false").toBool();

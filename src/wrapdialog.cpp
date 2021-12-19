@@ -12,21 +12,21 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     _noWrapRadioButton = new Tui::ZRadioButton(this);
     _noWrapRadioButton->setMarkup("<m>N</m>o Wrap");
-    if(file->getWrapOption() == ZTextOption::NoWrap) {
+    if(file->getWrapOption() == Tui::ZTextOption::NoWrap) {
         _noWrapRadioButton->setChecked(true);
     }
     vbox->addWidget(_noWrapRadioButton);
 
     _wordWrapRadioButton = new Tui::ZRadioButton(this);
     _wordWrapRadioButton->setMarkup("<m>W</m>ord Wrap");
-    if(file->getWrapOption() == ZTextOption::WordWrap) {
+    if(file->getWrapOption() == Tui::ZTextOption::WordWrap) {
         _wordWrapRadioButton->setChecked(true);
     }
     vbox->addWidget(_wordWrapRadioButton);
 
     _hardWrapRadioButton = new Tui::ZRadioButton(this);
     _hardWrapRadioButton->setMarkup("<m>H</m>ard Wrap");
-    if(file->getWrapOption() == ZTextOption::WrapAnywhere) {
+    if(file->getWrapOption() == Tui::ZTextOption::WrapAnywhere) {
         _hardWrapRadioButton->setChecked(true);
     }
    vbox->addWidget(_hardWrapRadioButton);
@@ -48,11 +48,11 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
    QObject::connect(saveButton, &Tui::ZButton::clicked, [this, file] {
        if(_noWrapRadioButton->checked()) {
-           file->setWrapOption(ZTextOption::NoWrap);
+           file->setWrapOption(Tui::ZTextOption::NoWrap);
        } else if (_wordWrapRadioButton->checked()) {
-           file->setWrapOption(ZTextOption::WordWrap);
+           file->setWrapOption(Tui::ZTextOption::WordWrap);
        } else if (_hardWrapRadioButton->checked()) {
-           file->setWrapOption(ZTextOption::WrapAnywhere);
+           file->setWrapOption(Tui::ZTextOption::WrapAnywhere);
        }
 
        deleteLater();
