@@ -1818,7 +1818,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         //STRG + C // Strg+Einfg
         copy();
     } else if ((event->text() == "v" && event->modifiers() == Qt::ControlModifier) ||
-               (event->key() == Qt::Key_Enter && event->modifiers() == Qt::ShiftModifier)) {
+               (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ShiftModifier)) {
         //STRG + V // Umschalt+Einfg
         paste();
     } else if ((event->text() == "x" && event->modifiers() == Qt::ControlModifier) ||
