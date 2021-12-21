@@ -1,17 +1,13 @@
 #include "document.h"
 #include "file.h"
 #include <Tui/ZRoot.h>
+#include <Tui/ZTest.h>
 
 #include "../third-party/catch.hpp"
 
 #include <Tui/ZTerminal.h>
 
-class DocumentTestHelper {
-public:
-    Document &getDoc(File *f) {
-        return f->_doc;
-    }
-};
+#include "documenttests.h"
 
 TEST_CASE("Document") {
     Tui::ZTerminal terminal{Tui::ZTerminal::OffScreen{1, 1}};
@@ -31,5 +27,12 @@ TEST_CASE("Document") {
         REQUIRE(doc._text.size() == 2);
         CHECK(doc._text[0] == "test");
         CHECK(doc._text[1] == "test");
+    }
+    SECTION("insert and remove nonewline") {
+        doc._nonewline = true;
+        //cursor.insertText("\n");
+        cursor.insertLineBreakAt({0, 0});
+        REQUIRE(doc._text.size() == 1);
+        CHECK(doc._nonewline == false);
     }
 }

@@ -7,6 +7,10 @@ tests = [
   'filelistparsertests.cpp',
 ]
 
+tests_headers = [
+  'documenttests.h',
+]
+
 #ide:editable-filelist
 editor_sources = [
   'clipboard.cpp',
@@ -70,6 +74,7 @@ executable('editor', main,
   dependencies : [qt5_dep, tuiwidgets_dep, testtui_lib_dep, posixsignalmanager_dep])
 
 executable('tests', tests,
-  include_directories: include_directories('.'),
+  qt5.preprocess(moc_headers: tests_headers, moc_sources: tests,
+  include_directories: include_directories('.')),
   link_with: editor_lib,
   dependencies : [qt5_dep, tuiwidgets_dep, testtui_lib_dep, posixsignalmanager_dep])
