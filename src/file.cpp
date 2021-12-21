@@ -1713,33 +1713,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         safeCursorPosition();
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
-    } else if(event->key() == Qt::Key_PageDown && ( event->modifiers() == Qt::ControlModifier ||
-              (event->modifiers() == Qt::ControlModifier && event->modifiers() == Qt::ControlModifier) ) ) {
-        if(extendSelect) {
-            select(_cursorPositionX, _cursorPositionY);
-        }
-        _cursorPositionX = 1;
-        _cursorPositionY = 1;
-        if(extendSelect) {
-            _cursorPositionX = _doc._text[_cursorPositionY].size();
-            select(_cursorPositionX, _cursorPositionY);
-        }
-        safeCursorPosition();
-        adjustScrollPosition();
-        _doc._collapseUndoStep = false;
-    } else if(event->key() == Qt::Key_PageUp && (event->modifiers() == Qt::ControlModifier ||
-              (event->modifiers() == Qt::ControlModifier || event->modifiers() == Qt::ControlModifier) ) ) {
-        if(extendSelect) {
-            select(_cursorPositionX, _cursorPositionY);
-        }
-        _cursorPositionX = _doc._text[_doc._text.size() -1].size();
-        _cursorPositionY = _doc._text.size();
-        if(extendSelect) {
-          _cursorPositionX = 0;
-          select(_cursorPositionX, _cursorPositionY);
-        }
-        adjustScrollPosition();
-        _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_PageUp && (event->modifiers() == 0 || extendSelect)) {
         if(extendSelect) {
             select(_cursorPositionX, _cursorPositionY);
