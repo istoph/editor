@@ -5,6 +5,7 @@ tests = [
   'tests.cpp',
   'documenttests.cpp',
   'filelistparsertests.cpp',
+  'filetests.cpp',
 ]
 
 tests_headers = [
