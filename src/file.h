@@ -105,6 +105,7 @@ public:
     int replaceAll(QString searchText, QString replaceText);
     QPoint getCursorPosition();
     void setCursorPosition(QPoint position);
+    QPoint getScrollPosition();
     void toggleSelectMode();
     bool select_cursor_position_x0;
     bool isNewFile();

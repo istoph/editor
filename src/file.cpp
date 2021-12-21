@@ -190,6 +190,10 @@ void File::setCursorPosition(QPoint position) {
     adjustScrollPosition();
 }
 
+QPoint File::getScrollPosition() {
+    return {_scrollPositionX, _scrollPositionY};
+}
+
 void File::setSaveAs(bool state) {
     _saveAs = state;
 }
