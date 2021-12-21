@@ -1844,12 +1844,19 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         // Fenster hoch Scrolen
         if (_scrollPositionY > 0) {
             --_scrollPositionY;
+            if (_scrollPositionY + geometry().height() < _cursorPositionY + 2) {
+                setCursorPosition({_cursorPositionX, _cursorPositionY -1});
+            }
         }
+        //TODO: #193 scrollup with Crl+Up and wraped lines.
         adjustScrollPosition();
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Down) {
         // Fenster runter Scrolen
         if (_doc._text.size() -1 > _scrollPositionY) {
             ++_scrollPositionY;
+            if (_scrollPositionY > _cursorPositionY - 1) {
+                setCursorPosition({_cursorPositionX, _cursorPositionY +1});
+            }
         }
         adjustScrollPosition();
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Up) {
@@ -1971,6 +1978,7 @@ void File::adjustScrollPosition() {
             _scrollPositionY = std::max(0,_doc._text.size() - geometry().height() +1);
         }
     } else {
+        //TODO: #193 scrollup with Crl+Up and wraped lines.
         option = getTextOption(false);
         int y = 0;
         QVector<int> sizes;
