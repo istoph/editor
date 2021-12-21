@@ -655,7 +655,7 @@ bool File::isSelect() {
 void File::selectAll() {
     resetSelect();
     select(0,0);
-    select(_doc._text[_doc._text.size()-1].size(),_doc._text.size());
+    select(_doc._text[_doc._text.size() - 1].size(), _doc._text.size() -1);
     adjustScrollPosition();
 }
 
@@ -1433,7 +1433,7 @@ QPoint File::insertAtPosition(QVector<QString> str, QPoint cursor) {
 void File::sortSelecedLines() {
     if(isSelect()) {
         auto lines = getSelectLinesSort();
-        std::sort(_doc._text.begin() + lines.first, _doc._text.begin() + lines.second);
+        std::sort(_doc._text.begin() + lines.first, _doc._text.begin() + lines.second +1);
     }
 }
 

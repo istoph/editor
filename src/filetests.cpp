@@ -30,10 +30,13 @@ TEST_CASE("file") {
     terminal.setMainWidget(&root);
     w->setGeometry({0, 0, 80, 24});
 
-
     File *f = new File(w);
     f->setFocus();
     f->setGeometry({0, 0, 80, 24});
+
+    DocumentTestHelper t;
+    Document &doc = t.getDoc(f);
+    TextCursor cursor{&doc, f};
 
     //OHNE TEXT
     CHECK(f->getCursorPosition() == QPoint{0,0});
@@ -143,15 +146,14 @@ TEST_CASE("actions") {
     //TODO:
     Tui::ZTest::sendKey(&terminal, Qt::Key_Enter, Qt::KeyboardModifier::NoModifier);
     Tui::ZTest::sendText(&terminal, "    new1", Qt::KeyboardModifier::NoModifier);
-    //CHECK(doc._text.size() == 2);
+    CHECK(doc._text.size() == 2);
 
     SECTION("acv") {
         Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
         Tui::ZTest::sendText(&terminal, "c", Qt::KeyboardModifier::ControlModifier);
         CHECK(f->getCursorPosition() == QPoint{8,1});
         Tui::ZTest::sendText(&terminal, "v", Qt::KeyboardModifier::ControlModifier);
-        //TODO FALSCH
-        CHECK(f->getCursorPosition() == QPoint{0,2});
+        CHECK(f->getCursorPosition() == QPoint{8,1});
     }
     SECTION("axv") {
         Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
@@ -161,9 +163,8 @@ TEST_CASE("actions") {
         CHECK(f->getCursorPosition() == QPoint{0,0});
         CHECK(f->isSelect() == false);
         Tui::ZTest::sendText(&terminal, "v", Qt::KeyboardModifier::ControlModifier);
-        //TODO FALSCH
         CHECK(f->isSelect() == false);
-        CHECK(f->getCursorPosition() == QPoint{0,2});
+        CHECK(f->getCursorPosition() == QPoint{8,1});
     }
 
 
@@ -204,5 +205,28 @@ TEST_CASE("actions") {
         }
     }
 
+    SECTION("move-lines-up") {
     //TODO Scroll with Wrap and Wrapt lines.
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Up, (Qt::KeyboardModifier::ShiftModifier | Qt::KeyboardModifier::ControlModifier));
+        CHECK(doc._text[0] == "    new1");
+    }
+    SECTION("move-lines-down") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Up, Qt::KeyboardModifier::NoModifier);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Down, (Qt::KeyboardModifier::ShiftModifier | Qt::KeyboardModifier::ControlModifier));
+        CHECK(doc._text[0] == "    new1");
+    }
+
+    SECTION("select-tab") {
+        Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
+        CHECK(f->isSelect() == true);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(doc._text[1] == "new1");
+    }
+    SECTION("select-shift-tab") {
+        Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
+        CHECK(f->isSelect() == true);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, Qt::KeyboardModifier::NoModifier);
+        CHECK(doc._text[1] == "            new1");
+    }
+
 }
