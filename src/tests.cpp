@@ -1,8 +1,17 @@
-#define CATCH_CONFIG_MAIN
-
+#define CATCH_CONFIG_RUNNER
 #include "../third-party/catch.hpp"
 #include "file.h"
+
+#include <QCoreApplication>
 #include <QCryptographicHash>
+
+int main( int argc, char* argv[] ) {
+  QCoreApplication app(argc, argv);
+
+  int result = Catch::Session().run( argc, argv );
+
+  return result;
+}
 
 // Returns empty QByteArray() on failure.
 QByteArray fileChecksum(const QString &fileName,
