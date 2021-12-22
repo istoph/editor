@@ -2,7 +2,6 @@
 
 WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::ResizeOption | Tui::ZWindow::AutomaticOption);
-    setFocus();
     setWindowTitle("Wrap long lines");
     setContentsMargins({ 1, 1, 1, 1});
 
@@ -30,6 +29,8 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
         _wrapAnywhereRadioButton->setChecked(true);
     }
    vbox->addWidget(_wrapAnywhereRadioButton);
+
+   _noWrapRadioButton->setFocus();
 
    HBoxLayout *hbox5 = new HBoxLayout();
    Tui::ZButton *cancelButton = new Tui::ZButton(this);
