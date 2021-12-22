@@ -88,11 +88,22 @@ TEST_CASE("file") {
             CHECK(f->getCursorPosition() == QPoint{0,0});
         }
     }
-    SECTION("key-tab") {
+    SECTION("key-tab-space") {
+        f->setTabOption(true);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, testCase);
         if (Qt::KeyboardModifier::NoModifier == testCase) {
             CHECK(f->getCursorPosition() == QPoint{8,0});
-            //TODO: CHECK(f->getText == "        ");
+            CHECK(doc._text[0] == "        ");
+        } else {
+            CHECK(f->getCursorPosition() == QPoint{0,0});
+        }
+    }
+    SECTION("key-tab") {
+        f->setTabOption(false);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, testCase);
+        if (Qt::KeyboardModifier::NoModifier == testCase) {
+            CHECK(f->getCursorPosition() == QPoint{1,0});
+            CHECK(doc._text[0] == '\t');
         } else {
             CHECK(f->getCursorPosition() == QPoint{0,0});
         }
@@ -103,6 +114,10 @@ TEST_CASE("file") {
     }
     SECTION("key-delete") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Delete, testCase);
+        CHECK(f->getCursorPosition() == QPoint{0,0});
+    }
+    SECTION("key-backspace") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Backspace, testCase);
         CHECK(f->getCursorPosition() == QPoint{0,0});
     }
     SECTION("key-escape") {
@@ -180,17 +195,50 @@ TEST_CASE("actions") {
         CHECK(doc._text.size() == 2);
         CHECK(f->isSelect() == true);
     }
-    SECTION("key-left") {
-        CHECK(f->getCursorPosition() == QPoint{8,1});
-        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::NoModifier);
+
+    SECTION("key-delete") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::NoModifier);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Delete, Qt::KeyboardModifier::NoModifier);
+        CHECK(doc._text[1] == "   new1");
+        CHECK(f->getCursorPosition() == QPoint{0,1});
+    }
+    SECTION("ctrl+key-delete") {
+        Tui::ZTest::sendText(&terminal, " new2", Qt::KeyboardModifier::NoModifier);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::NoModifier);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Delete, Qt::KeyboardModifier::ControlModifier);
+        CHECK(doc._text[1] == " new2");
+        CHECK(f->getCursorPosition() == QPoint{0,1});
+    }
+    SECTION("key-backspace") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Backspace, Qt::KeyboardModifier::NoModifier);
         CHECK(f->getCursorPosition() == QPoint{7,1});
+    }
+    SECTION("ctrl+key-backspace") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Backspace, Qt::KeyboardModifier::ControlModifier);
+        CHECK(f->getCursorPosition() == QPoint{4,1});
+    }
+    SECTION("key-left") {
+        for(int i = 0; i <= 8; i++) {
+            CHECK(f->getCursorPosition() == QPoint{8 - i, 1});
+            Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::NoModifier);
+        }
+        CHECK(f->getCursorPosition() == QPoint{8, 0});
+    }
+    SECTION("crl+key-left") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ControlModifier);
+        CHECK(f->getCursorPosition() == QPoint{4, 1});
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ControlModifier);
+        CHECK(f->getCursorPosition() == QPoint{0, 1});
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ControlModifier);
+        CHECK(f->getCursorPosition() == QPoint{8, 0});
     }
 
     SECTION("scroll") {
         auto testCase = GENERATE(Tui::ZTextOption::WrapMode::NoWrap, Tui::ZTextOption::WrapMode::WordWrap, Tui::ZTextOption::WrapMode::WrapAnywhere);
         f->setWrapOption(testCase);
-        //TODO
         CHECK(f->getScrollPosition() == QPoint{0,0});
+
+        //TODO: #193 scrollup with Crl+Up and wraped lines.
         //Tui::ZTest::sendText(&terminal, QString("a").repeated(100), Qt::KeyboardModifier::NoModifier);
 
         for (int i = 0; i < 48; i++) {
@@ -206,7 +254,6 @@ TEST_CASE("actions") {
     }
 
     SECTION("move-lines-up") {
-    //TODO Scroll with Wrap and Wrapt lines.
         Tui::ZTest::sendKey(&terminal, Qt::Key_Up, (Qt::KeyboardModifier::ShiftModifier | Qt::KeyboardModifier::ControlModifier));
         CHECK(doc._text[0] == "    new1");
     }
@@ -228,5 +275,6 @@ TEST_CASE("actions") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, Qt::KeyboardModifier::NoModifier);
         CHECK(doc._text[1] == "            new1");
     }
+
 
 }
