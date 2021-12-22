@@ -16,7 +16,7 @@ public:
 private:
     Tui::ZRadioButton *_noWrapRadioButton = nullptr;
     Tui::ZRadioButton *_wordWrapRadioButton = nullptr;
-    Tui::ZRadioButton *_hardWrapRadioButton = nullptr;
+    Tui::ZRadioButton *_wrapAnywhereRadioButton = nullptr;
 };
 
 #endif // WRAPDIALOG_H

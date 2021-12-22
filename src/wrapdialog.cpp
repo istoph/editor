@@ -24,12 +24,12 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     }
     vbox->addWidget(_wordWrapRadioButton);
 
-    _hardWrapRadioButton = new Tui::ZRadioButton(this);
-    _hardWrapRadioButton->setMarkup("<m>H</m>ard Wrap");
+    _wrapAnywhereRadioButton = new Tui::ZRadioButton(this);
+    _wrapAnywhereRadioButton->setMarkup("Wrap <m>A</m>nywhere");
     if(file->getWrapOption() == Tui::ZTextOption::WrapAnywhere) {
-        _hardWrapRadioButton->setChecked(true);
+        _wrapAnywhereRadioButton->setChecked(true);
     }
-   vbox->addWidget(_hardWrapRadioButton);
+   vbox->addWidget(_wrapAnywhereRadioButton);
 
    HBoxLayout *hbox5 = new HBoxLayout();
    Tui::ZButton *cancelButton = new Tui::ZButton(this);
@@ -51,7 +51,7 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
            file->setWrapOption(Tui::ZTextOption::NoWrap);
        } else if (_wordWrapRadioButton->checked()) {
            file->setWrapOption(Tui::ZTextOption::WordWrap);
-       } else if (_hardWrapRadioButton->checked()) {
+       } else if (_wrapAnywhereRadioButton->checked()) {
            file->setWrapOption(Tui::ZTextOption::WrapAnywhere);
        }
 
