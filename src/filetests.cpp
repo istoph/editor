@@ -103,7 +103,7 @@ TEST_CASE("file") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, testCase);
         if (Qt::KeyboardModifier::NoModifier == testCase) {
             CHECK(f->getCursorPosition() == QPoint{1,0});
-            CHECK(doc._text[0] == '\t');
+            CHECK(doc._text[0] == "\t");
         } else {
             CHECK(f->getCursorPosition() == QPoint{0,0});
         }
