@@ -1975,7 +1975,7 @@ void File::adjustScrollPosition() {
         }
 
         if (_doc._text.size() - _scrollPositionY < geometry().height() -1) {
-            _scrollPositionY = std::max(0,_doc._text.size() - geometry().height() +1);
+            _scrollPositionY = std::max(0, _doc._text.size() - geometry().height() +1);
         }
     } else {
         //TODO: #193 scrollup with Crl+Up and wraped lines.
@@ -2008,8 +2008,9 @@ void File::adjustScrollPosition() {
 
     int max=0;
     for (int i=_scrollPositionY; i < _doc._text.count() && i < _scrollPositionY + geometry().height(); i++) {
-        if(max < _doc._text[i].count())
+        if(max < _doc._text[i].count()) {
             max = _doc._text[i].count();
+        }
     }
     textMax(max - viewWidth, _doc._text.count() - geometry().height());
 
