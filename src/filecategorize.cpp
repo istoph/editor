@@ -2,7 +2,7 @@
 #include <QFileInfo>
 #include <QDir>
 
-FileCategory fileCategorize(QString input) {
+FileCategory fileCategorize(QString input, int maxrecursion) {
 
     //STDIN
     if(input == "-") {
@@ -14,11 +14,13 @@ FileCategory fileCategorize(QString input) {
     if(datei.isDir()) {
         return FileCategory::dir;
     }
-    /*
+
     if (datei.isSymLink()) {
-        return fileCategorize(datei.symLinkTarget());
+        if (maxrecursion > 10) {
+            return FileCategory::invalid_error;
+        }
+        return fileCategorize(datei.symLinkTarget(), ++maxrecursion);
     }
-    */
 
     //FILE
     if (datei.exists() && datei.isFile()) { // && datei.isReadable()
