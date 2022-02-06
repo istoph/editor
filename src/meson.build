@@ -5,6 +5,7 @@ tests = [
   'tests.cpp',
   'documenttests.cpp',
   'filelistparsertests.cpp',
+  'fileopentests.cpp',
   'filetests.cpp',
 ]
 
@@ -21,6 +22,7 @@ editor_sources = [
   'document.cpp',
   'edit.cpp',
   'file.cpp',
+  'filecategorize.cpp',
   'filelistparser.cpp',
   'filewindow.cpp',
   'formattingdialog.cpp',
@@ -47,6 +49,7 @@ editor_headers = [
   'dlgfilemodel.h',
   'edit.h',
   'file.h',
+  'filecategorize.h',
   'filewindow.h',
   'formattingdialog.h',
   'gotoline.h',
