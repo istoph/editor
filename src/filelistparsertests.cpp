@@ -4,6 +4,13 @@
 #include "filelistparser.h"
 
 TEST_CASE("parseFileList") {
+    SECTION("empty") {
+        QStringList args = {""};
+        QVector<FileListEntry> fle = parseFileList(args);
+        REQUIRE(fle.size() == 1);
+        CHECK(fle[0].fileName == "");
+        CHECK(fle[0].pos == "");
+    }
     SECTION("datei") {
         QStringList args = {"datei"};
         QVector<FileListEntry> fle = parseFileList(args);
