@@ -1,5 +1,6 @@
 #include "edit.h"
 #include "filelistparser.h"
+#include "filecategorize.h"
 
 #include <QLoggingCategory>
 #include <Tui/ZSimpleFileLogger.h>
@@ -147,37 +148,57 @@ int main(int argc, char **argv) {
             return 0;
         }
         for (FileListEntry fle: fles) {
-            if (fle.fileName == "-") {
-                if(parser.isSet(append)) {
+            FileCategory filecategory = fileCategorize(fle.fileName);
+            if (filecategory == FileCategory::stdin) {
+                if(parser.isSet(append) &&
+                        (fileCategorize(parser.value(append)) == FileCategory::new_file ||
+                         fileCategorize(parser.value(append)) == FileCategory::open_file )
+                        ) {
                     root->openFile(parser.value(append));
                 } else {
                     root->newFile("");
                 }
                 root->watchPipe();
-            } else {
+
+            } else if (filecategory == FileCategory::dir) {
                 QFileInfo datei(fle.fileName);
-                if(datei.isDir()) {
-                    QString tmp = datei.absoluteFilePath();
-                    QTimer *t = new QTimer();
-                    QObject::connect(t, &QTimer::timeout, t, [t, root, tmp] {
-                        root->openFileDialog(tmp);
-                        t->deleteLater();
-                    });
-                    t->setSingleShot(true);
-                    t->start(0);
-                } else if(datei.isFile()){
-                    int maxMB = 100;
-                    if(datei.size()/1024/1024 >= maxMB && !parser.isSet(bigOption) && !bigfile) {
-                        out << "The file is bigger then " << maxMB << "MB (" << datei.size()/1024/1024 << "MB). Please start with -b for big files.\n";
-                        return 0;
-                    }
-                    root->openFile(datei.absoluteFilePath());
-                    if (fle.pos != "") {
-                        root->gotoLineInCurrentFile(fle.pos);
-                    }
-                } else {
-                    root->newFile(datei.absoluteFilePath());
+                QString tmp = datei.absoluteFilePath();
+                QTimer *t = new QTimer();
+                QObject::connect(t, &QTimer::timeout, t, [t, root, tmp] {
+                    root->openFileDialog(tmp);
+                    t->deleteLater();
+                });
+                t->setSingleShot(true);
+                t->start(0);
+
+            } else if (filecategory == FileCategory::new_file) {
+                QFileInfo datei(fle.fileName);
+                root->newFile(datei.absoluteFilePath());
+
+            } else if (filecategory == FileCategory::open_file) {
+                QFileInfo datei(fle.fileName);
+                int maxMB = 100;
+                if(datei.size()/1024/1024 >= maxMB && !parser.isSet(bigOption) && !bigfile) {
+                    out << "The file is bigger then " << maxMB << "MB (" << datei.size()/1024/1024 << "MB). Please start with -b for big files.\n";
+                    return 0;
                 }
+                root->openFile(datei.absoluteFilePath());
+                if (fle.pos != "") {
+                    root->gotoLineInCurrentFile(fle.pos);
+                }
+
+            } else if (filecategory == FileCategory::invalid_filetype) {
+                out << "File type cannot be opened.\n";
+                return 1;
+            } else if (filecategory == FileCategory::invalid_dir_not_exist) {
+                out << "Directory not exist, cannot be opened.\n";
+                return 1;
+            } else if (filecategory == FileCategory::invalid_dir_not_writable) {
+                out << "Directory not writable, cannot be opened.\n";
+                return 1;
+            } else {
+                out << "Invalid error.\n";
+                return 255;
             }
         }
     }
