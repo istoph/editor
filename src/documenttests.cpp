@@ -1,9 +1,8 @@
+#include "catchwrapper.h"
 #include "document.h"
 #include "file.h"
 #include <Tui/ZRoot.h>
 #include <Tui/ZTest.h>
-
-#include "../third-party/catch.hpp"
 
 #include <Tui/ZTerminal.h>
 

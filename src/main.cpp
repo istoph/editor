@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
         }
         for (FileListEntry fle: fles) {
             FileCategory filecategory = fileCategorize(fle.fileName);
-            if (filecategory == FileCategory::stdin) {
+            if (filecategory == FileCategory::stdin_file) {
                 if(parser.isSet(append) &&
                         (fileCategorize(parser.value(append)) == FileCategory::new_file ||
                          fileCategorize(parser.value(append)) == FileCategory::open_file )

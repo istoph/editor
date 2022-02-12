@@ -1,4 +1,4 @@
-#include "../third-party/catch.hpp"
+#include "catchwrapper.h"
 #include <QStringList>
 
 #include "filelistparser.h"

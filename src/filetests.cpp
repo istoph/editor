@@ -1,5 +1,5 @@
-#include "../third-party/catch.hpp"
-//#include "tests/Testhelper.h"
+#include "catchwrapper.h"
+
 #include "Tui/ZTerminal.h"
 #include "Tui/ZTest.h"
 #include "Tui/ZRoot.h"

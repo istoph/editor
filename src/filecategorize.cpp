@@ -6,7 +6,7 @@ FileCategory fileCategorize(QString input, int maxrecursion) {
 
     //STDIN
     if(input == "-") {
-        return FileCategory::stdin;
+        return FileCategory::stdin_file;
     }
 
     //DIR

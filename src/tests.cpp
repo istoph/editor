@@ -1,5 +1,6 @@
 #define CATCH_CONFIG_RUNNER
-#include "../third-party/catch.hpp"
+#include "catchwrapper.h"
+
 #include "file.h"
 
 #include <QCoreApplication>
