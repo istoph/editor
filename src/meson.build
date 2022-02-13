@@ -2,11 +2,12 @@ main = ['main.cpp']
 
 #ide:editable-filelist
 tests = [
-  'tests.cpp',
   'documenttests.cpp',
   'filelistparsertests.cpp',
   'fileopentests.cpp',
+  'filesavetests.cpp',
   'filetests.cpp',
+  'tests.cpp',
 ]
 
 tests_headers = [
