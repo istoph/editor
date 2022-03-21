@@ -103,7 +103,7 @@ bool File::writeAttributes() {
 
     QSaveFile file(_attributesfile);
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qWarning("%s%s", "can not save file: ", _attributesfile.toUtf8().data());
+        qWarning("%s%s", "can not save attributes file: ", _attributesfile.toUtf8().data());
         return false;
     }
     file.write(jsonDoc.toJson());
@@ -474,6 +474,7 @@ int File::getTabsize() {
 }
 
 void File::setTabOption(bool tab) {
+    //true is space, false is real \t
     this->_tabOption = tab;
 }
 
