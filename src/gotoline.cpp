@@ -1,6 +1,7 @@
 #include "gotoline.h"
 
 #include <Tui/ZButton.h>
+#include <Tui/ZInputBox.h>
 #include <Tui/ZLabel.h>
 
 GotoLine::GotoLine(Tui::ZWidget *parent) : Dialog(parent) {
@@ -18,7 +19,7 @@ GotoLine::GotoLine(Tui::ZWidget *parent) : Dialog(parent) {
     labelGoto->setText("Goto line: ");
     hbox1->addWidget(labelGoto);
 
-    InputBox *inputboxGoto = new InputBox(this);
+    Tui::ZInputBox *inputboxGoto = new Tui::ZInputBox(this);
     inputboxGoto->setFocus();
     hbox1->addWidget(inputboxGoto);
 

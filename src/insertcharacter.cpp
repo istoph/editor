@@ -1,6 +1,7 @@
 #include "insertcharacter.h"
 
 #include <Tui/ZButton.h>
+#include <Tui/ZInputBox.h>
 #include <Tui/ZLabel.h>
 
 InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
@@ -18,7 +19,7 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     hexLabel->setText("Hex:   0x");
     hbox1->addWidget(hexLabel);
 
-    InputBox *hexInputBox = new InputBox(this);
+    Tui::ZInputBox *hexInputBox = new Tui::ZInputBox(this);
     hexInputBox->setFocus();
     hbox1->addWidget(hexInputBox);
 
@@ -30,14 +31,14 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     intLabel->setText("Int:     ");
     hbox2->addWidget(intLabel);
 
-    InputBox *intInputBox = new InputBox(this);
+    Tui::ZInputBox *intInputBox = new Tui::ZInputBox(this);
     hbox2->addWidget(intInputBox);
 
     vbox->add(hbox2);
     vbox->addStretch();
 
     HBoxLayout *hbox3 = new HBoxLayout();
-    InputBox *preview = new InputBox(this);
+    Tui::ZInputBox *preview = new Tui::ZInputBox(this);
 
     Tui::ZPalette tmpPalette = Tui::ZPalette::classic();
     tmpPalette.setColors({{"lineedit.bg", Tui::Colors::lightGray}, {"lineedit.fg", Tui::Colors::black}});
@@ -62,7 +63,7 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
 
     vbox->add(hbox4);
 
-    QObject::connect(hexInputBox, &InputBox::textChanged, [=]{
+    QObject::connect(hexInputBox, &Tui::ZInputBox::textChanged, [=]{
         if(hexInputBox->focus()) {
             _codepoint = hexInputBox->text().toInt(&_check, 16);
             if(_check && _codepoint >= 0) {
@@ -80,7 +81,7 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
         }
     });
 
-    QObject::connect(intInputBox, &InputBox::textChanged, [=]{
+    QObject::connect(intInputBox, &Tui::ZInputBox::textChanged, [=]{
         if(intInputBox->focus()) {
             _codepoint = intInputBox->text().toInt(&_check, 10);
             if(_check && _codepoint >= 0) {

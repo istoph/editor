@@ -1,10 +1,11 @@
 #ifndef TABDIALOG_H
 #define TABDIALOG_H
 
-#include <Tui/ZRadioButton.h>
 #include <Tui/ZButton.h>
-#include <Tui/ZLabel.h>
 #include <Tui/ZCheckBox.h>
+#include <Tui/ZInputBox.h>
+#include <Tui/ZLabel.h>
+#include <Tui/ZRadioButton.h>
 
 #include <testtui_lib.h>
 
@@ -26,7 +27,7 @@ private:
     Tui::ZRadioButton *_tabRadioButton = nullptr;
     Tui::ZRadioButton *_blankRadioButton = nullptr;
     Tui::ZCheckBox *_eatSpaceBoforeTabBox = nullptr;
-    InputBox *_tabsizeInputBox = nullptr;
+    Tui::ZInputBox *_tabsizeInputBox = nullptr;
 };
 
 #endif // TABDIALOG_H

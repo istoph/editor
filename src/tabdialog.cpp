@@ -27,7 +27,7 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
     tabstopLable->setText("Tab Stops: ");
     hbox2->addWidget(tabstopLable);
 
-    _tabsizeInputBox = new InputBox(this);
+    _tabsizeInputBox = new Tui::ZInputBox(this);
     _tabsizeInputBox->setFocus();
     _tabsizeInputBox->setEnabled(true);
     hbox2->addWidget(_tabsizeInputBox);
@@ -80,7 +80,7 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
         deleteLater();
     });
 
-    QObject::connect(_tabsizeInputBox, &InputBox::textChanged, [this, convertButton, saveButton] {
+    QObject::connect(_tabsizeInputBox, &Tui::ZInputBox::textChanged, [this, convertButton, saveButton] {
         if(_tabsizeInputBox->text().toInt() > 0 && _tabsizeInputBox->text().toInt() < 100) {
             convertButton->setEnabled(true);
             saveButton->setEnabled(true);

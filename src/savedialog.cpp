@@ -18,7 +18,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     _folder->setFocus();
     _folder->setModel(_model.get());
 
-    _filenameText = new InputBox(this);
+    _filenameText = new Tui::ZInputBox(this);
     _filenameText->setGeometry({3,10,44,1});
 
     _hiddenCheckBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>h</m>idden", this);
@@ -47,7 +47,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
         (void)selected;
         userInput(_folder->currentItem());
     });
-    QObject::connect(_filenameText, &InputBox::textChanged, this, &SaveDialog::filenameChanged);
+    QObject::connect(_filenameText, &Tui::ZInputBox::textChanged, this, &SaveDialog::filenameChanged);
     QObject::connect(_hiddenCheckBox, &Tui::ZCheckBox::stateChanged, this, [&]{
         _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
     });

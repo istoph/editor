@@ -3,9 +3,9 @@
 #include <Tui/ZButton.h>
 #include <Tui/ZLabel.h>
 
-class MyInputBox : public InputBox {
+class MyInputBox : public Tui::ZInputBox {
 public:
-    MyInputBox(Tui::ZWidget *parent) : InputBox(parent) {};
+    MyInputBox(Tui::ZWidget *parent) : Tui::ZInputBox(parent) {};
 protected:
     void keyEvent(Tui::ZKeyEvent *event) override {
         QString text = event->text();
@@ -16,7 +16,7 @@ protected:
                 insertAtCursorPosition(clipboard->getClipboard()[0]);
             }
         } else {
-            InputBox::keyEvent(event);
+            Tui::ZInputBox::keyEvent(event);
         }
     }
 };
@@ -156,7 +156,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
         setGeometry({ 0, 0, 55, 12});
     }
 
-    QObject::connect(_searchText, &InputBox::textChanged, this, [this] (const QString& newText) {
+    QObject::connect(_searchText, &Tui::ZInputBox::textChanged, this, [this] (const QString& newText) {
         _findNextBtn->setEnabled(newText.size());
         _replaceBtn->setEnabled(newText.size());
         _replaceAllBtn->setEnabled(newText.size());

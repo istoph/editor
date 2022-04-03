@@ -3,6 +3,8 @@
 
 #include <QObject>
 
+#include <Tui/ZInputBox.h>
+
 #include <testtui_lib.h>
 
 class CommandLineWidget : public Tui::ZWidget {
@@ -25,7 +27,7 @@ protected:
     void resizeEvent(Tui::ZResizeEvent *event) override;
 
 private:
-    InputBox cmdEntry;
+    Tui::ZInputBox cmdEntry;
 };
 
 #endif

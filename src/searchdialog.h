@@ -3,6 +3,7 @@
 
 #include <Tui/ZButton.h>
 #include <Tui/ZCheckBox.h>
+#include <Tui/ZInputBox.h>
 #include <Tui/ZRadioButton.h>
 
 #include <testtui_lib.h>
@@ -33,8 +34,8 @@ public slots:
 
 private:
     bool _replace = false;
-    InputBox *_searchText = nullptr;
-    InputBox *_replaceText = nullptr;
+    Tui::ZInputBox *_searchText = nullptr;
+    Tui::ZInputBox *_replaceText = nullptr;
     Tui::ZButton *_findNextBtn = nullptr;
     Tui::ZButton *_findPreviousBtn = nullptr;
     Tui::ZButton *_cancelBtn = nullptr;
