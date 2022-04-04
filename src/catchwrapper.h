@@ -13,7 +13,7 @@ namespace Catch {
     template<>
     struct StringMaker<QString, void> {
         static std::string convert(QString const& value) {
-            return value.toStdString();
+            return "\"" + value.toStdString() + "\"";
         }
     };
 
