@@ -204,6 +204,9 @@ bool File::isSaveAs() {
 
 bool File::setFilename(QString filename) {
     QFileInfo filenameInfo(filename);
+    if(filenameInfo.isSymLink()) {
+        return setFilename(filenameInfo.symLinkTarget());
+    }
     _doc._filename = filenameInfo.absoluteFilePath();
     return true;
 }
@@ -218,8 +221,8 @@ bool File::newText(QString filename = "") {
         _doc._filename = "NEWFILE";
         setSaveAs(true);
     } else {
-        setFilename(filename);
         setSaveAs(false);
+        setFilename(filename);
     }
     modifiedChanged(false);
     return true;
@@ -292,6 +295,14 @@ bool File::getWritable() {
     if(file.isWritable()) {
         return true;
     }
+    if(file.isSymLink()) {
+        QFileInfo path(file.symLinkTarget());
+        if(!file.exists() && path.isWritable()) {
+            return true;
+        }
+        return false;
+    }
+
     QFileInfo path(file.path());
     if(!file.exists() && path.isWritable()) {
         return true;
