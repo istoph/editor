@@ -34,17 +34,17 @@ TEST_CASE("Document") {
         REQUIRE(doc._text.size() == 1);
         CHECK(doc._nonewline == false);
     }
-    SECTION("insert tab-as-space") {
-        doc._nonewline = true;
-        file.setTabOption(true);
-        file.setTabsize(4);
-        file.setEatSpaceBeforeTabs(false);
-        cursor.insertText("\t");
-
-        REQUIRE(doc._text.size() == 1);
-        CHECK(doc._text[0] == "    ");
-        CHECK(file.getCursorPosition() == QPoint{4,0});
-    }
+//    SECTION("insert tab-as-space") {
+//        doc._nonewline = true;
+//        file.setTabOption(true);
+//        file.setTabsize(4);
+//        file.setEatSpaceBeforeTabs(false);
+//        cursor.insertText("\t");
+//
+//        REQUIRE(doc._text.size() == 1);
+//        CHECK(doc._text[0] == "    ");
+//        CHECK(file.getCursorPosition() == QPoint{4,0});
+//    }
     SECTION("insert tab-as-tab") {
         doc._nonewline = true;
         file.setTabOption(false);
@@ -56,17 +56,30 @@ TEST_CASE("Document") {
         CHECK(doc._text[0] == "\t");
         CHECK(file.getCursorPosition() == QPoint{1,0});
     }
-    SECTION("insert tab-no-eat-space") {
-        doc._nonewline = true;
-        file.setTabOption(true);
-        file.setTabsize(4);
-        file.setEatSpaceBeforeTabs(false);
-        cursor.insertText("  aa");
-        cursor.atStart();
-        cursor.insertText("\t");
-
-        REQUIRE(doc._text.size() == 1);
-        CHECK(doc._text[0] == "      aa");
-        CHECK(file.getCursorPosition() == QPoint{4,0});
-    }
+//    SECTION("insert tab-no-eat-space") {
+//        doc._nonewline = true;
+//        file.setTabOption(true);
+//        file.setTabsize(4);
+//        file.setEatSpaceBeforeTabs(false);
+//        cursor.insertText("  aa");
+//        file.setCursorPosition({0,0});
+//        cursor.insertText("\t");
+//
+//        REQUIRE(doc._text.size() == 1);
+//        CHECK(doc._text[0] == "      aa");
+//        CHECK(file.getCursorPosition() == QPoint{4,0});
+//    }
+//    SECTION("insert tab-eat-space") {
+//        doc._nonewline = true;
+//        file.setTabOption(true);
+//        file.setTabsize(4);
+//        file.setEatSpaceBeforeTabs(true);
+//        cursor.insertText("  aa");
+//        file.setCursorPosition({0,0});
+//        cursor.insertText("\t");
+//
+//        REQUIRE(doc._text.size() == 1);
+//        CHECK(doc._text[0] == "    aa");
+//        CHECK(file.getCursorPosition() == QPoint{4,0});
+//    }
 }
