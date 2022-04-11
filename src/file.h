@@ -130,6 +130,8 @@ public:
     bool stdinText();
     void sortSelecedLines();
 
+    bool event(QEvent *event) override;
+
 public slots:
     void followStandardInput(bool follow);
 
