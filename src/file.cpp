@@ -1238,15 +1238,23 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
             if (line > startSelect.first && line < endSelect.first) {
                 // whole line
                 highlights.append(Tui::ZFormatRange{0, _doc._text[line].size(), selected, selectedFormatingChar});
+                painter->clearRect(shiftLinenumber(), line, 1, 1, selected.foregroundColor(), selected.backgroundColor());
             } else if (line > startSelect.first && line == endSelect.first) {
                 // selection ends on this line
                 highlights.append(Tui::ZFormatRange{0, endSelect.second, selected, selectedFormatingChar});
+                painter->clearRect(shiftLinenumber(), line, 1, 1, selected.foregroundColor(), selected.backgroundColor());
             } else if (line == startSelect.first && line < endSelect.first) {
                 // selection starts on this line
                 highlights.append(Tui::ZFormatRange{startSelect.second, _doc._text[line].size() - startSelect.second, selected, selectedFormatingChar});
+                if(startSelect.second == 0) {
+                    painter->clearRect(shiftLinenumber(), line, 1, 1, selected.foregroundColor(), selected.backgroundColor());
+                }
             } else if (line == startSelect.first && line == endSelect.first) {
                 // selection is contained in this line
                 highlights.append(Tui::ZFormatRange{startSelect.second, endSelect.second - startSelect.second, selected, selectedFormatingChar});
+                if(startSelect.second == 0) {
+                    painter->clearRect(shiftLinenumber(), line, 1, 1, selected.foregroundColor(), selected.backgroundColor());
+                }
             }
         }
         lay.draw(*painter, {-_scrollPositionX + shiftLinenumber(), y}, base, &formatingChar, highlights);
