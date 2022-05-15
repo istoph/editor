@@ -1,8 +1,10 @@
 #include "insertcharacter.h"
 
 #include <Tui/ZButton.h>
+#include <Tui/ZHBoxLayout.h>
 #include <Tui/ZInputBox.h>
 #include <Tui/ZLabel.h>
+#include <Tui/ZVBoxLayout.h>
 
 InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
@@ -10,11 +12,11 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     setWindowTitle("Insert Character");
     setContentsMargins({ 1, 1, 1, 1});
 
-    VBoxLayout *vbox = new VBoxLayout();
+    Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     setLayout(vbox);
     vbox->setSpacing(1);
 
-    HBoxLayout *hbox1 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox1 = new Tui::ZHBoxLayout();
     Tui::ZLabel *hexLabel = new Tui::ZLabel(this);
     hexLabel->setText("Hex:   0x");
     hbox1->addWidget(hexLabel);
@@ -26,7 +28,7 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     vbox->add(hbox1);
     vbox->addStretch();
 
-    HBoxLayout *hbox2 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox2 = new Tui::ZHBoxLayout();
     Tui::ZLabel *intLabel = new Tui::ZLabel(this);
     intLabel->setText("Int:     ");
     hbox2->addWidget(intLabel);
@@ -37,7 +39,7 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     vbox->add(hbox2);
     vbox->addStretch();
 
-    HBoxLayout *hbox3 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox3 = new Tui::ZHBoxLayout();
     Tui::ZInputBox *preview = new Tui::ZInputBox(this);
 
     Tui::ZPalette tmpPalette = Tui::ZPalette::classic();
@@ -48,7 +50,7 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Dialog(parent) {
     hbox3->addWidget(preview);
     vbox->add(hbox3);
 
-    HBoxLayout *hbox4 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox4 = new Tui::ZHBoxLayout();
     Tui::ZButton *cancelBtn = new Tui::ZButton(this);
     cancelBtn->setGeometry({3, 5, 7, 7});
     cancelBtn->setText("Cancel");

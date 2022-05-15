@@ -1,6 +1,9 @@
 #include "themedialog.h"
 #include "edit.h"
 
+#include <Tui/ZHBoxLayout.h>
+#include <Tui/ZVBoxLayout.h>
+
 ThemeDialog::ThemeDialog(Editor *edit) : Dialog(edit) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
                | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
@@ -10,9 +13,9 @@ ThemeDialog::ThemeDialog(Editor *edit) : Dialog(edit) {
     setLayout(wl);
     setContentsMargins({ 1, 1, 1, 1});
 
-    VBoxLayout *vbox = new VBoxLayout();
+    Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     {
-        HBoxLayout* hbox = new HBoxLayout();
+        Tui::ZHBoxLayout* hbox = new Tui::ZHBoxLayout();
         _lv = new ListView(this);
         QStringList qsl = {"Classic", "Dark"};
         _lv->setItems(qsl);
@@ -23,7 +26,7 @@ ThemeDialog::ThemeDialog(Editor *edit) : Dialog(edit) {
 
     vbox->setSpacing(1);
     {
-        HBoxLayout* hbox = new HBoxLayout();
+        Tui::ZHBoxLayout* hbox = new Tui::ZHBoxLayout();
         hbox->addStretch();
 
         _cancelButton = new Tui::ZButton(Tui::withMarkup, "<m>C</m>ancel", this);

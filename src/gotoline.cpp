@@ -1,8 +1,10 @@
 #include "gotoline.h"
 
 #include <Tui/ZButton.h>
+#include <Tui/ZHBoxLayout.h>
 #include <Tui/ZInputBox.h>
 #include <Tui/ZLabel.h>
+#include <Tui/ZVBoxLayout.h>
 
 GotoLine::GotoLine(Tui::ZWidget *parent) : Dialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
@@ -10,11 +12,11 @@ GotoLine::GotoLine(Tui::ZWidget *parent) : Dialog(parent) {
     setWindowTitle("Goto Line");
     setContentsMargins({ 1, 1, 1, 1});
 
-    VBoxLayout *vbox = new VBoxLayout();
+    Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     setLayout(vbox);
     vbox->setSpacing(1);
 
-    HBoxLayout *hbox1 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox1 = new Tui::ZHBoxLayout();
     Tui::ZLabel *labelGoto = new Tui::ZLabel(this);
     labelGoto->setText("Goto line: ");
     hbox1->addWidget(labelGoto);
@@ -26,7 +28,7 @@ GotoLine::GotoLine(Tui::ZWidget *parent) : Dialog(parent) {
     vbox->add(hbox1);
     vbox->addStretch();
 
-    HBoxLayout *hbox2 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox2 = new Tui::ZHBoxLayout();
     Tui::ZButton *buttonCancel = new Tui::ZButton(this);
     buttonCancel->setGeometry({3, 5, 7, 7});
     buttonCancel->setText("Cancel");

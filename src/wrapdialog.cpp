@@ -1,11 +1,14 @@
 #include "wrapdialog.h"
 
+#include <Tui/ZHBoxLayout.h>
+#include <Tui/ZVBoxLayout.h>
+
 WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::ResizeOption | Tui::ZWindow::AutomaticOption);
     setWindowTitle("Wrap long lines");
     setContentsMargins({ 1, 1, 1, 1});
 
-    VBoxLayout *vbox = new VBoxLayout();
+    Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     setLayout(vbox);
     vbox->setSpacing(1);
 
@@ -32,7 +35,7 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
    _noWrapRadioButton->setFocus();
 
-   HBoxLayout *hbox5 = new HBoxLayout();
+   Tui::ZHBoxLayout *hbox5 = new Tui::ZHBoxLayout();
    Tui::ZButton *cancelButton = new Tui::ZButton(this);
    cancelButton->setText("Cancel");
    hbox5->addWidget(cancelButton);

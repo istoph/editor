@@ -1,16 +1,19 @@
 #include "formattingdialog.h"
 
+#include <Tui/ZHBoxLayout.h>
+#include <Tui/ZVBoxLayout.h>
+
 FormattingDialog::FormattingDialog(Tui::ZWidget *parent) : Dialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setFocus();
     setWindowTitle("Formatting");
     setContentsMargins({ 1, 1, 1, 1});
 
-    VBoxLayout *vbox = new VBoxLayout();
+    Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     setLayout(vbox);
     vbox->setSpacing(1);
 
-    HBoxLayout *hbox1 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox1 = new Tui::ZHBoxLayout();
     _formattingCharacters = new Tui::ZCheckBox(this);
     _formattingCharacters->setMarkup("Formatting <m>C</m>haracters");
     _formattingCharacters->focus();
@@ -18,21 +21,21 @@ FormattingDialog::FormattingDialog(Tui::ZWidget *parent) : Dialog(parent) {
     vbox->add(hbox1);
     //vbox->addStretch();
 
-    HBoxLayout *hbox2 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox2 = new Tui::ZHBoxLayout();
     _colorTabs = new Tui::ZCheckBox(this);
     _colorTabs->setMarkup("Color <m>T</m>abs");
     hbox2->addWidget(_colorTabs);
     vbox->add(hbox2);
     //vbox->addStretch();
 
-    HBoxLayout *hbox3 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox3 = new Tui::ZHBoxLayout();
     _colorSpaceEnd = new Tui::ZCheckBox(this);
     _colorSpaceEnd->setMarkup("Color <m>S</m>pacs at end of line");
     hbox3->addWidget(_colorSpaceEnd);
     vbox->add(hbox3);
     vbox->addStretch();
 
-    HBoxLayout *hbox5 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox5 = new Tui::ZHBoxLayout();
     Tui::ZButton *cancelButton = new Tui::ZButton(this);
     cancelButton->setText("Cancel");
     hbox5->addWidget(cancelButton);

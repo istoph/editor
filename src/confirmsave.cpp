@@ -1,7 +1,9 @@
 #include "confirmsave.h"
 
 #include <Tui/ZButton.h>
+#include <Tui/ZHBoxLayout.h>
 #include <Tui/ZLabel.h>
+#include <Tui/ZVBoxLayout.h>
 
 ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool saveable) : Dialog(parent) {
     setOptions(Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
@@ -32,7 +34,7 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
     setWindowTitle(title);
     setContentsMargins({ 1, 1, 1, 1});
 
-    VBoxLayout *vbox = new VBoxLayout();
+    Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     setLayout(vbox);
     vbox->setSpacing(1);
 
@@ -42,7 +44,7 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
     vbox->addWidget(l1);
     vbox->addStretch();
 
-    HBoxLayout* hbox = new HBoxLayout();
+    Tui::ZHBoxLayout* hbox = new Tui::ZHBoxLayout();
 
     //Cancel
     Tui::ZButton *bCancel = new Tui::ZButton(this);

@@ -1,16 +1,19 @@
 #include "tabdialog.h"
 
+#include <Tui/ZHBoxLayout.h>
+#include <Tui/ZVBoxLayout.h>
+
 TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setFocus();
     setWindowTitle("Formatting Tab");
     setContentsMargins({ 1, 1, 1, 1});
 
-    VBoxLayout *vbox = new VBoxLayout();
+    Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     setLayout(vbox);
     vbox->setSpacing(1);
 
-    HBoxLayout *hbox1 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox1 = new Tui::ZHBoxLayout();
     _tabRadioButton = new Tui::ZRadioButton(this);
     _tabRadioButton->setMarkup("<m>T</m>ab");
     hbox1->addWidget(_tabRadioButton);
@@ -22,7 +25,7 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
     vbox->add(hbox1);
     vbox->addStretch();
 
-    HBoxLayout *hbox2 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox2 = new Tui::ZHBoxLayout();
     Tui::ZLabel *tabstopLable = new Tui::ZLabel(this);
     tabstopLable->setText("Tab Stops: ");
     hbox2->addWidget(tabstopLable);
@@ -34,7 +37,7 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
     vbox->add(hbox2);
     vbox->addStretch();
 
-    HBoxLayout *hbox3 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox3 = new Tui::ZHBoxLayout();
     Tui::ZLabel *tabtospaceLabel = new Tui::ZLabel(this);
     tabtospaceLabel->setText("Tab to Space: ");
     hbox3->addWidget(tabtospaceLabel);
@@ -46,14 +49,14 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
     vbox->add(hbox3);
     vbox->addStretch();
 
-    HBoxLayout *hbox4 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox4 = new Tui::ZHBoxLayout();
     _eatSpaceBoforeTabBox = new Tui::ZCheckBox(this);
     _eatSpaceBoforeTabBox->setMarkup("<m>e</m>at space before tab");
     hbox4->addWidget(_eatSpaceBoforeTabBox);
     vbox->add(hbox4);
     vbox->addStretch();
 
-    HBoxLayout *hbox5 = new HBoxLayout();
+    Tui::ZHBoxLayout *hbox5 = new Tui::ZHBoxLayout();
     Tui::ZButton *cancelButton = new Tui::ZButton(this);
     cancelButton->setText("Cancel");
     hbox5->addWidget(cancelButton);

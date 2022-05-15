@@ -1,11 +1,14 @@
 #include "overwritedialog.h"
 
+#include <Tui/ZHBoxLayout.h>
+#include <Tui/ZVBoxLayout.h>
+
 OverwriteDialog::OverwriteDialog(Tui::ZWidget *parent, QString fileName) : Dialog(parent) {
     setOptions(Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setContentsMargins({ 1, 1, 2, 1});
     setWindowTitle("Overwrite?");
 
-    VBoxLayout *vbox = new VBoxLayout();
+    Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     setLayout(vbox);
     vbox->setSpacing(1);
     {
@@ -17,7 +20,7 @@ OverwriteDialog::OverwriteDialog(Tui::ZWidget *parent, QString fileName) : Dialo
     }
 
     {
-        HBoxLayout *hbox = new HBoxLayout();
+        Tui::ZHBoxLayout *hbox = new Tui::ZHBoxLayout();
         hbox->setSpacing(2);
         _cancelButton = new Tui::ZButton(this);
         _cancelButton->setText("Cancel");

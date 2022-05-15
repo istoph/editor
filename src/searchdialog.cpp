@@ -1,7 +1,9 @@
 #include "searchdialog.h"
 
 #include <Tui/ZButton.h>
+#include <Tui/ZHBoxLayout.h>
 #include <Tui/ZLabel.h>
+#include <Tui/ZVBoxLayout.h>
 
 class MyInputBox : public Tui::ZInputBox {
 public:
@@ -37,11 +39,11 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
         setWindowTitle("Search");
     }
 
-    VBoxLayout *vbox = new VBoxLayout();
+    Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     Tui::ZLabel *labelFind;
     vbox->setSpacing(1);
     {
-        HBoxLayout *hbox = new HBoxLayout();
+        Tui::ZHBoxLayout *hbox = new Tui::ZHBoxLayout();
         hbox->setSpacing(2);
 
         labelFind = new Tui::ZLabel(Tui::withMarkup, "F<m>i</m>nd", this);
@@ -55,7 +57,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
     }
 
     {
-        HBoxLayout *hbox = new HBoxLayout();
+        Tui::ZHBoxLayout *hbox = new Tui::ZHBoxLayout();
         hbox->setSpacing(2);
 
         Tui::ZLabel *labelReplace = new Tui::ZLabel(Tui::withMarkup, "Replace", this);
@@ -72,12 +74,12 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
     }
 
     {
-        HBoxLayout *hbox = new HBoxLayout();
+        Tui::ZHBoxLayout *hbox = new Tui::ZHBoxLayout();
         hbox->setSpacing(3);
 
         {
             GroupBox *gbox = new GroupBox("Options", this);
-            VBoxLayout *nbox = new VBoxLayout();
+            Tui::ZVBoxLayout *nbox = new Tui::ZVBoxLayout();
             gbox->setLayout(nbox);
 
             _caseMatchBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>M</m>atch case", gbox);
@@ -96,7 +98,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
 
         {
             GroupBox *gbox = new GroupBox("Direction", this);
-            VBoxLayout *nbox = new VBoxLayout();
+            Tui::ZVBoxLayout *nbox = new Tui::ZVBoxLayout();
             gbox->setLayout(nbox);
 
             _forward = new Tui::ZRadioButton(Tui::withMarkup, "<m>F</m>orward", gbox);
@@ -123,7 +125,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
     vbox->addStretch();
 
     {
-        HBoxLayout *hbox = new HBoxLayout();
+        Tui::ZHBoxLayout *hbox = new Tui::ZHBoxLayout();
         hbox->setSpacing(1);
         hbox->addStretch();
 

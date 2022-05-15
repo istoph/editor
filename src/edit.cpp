@@ -6,6 +6,7 @@
 #include <Tui/ZMenubar.h>
 #include <Tui/ZTerminal.h>
 #include <Tui/ZTextLine.h>
+#include <Tui/ZVBoxLayout.h>
 
 #include "confirmsave.h"
 
@@ -269,7 +270,7 @@ Editor::Editor() {
 
     _statusBar = new StatusBar(this);
 
-    VBoxLayout *rootLayout = new VBoxLayout();
+    Tui::ZVBoxLayout *rootLayout = new Tui::ZVBoxLayout();
     setLayout(rootLayout);
     rootLayout->addWidget(menu);
     _mdiLayout = new MdiLayout();
