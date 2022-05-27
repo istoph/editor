@@ -8,7 +8,7 @@ ThemeDialog::ThemeDialog(Editor *edit) : Dialog(edit) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
                | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setDefaultPlacement(Qt::AlignBottom | Qt::AlignHCenter, {0, -2});
-    WindowLayout *wl = new WindowLayout();
+    Tui::ZWindowLayout *wl = new Tui::ZWindowLayout();
     this->setWindowTitle("Theme Color");
     setLayout(wl);
     setContentsMargins({ 1, 1, 1, 1});
@@ -37,7 +37,7 @@ ThemeDialog::ThemeDialog(Editor *edit) : Dialog(edit) {
         hbox->addWidget(_okButton);
         vbox->add(hbox);
     }
-    wl->addCentral(vbox);
+    wl->setCentral(vbox);
     setGeometry({ 6, 5, 30, 8});
 
     QObject::connect(_cancelButton, &Tui::ZButton::clicked, [=]{

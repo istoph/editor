@@ -4,6 +4,7 @@
 #include <Tui/ZHBoxLayout.h>
 #include <Tui/ZLabel.h>
 #include <Tui/ZVBoxLayout.h>
+#include <Tui/ZWindowLayout.h>
 
 class MyInputBox : public Tui::ZInputBox {
 public:
@@ -30,7 +31,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
     setVisible(false);
     setContentsMargins({ 1, 1, 2, 1});
 
-    WindowLayout *wl = new WindowLayout();
+    Tui::ZWindowLayout *wl = new Tui::ZWindowLayout();
     setLayout(wl);
 
     if(_replace) {
@@ -150,7 +151,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Dialog(parent) 
         vbox->add(hbox);
     }
 
-    wl->addCentral(vbox);
+    wl->setCentral(vbox);
 
     if(_replace) {
         setGeometry({ 0, 0, 55, 14});

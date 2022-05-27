@@ -23,14 +23,14 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
     QObject::connect(_file, &File::textMax, _scrollbarHorizontal, &ScrollBar::positonMax);
     _scrollbarHorizontal->setTransparent(true);
 
-    _winLayout = new WindowLayout();
+    _winLayout = new Tui::ZWindowLayout();
     setLayout(_winLayout);
-    _winLayout->addRightBorderWidget(_scrollbarVertical);
+    _winLayout->setRightBorderWidget(_scrollbarVertical);
     _winLayout->setRightBorderTopAdjust(-1);
     _winLayout->setRightBorderBottomAdjust(-1);
-    _winLayout->addBottomBorderWidget(_scrollbarHorizontal);
+    _winLayout->setBottomBorderWidget(_scrollbarHorizontal);
     _winLayout->setBottomBorderLeftAdjust(-1);
-    _winLayout->addCentralWidget(_file);
+    _winLayout->setCentralWidget(_file);
 
 
     QObject::connect(_file, &File::modifiedChanged, this,

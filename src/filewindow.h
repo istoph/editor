@@ -1,6 +1,8 @@
 #ifndef FILEWINDOW_H
 #define FILEWINDOW_H
 
+#include <Tui/ZWindowLayout.h>
+
 #include <testtui_lib.h>
 
 #include "file.h"
@@ -55,7 +57,7 @@ private:
     File *_file = nullptr;
     ScrollBar *_scrollbarHorizontal = nullptr;
     ScrollBar *_scrollbarVertical = nullptr;
-    WindowLayout *_winLayout = nullptr;
+    Tui::ZWindowLayout *_winLayout = nullptr;
     QFileSystemWatcher *_watcher = nullptr;
 
     bool _follow = false;

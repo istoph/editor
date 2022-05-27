@@ -729,9 +729,9 @@ void Editor::terminalChanged() {
 
     QObject::connect(&pendingKeySequenceTimer, &QTimer::timeout, this, [this] {
         pendingKeySequence = new Tui::ZWindow(this);
-        auto *layout = new WindowLayout();
+        auto *layout = new Tui::ZWindowLayout();
         pendingKeySequence->setLayout(layout);
-        layout->addCentralWidget(new Tui::ZTextLine("Incomplete key sequence. Press 2nd key.", pendingKeySequence));
+        layout->setCentralWidget(new Tui::ZTextLine("Incomplete key sequence. Press 2nd key.", pendingKeySequence));
         pendingKeySequence->setGeometry({{0,0}, pendingKeySequence->sizeHint()});
         pendingKeySequence->setDefaultPlacement(Qt::AlignCenter);
     });
