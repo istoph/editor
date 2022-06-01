@@ -1238,37 +1238,32 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
             if (line > startSelect.first && line < endSelect.first) {
                 // whole line
                 highlights.append(Tui::ZFormatRange{0, _doc._text[line].size(), selected, selectedFormatingChar});
-                painter->clearRect(shiftLinenumber(), line, 1, 1, selected.foregroundColor(), selected.backgroundColor());
             } else if (line > startSelect.first && line == endSelect.first) {
                 // selection ends on this line
                 highlights.append(Tui::ZFormatRange{0, endSelect.second, selected, selectedFormatingChar});
-                painter->clearRect(shiftLinenumber(), line, 1, 1, selected.foregroundColor(), selected.backgroundColor());
             } else if (line == startSelect.first && line < endSelect.first) {
                 // selection starts on this line
                 highlights.append(Tui::ZFormatRange{startSelect.second, _doc._text[line].size() - startSelect.second, selected, selectedFormatingChar});
-                if(startSelect.second == 0) {
-                    painter->clearRect(shiftLinenumber(), line, 1, 1, selected.foregroundColor(), selected.backgroundColor());
-                }
             } else if (line == startSelect.first && line == endSelect.first) {
                 // selection is contained in this line
                 highlights.append(Tui::ZFormatRange{startSelect.second, endSelect.second - startSelect.second, selected, selectedFormatingChar});
-                if(startSelect.second == 0) {
-                    painter->clearRect(shiftLinenumber(), line, 1, 1, selected.foregroundColor(), selected.backgroundColor());
-                }
             }
         }
         lay.draw(*painter, {-_scrollPositionX + shiftLinenumber(), y}, base, &formatingChar, highlights);
-        if (formattingCharacters()) {
-            Tui::ZTextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
-            tmpLastLineWidth = lastLine.width();
-            if (isSelect(_doc._text[line].size(), line)) {
+        Tui::ZTextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
+        tmpLastLineWidth = lastLine.width();
+        if (isSelect(_doc._text[line].size(), line)) {
+            if (formattingCharacters()) {
                 painter->writeWithAttributes(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), QStringLiteral("¶"),
-                                             selectedFormatingChar.foregroundColor(), selectedFormatingChar.backgroundColor(), selectedFormatingChar.attributes());
+                                         selectedFormatingChar.foregroundColor(), selectedFormatingChar.backgroundColor(), selectedFormatingChar.attributes());
             } else {
-                painter->writeWithAttributes(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), QStringLiteral("¶"),
-                                             formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+                painter->clearRect(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), 1, 1, selected.foregroundColor(), selected.backgroundColor());
             }
+        } else if (formattingCharacters()) {
+            painter->writeWithAttributes(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), QStringLiteral("¶"),
+                                         formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
         }
+
         if (_cursorPositionY == line) {
             if (focus()) {
                 lay.showCursor(*painter, {-_scrollPositionX + shiftLinenumber(), y}, _cursorPositionX);
