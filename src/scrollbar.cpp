@@ -1,5 +1,11 @@
 #include "scrollbar.h"
 
+#include <QRect>
+
+#include <Tui/ZColor.h>
+#include <Tui/ZPainter.h>
+#include <Tui/ZSymbol.h>
+
 ScrollBar::ScrollBar(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     QObject::connect(&_autoHide, &QTimer::timeout, this, &ScrollBar::autoHideExpired);
 }

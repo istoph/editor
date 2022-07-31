@@ -2,6 +2,9 @@
 
 #include <unistd.h>
 
+#include <Tui/ZSymbol.h>
+#include <Tui/ZTerminal.h>
+
 #include "confirmsave.h"
 
 

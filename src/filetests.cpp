@@ -3,6 +3,8 @@
 #include "Tui/ZTerminal.h"
 #include "Tui/ZTest.h"
 #include "Tui/ZRoot.h"
+#include "Tui/ZWindow.h"
+
 #include "file.h"
 #include "documenttests.h"
 #include "document.h"

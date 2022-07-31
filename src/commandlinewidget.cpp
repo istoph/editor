@@ -1,6 +1,10 @@
 #include "commandlinewidget.h"
 
+#include <QRect>
+#include <QSize>
+
 #include <Tui/ZColor.h>
+#include <Tui/ZPainter.h>
 #include <Tui/ZPalette.h>
 
 CommandLineWidget::CommandLineWidget(Tui::v0::ZWidget *parent) : Tui::ZWidget(parent) {

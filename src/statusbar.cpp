@@ -1,5 +1,13 @@
 #include "statusbar.h"
 
+#include <QSize>
+
+#include <Tui/ZColor.h>
+#include <Tui/ZPainter.h>
+#include <Tui/ZSymbol.h>
+#include <Tui/ZTerminal.h>
+#include <Tui/ZTextMetrics.h>
+
 StatusBar::StatusBar(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setMaximumSize(Tui::tuiMaxSize, 1);
     setSizePolicyH(Tui::SizePolicy::Expanding);

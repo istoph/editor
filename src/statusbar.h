@@ -1,6 +1,7 @@
 #ifndef STATUSBAR_H
 #define STATUSBAR_H
 
+#include <Tui/ZWidget.h>
 #include <testtui_lib.h>
 
 class StatusBar : public Tui::ZWidget {

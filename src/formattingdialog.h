@@ -2,8 +2,8 @@
 #define FORMATTINGDIALOG_H
 
 #include <Tui/ZButton.h>
-#include <Tui/ZLabel.h>
 #include <Tui/ZCheckBox.h>
+#include <Tui/ZLabel.h>
 
 #include <testtui_lib.h>
 

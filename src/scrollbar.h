@@ -3,6 +3,7 @@
 
 #include <QTimer>
 
+#include <Tui/ZWidget.h>
 #include <testtui_lib.h>
 
 class ScrollBar : public Tui::ZWidget {

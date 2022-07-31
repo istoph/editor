@@ -5,6 +5,7 @@
 #include <QLoggingCategory>
 #include <Tui/ZSimpleFileLogger.h>
 #include <Tui/ZSimpleStringLogger.h>
+#include <Tui/ZTerminal.h>
 #include <PosixSignalManager.h>
 
 int main(int argc, char **argv) {

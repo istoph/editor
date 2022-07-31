@@ -17,6 +17,7 @@
 #include <Tui/ZCommandNotifier.h>
 #include <Tui/ZTextLayout.h>
 #include <Tui/ZTextOption.h>
+#include <Tui/ZWidget.h>
 
 #include <testtui_lib.h>
 

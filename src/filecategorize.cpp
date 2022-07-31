@@ -1,6 +1,7 @@
 #include "filecategorize.h"
-#include <QFileInfo>
+
 #include <QDir>
+#include <QFileInfo>
 
 FileCategory fileCategorize(QString input, int maxrecursion) {
 

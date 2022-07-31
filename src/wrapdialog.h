@@ -1,8 +1,8 @@
 #ifndef WRAPDIALOG_H
 #define WRAPDIALOG_H
 
-#include <Tui/ZRadioButton.h>
 #include <Tui/ZButton.h>
+#include <Tui/ZRadioButton.h>
 
 #include <file.h>
 

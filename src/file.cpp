@@ -1,6 +1,11 @@
 #include "file.h"
 
 #include <Tui/ZCommandNotifier.h>
+#include <Tui/ZPainter.h>
+#include <Tui/ZShortcut.h>
+#include <Tui/ZSymbol.h>
+#include <Tui/ZTerminal.h>
+#include <Tui/ZTextMetrics.h>
 
 File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent), _cursor(&_doc, this) {
     setFocusPolicy(Qt::StrongFocus);
