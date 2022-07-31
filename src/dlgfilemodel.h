@@ -3,11 +3,12 @@
 
 #include <QDir>
 
+#include <Tui/Misc/AbstractTableModelTrackBy.h>
 #include <testtui_lib.h>
 
 #include "file.h"
 
-class DlgFileModel : public AbstractTableModelTrackBy<QString> {
+class DlgFileModel : public Tui::Misc::AbstractTableModelTrackBy<QString> {
     Q_OBJECT
 public:
     DlgFileModel(const QDir &dir);
