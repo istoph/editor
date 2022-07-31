@@ -2,6 +2,7 @@
 #define THEME_H
 
 #include <Tui/ZButton.h>
+#include <Tui/ZListView.h>
 
 #include <testtui_lib.h>
 
@@ -18,7 +19,7 @@ public slots:
     void close();
 
 private:
-    ListView *_lv = nullptr;
+    Tui::ZListView *_lv = nullptr;
     Tui::ZButton *_cancelButton = nullptr;
     Tui::ZButton *_okButton = nullptr;
 };

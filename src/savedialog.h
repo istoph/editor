@@ -7,6 +7,7 @@
 #include <Tui/ZCheckBox.h>
 #include <Tui/ZInputBox.h>
 #include <Tui/ZLabel.h>
+#include <Tui/ZListView.h>
 
 #include <testtui_lib.h>
 
@@ -35,7 +36,7 @@ private:
 private:
     Tui::ZLabel *_curentPath = nullptr;
     Tui::ZInputBox *_filenameText = nullptr;
-    ListView *_folder = nullptr;
+    Tui::ZListView *_folder = nullptr;
     Tui::ZCheckBox *_hiddenCheckBox = nullptr;
     Tui::ZCheckBox *_dos = nullptr;
     Tui::ZButton *_cancelButton = nullptr;

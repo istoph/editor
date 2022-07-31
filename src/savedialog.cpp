@@ -13,7 +13,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
 
     _model = std::make_unique<DlgFileModel>(_dir);
 
-    _folder = new ListView(this);
+    _folder = new Tui::ZListView(this);
     _folder->setGeometry({3,3,44,6});
     _folder->setFocus();
     _folder->setModel(_model.get());
@@ -43,7 +43,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
     _saveButton->setDefault(true);
     _saveButton->setEnabled(false);
 
-    QObject::connect(_folder, &ListView::enterPressed, [this](int selected){
+    QObject::connect(_folder, &Tui::ZListView::enterPressed, [this](int selected){
         (void)selected;
         userInput(_folder->currentItem());
     });

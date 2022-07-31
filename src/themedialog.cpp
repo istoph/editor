@@ -16,7 +16,7 @@ ThemeDialog::ThemeDialog(Editor *edit) : Dialog(edit) {
     Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     {
         Tui::ZHBoxLayout* hbox = new Tui::ZHBoxLayout();
-        _lv = new ListView(this);
+        _lv = new Tui::ZListView(this);
         QStringList qsl = {"Classic", "Dark"};
         _lv->setItems(qsl);
         _lv->setFocus();
@@ -44,7 +44,7 @@ ThemeDialog::ThemeDialog(Editor *edit) : Dialog(edit) {
         close();
     });
 
-    QObject::connect(_lv, &ListView::enterPressed, [=]{
+    QObject::connect(_lv, &Tui::ZListView::enterPressed, [=]{
         if(_lv->currentItem() == "Dark") {
             edit->setTheme(Editor::Theme::dark);
         } else {

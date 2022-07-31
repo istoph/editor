@@ -23,7 +23,7 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     _model = std::make_unique<DlgFileModel>(_dir);
     _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
 
-    _folder = new ListView(this);
+    _folder = new Tui::ZListView(this);
     _folder->setGeometry({3,3,44,8});
     _folder->setFocus();
     _folder->setModel(_model.get());
@@ -37,7 +37,7 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Dialog(parent) {
     _okButton->setText("Open");
     _okButton->setDefault(true);
 
-    QObject::connect(_folder, &ListView::enterPressed, [this](int selected){
+    QObject::connect(_folder, &Tui::ZListView::enterPressed, [this](int selected){
         (void)selected;
         userInput(_folder->currentItem());
     });
