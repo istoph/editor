@@ -4,10 +4,11 @@
 #include <Tui/ZButton.h>
 #include <Tui/ZCheckBox.h>
 #include <Tui/ZLabel.h>
+#include <Tui/ZDialog.h>
 
 #include <testtui_lib.h>
 
-class FormattingDialog : public Dialog {
+class FormattingDialog : public Tui::ZDialog {
     Q_OBJECT
 public:
     FormattingDialog(Tui::ZWidget *parent);

@@ -2,13 +2,14 @@
 #define THEME_H
 
 #include <Tui/ZButton.h>
+#include <Tui/ZDialog.h>
 #include <Tui/ZListView.h>
 
 #include <testtui_lib.h>
 
 class Editor;
 
-class ThemeDialog : public Dialog {
+class ThemeDialog : public Tui::ZDialog {
     Q_OBJECT
 
 public:

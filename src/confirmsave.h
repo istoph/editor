@@ -1,11 +1,12 @@
 #ifndef QUITDIALOG_H
 #define QUITDIALOG_H
 
+#include <Tui/ZDialog.h>
 #include <testtui_lib.h>
 
 #include "file.h"
 
-class ConfirmSave : public Dialog
+class ConfirmSave : public Tui::ZDialog
 {
 public:
     enum Type { Reload, Close, Quit };

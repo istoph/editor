@@ -3,6 +3,7 @@
 
 #include <Tui/ZButton.h>
 #include <Tui/ZCheckBox.h>
+#include <Tui/ZDialog.h>
 #include <Tui/ZInputBox.h>
 #include <Tui/ZLabel.h>
 #include <Tui/ZRadioButton.h>
@@ -11,7 +12,7 @@
 
 #include "file.h"
 
-class TabDialog : public Dialog {
+class TabDialog : public Tui::ZDialog {
     Q_OBJECT
 public:
     TabDialog(Tui::ZWidget *parent);

@@ -1,6 +1,7 @@
 #ifndef FILEWINDOW_H
 #define FILEWINDOW_H
 
+#include <Tui/ZWindow.h>
 #include <Tui/ZWindowLayout.h>
 
 #include <testtui_lib.h>

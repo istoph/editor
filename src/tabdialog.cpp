@@ -3,7 +3,7 @@
 #include <Tui/ZHBoxLayout.h>
 #include <Tui/ZVBoxLayout.h>
 
-TabDialog::TabDialog(Tui::ZWidget *parent) : Dialog(parent) {
+TabDialog::TabDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setFocus();
     setWindowTitle("Formatting Tab");

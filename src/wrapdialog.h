@@ -2,13 +2,14 @@
 #define WRAPDIALOG_H
 
 #include <Tui/ZButton.h>
+#include <Tui/ZDialog.h>
 #include <Tui/ZRadioButton.h>
 
 #include <file.h>
 
 #include <testtui_lib.h>
 
-class WrapDialog : public Dialog {
+class WrapDialog : public Tui::ZDialog {
     Q_OBJECT
 public:
     WrapDialog(Tui::ZWidget *parent, File *file = nullptr);

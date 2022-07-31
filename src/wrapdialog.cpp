@@ -3,7 +3,7 @@
 #include <Tui/ZHBoxLayout.h>
 #include <Tui/ZVBoxLayout.h>
 
-WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
+WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::ResizeOption | Tui::ZWindow::AutomaticOption);
     setWindowTitle("Wrap long lines");
     setContentsMargins({ 1, 1, 1, 1});

@@ -4,7 +4,7 @@
 #include <Tui/ZHBoxLayout.h>
 #include <Tui/ZVBoxLayout.h>
 
-ThemeDialog::ThemeDialog(Editor *edit) : Dialog(edit) {
+ThemeDialog::ThemeDialog(Editor *edit) : Tui::ZDialog(edit) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
                | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setDefaultPlacement(Qt::AlignBottom | Qt::AlignHCenter, {0, -2});

@@ -5,6 +5,7 @@
 
 #include <Tui/ZButton.h>
 #include <Tui/ZCheckBox.h>
+#include <Tui/ZDialog.h>
 #include <Tui/ZInputBox.h>
 #include <Tui/ZLabel.h>
 #include <Tui/ZListView.h>
@@ -15,7 +16,7 @@
 #include "overwritedialog.h"
 #include "dlgfilemodel.h"
 
-class SaveDialog : public Dialog {
+class SaveDialog : public Tui::ZDialog {
     Q_OBJECT
 
 public:

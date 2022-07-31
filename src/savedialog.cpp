@@ -2,7 +2,7 @@
 
 #include <Tui/ZTerminal.h>
 
-SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
+SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) {
     setDefaultPlacement(Qt::AlignCenter);
     setGeometry({0, 0, 50, 15});
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
@@ -61,7 +61,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Dialog(parent) {
        }
     });
     QObject::connect(_cancelButton, &Tui::ZButton::clicked, this, &SaveDialog::rejected);
-    QObject::connect(this, &Dialog::rejected, this, &SaveDialog::rejected);
+    QObject::connect(this, &Tui::ZDialog::rejected, this, &SaveDialog::rejected);
     QObject::connect(_saveButton, &Tui::ZButton::clicked, this, &SaveDialog::saveFile);
 
     QRect r = geometry();

@@ -4,11 +4,12 @@
 #include <testtui_lib.h>
 
 #include <Tui/ZColor.h>
+#include <Tui/ZDialog.h>
 #include <Tui/ZPalette.h>
 
 #include "file.h"
 
-class InsertCharacter : public Dialog {
+class InsertCharacter : public Tui::ZDialog {
     Q_OBJECT
 
 public:

@@ -1,11 +1,12 @@
 #ifndef GOTOLINE_H
 #define GOTOLINE_H
 
+#include <Tui/ZDialog.h>
 #include <testtui_lib.h>
 
 #include "file.h"
 
-class GotoLine : public Dialog
+class GotoLine : public Tui::ZDialog
 {
 public:
     Q_OBJECT

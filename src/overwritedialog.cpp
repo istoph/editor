@@ -3,7 +3,7 @@
 #include <Tui/ZHBoxLayout.h>
 #include <Tui/ZVBoxLayout.h>
 
-OverwriteDialog::OverwriteDialog(Tui::ZWidget *parent, QString fileName) : Dialog(parent) {
+OverwriteDialog::OverwriteDialog(Tui::ZWidget *parent, QString fileName) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setContentsMargins({ 1, 1, 2, 1});
     setWindowTitle("Overwrite?");
