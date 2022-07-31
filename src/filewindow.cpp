@@ -2,6 +2,7 @@
 
 #include <unistd.h>
 
+#include <Tui/Misc/SurrogateEscape.h>
 #include <Tui/ZSymbol.h>
 #include <Tui/ZTerminal.h>
 
@@ -358,7 +359,7 @@ void FileWindow::inputPipeReadable(int socket) {
     if (bytes == 0) {
         // EOF
         if (!_pipeLineBuffer.isEmpty()) {
-            _file->appendLine(surrogate_escape::decode(_pipeLineBuffer));
+            _file->appendLine(Tui::Misc::SurrogateEscape::decode(_pipeLineBuffer));
         }
         _pipeSocketNotifier->deleteLater();
         _pipeSocketNotifier = nullptr;
@@ -370,7 +371,7 @@ void FileWindow::inputPipeReadable(int socket) {
         _pipeLineBuffer.append(buff, bytes);
         int index;
         while ((index = _pipeLineBuffer.indexOf('\n')) != -1) {
-            _file->appendLine(surrogate_escape::decode(_pipeLineBuffer.left(index)));
+            _file->appendLine(Tui::Misc::SurrogateEscape::decode(_pipeLineBuffer.left(index)));
             _pipeLineBuffer = _pipeLineBuffer.mid(index + 1);
         }
         _file->modifiedChanged(true);

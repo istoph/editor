@@ -1,5 +1,6 @@
 #include "file.h"
 
+#include <Tui/Misc/SurrogateEscape.h>
 #include <Tui/ZCommandNotifier.h>
 #include <Tui/ZPainter.h>
 #include <Tui/ZShortcut.h>
@@ -265,7 +266,7 @@ bool File::saveText() {
     //QSaveFile file(getFilename());
     if (file.open(QIODevice::WriteOnly)) {
         for (int i=0; i<_doc._text.size(); i++) {
-            file.write(surrogate_escape::encode(_doc._text[i]));
+            file.write(Tui::Misc::SurrogateEscape::encode(_doc._text[i]));
             if(i+1 == _doc._text.size() && _doc._nonewline) {
                 // omit newline
             } else {
@@ -353,7 +354,7 @@ bool File::openText(QString filename) {
                 }
             }
 
-            QString text = surrogate_escape::decode(lineBuf.constData(), lineBytes);
+            QString text = Tui::Misc::SurrogateEscape::decode(lineBuf.constData(), lineBytes);
             _doc._text.append(text);
         }
         file.close();
