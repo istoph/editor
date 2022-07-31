@@ -1,8 +1,6 @@
 #ifndef INSERTCHARACTER_H
 #define INSERTCHARACTER_H
 
-#include <testtui_lib.h>
-
 #include <Tui/ZColor.h>
 #include <Tui/ZDialog.h>
 #include <Tui/ZPalette.h>

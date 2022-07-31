@@ -7,8 +7,6 @@
 #include <Tui/ZInputBox.h>
 #include <Tui/ZRadioButton.h>
 
-#include <testtui_lib.h>
-
 #include "file.h"
 #include "clipboard.h"
 

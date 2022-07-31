@@ -7,7 +7,6 @@
 
 #include <file.h>
 
-#include <testtui_lib.h>
 
 class WrapDialog : public Tui::ZDialog {
     Q_OBJECT

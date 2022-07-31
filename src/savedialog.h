@@ -10,8 +10,6 @@
 #include <Tui/ZLabel.h>
 #include <Tui/ZListView.h>
 
-#include <testtui_lib.h>
-
 #include "file.h"
 #include "overwritedialog.h"
 #include "dlgfilemodel.h"

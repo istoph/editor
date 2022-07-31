@@ -5,8 +5,6 @@
 
 #include <Tui/ZInputBox.h>
 
-#include <testtui_lib.h>
-
 class CommandLineWidget : public Tui::ZWidget {
     Q_OBJECT
 public:

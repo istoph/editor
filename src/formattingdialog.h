@@ -6,8 +6,6 @@
 #include <Tui/ZLabel.h>
 #include <Tui/ZDialog.h>
 
-#include <testtui_lib.h>
-
 class FormattingDialog : public Tui::ZDialog {
     Q_OBJECT
 public:

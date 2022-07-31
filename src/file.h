@@ -19,8 +19,6 @@
 #include <Tui/ZTextOption.h>
 #include <Tui/ZWidget.h>
 
-#include <testtui_lib.h>
-
 #include "document.h"
 #include "searchcount.h"
 #include "clipboard.h"

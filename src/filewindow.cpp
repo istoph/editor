@@ -6,6 +6,8 @@
 #include <Tui/ZSymbol.h>
 #include <Tui/ZTerminal.h>
 
+#include <testtui_lib.h>
+
 #include "confirmsave.h"
 
 

@@ -4,8 +4,6 @@
 #include <Tui/ZWindow.h>
 #include <Tui/ZWindowLayout.h>
 
-#include <testtui_lib.h>
-
 #include "file.h"
 #include "savedialog.h"
 #include "scrollbar.h"

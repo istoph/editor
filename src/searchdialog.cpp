@@ -6,6 +6,8 @@
 #include <Tui/ZVBoxLayout.h>
 #include <Tui/ZWindowLayout.h>
 
+#include <testtui_lib.h>
+
 class MyInputBox : public Tui::ZInputBox {
 public:
     MyInputBox(Tui::ZWidget *parent) : Tui::ZInputBox(parent) {};

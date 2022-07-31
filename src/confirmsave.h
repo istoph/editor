@@ -2,7 +2,6 @@
 #define QUITDIALOG_H
 
 #include <Tui/ZDialog.h>
-#include <testtui_lib.h>
 
 #include "file.h"
 

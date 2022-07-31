@@ -8,8 +8,6 @@
 #include <Tui/ZLabel.h>
 #include <Tui/ZRadioButton.h>
 
-#include <testtui_lib.h>
-
 #include "file.h"
 
 class TabDialog : public Tui::ZDialog {
