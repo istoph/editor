@@ -569,7 +569,7 @@ void Editor::openFileDialog(QString path) {
     });
 }
 
-QObject * Editor::facet(const QMetaObject &metaObject) {
+QObject * Editor::facet(const QMetaObject &metaObject) const {
     if (metaObject.className()  == Clipboard::staticMetaObject.className()) {
         return &_clipboard;
     } else {

@@ -11,7 +11,7 @@
 
 class Rootabgeletiet : public Tui::ZRoot {
 public:
-    QObject *facet(const QMetaObject &metaObject) override {
+    QObject *facet(const QMetaObject &metaObject) const override {
         if (metaObject.className()  == Clipboard::staticMetaObject.className()) {
             return &_clipboard;
         } else {
@@ -20,7 +20,7 @@ public:
     }
 
 private:
-    Clipboard _clipboard;
+    mutable Clipboard _clipboard;
 };
 
 

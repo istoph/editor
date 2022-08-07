@@ -76,7 +76,7 @@ public:
     void watchPipe();
 
 public:
-    QObject *facet(const QMetaObject &metaObject) override;
+    QObject *facet(const QMetaObject &metaObject) const override;
 
 public slots:
     void showCommandLine();
@@ -110,7 +110,7 @@ private:
     QPointer<TabDialog> _tabDialog = nullptr;
     StatusBar *_statusBar = nullptr;
     CommandLineWidget *_commandLineWidget = nullptr;
-    Clipboard _clipboard;
+    mutable Clipboard _clipboard;
     Theme _theme = Theme::classic;
     Settings initialFileSettings;
 
