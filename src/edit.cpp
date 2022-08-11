@@ -216,12 +216,12 @@ Editor::Editor() {
 
     QObject::connect(new Tui::ZCommandNotifier("NextWindow", this), &Tui::ZCommandNotifier::activated,
         [this] {
-            focusNextWindow();
+            activateNextWindow();
         }
     );
     QObject::connect(new Tui::ZCommandNotifier("PreviousWindow", this), &Tui::ZCommandNotifier::activated,
         [this] {
-            focusPreviousWindow();
+            activatePreviousWindow();
         }
     );
     QObject::connect(new Tui::ZCommandNotifier("TileVert", this), &Tui::ZCommandNotifier::activated,
@@ -244,7 +244,7 @@ Editor::Editor() {
         auto code = [this, windowNumber = i] {
             if (windowNumber < _allWindows.size()) {
                 auto *win = _allWindows[windowNumber];
-                raiseOnFocus(win);
+                raiseOnActivate(win);
                 auto *widget = win->placeFocus();
                 if (widget) {
                     widget->setFocus();
