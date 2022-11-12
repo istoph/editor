@@ -1186,9 +1186,9 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     QVector<Tui::ZFormatRange> highlights;
     const Tui::ZTextStyle base{fg, bg};
     const Tui::ZTextStyle formatingChar{Tui::Colors::darkGray, bg};
-    const Tui::ZTextStyle selected{Tui::Colors::darkGray,fg,Tui::ZPainter::Attribute::Bold};
-    const Tui::ZTextStyle blockSelected{fg,Tui::Colors::lightGray,Tui::ZPainter::Attribute::Blink | Tui::ZPainter::Attribute::Italic};
-    const Tui::ZTextStyle blockSelectedFormatingChar{Tui::Colors::darkGray, Tui::Colors::lightGray, Tui::ZPainter::Attribute::Blink};
+    const Tui::ZTextStyle selected{Tui::Colors::darkGray,fg,Tui::ZTextAttribute::Bold};
+    const Tui::ZTextStyle blockSelected{fg,Tui::Colors::lightGray,Tui::ZTextAttribute::Blink | Tui::ZTextAttribute::Italic};
+    const Tui::ZTextStyle blockSelectedFormatingChar{Tui::Colors::darkGray, Tui::Colors::lightGray, Tui::ZTextAttribute::Blink};
     const Tui::ZTextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
 
     QString strlinenumber;
@@ -1213,21 +1213,21 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 while (i.hasNext()) {
                     QRegularExpressionMatch match = i.next();
                     if(match.capturedLength() > 0) {
-                        highlights.append(Tui::ZFormatRange{match.capturedStart(), match.capturedLength(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZPainter::Attribute::Bold}, selectedFormatingChar});
+                        highlights.append(Tui::ZFormatRange{match.capturedStart(), match.capturedLength(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZTextAttribute::Bold}, selectedFormatingChar});
                     }
                 }
             } else {
                 while ((found = _doc._text[line].indexOf(_searchText, found + 1, searchCaseSensitivity)) != -1) {
-                    highlights.append(Tui::ZFormatRange{found, _searchText.size(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZPainter::Attribute::Bold}, selectedFormatingChar});
+                    highlights.append(Tui::ZFormatRange{found, _searchText.size(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZTextAttribute::Bold}, selectedFormatingChar});
                 }
             }
         }
         if(_bracketX >= 0) {
             if (_bracketY == line) {
-                highlights.append(Tui::ZFormatRange{_bracketX, 1, {Tui::Colors::cyan, bg,Tui::ZPainter::Attribute::Bold}, selectedFormatingChar});
+                highlights.append(Tui::ZFormatRange{_bracketX, 1, {Tui::Colors::cyan, bg,Tui::ZTextAttribute::Bold}, selectedFormatingChar});
             }
             if (line == _cursorPositionY) {
-                highlights.append(Tui::ZFormatRange{_cursorPositionX, 1, {Tui::Colors::cyan, bg,Tui::ZPainter::Attribute::Bold}, selectedFormatingChar});
+                highlights.append(Tui::ZFormatRange{_cursorPositionX, 1, {Tui::Colors::cyan, bg,Tui::ZTextAttribute::Bold}, selectedFormatingChar});
             }
         }
 
@@ -1279,7 +1279,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         if(_linenumber) {
             strlinenumber = QString::number(line + 1) + QString(" ").repeated(shiftLinenumber() - QString::number(line + 1).size());
             if (line == _cursorPositionY) {
-                painter->writeWithAttributes(0, y, strlinenumber, getColor("chr.linenumberFg"), getColor("chr.linenumberBg"), Tui::ZPainter::Attribute::Bold);
+                painter->writeWithAttributes(0, y, strlinenumber, getColor("chr.linenumberFg"), getColor("chr.linenumberBg"), Tui::ZTextAttribute::Bold);
             } else {
                 painter->writeWithColors(0, y, strlinenumber, getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
             }
