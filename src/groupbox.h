@@ -2,13 +2,13 @@
 #define GROUPBOX_H
 
 #include <Tui/ZColor.h>
-#include <Tui/ZPainter.h>
-#include <Tui/ZStyledTextLine.h>
-#include <Tui/ZWidget.h>
-#include <Tui/ZShortcutManager_p.h>
-#include <Tui/ZSymbol.h>
 #include <Tui/ZLayout.h>
+#include <Tui/ZPainter.h>
+#include <Tui/ZShortcut.h>
+#include <Tui/ZStyledTextLine.h>
+#include <Tui/ZSymbol.h>
 #include <Tui/ZTerminal.h>
+#include <Tui/ZWidget.h>
 
 #include <QSize>
 #include <QRect>
