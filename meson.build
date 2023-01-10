@@ -17,7 +17,6 @@ qt5 = import('qt5')
 qt5_dep = dependency('qt5', modules: ['Core', 'Concurrent'])
 
 tuiwidgets_dep = dependency('TuiWidgets')
-testtui_lib_dep = dependency('testtui_lib')
 posixsignalmanager_dep = dependency('PosixSignalManager')
 
 subdir('src')

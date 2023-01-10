@@ -16,6 +16,7 @@ tests_headers = [
 
 #ide:editable-filelist
 editor_sources = [
+  'alert.cpp',
   'clipboard.cpp',
   'commandlinewidget.cpp',
   'confirmsave.cpp',
@@ -28,7 +29,9 @@ editor_sources = [
   'filewindow.cpp',
   'formattingdialog.cpp',
   'gotoline.cpp',
+  'groupbox.cpp',
   'insertcharacter.cpp',
+  'mdilayout.cpp',
   'opendialog.cpp',
   'overwritedialog.cpp',
   'savedialog.cpp',
@@ -44,6 +47,7 @@ editor_sources = [
 
 #ide:editable-filelist
 editor_headers = [
+  'alert.h',
   'clipboard.h',
   'commandlinewidget.h',
   'confirmsave.h',
@@ -54,7 +58,9 @@ editor_headers = [
   'filewindow.h',
   'formattingdialog.h',
   'gotoline.h',
+  'groupbox.h',
   'insertcharacter.h',
+  'mdilayout.h',
   'opendialog.h',
   'overwritedialog.h',
   'savedialog.h',
@@ -71,15 +77,15 @@ editor_lib = static_library('editor', editor_sources,
   qt5.preprocess(moc_headers: editor_headers, moc_sources: editor_sources,
   include_directories: include_directories('.')),
   include_directories: include_directories('.'),
-  dependencies : [qt5_dep, tuiwidgets_dep, testtui_lib_dep, posixsignalmanager_dep])
+  dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep])
 
 executable('editor', main,
   include_directories: include_directories('.'),
   link_with: editor_lib,
-  dependencies : [qt5_dep, tuiwidgets_dep, testtui_lib_dep, posixsignalmanager_dep])
+  dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep])
 
 executable('tests', tests,
   qt5.preprocess(moc_headers: tests_headers, moc_sources: tests,
   include_directories: include_directories('.')),
   link_with: editor_lib,
-  dependencies : [qt5_dep, tuiwidgets_dep, testtui_lib_dep, posixsignalmanager_dep])
+  dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep])

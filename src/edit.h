@@ -15,23 +15,21 @@
 #include <Tui/ZRoot.h>
 #include <Tui/ZSymbol.h>
 
-#include <testtui_lib.h>
-
+#include "clipboard.h"
+#include "commandlinewidget.h"
 #include "file.h"
 #include "filewindow.h"
+#include "formattingdialog.h"
+#include "gotoline.h"
+#include "insertcharacter.h"
+#include "mdilayout.h"
 #include "opendialog.h"
 #include "scrollbar.h"
 #include "searchdialog.h"
 #include "statemux.h"
 #include "statusbar.h"
 #include "tabdialog.h"
-#include "insertcharacter.h"
-#include "gotoline.h"
-#include "clipboard.h"
-#include "commandlinewidget.h"
 #include "themedialog.h"
-#include "formattingdialog.h"
-
 
 class Settings {
 public:

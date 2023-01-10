@@ -6,7 +6,7 @@
 #include <Tui/ZVBoxLayout.h>
 #include <Tui/ZWindowLayout.h>
 
-#include <testtui_lib.h>
+#include "groupbox.h"
 
 class MyInputBox : public Tui::ZInputBox {
 public:

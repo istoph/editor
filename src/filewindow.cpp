@@ -6,10 +6,8 @@
 #include <Tui/ZSymbol.h>
 #include <Tui/ZTerminal.h>
 
-#include <testtui_lib.h>
-
+#include "alert.h"
 #include "confirmsave.h"
-
 
 FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
