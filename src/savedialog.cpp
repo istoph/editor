@@ -93,29 +93,42 @@ void SaveDialog::saveFile() {
 }
 
 void SaveDialog::filenameChanged(QString filename) {
+    bool isSaveable = false;
+    isSaveable = _filenameChanged(filename, false);
+    _saveButton->setEnabled(isSaveable);
+}
+
+bool SaveDialog::_filenameChanged(QString filename, bool absolutePath) {
+    if (!absolutePath) {
+        QRegExp regex("[\/]");
+        if (regex.indexIn(filename) < 0) {
+            filename = _dir.absolutePath() + QString('/') + filename;
+        } else {
+            return false;
+        }
+    }
     QFileInfo datei(filename);
-    bool ok = true;
     if (filename.isEmpty()) {
-        ok = false;
+        return false;
     } else if (datei.isDir()) {
-        _dir.setPath(_dir.filePath(filename));
-        refreshFolder();
-        ok = false;
-    } else if (!datei.dir().exists()) {
-        ok = false;
+        return false;
+    } else if (datei.isFile()) {
+        if (datei.isSymLink()) {
+            return _filenameChanged(QString(datei.symLinkTarget()), true);
+        } else if (datei.isWritable()) {
+            return true;
+        }
     } else {
-        if (datei.isFile()) {
-            if (!datei.isWritable()) {
-                ok = false;
-            }
+        if (datei.isSymLink()) {
+            return _filenameChanged(QString(datei.symLinkTarget()), true);
         } else {
             QFileInfo parent(datei.path());
-            if(!parent.isWritable()) {
-                ok = false;
+            if(parent.isWritable()) {
+                return true;
             }
         }
     }
-    _saveButton->setEnabled(ok);
+    return false;
 }
 
 void SaveDialog::refreshFolder() {
