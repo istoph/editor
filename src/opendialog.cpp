@@ -10,6 +10,9 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Tui::ZDialog(parent
 
     if(path.size()) {
         QFileInfo fi(path);
+        if (fi.isDir() && path.right(1) != "/") {
+            fi.setFile(path + "/");
+        }
         _dir.setPath(fi.absolutePath());
     }
     _dir.makeAbsolute();
@@ -37,38 +40,30 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Tui::ZDialog(parent
     _okButton->setText("Open");
     _okButton->setDefault(true);
 
+
+    QObject::connect(_folder->selectionModel(), &QItemSelectionModel::selectionChanged, [this] {
+        filenameChanged(_folder->currentItem());
+    });
     QObject::connect(_folder, &Tui::ZListView::enterPressed, [this](int selected){
         (void)selected;
-        userInput(_folder->currentItem());
+        if (_okButton->isEnabled()) {
+            userInput(_folder->currentItem());
+        }
     });
     QObject::connect(_hiddenCheckBox, &Tui::ZCheckBox::stateChanged, this, [&]{
         _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
     });
     QObject::connect(_okButton, &Tui::ZButton::clicked, [this] {
-        if(_folder->currentItem().right(1) == "/") {
-            userInput(_folder->currentItem());
-        } else {
-            open();
-        }
+        userInput(_folder->currentItem());
     });
     QObject::connect(_cancelButton, &Tui::ZButton::clicked, this, &OpenDialog::rejected);
 
     refreshFolder();
 }
 
-void OpenDialog::open() {
-    // TODO: error message
-    fileSelected(_folder->currentItem());
-    deleteLater();
-}
-
 void OpenDialog::filenameChanged(QString filename) {
-    QFileInfo datei(filename);
-    _okButton->setEnabled(datei.isReadable());
-}
-
-void OpenDialog::pathSelected(QString path) {
-    _dir.setPath(path);
+    QFileInfo datei(_dir.path() + "/" + filename);
+    _okButton->setEnabled( datei.isReadable() );
 }
 
 void OpenDialog::refreshFolder() {
@@ -78,18 +73,17 @@ void OpenDialog::refreshFolder() {
 }
 
 void OpenDialog::userInput(QString filename) {
-    QString tmp = filename.left(filename.size()-1);
-    if(QFileInfo(_dir.filePath(filename)).isDir() && QFileInfo(_dir.filePath(tmp)).isSymLink()) {
-       _dir.setPath(_dir.filePath(QFileInfo(_dir.filePath(tmp)).readLink()));
-       _dir.makeAbsolute();
-       refreshFolder();
-    } else if(QFileInfo(_dir.filePath(filename)).isDir()) {
-        _dir.setPath(_dir.filePath(filename));
+    if(QFileInfo(_dir.filePath(filename)).isDir()) {
+        if (QFileInfo(_dir.filePath(filename)).isSymLink()) {
+            _dir.setPath(_dir.filePath(QFileInfo(_dir.filePath(filename)).readLink()));
+        } else {
+            _dir.setPath(_dir.filePath(filename));
+        }
         _dir.makeAbsolute();
         refreshFolder();
     } else {
         fileSelected(_dir.filePath(filename));
-        deleteLater();
+        rejected();
     }
 }
 

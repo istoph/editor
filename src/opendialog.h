@@ -19,10 +19,8 @@ class OpenDialog : public Tui::ZDialog {
 
 public:
     OpenDialog(Tui::ZWidget *parent, QString path = "");
-    void pathSelected(QString path);
 
 public slots:
-    void open();
     void rejected();
 
 signals:
