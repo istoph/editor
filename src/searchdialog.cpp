@@ -49,7 +49,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         Tui::ZHBoxLayout *hbox = new Tui::ZHBoxLayout();
         hbox->setSpacing(2);
 
-        labelFind = new Tui::ZLabel(Tui::withMarkup, "F<m>i</m>nd", this);
+        labelFind = new Tui::ZLabel(Tui::withMarkup, "Find", this);
         hbox->addWidget(labelFind);
 
         _searchText = new MyInputBox(this);
@@ -104,7 +104,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
             Tui::ZVBoxLayout *nbox = new Tui::ZVBoxLayout();
             gbox->setLayout(nbox);
 
-            _forward = new Tui::ZRadioButton(Tui::withMarkup, "<m>F</m>orward", gbox);
+            _forward = new Tui::ZRadioButton(Tui::withMarkup, "Forward", gbox);
             _forward->setChecked(true);
             nbox->addWidget(_forward);
             _backward = new Tui::ZRadioButton(Tui::withMarkup, "<m>B</m>ackward", gbox);
@@ -115,7 +115,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
             _parseBox->setEnabled(false);
             nbox->addWidget(_parseBox);
 
-            _wrapBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>W</m>rap around", gbox);
+            _wrapBox = new Tui::ZCheckBox(Tui::withMarkup, "Wrap <m>a</m>round", gbox);
             _wrapBox->setCheckState(Qt::Checked);
             nbox->addWidget(_wrapBox);
 
