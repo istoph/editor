@@ -1522,7 +1522,7 @@ bool File::isNewFile() {
 
 void File::keyEvent(Tui::ZKeyEvent *event) {
     QString text = event->text();
-    bool extendSelect = event->modifiers() == Qt::ShiftModifier || getSelectMode();
+    bool extendSelect = event->modifiers() == Qt::ShiftModifier || event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) || getSelectMode();
     bool extendBlockSelect = event->modifiers() == (Qt::AltModifier | Qt::ShiftModifier);
     //bool extendBlockSelect = getSelectMode();
 
@@ -1650,7 +1650,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         // Alt + Shift + s sort selected lines
         sortSelecedLines();
         update();
-    } else if(event->key() == Qt::Key_Left && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier || extendSelect || extendBlockSelect)) {
+    } else if(event->key() == Qt::Key_Left) {
         selectCursorPosition(event->modifiers());
         if (_cursorPositionX > 0) {
             Tui::ZTextLayout lay(terminal()->textMetrics(), _doc._text[_cursorPositionY]);
@@ -1665,7 +1665,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         selectCursorPosition(event->modifiers());
         _doc._collapseUndoStep = false;
-    } else if(event->key() == Qt::Key_Right && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier || extendSelect || extendBlockSelect)) {
+    } else if(event->key() == Qt::Key_Right) {
         selectCursorPosition(event->modifiers());
         if (_cursorPositionX < _doc._text[_cursorPositionY].size()) {
             Tui::ZTextLayout lay(terminal()->textMetrics(), _doc._text[_cursorPositionY]);
@@ -1680,7 +1680,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         selectCursorPosition(event->modifiers());
         _doc._collapseUndoStep = false;
-    } else if(event->key() == Qt::Key_Down && (event->modifiers() == 0 || extendSelect || extendBlockSelect)) {
+    } else if(event->key() == Qt::Key_Down && (event->modifiers() == 0 || extendSelect || extendBlockSelect) && event->modifiers() != (Qt::ControlModifier | Qt::ShiftModifier)) {
         selectCursorPosition(event->modifiers());
         if (_doc._text.size() -1 > _cursorPositionY) {
             ++_cursorPositionY;
@@ -1691,7 +1691,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         selectCursorPosition(event->modifiers());
         _doc._collapseUndoStep = false;
-    } else if(event->key() == Qt::Key_Up && (event->modifiers() == 0 || extendSelect || extendBlockSelect)) {
+    } else if(event->key() == Qt::Key_Up && (event->modifiers() == 0 || extendSelect  || extendBlockSelect) && event->modifiers() != (Qt::ControlModifier | Qt::ShiftModifier)) {
         selectCursorPosition(event->modifiers());
         if (_cursorPositionY > 0) {
             --_cursorPositionY;
@@ -1972,7 +1972,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 }
 
 void File::selectCursorPosition(Qt::KeyboardModifiers modifiers) {
-    if(modifiers == Qt::ShiftModifier || getSelectMode()) {
+    if(modifiers == Qt::ShiftModifier || modifiers == (Qt::ControlModifier | Qt::ShiftModifier) || getSelectMode()) {
         select(_cursorPositionX, _cursorPositionY);
     } else if (modifiers == (Qt::AltModifier | Qt::ShiftModifier)) {
         blockSelect(_cursorPositionX, _cursorPositionY);
