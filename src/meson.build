@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: BSL-1.0
+
 main = ['main.cpp']
 
 #ide:editable-filelist

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef DOCUMENT_H
 #define DOCUMENT_H
 

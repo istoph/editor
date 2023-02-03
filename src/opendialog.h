@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef OPENDIALOG_H
 #define OPENDIALOG_H
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef SCROLLBAR_H
 #define SCROLLBAR_H
 

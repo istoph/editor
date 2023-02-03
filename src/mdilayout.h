@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef MDILAYOUT_H
 #define MDILAYOUT_H
 

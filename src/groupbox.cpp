@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #include "groupbox.h"
 
 GroupBox::GroupBox(Tui::ZWidget *parent) : Tui::ZWidget(parent) {

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef CATCHWRAPPER_H
 #define CATCHWRAPPER_H
 

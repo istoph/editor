@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef STATUSBAR_H
 #define STATUSBAR_H
 

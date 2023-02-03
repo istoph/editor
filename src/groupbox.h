@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef GROUPBOX_H
 #define GROUPBOX_H
 

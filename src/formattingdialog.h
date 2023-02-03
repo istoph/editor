@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef FORMATTINGDIALOG_H
 #define FORMATTINGDIALOG_H
 

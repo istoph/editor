@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #include "opendialog.h"
 
 OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Tui::ZDialog(parent) {

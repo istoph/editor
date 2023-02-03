@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #include "alert.h"
 
 Alert::Alert(Tui::v0::ZWidget *parent)

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #define CATCH_CONFIG_RUNNER
 #include "catchwrapper.h"
 

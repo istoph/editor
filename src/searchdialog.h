@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef SEARCHDIALOG_H
 #define SEARCHDIALOG_H
 

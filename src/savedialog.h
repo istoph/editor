@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef SAVEDIALOG_H
 #define SAVEDIALOG_H
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef INSERTCHARACTER_H
 #define INSERTCHARACTER_H
 

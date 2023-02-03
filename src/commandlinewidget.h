@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef COMMANDLINEWIDGET_H
 #define COMMANDLINEWIDGET_H
 

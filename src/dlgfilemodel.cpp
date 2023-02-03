@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #include "dlgfilemodel.h"
 
 DlgFileModel::DlgFileModel(const QDir &dir) : AbstractTableModelTrackBy(1), _dir(dir) {

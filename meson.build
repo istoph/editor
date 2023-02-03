@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: BSL-1.0
+
 project('editor', ['c', 'cpp'], default_options : ['buildtype=debugoptimized'])
 
 if meson.get_compiler('cpp').get_id() == 'gcc'

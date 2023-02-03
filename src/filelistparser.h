@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef FILELISTPARSER_H
 #define FILELISTPARSER_H
 

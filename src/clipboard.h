@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef CLIPBOARD_H
 #define CLIPBOARD_H
 

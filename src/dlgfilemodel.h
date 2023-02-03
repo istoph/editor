@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef DLGFILEMODEL_H
 #define DLGFILEMODEL_H
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef WRAPDIALOG_H
 #define WRAPDIALOG_H
 

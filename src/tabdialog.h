@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef TABDIALOG_H
 #define TABDIALOG_H
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #include "statemux.h"
 
 void StateMux::selectInput(void *id) {

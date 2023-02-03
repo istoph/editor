@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef OVERWRITEDIALOG_H
 #define OVERWRITEDIALOG_H
 

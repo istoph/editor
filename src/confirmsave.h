@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSL-1.0
+
 #ifndef QUITDIALOG_H
 #define QUITDIALOG_H
 
