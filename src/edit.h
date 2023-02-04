@@ -98,9 +98,9 @@ private:
     void replaceDialog();
 
 private:
-    File *_file;
-    FileWindow *_win;
-    MdiLayout *_mdiLayout;
+    File *_file = nullptr;
+    FileWindow *_win = nullptr;
+    MdiLayout *_mdiLayout = nullptr;
     StateMux _mux;
     QMap<QString, FileWindow*> _nameToWindow;
     QVector<FileWindow*> _allWindows;
