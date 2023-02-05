@@ -4,6 +4,7 @@
 
 #include "file.h"
 
+
 bool Document::isModified() const {
     return _currentUndoStep != _savedUndoStep;
 }

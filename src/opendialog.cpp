@@ -2,6 +2,9 @@
 
 #include "opendialog.h"
 
+#include <QRect>
+
+
 OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
                | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);

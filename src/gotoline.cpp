@@ -8,6 +8,7 @@
 #include <Tui/ZLabel.h>
 #include <Tui/ZVBoxLayout.h>
 
+
 GotoLine::GotoLine(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
                | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);

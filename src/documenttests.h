@@ -3,6 +3,9 @@
 #ifndef DOCUMENTTEST_H
 #define DOCUMENTTEST_H
 
+#include "file.h"
+
+
 class DocumentTestHelper {
 public:
     Document &getDoc(File *f) {

@@ -11,6 +11,7 @@
 #include "alert.h"
 #include "confirmsave.h"
 
+
 FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
                | Tui::ZWindow::MoveOption | Tui::ZWindow::ResizeOption

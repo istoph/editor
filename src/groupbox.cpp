@@ -2,6 +2,14 @@
 
 #include "groupbox.h"
 
+#include <QSize>
+
+#include <Tui/ZLayout.h>
+#include <Tui/ZShortcut.h>
+#include <Tui/ZSymbol.h>
+#include <Tui/ZTerminal.h>
+
+
 GroupBox::GroupBox(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
 }
 

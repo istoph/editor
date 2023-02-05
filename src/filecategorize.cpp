@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QFileInfo>
 
+
 FileCategory fileCategorize(QString input, int maxrecursion) {
 
     //STDIN

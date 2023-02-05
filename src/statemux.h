@@ -3,12 +3,12 @@
 #ifndef STATEMUX_H
 #define STATEMUX_H
 
-#include <functional>
 #include <memory>
 #include <utility>
 #include <vector>
 
 #include <QObject>
+
 
 class StateMux {
 public:

@@ -5,6 +5,7 @@
 
 #include <Tui/ZWidget.h>
 
+
 class StatusBar : public Tui::ZWidget {
     Q_OBJECT
 public:

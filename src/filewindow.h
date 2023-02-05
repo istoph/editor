@@ -3,6 +3,8 @@
 #ifndef FILEWINDOW_H
 #define FILEWINDOW_H
 
+#include <QSocketNotifier>
+
 #include <Tui/ZWindow.h>
 #include <Tui/ZWindowLayout.h>
 

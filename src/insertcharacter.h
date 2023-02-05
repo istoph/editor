@@ -3,11 +3,8 @@
 #ifndef INSERTCHARACTER_H
 #define INSERTCHARACTER_H
 
-#include <Tui/ZColor.h>
 #include <Tui/ZDialog.h>
-#include <Tui/ZPalette.h>
 
-#include "file.h"
 
 class InsertCharacter : public Tui::ZDialog {
     Q_OBJECT

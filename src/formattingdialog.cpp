@@ -2,8 +2,10 @@
 
 #include "formattingdialog.h"
 
+#include <Tui/ZButton.h>
 #include <Tui/ZHBoxLayout.h>
 #include <Tui/ZVBoxLayout.h>
+
 
 FormattingDialog::FormattingDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);

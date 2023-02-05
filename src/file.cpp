@@ -2,6 +2,13 @@
 
 #include "file.h"
 
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QSaveFile>
+#include <QtConcurrent>
+
 #include <Tui/Misc/SurrogateEscape.h>
 #include <Tui/ZCommandNotifier.h>
 #include <Tui/ZPainter.h>
@@ -9,6 +16,10 @@
 #include <Tui/ZSymbol.h>
 #include <Tui/ZTerminal.h>
 #include <Tui/ZTextMetrics.h>
+
+#include "clipboard.h"
+#include "searchcount.h"
+
 
 File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent), _cursor(&_doc, this) {
     setFocusPolicy(Qt::StrongFocus);

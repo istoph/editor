@@ -12,7 +12,6 @@
 #include <Tui/ZLabel.h>
 #include <Tui/ZListView.h>
 
-#include "file.h"
 #include "dlgfilemodel.h"
 
 

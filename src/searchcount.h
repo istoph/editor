@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QVector>
 
+
 class SearchCount : public QObject {
     Q_OBJECT
 

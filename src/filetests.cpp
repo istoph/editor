@@ -2,14 +2,16 @@
 
 #include "catchwrapper.h"
 
+#include "Tui/ZRoot.h"
 #include "Tui/ZTerminal.h"
 #include "Tui/ZTest.h"
-#include "Tui/ZRoot.h"
 #include "Tui/ZWindow.h"
 
-#include "file.h"
-#include "documenttests.h"
+#include "clipboard.h"
 #include "document.h"
+#include "documenttests.h"
+#include "file.h"
+
 
 class Rootabgeletiet : public Tui::ZRoot {
 public:

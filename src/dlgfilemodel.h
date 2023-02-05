@@ -4,10 +4,10 @@
 #define DLGFILEMODEL_H
 
 #include <QDir>
+#include <QFileSystemWatcher>
 
 #include <Tui/Misc/AbstractTableModelTrackBy.h>
 
-#include "file.h"
 
 class DlgFileModel : public Tui::Misc::AbstractTableModelTrackBy<QString> {
     Q_OBJECT

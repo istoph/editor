@@ -12,9 +12,9 @@
 #include <Tui/ZLabel.h>
 #include <Tui/ZListView.h>
 
-#include "file.h"
-#include "overwritedialog.h"
 #include "dlgfilemodel.h"
+#include "file.h"
+
 
 class SaveDialog : public Tui::ZDialog {
     Q_OBJECT

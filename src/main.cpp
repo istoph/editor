@@ -1,14 +1,19 @@
 // SPDX-License-Identifier: BSL-1.0
 
-#include "edit.h"
-#include "filelistparser.h"
-#include "filecategorize.h"
-
+#include <QCommandLineParser>
+#include <QCoreApplication>
 #include <QLoggingCategory>
+#include <QSettings>
+
+#include <PosixSignalManager.h>
+
 #include <Tui/ZSimpleFileLogger.h>
 #include <Tui/ZSimpleStringLogger.h>
 #include <Tui/ZTerminal.h>
-#include <PosixSignalManager.h>
+
+#include "edit.h"
+#include "filecategorize.h"
+#include "filelistparser.h"
 
 int main(int argc, char **argv) {
 

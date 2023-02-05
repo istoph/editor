@@ -7,6 +7,7 @@
 
 #include <Tui/ZWidget.h>
 
+
 class ScrollBar : public Tui::ZWidget {
     Q_OBJECT
 public:

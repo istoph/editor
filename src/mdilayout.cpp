@@ -2,6 +2,11 @@
 
 #include "mdilayout.h"
 
+#include <Tui/ZPainter.h>
+#include <Tui/ZShortcut.h>
+#include <Tui/ZWindowFacet.h>
+
+
 MdiLayout::MdiLayout() {
 }
 

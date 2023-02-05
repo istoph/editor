@@ -7,6 +7,7 @@
 #include <QStringList>
 #include <QVector>
 
+
 struct FileListEntry {
     QString fileName;
     QString pos;

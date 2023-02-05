@@ -2,6 +2,9 @@
 
 #include "alert.h"
 
+#include <Tui/ZSymbol.h>
+
+
 Alert::Alert(Tui::v0::ZWidget *parent)
     : Tui::ZWindow(parent)
 {

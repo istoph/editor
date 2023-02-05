@@ -6,7 +6,9 @@
 #include <Tui/ZHBoxLayout.h>
 #include <Tui/ZInputBox.h>
 #include <Tui/ZLabel.h>
+#include <Tui/ZPalette.h>
 #include <Tui/ZVBoxLayout.h>
+
 
 InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose

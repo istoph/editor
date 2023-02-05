@@ -3,20 +3,13 @@
 #ifndef MDILAYOUT_H
 #define MDILAYOUT_H
 
-#include <Tui/ZColor.h>
-#include <Tui/ZPainter.h>
+#include <QPointer>
+#include <QVector>
 
 #include <Tui/ZLayout.h>
-#include <Tui/ZShortcut.h>
 #include <Tui/ZWidget.h>
 #include <Tui/ZWindowContainer.h>
-#include <Tui/ZWindow.h>
-#include <Tui/ZWindowFacet.h>
 
-#include <QString>
-#include <QPointer>
-#include <QObject>
-#include <QVector>
 
 class SizerOverlay : public Tui::ZWidget {
     Q_OBJECT

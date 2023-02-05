@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QVector>
 
+
 class Clipboard : public QObject
 {
     Q_OBJECT

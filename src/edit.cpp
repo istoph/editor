@@ -4,13 +4,22 @@
 
 #include <signal.h>
 
+#include <QCoreApplication>
+
+#include <Tui/ZCommandNotifier.h>
 #include <Tui/ZImage.h>
 #include <Tui/ZMenubar.h>
+#include <Tui/ZPalette.h>
 #include <Tui/ZTerminal.h>
 #include <Tui/ZTextLine.h>
 #include <Tui/ZVBoxLayout.h>
 
 #include "confirmsave.h"
+#include "formattingdialog.h"
+#include "gotoline.h"
+#include "insertcharacter.h"
+#include "opendialog.h"
+
 
 Editor::Editor() {
     ensureCommandManager();

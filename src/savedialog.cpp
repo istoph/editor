@@ -4,6 +4,9 @@
 
 #include <Tui/ZTerminal.h>
 
+#include "overwritedialog.h"
+
+
 SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) {
     setDefaultPlacement(Qt::AlignCenter);
     setGeometry({0, 0, 50, 15});

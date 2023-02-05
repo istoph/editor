@@ -5,11 +5,9 @@
 
 #include <QObject>
 
-#include <Tui/ZColor.h>
-#include <Tui/ZTextStyle.h>
 #include <Tui/ZStyledTextLine.h>
-#include <Tui/ZPalette.h>
 #include <Tui/ZWindow.h>
+
 
 class Alert : public Tui::ZWindow {
     Q_OBJECT

@@ -3,35 +3,20 @@
 #ifndef EDIT_H
 #define EDIT_H
 
-#include <QCommandLineParser>
-#include <QCoreApplication>
-#include <QDir>
-#include <QFileSystemWatcher>
-#include <QSettings>
-#include <QSocketNotifier>
-#include <QTextStream>
-
-#include <Tui/ZCommandNotifier.h>
 #include <Tui/ZMenuItem.h>
-#include <Tui/ZPalette.h>
 #include <Tui/ZRoot.h>
-#include <Tui/ZSymbol.h>
 
 #include "clipboard.h"
 #include "commandlinewidget.h"
 #include "file.h"
 #include "filewindow.h"
-#include "formattingdialog.h"
-#include "gotoline.h"
-#include "insertcharacter.h"
 #include "mdilayout.h"
-#include "opendialog.h"
-#include "scrollbar.h"
 #include "searchdialog.h"
 #include "statemux.h"
 #include "statusbar.h"
 #include "tabdialog.h"
 #include "themedialog.h"
+
 
 class Settings {
 public:

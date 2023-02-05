@@ -9,6 +9,7 @@
 #include <Tui/ZPainter.h>
 #include <Tui/ZPalette.h>
 
+
 CommandLineWidget::CommandLineWidget(Tui::v0::ZWidget *parent) : Tui::ZWidget(parent) {
     setMaximumSize(Tui::tuiMaxSize, 1);
     setSizePolicyH(Tui::SizePolicy::Expanding);

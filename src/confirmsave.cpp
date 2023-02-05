@@ -7,6 +7,7 @@
 #include <Tui/ZLabel.h>
 #include <Tui/ZVBoxLayout.h>
 
+
 ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool saveable) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     QString title, nosave, save, mainLable;

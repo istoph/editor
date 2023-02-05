@@ -2,6 +2,7 @@
 
 #include "filelistparser.h"
 
+
 QVector<FileListEntry> parseFileList(QStringList args)
 {
     QVector<FileListEntry> res;

@@ -6,6 +6,7 @@
 #include <QString>
 #include <QVector>
 
+
 class File;
 class Document;
 

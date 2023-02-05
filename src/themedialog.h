@@ -7,6 +7,7 @@
 #include <Tui/ZDialog.h>
 #include <Tui/ZListView.h>
 
+
 class Editor;
 
 class ThemeDialog : public Tui::ZDialog {

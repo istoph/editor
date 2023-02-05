@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: BSL-1.0
 
 #include "themedialog.h"
-#include "edit.h"
 
 #include <Tui/ZHBoxLayout.h>
 #include <Tui/ZVBoxLayout.h>
+
+#include "edit.h"
+
 
 ThemeDialog::ThemeDialog(Editor *edit) : Tui::ZDialog(edit) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose

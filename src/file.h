@@ -3,18 +3,8 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include <QDir>
-#include <QFile>
-#include <QFileInfo>
-#include <QFuture>
-#include <QFutureWatcher>
-#include <QJsonArray>
-#include <QJsonDocument>
 #include <QJsonObject>
 #include <QPair>
-#include <QSaveFile>
-#include <QTextStream>
-#include <QtConcurrent>
 
 #include <Tui/ZCommandNotifier.h>
 #include <Tui/ZTextLayout.h>
@@ -22,9 +12,7 @@
 #include <Tui/ZWidget.h>
 
 #include "document.h"
-#include "searchcount.h"
-#include "clipboard.h"
-#include "limits"
+
 
 struct SearchLine;
 struct SearchParameter;

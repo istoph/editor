@@ -2,8 +2,10 @@
 
 #include "wrapdialog.h"
 
+#include <Tui/ZButton.h>
 #include <Tui/ZHBoxLayout.h>
 #include <Tui/ZVBoxLayout.h>
+
 
 WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::ResizeOption | Tui::ZWindow::AutomaticOption);

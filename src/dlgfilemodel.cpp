@@ -2,6 +2,7 @@
 
 #include "dlgfilemodel.h"
 
+
 DlgFileModel::DlgFileModel(const QDir &dir) : AbstractTableModelTrackBy(1), _dir(dir) {
     _watcher.addPath(dir.absolutePath());
     QObject::connect(&_watcher, &QFileSystemWatcher::directoryChanged, this, &DlgFileModel::update);

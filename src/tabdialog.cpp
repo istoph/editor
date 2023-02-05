@@ -2,8 +2,11 @@
 
 #include "tabdialog.h"
 
+#include <Tui/ZButton.h>
 #include <Tui/ZHBoxLayout.h>
+#include <Tui/ZLabel.h>
 #include <Tui/ZVBoxLayout.h>
+
 
 TabDialog::TabDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);

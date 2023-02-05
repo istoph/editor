@@ -5,7 +5,7 @@
 
 #include <Tui/ZButton.h>
 #include <Tui/ZDialog.h>
-#include <Tui/ZTextLine.h>
+
 
 class OverwriteDialog : public Tui::ZDialog {
     Q_OBJECT

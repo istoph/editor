@@ -5,7 +5,6 @@
 
 #include <Tui/ZDialog.h>
 
-#include "file.h"
 
 class ConfirmSave : public Tui::ZDialog
 {

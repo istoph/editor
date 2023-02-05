@@ -2,6 +2,7 @@
 
 #include "statemux.h"
 
+
 void StateMux::selectInput(void *id) {
     if (_active != id) {
         auto inputIt = _inputs.find(id);

@@ -3,7 +3,9 @@
 #include "overwritedialog.h"
 
 #include <Tui/ZHBoxLayout.h>
+#include <Tui/ZTextLine.h>
 #include <Tui/ZVBoxLayout.h>
+
 
 OverwriteDialog::OverwriteDialog(Tui::ZWidget *parent, QString fileName) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);

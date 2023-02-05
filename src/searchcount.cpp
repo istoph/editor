@@ -2,6 +2,7 @@
 
 #include "searchcount.h"
 
+
 SearchCount::SearchCount() {
 
 }
