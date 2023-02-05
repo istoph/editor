@@ -18,7 +18,7 @@ FormattingDialog::FormattingDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) 
     Tui::ZHBoxLayout *hbox1 = new Tui::ZHBoxLayout();
     _formattingCharacters = new Tui::ZCheckBox(this);
     _formattingCharacters->setMarkup("Formatting <m>C</m>haracters");
-    _formattingCharacters->focus();
+    _formattingCharacters->setFocus();
     hbox1->addWidget(_formattingCharacters);
     vbox->add(hbox1);
     //vbox->addStretch();
