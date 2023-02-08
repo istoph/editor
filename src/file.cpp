@@ -1406,9 +1406,9 @@ QPoint File::addTabAt(QPoint cursor) {
 
 int File::getVisibleLines() {
     if(getWrapOption()) {
-        return geometry().height() - 2;
+        return std::max(1, geometry().height() - 2);
     }
-    return geometry().height() - 1;
+    return std::max(1, geometry().height() - 1);
 }
 
 void File::appendLine(const QString &line) {
