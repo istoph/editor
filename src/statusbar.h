@@ -46,7 +46,7 @@ private:
     bool _msdosMode = false;
     bool _selectMode = false;
     bool _fileChanged = false;
-    bool _overwrite;
+    bool _overwrite = false;
 };
 
 #endif // STATUSBAR_H
