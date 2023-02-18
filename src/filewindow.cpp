@@ -289,10 +289,6 @@ void FileWindow::updateBorders() {
         _scrollbarHorizontal->setTransparent(true);
     }
     setBorderEdges(borders);
-    // TODO: This needs to work without manually forcing relayout
-    QTimer::singleShot(0, [this] {
-        terminal()->requestLayout(this);
-    });
 }
 
 void FileWindow::closeRequested() {
