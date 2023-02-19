@@ -236,16 +236,31 @@ Editor::Editor() {
             activatePreviousWindow();
         }
     );
+
     QObject::connect(new Tui::ZCommandNotifier("TileVert", this), &Tui::ZCommandNotifier::activated,
         [this] {
             _mdiLayout->setMode(MdiLayout::LayoutMode::TileV);
         }
     );
+
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, "v", {}), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+        [this] {
+            _mdiLayout->setMode(MdiLayout::LayoutMode::TileV);
+        }
+    );
+
     QObject::connect(new Tui::ZCommandNotifier("TileHorz", this), &Tui::ZCommandNotifier::activated,
         [this] {
             _mdiLayout->setMode(MdiLayout::LayoutMode::TileH);
         }
     );
+
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, "h", {}), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+        [this] {
+            _mdiLayout->setMode(MdiLayout::LayoutMode::TileH);
+        }
+    );
+
     QObject::connect(new Tui::ZCommandNotifier("TileFull", this), &Tui::ZCommandNotifier::activated,
         [this] {
             _mdiLayout->setMode(MdiLayout::LayoutMode::Base);
