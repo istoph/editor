@@ -156,6 +156,7 @@ Editor::Editor() {
             if (_tabDialog) {
                 _tabDialog->setFocus();
                 _tabDialog->raise();
+                _tabDialog->setVisible(true);
             } else {
                 _tabDialog = new TabDialog(this);
                 if (_file) {
