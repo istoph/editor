@@ -22,6 +22,19 @@
 
 
 Editor::Editor() {
+    setupUi();
+}
+
+Editor::~Editor() {
+    // Delete children here manually, instead of leaving it to QObject,
+    // to avoid children observing already destructed parent.
+    for (QObject *child : children()) {
+        delete child;
+    }
+}
+
+void Editor::setupUi() {
+
     ensureCommandManager();
 
     Tui::ZMenubar *menu = new Tui::ZMenubar(this);
@@ -304,14 +317,6 @@ Editor::Editor() {
     rootLayout->add(_mdiLayout);
     rootLayout->addWidget(_commandLineWidget);
     rootLayout->addWidget(_statusBar);
-}
-
-Editor::~Editor() {
-    // Delete children here manually, instead of leaving it to QObject,
-    // to avoid children observing already destructed parent.
-    for (QObject *child : children()) {
-        delete child;
-    }
 }
 
 FileWindow *Editor::createFileWindow() {

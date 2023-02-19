@@ -74,6 +74,7 @@ protected:
     void terminalChanged() override;
 
 private:
+    void setupUi();
     void setupSearchDialogs();
     FileWindow *createFileWindow();
     QVector<Tui::ZMenuItem> createWindowMenu();
