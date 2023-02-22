@@ -101,7 +101,7 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
         text += " | SELECT MODE";
     }
     if(_modifiedFile) {
-        text += " | ";
+        text += " | 🖫";
     }
     if(_stdin) {
         text += " | STDIN";
