@@ -122,6 +122,8 @@ int main(int argc, char **argv) {
         settings.wrap = Tui::ZTextOption::NoWrap;
     }
 
+    settings.rightMarginHint = qsettings->value("right_margin_hint","0").toInt();
+
     bool hb = qsettings->value("highlight_bracket","false").toBool();
     settings.highlightBracket = hb;
 

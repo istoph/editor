@@ -384,6 +384,7 @@ FileWindow *Editor::createFileWindow() {
         file->setColorTabs(_file->colorTabs());
         file->setColorSpaceEnd(_file->colorSpaceEnd());
         win->setWrap(_file->getWrapOption());
+        file->setRightMarginHint(_file->rightMarginHint());
         file->setHighlightBracket(_file->getHighlightBracket());
         file->setAttributesfile(_file->getAttributesfile());
         file->select_cursor_position_x0 = _file->select_cursor_position_x0;
@@ -396,6 +397,7 @@ FileWindow *Editor::createFileWindow() {
         file->setColorTabs(initialFileSettings.colorTabs);
         file->setColorSpaceEnd(initialFileSettings.colorSpaceEnd);
         win->setWrap(initialFileSettings.wrap);
+        file->setRightMarginHint(initialFileSettings.rightMarginHint);
         file->setHighlightBracket(initialFileSettings.highlightBracket);
         file->setAttributesfile(initialFileSettings.attributesFile);
         file->select_cursor_position_x0 = initialFileSettings.select_cursor_position_x0;

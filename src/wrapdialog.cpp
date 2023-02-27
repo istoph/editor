@@ -4,6 +4,7 @@
 
 #include <Tui/ZButton.h>
 #include <Tui/ZHBoxLayout.h>
+#include <Tui/ZLabel.h>
 #include <Tui/ZVBoxLayout.h>
 
 
@@ -37,6 +38,16 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     }
    vbox->addWidget(_wrapAnywhereRadioButton);
 
+   Tui::ZHBoxLayout *hintLayout = new Tui::ZHBoxLayout();
+   Tui::ZLabel *hintLabel = new Tui::ZLabel(Tui::withMarkup,  "Display Right <m>M</m>argin at Column: ", this);
+   hintLayout->addWidget(hintLabel);
+   _rightMarginHintInput = new Tui::ZInputBox(QString::number(file->rightMarginHint()), this);
+   _rightMarginHintInput->setMaximumSize(6, 1);
+   hintLabel->setBuddy(_rightMarginHintInput);
+   hintLayout->addWidget(_rightMarginHintInput);
+
+   vbox->add(hintLayout);
+
    _noWrapRadioButton->setFocus();
 
    Tui::ZHBoxLayout *hbox5 = new Tui::ZHBoxLayout();
@@ -61,6 +72,12 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
            file->setWrapOption(Tui::ZTextOption::WordWrap);
        } else if (_wrapAnywhereRadioButton->checked()) {
            file->setWrapOption(Tui::ZTextOption::WrapAnywhere);
+       }
+
+       bool ok = false;
+       int marginHint = _rightMarginHintInput->text().toInt(&ok);
+       if (ok) {
+           file->setRightMarginHint(marginHint);
        }
 
        deleteLater();

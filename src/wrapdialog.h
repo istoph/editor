@@ -5,6 +5,7 @@
 
 #include <Tui/ZDialog.h>
 #include <Tui/ZRadioButton.h>
+#include <Tui/ZInputBox.h>
 
 #include <file.h>
 
@@ -18,6 +19,7 @@ private:
     Tui::ZRadioButton *_noWrapRadioButton = nullptr;
     Tui::ZRadioButton *_wordWrapRadioButton = nullptr;
     Tui::ZRadioButton *_wrapAnywhereRadioButton = nullptr;
+    Tui::ZInputBox *_rightMarginHintInput = nullptr;
 };
 
 #endif // WRAPDIALOG_H

@@ -97,6 +97,8 @@ public:
     QPoint getCursorPosition();
     void setCursorPosition(QPoint position);
     QPoint getScrollPosition();
+    void setRightMarginHint(int hint);
+    int rightMarginHint() const;
     void toggleSelectMode();
     bool select_cursor_position_x0;
     bool isNewFile();
@@ -199,6 +201,7 @@ private:
     bool _linenumber = false;
     bool _saveAs = true;
     bool _formattingCharacters = true;
+    int _rightMarginHint = 0;
     bool _colorTabs = true;
     bool _colorSpaceEnd = true;
 

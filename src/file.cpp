@@ -11,6 +11,7 @@
 
 #include <Tui/Misc/SurrogateEscape.h>
 #include <Tui/ZCommandNotifier.h>
+#include <Tui/ZImage.h>
 #include <Tui/ZPainter.h>
 #include <Tui/ZShortcut.h>
 #include <Tui/ZSymbol.h>
@@ -517,6 +518,18 @@ bool File::formattingCharacters() {
 }
 void File::setFormattingCharacters(bool formattingCharacters) {
     _formattingCharacters = formattingCharacters;
+}
+
+void File::setRightMarginHint(int hint) {
+    if (hint < 1) {
+        _rightMarginHint = 0;
+    } else {
+        _rightMarginHint = hint;
+    }
+}
+
+int File::rightMarginHint() const {
+    return _rightMarginHint;
 }
 
 bool File::colorTabs() {
@@ -1186,8 +1199,26 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     //fg = getColor("control.fg");
     fg = {0xff, 0xff, 0xff};
 
+    Tui::ZColor marginMarkBg = [](Tui::ZColorHSV base)
+        {
+            return Tui::ZColor::fromHsv(base.hue(), base.saturation(), base.value() * 0.75);
+        }(bg.toHsv());
+
+
+    std::optional<Tui::ZImage> leftOfMarginBuffer;
+    std::optional<Tui::ZPainter> painterLeftOfMargin;
+
     auto *painter = event->painter();
-    painter->clear(fg, bg);
+    if (_rightMarginHint) {
+        painter->clearRect(0, 0, -_scrollPositionX + shiftLinenumber() + _rightMarginHint, rect().height(), fg, bg);
+        painter->clearRect(-_scrollPositionX + shiftLinenumber() + _rightMarginHint, 0, Tui::tuiMaxSize, rect().height(), fg, marginMarkBg);
+
+        // One extra column to account for double wide character at last position
+        leftOfMarginBuffer.emplace(terminal(), _rightMarginHint + 1, 1);
+        painterLeftOfMargin.emplace(leftOfMarginBuffer->painter());
+    } else {
+        painter->clear(fg, bg);
+    }
 
     Tui::ZTextOption option = getTextOption(false);
 
@@ -1198,7 +1229,9 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     }
     QVector<Tui::ZFormatRange> highlights;
     const Tui::ZTextStyle base{fg, bg};
+    const Tui::ZTextStyle baseInMargin{fg, marginMarkBg};
     const Tui::ZTextStyle formatingChar{Tui::Colors::darkGray, bg};
+    const Tui::ZTextStyle formatingCharInMargin{Tui::Colors::darkGray, marginMarkBg};
     const Tui::ZTextStyle selected{Tui::Colors::darkGray,fg,Tui::ZTextAttribute::Bold};
     const Tui::ZTextStyle blockSelected{fg,Tui::Colors::lightGray,Tui::ZTextAttribute::Blink | Tui::ZTextAttribute::Italic};
     const Tui::ZTextStyle blockSelectedFormatingChar{Tui::Colors::darkGray, Tui::Colors::lightGray, Tui::ZTextAttribute::Blink};
@@ -1268,7 +1301,22 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 highlights.append(Tui::ZFormatRange{startSelect.second, endSelect.second - startSelect.second, selected, selectedFormatingChar});
             }
         }
-        lay.draw(*painter, {-_scrollPositionX + shiftLinenumber(), y}, base, &formatingChar, highlights);
+        if (_rightMarginHint && lay.maximumWidth() > _rightMarginHint) {
+            if (lay.lineCount() > leftOfMarginBuffer->height() && leftOfMarginBuffer->height() < rect().height()) {
+                leftOfMarginBuffer.emplace(terminal(), _rightMarginHint + 1,
+                                           std::min(std::max(leftOfMarginBuffer->height() * 2, lay.lineCount()), rect().height()));
+                painterLeftOfMargin.emplace(leftOfMarginBuffer->painter());
+            }
+
+            lay.draw(*painter, {-_scrollPositionX + shiftLinenumber(), y}, baseInMargin, &formatingCharInMargin, highlights);
+            painterLeftOfMargin->clearRect(0, 0, _rightMarginHint + 1, lay.lineCount(), base.foregroundColor(), base.backgroundColor());
+            lay.draw(*painterLeftOfMargin, {0, 0}, base, &formatingChar, highlights);
+            painter->drawImageWithTiling(-_scrollPositionX + shiftLinenumber(), y,
+                                              *leftOfMarginBuffer, 0, 0, _rightMarginHint, lay.lineCount(),
+                                              Tui::ZTilingMode::NoTiling, Tui::ZTilingMode::Put);
+        } else {
+            lay.draw(*painter, {-_scrollPositionX + shiftLinenumber(), y}, base, &formatingChar, highlights);
+        }
         Tui::ZTextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
         tmpLastLineWidth = lastLine.width();
         if (isSelect(_doc._text[line].size(), line)) {
@@ -1279,8 +1327,9 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 painter->clearRect(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), 1, 1, selected.foregroundColor(), selected.backgroundColor());
             }
         } else if (formattingCharacters()) {
+            const Tui::ZTextStyle &markStyle = (_rightMarginHint && lastLine.width() > _rightMarginHint) ? formatingCharInMargin : formatingChar;
             painter->writeWithAttributes(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), QStringLiteral("¶"),
-                                         formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+                                         markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
         }
 
         if (_cursorPositionY == line) {
@@ -1304,7 +1353,9 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     }
     if (_doc._nonewline) {
         if (formattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
-            painter->writeWithAttributes(-_scrollPositionX + tmpLastLineWidth + shiftLinenumber(), y-1, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+            const Tui::ZTextStyle &markStyle = (_rightMarginHint && tmpLastLineWidth > _rightMarginHint) ? formatingCharInMargin : formatingChar;
+
+            painter->writeWithAttributes(-_scrollPositionX + tmpLastLineWidth + shiftLinenumber(), y-1, "♦", markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
         }
         painter->writeWithAttributes(0 + shiftLinenumber(), y, "\\ No newline at end of file", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
     } else {
