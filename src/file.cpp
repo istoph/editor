@@ -1594,98 +1594,33 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         text = " ";
     }
 
-    if (isSelect() &&
-            event->key() != Qt::Key_Right &&
-            event->key() != Qt::Key_Down &&
-            event->key() != Qt::Key_Left &&
-            event->key() != Qt::Key_Up &&
-            event->key() != Qt::Key_Home &&
-            event->key() != Qt::Key_End &&
-            event->key() != Qt::Key_PageUp &&
-            event->key() != Qt::Key_PageDown &&
-            event->key() != Qt::Key_Escape &&
-            event->key() != Qt::Key_F1 &&
-            event->key() != Qt::Key_F2 &&
-            event->key() != Qt::Key_F3 &&
-            event->key() != Qt::Key_F4 &&
-            event->key() != Qt::Key_F5 &&
-            event->key() != Qt::Key_F6 &&
-            event->key() != Qt::Key_F7 &&
-            event->key() != Qt::Key_F8 &&
-            event->key() != Qt::Key_F9 &&
-            event->key() != Qt::Key_F10 &&
-            event->key() != Qt::Key_F11 &&
-            event->key() != Qt::Key_F12 &&
-            event->key() != Qt::Key_Tab &&
-            event->modifiers() != Qt::ControlModifier &&
-            !(event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == Qt::AltModifier | Qt::ShiftModifier)) &&
-            !_blockSelect
-            ) {
+    auto delAndClearSelection = [this] {
         //Markierte Zeichen Löschen
         delSelect();
         resetSelect();
         adjustScrollPosition();
+    };
 
-    } else if(event->key() == Qt::Key_Backspace && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier)) {
+    auto resetSel = [this] {
+        resetSelect();
+        adjustScrollPosition();
+    };
+
+    if (event->key() == Qt::Key_Backspace && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier)) {
+        delAndClearSelection();
         deletePreviousCharacterOrWord(event->modifiers() & Qt::ControlModifier ? Tui::ZTextLayout::SkipWords : Tui::ZTextLayout::SkipCharacters);
         adjustScrollPosition();
     } else if(event->key() == Qt::Key_Delete && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier)) {
+        delAndClearSelection();
         deleteNextCharacterOrWord(event->modifiers() & Qt::ControlModifier ? Tui::ZTextLayout::SkipWords : Tui::ZTextLayout::SkipCharacters);
         adjustScrollPosition();
-    }
-
-    if (
-            event->key() != Qt::Key_Tab &&
-            event->key() != Qt::Key_F1 &&
-            event->key() != Qt::Key_F2 &&
-            event->key() != Qt::Key_F3 &&
-            event->key() != Qt::Key_F5 &&
-            event->key() != Qt::Key_F6 &&
-            event->key() != Qt::Key_F7 &&
-            event->key() != Qt::Key_F8 &&
-            event->key() != Qt::Key_F9 &&
-            event->key() != Qt::Key_F10 &&
-            event->key() != Qt::Key_F11 &&
-            event->key() != Qt::Key_F12 &&
-        (
-
-            !extendSelect &&
-            (
-                event->key() != Qt::Key_Right ||
-                event->key() != Qt::Key_Down ||
-                event->key() != Qt::Key_Left ||
-                event->key() != Qt::Key_Up ||
-                event->key() != Qt::Key_Home ||
-                event->key() != Qt::Key_End ||
-                event->key() != Qt::Key_PageUp ||
-                event->key() != Qt::Key_PageDown ||
-                event->key() != Qt::Key_Tab
-            )
-        ) && (
-            event->modifiers() != Qt::ControlModifier &&
-            (
-                event->text() != "x" ||
-                event->text() != "c" ||
-                event->text() != "v" ||
-                event->text() != "a"
-            )
-        ) && (
-             event->modifiers() != (Qt::ControlModifier | Qt::ShiftModifier) &&
-             (
-                 event->key() != Qt::Key_Right ||
-                 event->key() != Qt::Key_Left
-             )
-        ) && event->key() != Qt::Key_F4 && !_blockSelect
-        && !(event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == Qt::AltModifier | Qt::ShiftModifier))) {
-        resetSelect();
-        adjustScrollPosition();
-    }
-
-    if (_formatting_characters && (event->text() == "·" || event->text() == "→") && event->modifiers() == 0) {
+    } else if (_formatting_characters && (event->text() == "·" || event->text() == "→") && event->modifiers() == 0) {
+        delAndClearSelection();
         _doc._text[_cursorPositionY].insert(_cursorPositionX, ' ');
         ++_cursorPositionX;
         safeCursorPosition();
     } else if (_formatting_characters && event->text() == "¶" && event->modifiers() == 0) {
+        delAndClearSelection();
         //do not add the character
     } else if(text.size() && event->modifiers() == 0) {
         if(_blockSelect) {
@@ -1698,6 +1633,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 deleteNextCharacterOrWord(Tui::ZTextLayout::SkipCharacters);
             }
         } else {
+            delAndClearSelection();
             if(_doc._text[_cursorPositionY].size() < _cursorPositionX) {
                 _doc._text[_cursorPositionY].resize(_cursorPositionX, ' ');
             }
@@ -1785,6 +1721,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == Qt::ControlModifier || event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) )) {
         if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
             select(_cursorPositionX, _cursorPositionY);
+        } else {
+            resetSel();
         }
         _cursorPositionY = _cursorPositionX = _scrollPositionY = 0;
         if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
@@ -1812,6 +1750,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if(event->key() == Qt::Key_PageDown && (event->modifiers() == 0 || extendSelect)) {
         if(extendSelect) {
             select(_cursorPositionX, _cursorPositionY);
+        } else {
+            resetSel();
         }
         if (_doc._text.size() > _cursorPositionY + getVisibleLines()) {
             _cursorPositionY += getVisibleLines();
@@ -1828,6 +1768,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if(event->key() == Qt::Key_PageUp && (event->modifiers() == 0 || extendSelect)) {
         if(extendSelect) {
             select(_cursorPositionX, _cursorPositionY);
+        } else {
+            resetSel();
         }
         if (_cursorPositionY > getVisibleLines()) {
             _cursorPositionY -= getVisibleLines();
@@ -1842,6 +1784,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Enter && (event->modifiers() & ~Qt::KeypadModifier) == 0) {
+        delAndClearSelection();
         insertLinebreak();
         safeCursorPosition();
         _doc.saveUndoStep(this);
