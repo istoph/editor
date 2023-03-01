@@ -2,6 +2,8 @@
 
 #include "file.h"
 
+#include <optional>
+
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
