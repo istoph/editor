@@ -167,9 +167,9 @@ void Editor::setupUi() {
     QObject::connect(new Tui::ZCommandNotifier("Tab", this), &Tui::ZCommandNotifier::activated,
         [&] {
             if (_tabDialog) {
-                _tabDialog->setFocus();
                 _tabDialog->raise();
                 _tabDialog->setVisible(true);
+                _tabDialog->setFocus();
             } else {
                 _tabDialog = new TabDialog(this);
                 if (_file) {
