@@ -63,7 +63,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         vbox->add(hbox);
     }
 
-    {
+    if (_replace) {
         Tui::ZHBoxLayout *hbox = new Tui::ZHBoxLayout();
         hbox->setSpacing(2);
 
@@ -73,11 +73,8 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         _replaceText = new MyInputBox(this);
         labelReplace->setBuddy(_replaceText);
         hbox->addWidget(_replaceText);
-        if(_replace) {
-            labelFind->setMinimumSize(labelReplace->sizeHint());
-            vbox->add(hbox);
-        }
-
+        labelFind->setMinimumSize(labelReplace->sizeHint());
+        vbox->add(hbox);
     }
 
     {
@@ -140,11 +137,11 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         _findNextBtn->setDefault(true);
         hbox->addWidget(_findNextBtn);
 
-        _replaceBtn = new Tui::ZButton(Tui::withMarkup, "<m>R</m>eplace", this);
-
-        _replaceAllBtn = new Tui::ZButton(Tui::withMarkup, "<m>A</m>ll", this);
-
         if(_replace) {
+            _replaceBtn = new Tui::ZButton(Tui::withMarkup, "<m>R</m>eplace", this);
+
+            _replaceAllBtn = new Tui::ZButton(Tui::withMarkup, "<m>A</m>ll", this);
+
             hbox->addWidget(_replaceBtn);
             hbox->addWidget(_replaceAllBtn);
         }
@@ -167,8 +164,12 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
 
     QObject::connect(_searchText, &Tui::ZInputBox::textChanged, this, [this] (const QString& newText) {
         _findNextBtn->setEnabled(newText.size());
-        _replaceBtn->setEnabled(newText.size());
-        _replaceAllBtn->setEnabled(newText.size());
+        if (_replaceBtn) {
+            _replaceBtn->setEnabled(newText.size());
+        }
+        if (_replaceAllBtn) {
+            _replaceAllBtn->setEnabled(newText.size());
+        }
         if(_searchText->text() != "" && _liveSearchBox->checkState() == Qt::Checked) {
             Q_EMIT liveSearch(_searchText->text(), _forward->checked());
         }
@@ -178,13 +179,17 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         Q_EMIT findNext(_searchText->text(), _regexMatchBox->checkState(), _forward->checked());
     });
 
-    QObject::connect(_replaceBtn, &Tui::ZButton::clicked, [this]{
-        Q_EMIT replace1(_searchText->text(), _replaceText->text(), _regexMatchBox->checkState(), _forward->checked());
-    });
+    if (_replaceBtn) {
+        QObject::connect(_replaceBtn, &Tui::ZButton::clicked, [this]{
+            Q_EMIT replace1(_searchText->text(), _replaceText->text(), _regexMatchBox->checkState(), _forward->checked());
+        });
+    }
 
-     QObject::connect(_replaceAllBtn, &Tui::ZButton::clicked, [=]{
-         Q_EMIT replaceAll(_searchText->text(), _replaceText->text(), _regexMatchBox->checkState());
-     });
+    if (_replaceAllBtn) {
+        QObject::connect(_replaceAllBtn, &Tui::ZButton::clicked, [=]{
+            Q_EMIT replaceAll(_searchText->text(), _replaceText->text(), _regexMatchBox->checkState());
+        });
+    }
 
     QObject::connect(_cancelBtn, &Tui::ZButton::clicked, [=]{
         Q_EMIT canceled();
