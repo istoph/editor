@@ -147,6 +147,7 @@ private:
     bool initText();
     void adjustScrollPosition();
     void safeCursorPosition();
+    void updateCommands();
     void checkUndo();
 
     Tui::ZTextOption getTextOption(bool lineWithCursor);

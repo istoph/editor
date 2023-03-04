@@ -1727,16 +1727,13 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == Qt::ControlModifier || event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) )) {
-        if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
-            select(_cursorPositionX, _cursorPositionY);
+        if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) || _selectMode) {
+            _cursor.moveToStartOfDocument(true);
         } else {
-            resetSel();
+            _cursor.moveToStartOfDocument(false);
         }
-        _cursorPositionY = _cursorPositionX = _scrollPositionY = 0;
-        if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
-            select(_cursorPositionX, _cursorPositionY);
-        }
-        safeCursorPosition();
+
+        updateCommands();
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_End && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
@@ -1747,12 +1744,13 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_End && (event->modifiers() == Qt::ControlModifier || (event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)))) {
-        selectCursorPosition(event->modifiers());
-        _cursorPositionY = _doc._text.size() -1;
-        _cursorPositionX = _doc._text[_cursorPositionY].size();
+        if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) || _selectMode) {
+            _cursor.moveToEndOfDocument(true);
+        } else {
+            _cursor.moveToEndOfDocument(false);
+        }
 
-        selectCursorPosition(event->modifiers());
-        safeCursorPosition();
+        updateCommands();
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_PageDown && (event->modifiers() == 0 || extendSelect)) {
@@ -2080,6 +2078,11 @@ void File::safeCursorPosition() {
     Tui::ZTextLayout lay = getTextLayoutForLine(getTextOption(false), _cursorPositionY);
     Tui::ZTextLineRef tlr = lay.lineForTextPosition(_cursorPositionX);
     _saveCursorPositionX = tlr.cursorToX(_cursorPositionX, Tui::ZTextLayout::Leading);
+}
+
+void File::updateCommands() {
+    _cmdCopy->setEnabled(_cursor.hasAnySelection());
+    _cmdCut->setEnabled(_cursor.hasAnySelection());
 }
 
 
