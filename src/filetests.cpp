@@ -5,6 +5,7 @@
 #include "Tui/ZRoot.h"
 #include "Tui/ZTerminal.h"
 #include "Tui/ZTest.h"
+#include "Tui/ZTextMetrics.h"
 #include "Tui/ZWindow.h"
 
 #include "clipboard.h"
@@ -42,7 +43,7 @@ TEST_CASE("file") {
 
     DocumentTestHelper t;
     Document &doc = t.getDoc(f);
-    TextCursor cursor{&doc, f};
+    TextCursor cursor{&doc, f, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc._text[line]); lay.doLayout(65000); return lay; }};
 
     //OHNE TEXT
     CHECK(f->getCursorPosition() == QPoint{0,0});
@@ -145,7 +146,7 @@ TEST_CASE("actions") {
     DocumentTestHelper t;
 
     Document &doc = t.getDoc(f);
-    TextCursor cursor{&doc, f};
+    TextCursor cursor{&doc, f, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc._text[line]); lay.doLayout(65000); return lay; }};
 
     f->setFocus();
     f->setGeometry({0, 0, 80, 24});

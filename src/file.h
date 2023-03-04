@@ -26,7 +26,6 @@ public:
     using Position = TextCursor::Position;
 
 public:
-    File();
     explicit File(Tui::ZWidget *parent);
     bool setFilename(QString _filename);
     QString getFilename();

@@ -24,7 +24,10 @@
 #include "searchcount.h"
 
 
-File::File(Tui::ZWidget *parent) : Tui::ZWidget(parent), _cursor(&_doc, this) {
+File::File(Tui::ZWidget *parent)
+    : Tui::ZWidget(parent),
+      _cursor(&_doc, this, [this](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal()->textMetrics(), _doc._text[line]); lay.doLayout(65000); return lay; })
+{
     setFocusPolicy(Qt::StrongFocus);
     setCursorStyle(Tui::CursorStyle::Bar);
     setCursorColor(255, 255, 255);

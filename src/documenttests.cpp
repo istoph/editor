@@ -7,6 +7,7 @@
 #include <Tui/ZTest.h>
 
 #include <Tui/ZTerminal.h>
+#include <Tui/ZTextMetrics.h>
 
 #include "documenttests.h"
 
@@ -18,7 +19,7 @@ TEST_CASE("Document") {
 
     File file(&root);
     Document &doc = t.getDoc(&file);
-    TextCursor cursor{&doc, &file};
+    TextCursor cursor{&doc, &file, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc._text[line]); lay.doLayout(65000); return lay; }};
 
     SECTION("insert nonewline") {
         doc._nonewline = true;

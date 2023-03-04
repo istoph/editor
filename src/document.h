@@ -3,9 +3,13 @@
 #ifndef DOCUMENT_H
 #define DOCUMENT_H
 
+#include <functional>
+
 #include <QString>
 #include <QVector>
 
+#include <Tui/ZTerminal.h>
+#include <Tui/ZTextLayout.h>
 
 class File;
 class Document;
@@ -40,11 +44,17 @@ public:
 
 
 public:
-    TextCursor(Document *doc, File *file);
+    TextCursor(Document *doc, File *file, std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> createTextLayout);
 
     void insertText(const QString &text);
     void removeSelectedText();
     void clearSelection();
+
+    Position position();
+    void setPosition(Position pos, bool extendSelection = false);
+
+    Position anchor();
+    void setAnchorPosition(Position pos);
 
     // for hasSelection() == true
     Position selectionStartPos() const;
@@ -70,8 +80,13 @@ public:
     Position insertLineBreakAt(Position pos);
 
 private:
+    //TextLayout createTextLayout(int line, bool wrappingAllowed);
+    void updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForCursorLine);
+
+private:
     Document *_doc;
     File *_file;
+    std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> _createTextLayout;
 };
 
 class Document {

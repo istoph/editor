@@ -127,7 +127,8 @@ bool operator==(const TextCursor::Position &a, const TextCursor::Position &b) {
 }
 
 
-TextCursor::TextCursor(Document *doc, File *file) : _doc(doc), _file(file) {
+TextCursor::TextCursor(Document *doc, File *file, std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> createTextLayout)
+    : _doc(doc), _file(file), _createTextLayout(createTextLayout) {
 }
 
 void TextCursor::insertText(const QString &text) {
@@ -148,7 +149,8 @@ void TextCursor::insertText(const QString &text) {
             _doc->insertIntoLine(_file->_cursorPositionY, _file->_cursorPositionX, lines.at(i));
         }
     }
-    _file->safeCursorPosition();
+    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+    updateVerticalMovementColumn(lay);
     _file->adjustScrollPosition();
     _doc->saveUndoStep(_file);
 }
@@ -205,6 +207,64 @@ void TextCursor::clearSelection() {
     _file->_startSelectX = _file->_startSelectY = -1;
     _file->_endSelectX = _file->_endSelectY = -1;
     _file->_blockSelect = false;
+}
+
+TextCursor::Position TextCursor::position() {
+    return Position{_file->_cursorPositionX, _file->_cursorPositionY};
+}
+
+void TextCursor::setPosition(TextCursor::Position pos, bool extendSelection) {
+    const bool hadSel = hasSelection();
+    if (extendSelection) {
+        if (!hadSel) {
+            // remove multi-insert and block selection
+            clearSelection();
+            _file->_startSelectX = _file->_cursorPositionX;
+            _file->_startSelectY = _file->_cursorPositionY;
+        }
+    } else {
+        clearSelection();
+    }
+
+    _file->_cursorPositionY = std::max(std::min(pos.y, _doc->_text.size() - 1), 0);
+    _file->_cursorPositionX = std::max(std::min(pos.x, _doc->_text[_file->_cursorPositionY].size()), 0);
+
+    // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
+    if (_file->_cursorPositionX > 0) {
+        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        _file->_cursorPositionX = lay.previousCursorPosition(_file->_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
+        _file->_cursorPositionX = lay.nextCursorPosition(_file->_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
+    }
+
+    if (extendSelection) {
+        _file->_endSelectX = _file->_cursorPositionX;
+        _file->_endSelectY = _file->_cursorPositionY;
+    }
+}
+
+TextCursor::Position TextCursor::anchor() {
+    return Position{_file->_startSelectX, _file->_startSelectY};
+}
+
+void TextCursor::setAnchorPosition(TextCursor::Position pos) {
+    clearSelection();
+
+    _file->_startSelectY = std::max(std::min(pos.y, _doc->_text.size() - 1), 0);
+    _file->_startSelectX = std::max(std::min(pos.x, _doc->_text[_file->_startSelectY].size()), 0);
+
+    // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
+    if (_file->_startSelectX > 0) {
+        Tui::ZTextLayout lay = _createTextLayout(_file->_startSelectY, false);
+        _file->_startSelectX = lay.previousCursorPosition(_file->_startSelectX, Tui::ZTextLayout::SkipCharacters);
+        _file->_startSelectX = lay.nextCursorPosition(_file->_startSelectX, Tui::ZTextLayout::SkipCharacters);
+    }
+
+    if (_file->_startSelectY != _file->_cursorPositionY || _file->_startSelectX != _file->_cursorPositionX) {
+        _file->_endSelectX = _file->_cursorPositionX;
+        _file->_endSelectY = _file->_cursorPositionY;
+    } else {
+        clearSelection();
+    }
 }
 
 TextCursor::Position TextCursor::selectionStartPos() const {
@@ -289,4 +349,9 @@ TextCursor::Position TextCursor::insertLineBreakAt(Position cursor) {
         cursor.y += 1;
     }
     return cursor;
+}
+
+void TextCursor::updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForCursorLine) {
+    Tui::ZTextLineRef tlr = layoutForCursorLine.lineForTextPosition(_file->_cursorPositionX);
+    _file->_saveCursorPositionX = tlr.cursorToX(_file->_cursorPositionX, Tui::ZTextLayout::Leading);
 }
