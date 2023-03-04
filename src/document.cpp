@@ -213,6 +213,10 @@ void TextCursor::moveToStartOfDocument(bool extendSelection) {
     setPosition({0, 0}, extendSelection);
 }
 
+void TextCursor::moveToEndOfDocument(bool extendSelection) {
+    setPosition({_doc->_text.last().size(), _doc->_text.size() - 1}, extendSelection);
+}
+
 TextCursor::Position TextCursor::position() {
     return Position{_file->_cursorPositionX, _file->_cursorPositionY};
 }

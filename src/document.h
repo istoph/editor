@@ -51,6 +51,7 @@ public:
     void clearSelection();
 
     void moveToStartOfDocument(bool extendSelection = false);
+    void moveToEndOfDocument(bool extendSelection = false);
 
     Position position();
     void setPosition(Position pos, bool extendSelection = false);
