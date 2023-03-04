@@ -1710,7 +1710,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         selectCursorPosition(event->modifiers());
         _doc._collapseUndoStep = false;
-    } else if(event->key() == Qt::Key_Home && (event->modifiers() == 0 || extendSelect || extendBlockSelect)) {
+    } else if(event->key() == Qt::Key_Home && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         selectCursorPosition(event->modifiers());
         if(_cursorPositionX == 0) {
             for (int i = 0; i <= _doc._text[_cursorPositionY].size()-1; i++) {
@@ -1739,7 +1739,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         safeCursorPosition();
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
-    } else if(event->key() == Qt::Key_End && (event->modifiers() == 0 || extendSelect)) {
+    } else if(event->key() == Qt::Key_End && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         selectCursorPosition(event->modifiers());
         _cursorPositionX = _doc._text[_cursorPositionY].size();
         selectCursorPosition(event->modifiers());
