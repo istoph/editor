@@ -214,6 +214,19 @@ void TextCursor::moveToStartOfLine(bool extendSelection) {
     setPosition({0, currentLine}, extendSelection);
 }
 
+void TextCursor::moveToStartIndentedText(bool extendSelection) {
+    auto [currentCodeUnit, currentLine] = position();
+
+    int i = 0;
+    for (; i < _doc->_text[currentLine].size(); i++) {
+        if (_doc->_text[currentLine][i] != ' ' && _doc->_text[currentLine][i] != '\t') {
+            break;
+        }
+    }
+
+    setPosition({i, currentLine}, extendSelection);
+}
+
 void TextCursor::moveToStartOfDocument(bool extendSelection) {
     setPosition({0, 0}, extendSelection);
 }
