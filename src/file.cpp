@@ -1737,10 +1737,20 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_End && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier || extendBlockSelect)) {
-        selectCursorPosition(event->modifiers());
-        _cursorPositionX = _doc._text[_cursorPositionY].size();
-        selectCursorPosition(event->modifiers());
-        safeCursorPosition();
+        if (extendBlockSelect || _blockSelect) {
+            selectCursorPosition(event->modifiers());
+            _cursorPositionX = _doc._text[_cursorPositionY].size();
+            selectCursorPosition(event->modifiers());
+            safeCursorPosition();
+        } else {
+            if (event->modifiers() == Qt::ShiftModifier || _selectMode) {
+                _cursor.moveToEndOfLine(true);
+            } else {
+                _cursor.moveToEndOfDocument(false);
+            }
+            updateCommands();
+        }
+
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_End && (event->modifiers() == Qt::ControlModifier || (event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)))) {
