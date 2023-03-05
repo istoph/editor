@@ -1711,19 +1711,28 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         selectCursorPosition(event->modifiers());
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier || extendBlockSelect)) {
-        selectCursorPosition(event->modifiers());
-        if(_cursorPositionX == 0) {
-            for (int i = 0; i <= _doc._text[_cursorPositionY].size()-1; i++) {
-                if(_doc._text[_cursorPositionY][i] != ' ' && _doc._text[_cursorPositionY][i] != '\t') {
-                    _cursorPositionX = i;
-                    break;
+        if (extendBlockSelect || _blockSelect) {
+            selectCursorPosition(event->modifiers());
+            if (_cursorPositionX == 0) {
+                for (int i = 0; i <= _doc._text[_cursorPositionY].size()-1; i++) {
+                    if(_doc._text[_cursorPositionY][i] != ' ' && _doc._text[_cursorPositionY][i] != '\t') {
+                        _cursorPositionX = i;
+                        break;
+                    }
                 }
+            } else {
+                _cursorPositionX = 0;
             }
+            selectCursorPosition(event->modifiers());
+            safeCursorPosition();
         } else {
-            _cursorPositionX = 0;
+            const bool extendSelection = event->modifiers() == Qt::ShiftModifier || _selectMode;
+            if (_cursorPositionX == 0) {
+                _cursor.moveToStartIndentedText(extendSelection);
+            } else {
+                _cursor.moveToStartOfLine(extendSelection);
+            }
         }
-        selectCursorPosition(event->modifiers());
-        safeCursorPosition();
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == Qt::ControlModifier || event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) )) {
