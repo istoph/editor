@@ -50,6 +50,8 @@ public:
     void removeSelectedText();
     void clearSelection();
 
+    void moveToStartOfLine(bool extendSelection = false);
+
     void moveToStartOfDocument(bool extendSelection = false);
     void moveToEndOfDocument(bool extendSelection = false);
 

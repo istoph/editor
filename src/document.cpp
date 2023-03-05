@@ -209,6 +209,11 @@ void TextCursor::clearSelection() {
     _file->_blockSelect = false;
 }
 
+void TextCursor::moveToStartOfLine(bool extendSelection) {
+    auto [currentCodeUnit, currentLine] = position();
+    setPosition({0, currentLine}, extendSelection);
+}
+
 void TextCursor::moveToStartOfDocument(bool extendSelection) {
     setPosition({0, 0}, extendSelection);
 }
