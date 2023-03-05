@@ -227,6 +227,11 @@ void TextCursor::moveToStartIndentedText(bool extendSelection) {
     setPosition({i, currentLine}, extendSelection);
 }
 
+void TextCursor::moveToEndOfLine(bool extendSelection) {
+    auto [currentCodeUnit, currentLine] = position();
+    setPosition({_doc->_text[currentLine].size(), currentLine}, extendSelection);
+}
+
 void TextCursor::moveToStartOfDocument(bool extendSelection) {
     setPosition({0, 0}, extendSelection);
 }

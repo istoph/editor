@@ -52,6 +52,7 @@ public:
 
     void moveToStartOfLine(bool extendSelection = false);
     void moveToStartIndentedText(bool extendSelection = false);
+    void moveToEndOfLine(bool extendSelection = false);
 
     void moveToStartOfDocument(bool extendSelection = false);
     void moveToEndOfDocument(bool extendSelection = false);
