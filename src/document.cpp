@@ -212,6 +212,8 @@ void TextCursor::clearSelection() {
 void TextCursor::moveToStartOfLine(bool extendSelection) {
     auto [currentCodeUnit, currentLine] = position();
     setPosition({0, currentLine}, extendSelection);
+    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+    updateVerticalMovementColumn(lay);
 }
 
 void TextCursor::moveToStartIndentedText(bool extendSelection) {
@@ -225,19 +227,27 @@ void TextCursor::moveToStartIndentedText(bool extendSelection) {
     }
 
     setPosition({i, currentLine}, extendSelection);
+    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+    updateVerticalMovementColumn(lay);
 }
 
 void TextCursor::moveToEndOfLine(bool extendSelection) {
     auto [currentCodeUnit, currentLine] = position();
     setPosition({_doc->_text[currentLine].size(), currentLine}, extendSelection);
+    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+    updateVerticalMovementColumn(lay);
 }
 
 void TextCursor::moveToStartOfDocument(bool extendSelection) {
     setPosition({0, 0}, extendSelection);
+    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+    updateVerticalMovementColumn(lay);
 }
 
 void TextCursor::moveToEndOfDocument(bool extendSelection) {
     setPosition({_doc->_text.last().size(), _doc->_text.size() - 1}, extendSelection);
+    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+    updateVerticalMovementColumn(lay);
 }
 
 TextCursor::Position TextCursor::position() {
