@@ -50,6 +50,11 @@ public:
     void removeSelectedText();
     void clearSelection();
 
+    void moveCharacterLeft(bool extendSelection = false);
+    void moveCharacterRight(bool extendSelection = false);
+    void moveWordLeft(bool extendSelection = false);
+    void moveWordRight(bool extendSelection = false);
+
     void moveToStartOfLine(bool extendSelection = false);
     void moveToStartIndentedText(bool extendSelection = false);
     void moveToEndOfLine(bool extendSelection = false);

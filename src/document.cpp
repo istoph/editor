@@ -209,6 +209,62 @@ void TextCursor::clearSelection() {
     _file->_blockSelect = false;
 }
 
+void TextCursor::moveCharacterLeft(bool extendSelection) {
+    auto [currentCodeUnit, currentLine] = position();
+    if (currentCodeUnit) {
+        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        setPosition({lay.previousCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipCharacters), currentLine},
+                    extendSelection);
+        updateVerticalMovementColumn(lay);
+    } else if (currentLine > 0) {
+        setPosition({_doc->_text[currentLine - 1].size(), currentLine - 1}, extendSelection);
+        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        updateVerticalMovementColumn(lay);
+    }
+}
+
+void TextCursor::moveCharacterRight(bool extendSelection) {
+    auto [currentCodeUnit, currentLine] = position();
+    if (currentCodeUnit < _doc->_text[currentLine].size()) {
+        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        setPosition({lay.nextCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipCharacters), currentLine},
+                    extendSelection);
+        updateVerticalMovementColumn(lay);
+    } else if (currentLine + 1 < _doc->_text.size()) {
+        setPosition({0, currentLine + 1}, extendSelection);
+        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        updateVerticalMovementColumn(lay);
+    }
+}
+
+void TextCursor::moveWordLeft(bool extendSelection) {
+    auto [currentCodeUnit, currentLine] = position();
+    if (currentCodeUnit) {
+        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        setPosition({lay.previousCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipWords), currentLine},
+                    extendSelection);
+        updateVerticalMovementColumn(lay);
+    } else if (currentLine > 0) {
+        setPosition({_doc->_text[currentLine - 1].size(), currentLine - 1}, extendSelection);
+        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        updateVerticalMovementColumn(lay);
+    }
+}
+
+void TextCursor::moveWordRight(bool extendSelection) {
+    auto [currentCodeUnit, currentLine] = position();
+    if (currentCodeUnit < _doc->_text[currentLine].size()) {
+        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        setPosition({lay.nextCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipWords), currentLine},
+                    extendSelection);
+        updateVerticalMovementColumn(lay);
+    } else if (currentLine + 1 < _doc->_text.size()) {
+        setPosition({0, currentLine + 1}, extendSelection);
+        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        updateVerticalMovementColumn(lay);
+    }
+}
+
 void TextCursor::moveToStartOfLine(bool extendSelection) {
     auto [currentCodeUnit, currentLine] = position();
     setPosition({0, currentLine}, extendSelection);
