@@ -1552,7 +1552,7 @@ bool File::event(QEvent *event) {
 
 void File::pasteEvent(Tui::ZPasteEvent *event) {
     QString text = event->text();
-    if(_formatting_characters) {
+    if(_formattingCharacters) {
         text.replace(QString("·"), QString(" "));
         text.replace(QString("→"), QString(" "));
         text.replace(QString("¶"), QString(""));
@@ -1620,7 +1620,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         deleteNextCharacterOrWord(event->modifiers() & Qt::ControlModifier ? Tui::ZTextLayout::SkipWords : Tui::ZTextLayout::SkipCharacters);
         adjustScrollPosition();
     } else if(text.size() && event->modifiers() == 0) {
-        if (_formatting_characters) {
+        if (_formattingCharacters) {
             if (text == "·" || text == "→") {
                 text = " ";
             } else if (event->text() == "¶") {

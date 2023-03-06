@@ -181,7 +181,6 @@ private:
     bool _tabOption = true;
     bool _eatSpaceBeforeTabs = true;
     Tui::ZTextOption::WrapMode _wrapOption = Tui::ZTextOption::NoWrap;
-    bool _formatting_characters = true;
     bool _overwrite = false;
     QString _searchText;
     QString _replaceText;
