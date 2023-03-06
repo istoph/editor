@@ -1755,7 +1755,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             if (event->modifiers() == Qt::ShiftModifier || _selectMode) {
                 _cursor.moveToEndOfLine(true);
             } else {
-                _cursor.moveToEndOfDocument(false);
+                _cursor.moveToEndOfLine(false);
             }
             updateCommands();
         }
