@@ -1658,35 +1658,53 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         // Alt + Shift + s sort selected lines
         sortSelecedLines();
         update();
-    } else if(event->key() == Qt::Key_Left) {
-        selectCursorPosition(event->modifiers());
-        if (_cursorPositionX > 0) {
-            Tui::ZTextLayout lay(terminal()->textMetrics(), _doc._text[_cursorPositionY]);
-            lay.doLayout(rect().width());
-            auto mode = event->modifiers() & Qt::ControlModifier ? Tui::ZTextLayout::SkipWords : Tui::ZTextLayout::SkipCharacters;
-            _cursorPositionX = lay.previousCursorPosition(_cursorPositionX, mode);
-        } else if (_cursorPositionY > 0) {
-            _cursorPositionY -= 1;
-            _cursorPositionX = _doc._text[_cursorPositionY].size();
+    } else if (event->key() == Qt::Key_Left) {
+        if (extendBlockSelect || _blockSelect) {
+            selectCursorPosition(event->modifiers());
+            if (_cursorPositionX > 0) {
+                Tui::ZTextLayout lay(terminal()->textMetrics(), _doc._text[_cursorPositionY]);
+                lay.doLayout(rect().width());
+                auto mode = event->modifiers() & Qt::ControlModifier ? Tui::ZTextLayout::SkipWords : Tui::ZTextLayout::SkipCharacters;
+                _cursorPositionX = lay.previousCursorPosition(_cursorPositionX, mode);
+            } else if (_cursorPositionY > 0) {
+                _cursorPositionY -= 1;
+                _cursorPositionX = _doc._text[_cursorPositionY].size();
+            }
+            safeCursorPosition();
+            selectCursorPosition(event->modifiers());
+        } else {
+            const bool extendSelection = event->modifiers() & Qt::ShiftModifier || _selectMode;
+            if (event->modifiers() & Tui::ControlModifier) {
+                _cursor.moveWordLeft(extendSelection);
+            } else {
+                _cursor.moveCharacterLeft(extendSelection);
+            }
         }
-        safeCursorPosition();
         adjustScrollPosition();
-        selectCursorPosition(event->modifiers());
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Right) {
-        selectCursorPosition(event->modifiers());
-        if (_cursorPositionX < _doc._text[_cursorPositionY].size()) {
-            Tui::ZTextLayout lay(terminal()->textMetrics(), _doc._text[_cursorPositionY]);
-            lay.doLayout(rect().width());
-            auto mode = event->modifiers() & Qt::ControlModifier ? Tui::ZTextLayout::SkipWords : Tui::ZTextLayout::SkipCharacters;
-            _cursorPositionX = lay.nextCursorPosition(_cursorPositionX, mode);
-        } else if (_cursorPositionY + 1 < _doc._text.size()) {
-            ++_cursorPositionY;
-            _cursorPositionX = 0;
+        if (extendBlockSelect || _blockSelect) {
+            selectCursorPosition(event->modifiers());
+            if (_cursorPositionX < _doc._text[_cursorPositionY].size()) {
+                Tui::ZTextLayout lay(terminal()->textMetrics(), _doc._text[_cursorPositionY]);
+                lay.doLayout(rect().width());
+                auto mode = event->modifiers() & Qt::ControlModifier ? Tui::ZTextLayout::SkipWords : Tui::ZTextLayout::SkipCharacters;
+                _cursorPositionX = lay.nextCursorPosition(_cursorPositionX, mode);
+            } else if (_cursorPositionY + 1 < _doc._text.size()) {
+                ++_cursorPositionY;
+                _cursorPositionX = 0;
+            }
+            safeCursorPosition();
+            selectCursorPosition(event->modifiers());
+        } else {
+            const bool extendSelection = event->modifiers() & Qt::ShiftModifier || _selectMode;
+            if (event->modifiers() & Tui::ControlModifier) {
+                _cursor.moveWordRight(extendSelection);
+            } else {
+                _cursor.moveCharacterRight(extendSelection);
+            }
         }
-        safeCursorPosition();
         adjustScrollPosition();
-        selectCursorPosition(event->modifiers());
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Down && (event->modifiers() == 0 || extendSelect || extendBlockSelect) && event->modifiers() != (Qt::ControlModifier | Qt::ShiftModifier)) {
         selectCursorPosition(event->modifiers());
