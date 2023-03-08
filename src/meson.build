@@ -4,16 +4,16 @@ main = ['main.cpp']
 
 #ide:editable-filelist
 tests = [
-  'documenttests.cpp',
-  'filelistparsertests.cpp',
-  'fileopentests.cpp',
-  'filesavetests.cpp',
-  'filetests.cpp',
-  'tests.cpp',
+  'tests/documenttests.cpp',
+  'tests/filelistparsertests.cpp',
+  'tests/fileopentests.cpp',
+  'tests/filesavetests.cpp',
+  'tests/filetests.cpp',
+  'tests/tests.cpp',
 ]
 
 tests_headers = [
-  'documenttests.h',
+  'tests/documenttests.h',
 ]
 
 #ide:editable-filelist
