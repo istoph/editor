@@ -123,7 +123,7 @@ bool operator>(const TextCursor::Position &a, const TextCursor::Position &b) {
 }
 
 bool operator==(const TextCursor::Position &a, const TextCursor::Position &b) {
-    return std::tie(a.x, a.y) < std::tie(b.x, b.y);
+    return std::tie(a.x, a.y) == std::tie(b.x, b.y);
 }
 
 
