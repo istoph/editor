@@ -85,4 +85,44 @@ TEST_CASE("Document") {
 //        CHECK(doc._text[0] == "    aa");
 //        CHECK(file.getCursorPosition() == QPoint{4,0});
 //    }
+
+    SECTION("TextCursor-Position-without-text") {
+
+        CHECK(cursor.position() == TextCursor::Position{0,0});
+
+        bool selection = GENERATE(false, true);
+        CAPTURE(selection);
+
+        bool afterDeletetText = GENERATE(false, true);
+        CAPTURE(afterDeletetText);
+        if (afterDeletetText) {
+            cursor.insertText("test test\ntest test\ntest test\n");
+            REQUIRE(doc._text.size() == 4);
+            file.selectAll();
+            //TODO: backspace
+            cursor.removeSelectedText();
+        }
+
+        cursor.moveCharacterLeft(selection);
+        CHECK(cursor.position() == TextCursor::Position{0,0});
+        cursor.moveWordLeft(selection);
+        CHECK(cursor.position() == TextCursor::Position{0,0});
+        cursor.moveToStartOfLine(selection);
+        CHECK(cursor.position() == TextCursor::Position{0,0});
+
+        cursor.moveCharacterRight(selection);
+        CHECK(cursor.position() == TextCursor::Position{0,0});
+        cursor.moveWordRight(selection);
+        CHECK(cursor.position() == TextCursor::Position{0,0});
+        cursor.moveToEndOfLine(selection);
+        CHECK(cursor.position() == TextCursor::Position{0,0});
+
+        cursor.moveToStartOfDocument(selection);
+        CHECK(cursor.position() == TextCursor::Position{0,0});
+        cursor.moveToStartOfDocument(selection);
+        CHECK(cursor.position() == TextCursor::Position{0,0});
+
+        cursor.setPosition({3,2}, selection);
+        CHECK(cursor.position() == TextCursor::Position{0,0});
+    }
 }
