@@ -1620,12 +1620,35 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     };
 
     if (event->key() == Qt::Key_Backspace && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier)) {
-        delAndClearSelection();
-        deletePreviousCharacterOrWord(event->modifiers() & Qt::ControlModifier ? Tui::ZTextLayout::SkipWords : Tui::ZTextLayout::SkipCharacters);
+        setSelectMode(false);
+        if (hasBlockSelection()) {
+            delAndClearSelection();
+        } else if (hasMultiInsert()) {
+            deletePreviousCharacterOrWord(event->modifiers() & Qt::ControlModifier ? Tui::ZTextLayout::SkipWords : Tui::ZTextLayout::SkipCharacters);
+        } else {
+            if (event->modifiers() & Qt::ControlModifier) {
+                _cursor.deletePreviousWord();
+            } else {
+                _cursor.deletePreviousCharacter();
+            }
+        }
         adjustScrollPosition();
     } else if(event->key() == Qt::Key_Delete && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier)) {
-        delAndClearSelection();
-        deleteNextCharacterOrWord(event->modifiers() & Qt::ControlModifier ? Tui::ZTextLayout::SkipWords : Tui::ZTextLayout::SkipCharacters);
+        setSelectMode(false);
+        if (hasBlockSelection()) {
+            delAndClearSelection();
+        } else if (hasMultiInsert()) {
+            deleteNextCharacterOrWord(event->modifiers() & Qt::ControlModifier ? Tui::ZTextLayout::SkipWords : Tui::ZTextLayout::SkipCharacters);
+        } else {
+            if (event->modifiers() & Qt::ControlModifier) {
+                _cursor.deleteWord();
+            } else {
+                if (_cursor.atEnd()) {
+                    _doc._nonewline = true;
+                }
+                _cursor.deleteCharacter();
+            }
+        }
         adjustScrollPosition();
     } else if(text.size() && event->modifiers() == 0) {
         if (_formattingCharacters) {
