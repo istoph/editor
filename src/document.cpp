@@ -210,6 +210,38 @@ void TextCursor::clearSelection() {
     _file->_blockSelect = false;
 }
 
+void TextCursor::deleteCharacter() {
+    if (!hasSelection()) {
+        moveCharacterRight(true);
+    }
+
+    removeSelectedText();
+}
+
+void TextCursor::deletePreviousCharacter() {
+    if (!hasSelection()) {
+        moveCharacterLeft(true);
+    }
+
+    removeSelectedText();
+}
+
+void TextCursor::deleteWord() {
+    if (!hasSelection()) {
+        moveWordRight(true);
+    }
+
+    removeSelectedText();
+}
+
+void TextCursor::deletePreviousWord() {
+    if (!hasSelection()) {
+        moveWordLeft(true);
+    }
+
+    removeSelectedText();
+}
+
 void TextCursor::moveCharacterLeft(bool extendSelection) {
     auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit) {
