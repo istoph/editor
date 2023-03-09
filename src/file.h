@@ -150,6 +150,9 @@ private:
     void updateCommands();
     void checkUndo();
 
+    bool hasBlockSelection() const;
+    bool hasMultiInsert() const;
+
     Tui::ZTextOption getTextOption(bool lineWithCursor);
     Tui::ZTextLayout getTextLayoutForLine(const Tui::ZTextOption &option, int line);
     bool highlightBracket();

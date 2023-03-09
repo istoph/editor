@@ -787,6 +787,14 @@ void File::checkUndo() {
     }
 }
 
+bool File::hasBlockSelection() const {
+    return _blockSelect && _startSelectX != _endSelectX;
+}
+
+bool File::hasMultiInsert() const {
+    return _blockSelect && _startSelectX == _endSelectX;
+}
+
 void File::setSearchText(QString searchText) {
     int gen = ++(*searchGeneration);
     _searchText = searchText.replace("\\t","\t");
