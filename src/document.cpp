@@ -132,7 +132,7 @@ TextCursor::TextCursor(Document *doc, File *file, std::function<Tui::ZTextLayout
 }
 
 void TextCursor::insertText(const QString &text) {
-    const auto lines = text.split("\n");
+    auto lines = text.split("\n");
 
     if (hasMultiInsert()) {
 
@@ -140,6 +140,10 @@ void TextCursor::insertText(const QString &text) {
 
     } else {
         removeSelectedText();
+        if (_doc->_nonewline && atEnd() && lines.size() > 1 && lines.last().size() == 0) {
+            lines.removeLast();
+            _doc->_nonewline = false;
+        }
         _doc->insertIntoLine(_file->_cursorPositionY, _file->_cursorPositionX, lines.front());
         _file->_cursorPositionX += lines.front().size();
         for (int i = 1; i < lines.size(); i++) {
