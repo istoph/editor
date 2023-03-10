@@ -1858,10 +1858,11 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Enter && (event->modifiers() & ~Qt::KeypadModifier) == 0) {
-        delAndClearSelection();
-        insertLinebreak();
-        safeCursorPosition();
-        _doc.saveUndoStep(this);
+        setSelectMode(false);
+        if (_blockSelect) {
+            delAndClearSelection();
+        }
+        _cursor.insertText("\n");
         adjustScrollPosition();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
         QPoint t;
