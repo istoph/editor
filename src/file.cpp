@@ -1663,6 +1663,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             }
         }
         if (text.size()) {
+            setSelectMode(false);
+
             if (_blockSelect) {
                 blockSelectEdit(_cursorPositionX);
                 for(int line: getBlockSelectedLines()) {
@@ -1672,21 +1674,20 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 if (isOverwrite()) {
                     deleteNextCharacterOrWord(Tui::ZTextLayout::SkipCharacters);
                 }
+                safeCursorPosition();
             } else {
-                delAndClearSelection();
-                if(_doc._text[_cursorPositionY].size() < _cursorPositionX) {
-                    _doc._text[_cursorPositionY].resize(_cursorPositionX, ' ');
+                if (isOverwrite()
+                    && !_cursor.hasSelection()
+                    && !_cursor.atLineEnd()) {
+
+                    _cursor.deleteCharacter();
                 }
-                if (isOverwrite() && _doc._text[_cursorPositionY].size() > _cursorPositionX) {
-                    deleteNextCharacterOrWord(Tui::ZTextLayout::SkipCharacters);
-                }
-                _doc._text[_cursorPositionY].insert(_cursorPositionX, text);
-                _cursorPositionX += text.size();
+                _cursor.insertText(text);
             }
-            safeCursorPosition();
             adjustScrollPosition();
             _doc.saveUndoStep(this, text != " ");
         }
+        updateCommands();
     } else if (event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == Qt::AltModifier | Qt::ShiftModifier)  && isSelect()) {
         // Alt + Shift + s sort selected lines
         sortSelecedLines();
