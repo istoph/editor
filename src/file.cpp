@@ -1632,6 +1632,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _cursor.deletePreviousCharacter();
             }
         }
+        updateCommands();
         adjustScrollPosition();
     } else if(event->key() == Qt::Key_Delete && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier)) {
         setSelectMode(false);
@@ -1649,6 +1650,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _cursor.deleteCharacter();
             }
         }
+        updateCommands();
         adjustScrollPosition();
     } else if(text.size() && event->modifiers() == 0) {
         if (_formattingCharacters) {
@@ -1711,6 +1713,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _cursor.moveCharacterLeft(extendSelection);
             }
         }
+        updateCommands();
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Right) {
@@ -1735,6 +1738,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _cursor.moveCharacterRight(extendSelection);
             }
         }
+        updateCommands();
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Down && (event->modifiers() == 0 || extendSelect || extendBlockSelect) && event->modifiers() != (Qt::ControlModifier | Qt::ShiftModifier)) {
@@ -1782,6 +1786,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _cursor.moveToStartOfLine(extendSelection);
             }
         }
+        updateCommands();
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == Qt::ControlModifier || event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) )) {
@@ -1863,6 +1868,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             delAndClearSelection();
         }
         _cursor.insertText("\n");
+        updateCommands();
         adjustScrollPosition();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
         QPoint t;
