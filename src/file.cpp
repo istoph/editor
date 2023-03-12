@@ -1168,12 +1168,14 @@ bool File::highlightBracket() {
     QString closeBracket = "}])>";
 
     if(getHighlightBracket()) {
+        const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+
         for(int i=0; i<openBracket.size(); i++) {
-            if (_doc._text[_cursorPositionY][_cursorPositionX] == openBracket[i]) {
+            if (_doc._text[cursorLine][cursorCodeUnit] == openBracket[i]) {
                 int y = 0;
                 int counter = 0;
-                int startX = _cursorPositionX+1;
-                for (int line = _cursorPositionY; y++ < rect().height() && line < _doc._text.size(); line++) {
+                int startX = cursorCodeUnit + 1;
+                for (int line = cursorLine; y++ < rect().height() && line < _doc._text.size(); line++) {
                     for(; startX < _doc._text[line].size(); startX++) {
                         if (_doc._text[line][startX] == openBracket[i]) {
                             counter++;
@@ -1191,10 +1193,10 @@ bool File::highlightBracket() {
                 }
             }
 
-            if (_doc._text[_cursorPositionY][_cursorPositionX] == closeBracket[i]) {
+            if (_doc._text[cursorLine][cursorCodeUnit] == closeBracket[i]) {
                 int counter = 0;
-                int startX = _cursorPositionX-1;
-                for (int line = _cursorPositionY; line >= 0;) {
+                int startX = cursorCodeUnit - 1;
+                for (int line = cursorLine; line >= 0;) {
                     for(; startX >= 0; startX--) {
                         if (_doc._text[line][startX] == closeBracket[i]) {
                             counter++;
