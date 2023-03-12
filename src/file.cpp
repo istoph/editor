@@ -1839,39 +1839,55 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         updateCommands();
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
-    } else if(event->key() == Qt::Key_PageDown && (event->modifiers() == 0 || extendSelect)) {
-        if(extendSelect) {
-            select(_cursorPositionX, _cursorPositionY);
+    } else if (event->key() == Qt::Key_PageDown && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
+        if (_blockSelect) {
+            if (extendSelect) {
+                select(_cursorPositionX, _cursorPositionY);
+            } else {
+                resetSel();
+            }
+            if (_doc._text.size() > _cursorPositionY + getVisibleLines()) {
+                _cursorPositionY += getVisibleLines();
+            } else {
+                _cursorPositionY = _doc._text.size() -1;
+            }
+            if (extendSelect) {
+                _cursorPositionX = _doc._text[_cursorPositionY].size();
+                select(_cursorPositionX, _cursorPositionY);
+            }
         } else {
-            resetSel();
-        }
-        if (_doc._text.size() > _cursorPositionY + getVisibleLines()) {
-            _cursorPositionY += getVisibleLines();
-        } else {
-            _cursorPositionY = _doc._text.size() -1;
-        }
-        if(extendSelect) {
-            _cursorPositionX = _doc._text[_cursorPositionY].size();
-            select(_cursorPositionX, _cursorPositionY);
+            const bool extendSelection = event->modifiers() == Qt::ShiftModifier || _selectMode;
+            const int amount = getVisibleLines();
+            for (int i = 0; i < amount; i++) {
+                _cursor.moveDown(extendSelection);
+            }
         }
         safeCursorPosition();
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
-    } else if(event->key() == Qt::Key_PageUp && (event->modifiers() == 0 || extendSelect)) {
-        if(extendSelect) {
-            select(_cursorPositionX, _cursorPositionY);
+    } else if (event->key() == Qt::Key_PageUp && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
+        if (_blockSelect) {
+            if (extendSelect) {
+                select(_cursorPositionX, _cursorPositionY);
+            } else {
+                resetSel();
+            }
+            if (_cursorPositionY > getVisibleLines()) {
+                _cursorPositionY -= getVisibleLines();
+            } else {
+                _cursorPositionY = 0;
+                _scrollPositionY = 0;
+            }
+            if (extendSelect) {
+                _cursorPositionX = 0;
+                select(_cursorPositionX, _cursorPositionY);
+            }
         } else {
-            resetSel();
-        }
-        if (_cursorPositionY > getVisibleLines()) {
-            _cursorPositionY -= getVisibleLines();
-        } else {
-            _cursorPositionY = 0;
-            _scrollPositionY = 0;
-        }
-        if(extendSelect) {
-            _cursorPositionX = 0;
-            select(_cursorPositionX, _cursorPositionY);
+            const bool extendSelection = event->modifiers() == Qt::ShiftModifier || _selectMode;
+            const int amount = getVisibleLines();
+            for (int i = 0; i < amount; i++) {
+                _cursor.moveUp(extendSelection);
+            }
         }
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
