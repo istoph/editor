@@ -1575,13 +1575,11 @@ bool File::event(QEvent *event) {
     }
 
     if (event->type() == Tui::ZEventType::terminalChange()) {
-        // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
-        if (_cursorPositionX > 0 && terminal()) {
-            Tui::ZTextLayout lay(terminal()->textMetrics(), _doc._text[_cursorPositionY]);
-            lay.doLayout(65000);
-            auto mode = Tui::ZTextLayout::SkipCharacters;
-            _cursorPositionX = lay.previousCursorPosition(_cursorPositionX, mode);
-            _cursorPositionX = lay.nextCursorPosition(_cursorPositionX, mode);
+        // We are not allowed to have the cursor position between characters. Character boundaries depend on the
+        // detected terminal thus reset the position to get the needed adjustment now.
+        if (!_cursor.atLineStart() && terminal()) {
+            clearComplexSelection();
+            _cursor.setPosition(_cursor.position());
         }
     }
 
