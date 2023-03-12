@@ -32,8 +32,7 @@ TEST_CASE("Document") {
     }
     SECTION("insert and remove nonewline") {
         doc._nonewline = true;
-        //cursor.insertText("\n");
-        cursor.insertLineBreakAt({0, 0});
+        cursor.insertText("\n");
         REQUIRE(doc._text.size() == 1);
         CHECK(doc._nonewline == false);
     }

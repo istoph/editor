@@ -491,17 +491,6 @@ Range TextCursor::getBlockSelectedLines() {
     return Range {selectionStartPos().y, selectionBlockEndPos().y + 1};
 }
 
-TextCursor::Position TextCursor::insertLineBreakAt(Position cursor) {
-    if(_doc->_nonewline && cursor.y == _doc->_text.size() -1 && _doc->_text[cursor.y].size() == cursor.x) {
-        _doc->_nonewline = false;
-    } else {
-        _doc->splitLine(cursor);
-        cursor.x = 0;
-        cursor.y += 1;
-    }
-    return cursor;
-}
-
 void TextCursor::updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForCursorLine) {
     Tui::ZTextLineRef tlr = layoutForCursorLine.lineForTextPosition(_file->_cursorPositionX);
     _file->_saveCursorPositionX = tlr.cursorToX(_file->_cursorPositionX, Tui::ZTextLayout::Leading);

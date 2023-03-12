@@ -97,8 +97,6 @@ public:
 
     // rethink these later:
     Range getBlockSelectedLines();
-    Position insertLineBreakAt(Position pos);
-
 private:
     //TextLayout createTextLayout(int line, bool wrappingAllowed);
     void updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForCursorLine);
