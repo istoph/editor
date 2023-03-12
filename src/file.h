@@ -150,6 +150,8 @@ private:
     void updateCommands();
     void checkUndo();
 
+    void clearComplexSelection();
+
     bool hasBlockSelection() const;
     bool hasMultiInsert() const;
 

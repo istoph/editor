@@ -787,6 +787,12 @@ void File::checkUndo() {
     }
 }
 
+void File::clearComplexSelection() {
+    if (hasBlockSelection() || hasMultiInsert()) {
+        resetSelect();
+    }
+}
+
 bool File::hasBlockSelection() const {
     return _blockSelect && _startSelectX != _endSelectX;
 }
@@ -1803,6 +1809,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == Qt::ControlModifier || event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) )) {
+        clearComplexSelection();
         if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) || _selectMode) {
             _cursor.moveToStartOfDocument(true);
         } else {
@@ -1830,7 +1837,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_End && (event->modifiers() == Qt::ControlModifier || (event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)))) {
-        if(event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) || _selectMode) {
+        clearComplexSelection();
+        if (event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) || _selectMode) {
             _cursor.moveToEndOfDocument(true);
         } else {
             _cursor.moveToEndOfDocument(false);
