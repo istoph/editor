@@ -429,7 +429,7 @@ void File::cutline() {
 }
 
 void File::copy() {
-    if(_cursor.hasAnySelection()) {
+    if(hasBlockSelection() || _cursor.hasSelection()) {
         Clipboard *clipboard = findFacet<Clipboard>();
         QVector<QString> _clipboard;
         _clipboard.append("");
@@ -2193,8 +2193,8 @@ void File::safeCursorPosition() {
 }
 
 void File::updateCommands() {
-    _cmdCopy->setEnabled(_cursor.hasAnySelection());
-    _cmdCut->setEnabled(_cursor.hasAnySelection());
+    _cmdCopy->setEnabled(hasBlockSelection() || _cursor.hasSelection());
+    _cmdCut->setEnabled(hasBlockSelection() || _cursor.hasSelection());
 }
 
 

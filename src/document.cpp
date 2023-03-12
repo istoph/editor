@@ -134,75 +134,58 @@ TextCursor::TextCursor(Document *doc, File *file, std::function<Tui::ZTextLayout
 void TextCursor::insertText(const QString &text) {
     auto lines = text.split("\n");
 
-    if (hasMultiInsert()) {
-
-    } else if (hasBlockSelection()) {
-
-    } else {
-        removeSelectedText();
-        if (_doc->_nonewline && atEnd() && lines.size() > 1 && lines.last().size() == 0) {
-            lines.removeLast();
-            _doc->_nonewline = false;
-        }
-        _doc->insertIntoLine(_file->_cursorPositionY, _file->_cursorPositionX, lines.front());
-        _file->_cursorPositionX += lines.front().size();
-        for (int i = 1; i < lines.size(); i++) {
-            _doc->splitLine({_file->_cursorPositionX, _file->_cursorPositionY});
-            _file->_cursorPositionY++;
-            _file->_cursorPositionX = 0;
-            _doc->insertIntoLine(_file->_cursorPositionY, _file->_cursorPositionX, lines.at(i));
-        }
+    removeSelectedText();
+    if (_doc->_nonewline && atEnd() && lines.size() > 1 && lines.last().size() == 0) {
+        lines.removeLast();
+        _doc->_nonewline = false;
     }
+    _doc->insertIntoLine(_file->_cursorPositionY, _file->_cursorPositionX, lines.front());
+    _file->_cursorPositionX += lines.front().size();
+    for (int i = 1; i < lines.size(); i++) {
+        _doc->splitLine({_file->_cursorPositionX, _file->_cursorPositionY});
+        _file->_cursorPositionY++;
+        _file->_cursorPositionX = 0;
+        _doc->insertIntoLine(_file->_cursorPositionY, _file->_cursorPositionX, lines.at(i));
+    }
+
     Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
     updateVerticalMovementColumn(lay);
     _doc->saveUndoStep(_file);
 }
 
 void TextCursor::removeSelectedText() {
-    if (!hasAnySelection()) {
+    if (!hasSelection()) {
         return;
     }
 
-    if (hasBlockSelection()) {
-        const int codeUnitStart = selectionBlockStartPos().x;
-        const int codeUnits = selectionBlockEndPos().x - selectionBlockStartPos().x;
-        const int cursorLine = _file->_cursorPositionY;
-        for(int line: getBlockSelectedLines()) {
-            _doc->removeFromLine(line, codeUnitStart, codeUnits);
-        }
-        _file->setCursorPosition({codeUnitStart, cursorLine});
-        _file->_endSelectX = codeUnitStart;
-        _file->_startSelectX = codeUnitStart;
-    } else if (hasSelection()) {
-        const Position start = selectionStartPos();
-        const Position end = selectionEndPos();
+    const Position start = selectionStartPos();
+    const Position end = selectionEndPos();
 
-        if (start.y == end.y) {
-            // selection only on one line
-            _doc->removeFromLine(start.y, start.x, end.x - start.x);
+    if (start.y == end.y) {
+        // selection only on one line
+        _doc->removeFromLine(start.y, start.x, end.x - start.x);
+    } else {
+        _doc->removeFromLine(start.y, start.x, _doc->_text[start.y].size() - start.x);
+        const auto orignalTextLines = _doc->_text.size();
+        if (start.y + 1 < end.y) {
+            _doc->removeLines(start.y + 1, end.y - start.y - 1);
+        }
+        if (end.y == orignalTextLines) {
+            // selected until the end of buffer, no last selection line to edit
         } else {
-            _doc->removeFromLine(start.y, start.x, _doc->_text[start.y].size() - start.x);
-            const auto orignalTextLines = _doc->_text.size();
-            if (start.y + 1 < end.y) {
-                _doc->removeLines(start.y + 1, end.y - start.y - 1);
-            }
-            if (end.y == orignalTextLines) {
-                // selected until the end of buffer, no last selection line to edit
+            _doc->appendToLine(start.y, _doc->_text[start.y + 1].mid(end.x));
+            if (start.y + 1 < _doc->_text.size()) {
+                _doc->removeLines(start.y + 1, 1);
             } else {
-                _doc->appendToLine(start.y, _doc->_text[start.y + 1].mid(end.x));
-                if (start.y + 1 < _doc->_text.size()) {
-                    _doc->removeLines(start.y + 1, 1);
-                } else {
-                    _doc->removeFromLine(start.y + 1, 0, _doc->_text[start.y + 1].size());
-                }
+                _doc->removeFromLine(start.y + 1, 0, _doc->_text[start.y + 1].size());
             }
         }
-        _file->setCursorPosition({start.x, start.y});
-
-        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
-        updateVerticalMovementColumn(lay);
-        clearSelection();
     }
+    _file->setCursorPosition({start.x, start.y});
+
+    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+    updateVerticalMovementColumn(lay);
+    clearSelection();
 
     _doc->saveUndoStep(_file);
 }
@@ -210,7 +193,6 @@ void TextCursor::removeSelectedText() {
 void TextCursor::clearSelection() {
     _file->_startSelectX = _file->_startSelectY = -1;
     _file->_endSelectX = _file->_endSelectY = -1;
-    _file->_blockSelect = false;
 }
 
 void TextCursor::deleteCharacter() {
@@ -368,8 +350,6 @@ void TextCursor::setPosition(TextCursor::Position pos, bool extendSelection) {
     const bool hadSel = hasSelection();
     if (extendSelection) {
         if (!hadSel) {
-            // remove multi-insert and block selection
-            clearSelection();
             _file->_startSelectX = _file->_cursorPositionX;
             _file->_startSelectY = _file->_cursorPositionY;
         }
@@ -436,38 +416,8 @@ TextCursor::Position TextCursor::selectionEndPos() const {
     }
 }
 
-TextCursor::Position TextCursor::selectionBlockStartPos() const {
-    if (hasBlockSelection()) {
-        return std::min(Position{_file->_startSelectX, _file->_startSelectY},
-                        Position{_file->_endSelectX, _file->_endSelectY});
-    } else {
-        return Position{_file->_cursorPositionX, _file->_cursorPositionY};
-    }
-}
-
-TextCursor::Position TextCursor::selectionBlockEndPos() const {
-    if (hasBlockSelection()) {
-        return std::max(Position{_file->_startSelectX, _file->_startSelectY},
-                        Position{_file->_endSelectX, _file->_endSelectY});
-    } else {
-        return Position{_file->_cursorPositionX, _file->_cursorPositionY};
-    }
-}
-
 bool TextCursor::hasSelection() const {
-    return _file->_startSelectX != -1 && !hasBlockSelection() && !hasMultiInsert();
-}
-
-bool TextCursor::hasBlockSelection() const {
-    return _file->_blockSelect && _file->_startSelectX != _file->_endSelectX;
-}
-
-bool TextCursor::hasAnySelection() const {
-    return hasSelection() || hasBlockSelection();
-}
-
-bool TextCursor::hasMultiInsert() const {
-    return _file->_blockSelect && _file->_startSelectX == _file->_endSelectX;
+    return _file->_startSelectX != -1;
 }
 
 bool TextCursor::atStart() const {
@@ -485,10 +435,6 @@ bool TextCursor::atLineStart() const {
 
 bool TextCursor::atLineEnd() const {
     return _file->_cursorPositionX == _doc->_text[_file->_cursorPositionY].size();
-}
-
-Range TextCursor::getBlockSelectedLines() {
-    return Range {selectionStartPos().y, selectionBlockEndPos().y + 1};
 }
 
 void TextCursor::updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForCursorLine) {

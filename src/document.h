@@ -80,23 +80,13 @@ public:
     Position selectionStartPos() const;
     Position selectionEndPos() const;
 
-    // for hasBlockSelection() == true
-    Position selectionBlockStartPos() const;
-    Position selectionBlockEndPos() const;
-
     bool hasSelection() const;
-    bool hasBlockSelection() const;
-    bool hasAnySelection() const;
-
-    bool hasMultiInsert() const;
 
     bool atStart() const;
     bool atEnd() const;
     bool atLineStart() const;
     bool atLineEnd() const;
 
-    // rethink these later:
-    Range getBlockSelectedLines();
 private:
     //TextLayout createTextLayout(int line, bool wrappingAllowed);
     void updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForCursorLine);
