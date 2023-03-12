@@ -181,11 +181,11 @@ void TextCursor::removeSelectedText() {
             }
         }
     }
-    _file->setCursorPosition({start.x, start.y});
+    clearSelection();
+    setPosition(start);
 
     Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
     updateVerticalMovementColumn(lay);
-    clearSelection();
 
     _doc->saveUndoStep(_file);
 }
