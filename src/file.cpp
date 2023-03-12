@@ -2139,10 +2139,13 @@ void File::adjustScrollPosition() {
     if(geometry().width() <= 0 && geometry().height() <= 0) {
         return;
     }
+
+    const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+
     Tui::ZTextOption option = getTextOption(false);
     option.setWrapMode(Tui::ZTextOption::NoWrap);
-    Tui::ZTextLayout lay = getTextLayoutForLine(option, _cursorPositionY);
-    int cursorColumn = lay.lineAt(0).cursorToX(_cursorPositionX, Tui::ZTextLayout::Leading);
+    Tui::ZTextLayout lay = getTextLayoutForLine(option, cursorLine);
+    int cursorColumn = lay.lineAt(0).cursorToX(cursorCodeUnit, Tui::ZTextLayout::Leading);
 
     int viewWidth = geometry().width() - shiftLinenumber();
     //x
@@ -2162,14 +2165,14 @@ void File::adjustScrollPosition() {
     }
 
     //y
-    if(_cursorPositionY >= 0) {
-        if (_cursorPositionY - _scrollPositionY < 1) {
-            _scrollPositionY = _cursorPositionY;
+    if (cursorLine >= 0) {
+        if (cursorLine - _scrollPositionY < 1) {
+            _scrollPositionY = cursorLine;
         }
     }
-    if(!_wrapOption) {
-        if (_cursorPositionY - _scrollPositionY >= geometry().height() -1) {
-            _scrollPositionY = _cursorPositionY - geometry().height() +2;
+    if (!_wrapOption) {
+        if (cursorLine - _scrollPositionY >= geometry().height() - 1) {
+            _scrollPositionY = cursorLine - geometry().height() + 2;
         }
 
         if (_doc._text.size() - _scrollPositionY < geometry().height() -1) {
@@ -2180,10 +2183,10 @@ void File::adjustScrollPosition() {
         option = getTextOption(false);
         int y = 0;
         QVector<int> sizes;
-        for (int line = _scrollPositionY; line <= _cursorPositionY && line < _doc._text.size(); line++) {
+        for (int line = _scrollPositionY; line <= cursorLine && line < _doc._text.size(); line++) {
             Tui::ZTextLayout lay = getTextLayoutForLine(option, line);
-            if (_cursorPositionY == line) {
-                int cursorPhysicalLineInViewport = y + lay.lineForTextPosition(_cursorPositionX).y();
+            if (cursorLine == line) {
+                int cursorPhysicalLineInViewport = y + lay.lineForTextPosition(cursorCodeUnit).y();
                 while (sizes.size() && cursorPhysicalLineInViewport >= rect().height() - 1) {
                     cursorPhysicalLineInViewport -= sizes.takeFirst();
                     _scrollPositionY += 1;
@@ -2195,10 +2198,8 @@ void File::adjustScrollPosition() {
         }
     }
 
-
-
-    int _utf8PositionX = _doc._text[_cursorPositionY].left(_cursorPositionX).toUtf8().size();
-    cursorPositionChanged(cursorColumn, _utf8PositionX, _cursorPositionY);
+    int _utf8PositionX = _doc._text[cursorLine].left(cursorCodeUnit).toUtf8().size();
+    cursorPositionChanged(cursorColumn, _utf8PositionX, cursorLine);
     scrollPositionChanged(_scrollPositionX, _scrollPositionY);
 
     int max=0;
