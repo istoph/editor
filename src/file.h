@@ -94,7 +94,8 @@ public:
     int tabToSpace();
     int replaceAll(QString searchText, QString replaceText);
     QPoint getCursorPosition();
-    void setCursorPosition(QPoint position);
+    void setCursorPosition(TextCursor::Position position);
+    void setCursorPositionOld(QPoint position);
     QPoint getScrollPosition();
     void setRightMarginHint(int hint);
     int rightMarginHint() const;

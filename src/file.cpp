@@ -199,8 +199,18 @@ QPoint File::getCursorPosition() {
     return {_cursorPositionX, _cursorPositionY};
 }
 
-void File::setCursorPosition(QPoint position) {
-    _cursorPositionY = std::max(std::min(position.y(), _doc._text.size() -1), 0);
+void File::setCursorPosition(TextCursor::Position position) {
+    clearComplexSelection();
+
+    _cursor.setPosition(position);
+
+    updateCommands();
+    adjustScrollPosition();
+    update();
+}
+
+void File::setCursorPositionOld(QPoint position) {
+    _cursorPositionY = std::max(std::min(position.y(), _doc._text.size() - 1), 0);
     _cursorPositionX = std::max(std::min(position.x(), _doc._text[_cursorPositionY].size()), 0);
 
     //We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
@@ -212,6 +222,7 @@ void File::setCursorPosition(QPoint position) {
         _cursorPositionX = lay.nextCursorPosition(_cursorPositionX, mode);
     }
 
+    updateCommands();
     adjustScrollPosition();
 }
 
@@ -605,7 +616,7 @@ bool File::blockSelectEdit(int x) {
     _startSelectY = startY;
     _endSelectX = x;
     _endSelectY = stopY;
-    setCursorPosition({x,stopY});
+    setCursorPositionOld({x,stopY});
     return del;
 }
 
@@ -639,11 +650,11 @@ void File::selectLines(int startY, int endY) {
     if(startY > endY) {
         select(_doc._text[startY].size(), startY);
         select(0, endY);
-        setCursorPosition({0,endY});
+        setCursorPositionOld({0,endY});
     } else {
         select(0, startY);
         select(_doc._text[endY].size(), endY);
-        setCursorPosition({_doc._text[endY].size(), endY});
+        setCursorPositionOld({_doc._text[endY].size(), endY});
     }
 }
 
@@ -725,7 +736,7 @@ bool File::delSelect() {
                                std::max(endSelect.x, startSelect.x) - std::min(startSelect.x, endSelect.x));
         }
         const int pos = std::min(startSelect.x, endSelect.x);
-        setCursorPosition({pos, startSelect.y});
+        setCursorPositionOld({pos, startSelect.y});
         _endSelectX = pos;
         _startSelectX = pos;
     } else {
@@ -749,7 +760,7 @@ bool File::delSelect() {
                 }
             }
         }
-        setCursorPosition({startSelect.x, startSelect.y});
+        setCursorPositionOld({startSelect.x, startSelect.y});
         safeCursorPosition();
         resetSelect();
     }
@@ -1030,7 +1041,7 @@ void File::searchSelect(int line, int found, int length, bool direction) {
         select(_cursorPositionX, _cursorPositionY);
         select(_cursorPositionX + length, _cursorPositionY);
         if(direction) {
-            setCursorPosition({_cursorPositionX + length -1, _cursorPositionY});
+            setCursorPositionOld({_cursorPositionX + length -1, _cursorPositionY});
         }
         if(_cursorPositionY - 1 > 0) {
             _scrollPositionY = _cursorPositionY -1;
@@ -1395,7 +1406,7 @@ void File::deletePreviousCharacterOrWord(Tui::ZTextLayout::CursorMode mode) {
         }
     } else {
         t = deletePreviousCharacterOrWordAt(mode, _cursorPositionX, _cursorPositionY);
-        setCursorPosition(t);
+        setCursorPositionOld(t);
     }
     safeCursorPosition();
     _doc.saveUndoStep(this);
@@ -1435,7 +1446,7 @@ void File::deleteNextCharacterOrWord(Tui::ZTextLayout::CursorMode mode) {
         }
     } else {
         t = deleteNextCharacterOrWordAt(mode, _cursorPositionX, _cursorPositionY);
-        setCursorPosition(t);
+        setCursorPositionOld(t);
     }
 }
 
@@ -1520,7 +1531,7 @@ void File::insertAtCursorPosition(QVector<QString> str) {
     } else {
         delSelect();
         t = insertAtPosition(str, {_cursorPositionX, _cursorPositionY});
-        setCursorPosition(t);
+        setCursorPosition({t.x(), t.y()});
     }
     safeCursorPosition();
     adjustScrollPosition();
@@ -1935,12 +1946,12 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 for(; _doc._text[_cursorPositionY][i] == ' '; i++);
                 if(i > _cursorPositionX) {
                     _cursorPositionX = i;
-                    setCursorPosition({i, _cursorPositionY});
+                    setCursorPositionOld({i, _cursorPositionY});
                 }
             }
             // a normal tab
             t = addTabAt({_cursorPositionX, _cursorPositionY});
-            setCursorPosition(t);
+            setCursorPositionOld(t);
         }
         safeCursorPosition();
         _doc.saveUndoStep(this);
@@ -1958,19 +1969,19 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             if(_doc._text[selectedLine][0] == '\t') {
                _doc._text[selectedLine].remove(0,1);
                if(selectedLine == _cursorPositionY && !isSelect()) {
-                   setCursorPosition({_cursorPositionX - 1,_cursorPositionY});
+                   setCursorPositionOld({_cursorPositionX - 1,_cursorPositionY});
                }
             } else if (_doc._text[selectedLine].mid(0,getTabsize()) == QString(" ").repeated(getTabsize())) {
                 _doc._text[selectedLine].remove(0,getTabsize());
                 if(selectedLine == _cursorPositionY && !isSelect()) {
-                    setCursorPosition({_cursorPositionX - getTabsize(),_cursorPositionY});
+                    setCursorPositionOld({_cursorPositionX - getTabsize(),_cursorPositionY});
                 }
             } else {
                 for(int i = 0; i < getTabsize(); i++) {
                     if (_doc._text[selectedLine].mid(0,1) == QString(" ")) {
                         _doc._text[selectedLine].remove(0,1);
                         if(selectedLine == _cursorPositionY && !isSelect()) {
-                            setCursorPosition({_cursorPositionX - 1,_cursorPositionY});
+                            setCursorPositionOld({_cursorPositionX - 1,_cursorPositionY});
                         }
                     } else {
                         break;
@@ -2014,7 +2025,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if (_scrollPositionY > 0) {
             --_scrollPositionY;
             if (_scrollPositionY + geometry().height() < _cursorPositionY + 2) {
-                setCursorPosition({_cursorPositionX, _cursorPositionY -1});
+                setCursorPositionOld({_cursorPositionX, _cursorPositionY -1});
             }
         }
         //TODO: #193 scrollup with Crl+Up and wraped lines.
@@ -2024,7 +2035,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if (_doc._text.size() -1 > _scrollPositionY) {
             ++_scrollPositionY;
             if (_scrollPositionY > _cursorPositionY - 1) {
-                setCursorPosition({_cursorPositionX, _cursorPositionY +1});
+                setCursorPositionOld({_cursorPositionX, _cursorPositionY +1});
             }
         }
         adjustScrollPosition();
@@ -2048,7 +2059,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
             //Markirung Nachziehen
             if (_resetSelect) {
-                setCursorPosition({0, std::min(_startSelectY -1, _endSelectY -1)});
+                setCursorPositionOld({0, std::min(_startSelectY -1, _endSelectY -1)});
                 resetSelect();
             } else {
                 selectLines(getSelectLines().first -1, getSelectLines().second -1);
@@ -2077,7 +2088,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
             //Markirung Nachziehen
             if (_resetSelect) {
-                setCursorPosition({std::max(_startSelectX, _endSelectX), std::max(_startSelectY +1, _endSelectY +1)});
+                setCursorPositionOld({std::max(_startSelectX, _endSelectX), std::max(_startSelectY +1, _endSelectY +1)});
                 resetSelect();
             } else {
                 selectLines(getSelectLines().first +1, getSelectLines().second +1);

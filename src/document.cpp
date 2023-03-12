@@ -362,9 +362,11 @@ void TextCursor::setPosition(TextCursor::Position pos, bool extendSelection) {
 
     // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
     if (_file->_cursorPositionX > 0) {
-        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
-        _file->_cursorPositionX = lay.previousCursorPosition(_file->_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
-        _file->_cursorPositionX = lay.nextCursorPosition(_file->_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
+        if (!_file || _file->terminal()) { // TODO rethink this hack to allow using setPosition before terminal is connected
+            Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+            _file->_cursorPositionX = lay.previousCursorPosition(_file->_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
+            _file->_cursorPositionX = lay.nextCursorPosition(_file->_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
+        }
     }
 
     if (extendSelection) {
