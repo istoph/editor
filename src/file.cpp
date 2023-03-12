@@ -204,7 +204,8 @@ int File::tabToSpace() {
 }
 
 QPoint File::getCursorPosition() {
-    return {_cursorPositionX, _cursorPositionY};
+    const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+    return {cursorCodeUnit, cursorLine};
 }
 
 void File::setCursorPosition(TextCursor::Position position) {
