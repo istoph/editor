@@ -432,9 +432,8 @@ void File::cut() {
 
 void File::cutline() {
     resetSelect();
-    select(0,_cursorPositionY);
-    select(_doc._text[_cursorPositionY].size(),_cursorPositionY);
-    //select(0,_cursorPositionY +1);
+    _cursor.moveToStartOfLine();
+    _cursor.moveToEndOfLine(true);
     cut();
     _doc.saveUndoStep(this);
 }
