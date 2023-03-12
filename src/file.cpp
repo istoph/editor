@@ -466,7 +466,7 @@ bool File::isInsertable() {
 }
 
 void File::insertLinebreak() {
-    setCursorPosition(insertLinebreakAtPosition({_cursorPositionX, _cursorPositionY}));
+    _cursor.insertText("\n");
 }
 
 QPoint File::insertLinebreakAtPosition(QPoint cursor) {
