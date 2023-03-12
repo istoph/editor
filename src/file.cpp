@@ -1020,7 +1020,8 @@ void File::runSearch(bool direction) {
             watcher->deleteLater();
         });
 
-        SearchParameter search = { _searchText, _searchWrap, searchCaseSensitivity, _cursorPositionY, _cursorPositionX, _searchReg};
+        const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+        SearchParameter search = { _searchText, _searchWrap, searchCaseSensitivity, cursorLine, cursorCodeUnit, _searchReg};
         QFuture<SearchLine> future;
         if(efectivDirection) {
             future = QtConcurrent::run(conSearchNext, _doc._text, search, gen, searchNextGeneration);
