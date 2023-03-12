@@ -1064,10 +1064,10 @@ int File::replaceAll(QString searchText, QString replaceText) {
     setReplaceText(replaceText);
     _doc.setGroupUndo(this, true);
 
-    _cursorPositionY = 0;
-    _cursorPositionX = 0;
-    while(true) {
-        SearchParameter search = { _searchText, false, searchCaseSensitivity, _cursorPositionY, _cursorPositionX, _searchReg};
+    _cursor.setPosition({0, 0});
+    while (true) {
+        const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+        SearchParameter search = { _searchText, false, searchCaseSensitivity, cursorLine, cursorCodeUnit, _searchReg};
         SearchLine sl = searchNext(_doc._text, search);
         if(sl.length == -1) {
             break;
