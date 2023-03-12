@@ -1034,17 +1034,24 @@ void File::runSearch(bool direction) {
 
 void File::searchSelect(int line, int found, int length, bool direction) {
     if (found != -1) {
-        _cursorPositionY = line;
-        _cursorPositionX = found;
         adjustScrollPosition();
         resetSelect();
-        select(_cursorPositionX, _cursorPositionY);
-        select(_cursorPositionX + length, _cursorPositionY);
-        if(direction) {
-            setCursorPositionOld({_cursorPositionX + length -1, _cursorPositionY});
+
+        const TextCursor::Position positionStart = {found, line};
+        const TextCursor::Position positionEnd = {found + length, line};
+
+        if (direction) {
+            _cursor.setPosition(positionStart);
+            _cursor.setPosition(positionEnd, true);
+        } else {
+            _cursor.setPosition(positionEnd);
+            _cursor.setPosition(positionStart, true);
         }
-        if(_cursorPositionY - 1 > 0) {
-            _scrollPositionY = _cursorPositionY -1;
+
+        const auto [currentCodeUnit, currentLine] = _cursor.position();
+
+        if (currentLine - 1 > 0) {
+            _scrollPositionY = currentLine - 1;
         }
         safeCursorPosition();
         adjustScrollPosition();
