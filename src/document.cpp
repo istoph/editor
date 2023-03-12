@@ -302,6 +302,24 @@ void TextCursor::moveWordRight(bool extendSelection) {
     }
 }
 
+void TextCursor::moveUp(bool extendSelection) {
+    const auto [currentCodeUnit, currentLine] = position();
+    if (currentLine > 0) {
+        Tui::ZTextLayout lay = _createTextLayout(currentLine - 1, false);
+        Tui::ZTextLineRef la = lay.lineAt(0);
+        setPosition({la.xToCursor(_file->_saveCursorPositionX), currentLine - 1}, extendSelection);
+    }
+}
+
+void TextCursor::moveDown(bool extendSelection) {
+    const auto [currentCodeUnit, currentLine] = position();
+    if (currentLine < _doc->_text.size() - 1) {
+        Tui::ZTextLayout lay = _createTextLayout(currentLine + 1, false);
+        Tui::ZTextLineRef la = lay.lineAt(0);
+        setPosition({la.xToCursor(_file->_saveCursorPositionX), currentLine + 1}, extendSelection);
+    }
+}
+
 void TextCursor::moveToStartOfLine(bool extendSelection) {
     auto [currentCodeUnit, currentLine] = position();
     setPosition({0, currentLine}, extendSelection);

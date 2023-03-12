@@ -60,6 +60,9 @@ public:
     void moveWordLeft(bool extendSelection = false);
     void moveWordRight(bool extendSelection = false);
 
+    void moveUp(bool extendSelection = false);
+    void moveDown(bool extendSelection = false);
+
     void moveToStartOfLine(bool extendSelection = false);
     void moveToStartIndentedText(bool extendSelection = false);
     void moveToEndOfLine(bool extendSelection = false);
