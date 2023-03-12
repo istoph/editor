@@ -84,7 +84,7 @@ bool File::readAttributes() {
 }
 
 void File::getAttributes() {
-    if(_attributesfile.isEmpty() || _cursorPositionX || _cursorPositionY) {
+    if (_attributesfile.isEmpty() || !_cursor.atStart()) {
         return;
     }
     if(readAttributes()) {
