@@ -632,27 +632,54 @@ QPair<int,int> File::getSelectLinesSort() {
     auto lines = getSelectLines();
     return {std::min(lines.first, lines.second), std::max(lines.first, lines.second)};
 }
+
 QPair<int,int> File::getSelectLines() {
 /*
  * However other editors take that the chois
  * when the mouse cursor is at the beginning of a line
  * this line is not add to the selection.
 */
-    int startY = _startSelectY;
-    int endeY = _endSelectY;
 
-    if(_startSelectY > _endSelectY) {
-        if (select_cursor_position_x0 && _startSelectX == 0) {
-            startY--;
+    int startY;
+    int endeY;
+
+    if (hasBlockSelection() || hasMultiInsert()) {
+        startY = _startSelectY;
+        endeY = _endSelectY;
+
+        if (select_cursor_position_x0) {
+            if(_startSelectY > _endSelectY) {
+                if (_startSelectX == 0) {
+                    startY--;
+                }
+            } else {
+                if (_endSelectX == 0) {
+                    endeY--;
+                }
+            }
         }
     } else {
-        if (select_cursor_position_x0 && _endSelectX == 0) {
-            endeY--;
+        const auto [startCodeUnit, startLine] = _cursor.anchor();
+        const auto [endCodeUnit, endLine] = _cursor.position();
+        startY = startLine;
+        endeY = endLine;
+
+        if (select_cursor_position_x0) {
+            if(startLine > endLine) {
+                if (startCodeUnit == 0) {
+                    startY--;
+                }
+            } else {
+                if (endCodeUnit == 0) {
+                    endeY--;
+                }
+            }
         }
     }
 
     return {std::max(0, startY), std::max(0, endeY)};
 }
+
 void File::selectLines(int startY, int endY) {
     resetSelect();
     if(startY > endY) {
