@@ -155,7 +155,6 @@ void TextCursor::insertText(const QString &text) {
     }
     Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
     updateVerticalMovementColumn(lay);
-    _file->adjustScrollPosition();
     _doc->saveUndoStep(_file);
 }
 
