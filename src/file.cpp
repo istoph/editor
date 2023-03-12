@@ -1821,7 +1821,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             safeCursorPosition();
         } else {
             const bool extendSelection = event->modifiers() == Qt::ShiftModifier || _selectMode;
-            if (_cursorPositionX == 0) {
+
+            if (_cursor.atLineStart()) {
                 _cursor.moveToStartIndentedText(extendSelection);
             } else {
                 _cursor.moveToStartOfLine(extendSelection);
