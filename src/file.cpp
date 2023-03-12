@@ -167,8 +167,13 @@ int File::tabToSpace() {
     Tui::ZTextOption option = getTextOption(false);
     option.setWrapMode(Tui::ZTextOption::NoWrap);
 
-    Tui::ZTextLayout lay = getTextLayoutForLine(option, _cursorPositionY);
-    int cursorPosition = lay.lineAt(0).cursorToX(_cursorPositionX, Tui::ZTextLayout::Leading);
+    // This changes code unit based positions in many lines. To avoid glitches reset selection and
+    // manually save and restore cursor position. This should no longer be needed when TextCursor
+    // is fixed to be able to keep its position even when edits happen.
+    resetSelect();
+    const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+    Tui::ZTextLayout lay = getTextLayoutForLine(option, cursorLine);
+    int cursorPosition = lay.lineAt(0).cursorToX(cursorCodeUnit, Tui::ZTextLayout::Leading);
 
     for (int line = 0, found = -1; line < _doc._text.size(); line++) {
         found = _doc._text[line].lastIndexOf("\t");
@@ -185,10 +190,11 @@ int File::tabToSpace() {
         }
     }
 
-    lay = getTextLayoutForLine(option, _cursorPositionY);
+    // Restore cursor position
+    lay = getTextLayoutForLine(option, cursorLine);
     int newCursorPosition = lay.lineAt(0).xToCursor(cursorPosition);
-    if(newCursorPosition -1 >= 0) {
-        _cursorPositionX = newCursorPosition;
+    if (newCursorPosition - 1 >= 0) {
+        _cursor.setPosition({newCursorPosition, cursorLine});
     }
 
     if (count > 0) {
