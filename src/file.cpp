@@ -841,7 +841,7 @@ void File::setSearchText(QString searchText) {
 }
 
 void File::setReplaceText(QString replaceText) {
-   _replaceText = replaceText.replace("\\t","\t");
+   _replaceText = replaceText;
 }
 
 void File::setRegex(bool reg) {
@@ -876,30 +876,36 @@ void File::followStandardInput(bool follow) {
 }
 
 void File::setReplaceSelected() {
-    if(isSelect()){
+    if (isSelect()) {
         _doc.setGroupUndo(this, true);
-        delSelect();
-        bool esc=false;
-        for (int i=0; i<_replaceText.size(); i++) {
-            if(esc) {
-                switch (_replaceText[i].unicode()) {
+
+        clearComplexSelection();
+
+        QString text;
+
+        bool esc = false;
+        for (QChar ch: _replaceText) {
+            if (esc) {
+                switch (ch.unicode()) {
                     case 'n':
-                        insertLinebreak();
+                        text += "\n";
                         break;
                     case 't':
+                        text += "\t";
                         break;
                 }
                 esc = false;
             } else {
-                if(_replaceText[i] == '\\') {
+                if (ch == '\\') {
                     esc = true;
                 } else {
-                    _doc._text[_cursorPositionY].insert(_cursorPositionX, _replaceText[i]);
-                    _cursorPositionX++;
+                    text += ch;
                 }
             }
         }
-        safeCursorPosition();
+
+        _cursor.insertText(text);
+
         adjustScrollPosition();
         _doc.setGroupUndo(this, false);
     }
