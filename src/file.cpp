@@ -1742,27 +1742,39 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         updateCommands();
         adjustScrollPosition();
         _doc._collapseUndoStep = false;
-    } else if(event->key() == Qt::Key_Down && (event->modifiers() == 0 || extendSelect || extendBlockSelect) && event->modifiers() != (Qt::ControlModifier | Qt::ShiftModifier)) {
-        selectCursorPosition(event->modifiers());
-        if (_doc._text.size() -1 > _cursorPositionY) {
-            ++_cursorPositionY;
-            Tui::ZTextLayout lay = getTextLayoutForLine(getTextOption(false), _cursorPositionY);
-            Tui::ZTextLineRef la = lay.lineAt(0);
-            _cursorPositionX = la.xToCursor(_saveCursorPositionX);
+    } else if (event->key() == Qt::Key_Down && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier || extendBlockSelect)) {
+        if (extendBlockSelect || _blockSelect) {
+            selectCursorPosition(event->modifiers());
+            if (_doc._text.size() -1 > _cursorPositionY) {
+                ++_cursorPositionY;
+                Tui::ZTextLayout lay = getTextLayoutForLine(getTextOption(false), _cursorPositionY);
+                Tui::ZTextLineRef la = lay.lineAt(0);
+                _cursorPositionX = la.xToCursor(_saveCursorPositionX);
+            }
+            selectCursorPosition(event->modifiers());
+        } else {
+            const bool extendSelection = event->modifiers() & Qt::ShiftModifier || _selectMode;
+            _cursor.moveDown(extendSelection);
         }
+        updateCommands();
         adjustScrollPosition();
-        selectCursorPosition(event->modifiers());
         _doc._collapseUndoStep = false;
-    } else if(event->key() == Qt::Key_Up && (event->modifiers() == 0 || extendSelect  || extendBlockSelect) && event->modifiers() != (Qt::ControlModifier | Qt::ShiftModifier)) {
-        selectCursorPosition(event->modifiers());
-        if (_cursorPositionY > 0) {
-            --_cursorPositionY;
-            Tui::ZTextLayout lay = getTextLayoutForLine(getTextOption(false), _cursorPositionY);
-            Tui::ZTextLineRef la = lay.lineAt(0);
-            _cursorPositionX = la.xToCursor(_saveCursorPositionX);
+    } else if (event->key() == Qt::Key_Up && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier || extendBlockSelect)) {
+        if (extendBlockSelect || _blockSelect) {
+            selectCursorPosition(event->modifiers());
+            if (_cursorPositionY > 0) {
+                --_cursorPositionY;
+                Tui::ZTextLayout lay = getTextLayoutForLine(getTextOption(false), _cursorPositionY);
+                Tui::ZTextLineRef la = lay.lineAt(0);
+                _cursorPositionX = la.xToCursor(_saveCursorPositionX);
+            }
+            selectCursorPosition(event->modifiers());
+        } else {
+            const bool extendSelection = event->modifiers() & Qt::ShiftModifier || _selectMode;
+            _cursor.moveUp(extendSelection);
         }
+        updateCommands();
         adjustScrollPosition();
-        selectCursorPosition(event->modifiers());
         _doc._collapseUndoStep = false;
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier || extendBlockSelect)) {
         if (extendBlockSelect || _blockSelect) {
