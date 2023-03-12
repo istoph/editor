@@ -2130,6 +2130,12 @@ void File::selectCursorPosition(Qt::KeyboardModifiers modifiers) {
 }
 
 void File::adjustScrollPosition() {
+
+    // FIXME: Remove when everything uses TextCursor and TextCursor can ensure it does not point outside of the line.
+    if (_doc._text[_cursorPositionY].size() < _cursorPositionX) {
+        _cursorPositionX = _doc._text[_cursorPositionY].size();
+    }
+
     if(geometry().width() <= 0 && geometry().height() <= 0) {
         return;
     }
@@ -2190,9 +2196,6 @@ void File::adjustScrollPosition() {
     }
 
 
-    if (_doc._text[_cursorPositionY].size() < _cursorPositionX) {
-        _cursorPositionX = _doc._text[_cursorPositionY].size();
-    }
 
     int _utf8PositionX = _doc._text[_cursorPositionY].left(_cursorPositionX).toUtf8().size();
     cursorPositionChanged(cursorColumn, _utf8PositionX, _cursorPositionY);
