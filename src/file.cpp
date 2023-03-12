@@ -1274,12 +1274,16 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     const Tui::ZTextStyle blockSelectedFormatingChar{Tui::Colors::darkGray, Tui::Colors::lightGray, Tui::ZTextAttribute::Blink};
     const Tui::ZTextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
 
+    const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+
     QString strlinenumber;
     int y = 0;
     int tmpLastLineWidth = 0;
     for (int line = _scrollPositionY; y < rect().height() && line < _doc._text.size(); line++) {
         Tui::ZTextLayout lay = [&] {
-                if (line == _cursorPositionY && _doc._text[_cursorPositionY].size() == _cursorPositionX) {
+                const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+
+                if (line == cursorLine && _doc._text[cursorLine].size() == cursorCodeUnit) {
                     return getTextLayoutForLine(getTextOption(true), line);
                 }
                 return getTextLayoutForLine(option, line);
@@ -1309,8 +1313,8 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
             if (_bracketY == line) {
                 highlights.append(Tui::ZFormatRange{_bracketX, 1, {Tui::Colors::cyan, bg,Tui::ZTextAttribute::Bold}, selectedFormatingChar});
             }
-            if (line == _cursorPositionY) {
-                highlights.append(Tui::ZFormatRange{_cursorPositionX, 1, {Tui::Colors::cyan, bg,Tui::ZTextAttribute::Bold}, selectedFormatingChar});
+            if (line == cursorLine) {
+                highlights.append(Tui::ZFormatRange{cursorCodeUnit, 1, {Tui::Colors::cyan, bg,Tui::ZTextAttribute::Bold}, selectedFormatingChar});
             }
         }
 
@@ -1369,15 +1373,15 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                                          markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
         }
 
-        if (_cursorPositionY == line) {
+        if (cursorLine == line) {
             if (focus()) {
-                lay.showCursor(*painter, {-_scrollPositionX + shiftLinenumber(), y}, _cursorPositionX);
+                lay.showCursor(*painter, {-_scrollPositionX + shiftLinenumber(), y}, cursorCodeUnit);
             }
         }
         //linenumber
         if(_linenumber) {
             strlinenumber = QString::number(line + 1) + QString(" ").repeated(shiftLinenumber() - QString::number(line + 1).size());
-            if (line == _cursorPositionY) {
+            if (line == cursorLine) {
                 painter->writeWithAttributes(0, y, strlinenumber, getColor("chr.linenumberFg"), getColor("chr.linenumberBg"), Tui::ZTextAttribute::Bold);
             } else {
                 painter->writeWithColors(0, y, strlinenumber, getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
