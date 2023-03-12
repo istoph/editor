@@ -106,9 +106,11 @@ bool File::writeAttributes() {
     }
     readAttributes();
 
+    const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+
     QJsonObject data;
-    data.insert("cursorPositionX",_cursorPositionX);
-    data.insert("cursorPositionY",_cursorPositionY);
+    data.insert("cursorPositionX", cursorCodeUnit);
+    data.insert("cursorPositionY", cursorLine);
     data.insert("scrollPositionX",_scrollPositionX);
     data.insert("scrollPositionY",_scrollPositionY);
     _jo.insert(filenameInfo.absoluteFilePath(), data);
