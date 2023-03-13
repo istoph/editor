@@ -146,6 +146,7 @@ void TextCursor::insertText(const QString &text) {
         _file->_cursorPositionY++;
         _file->_cursorPositionX = 0;
         _doc->insertIntoLine(_file->_cursorPositionY, _file->_cursorPositionX, lines.at(i));
+        _file->_cursorPositionX = lines.at(i).size();
     }
 
     Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
