@@ -80,6 +80,8 @@ public:
     Position selectionStartPos() const;
     Position selectionEndPos() const;
 
+    void selectAll();
+
     bool hasSelection() const;
 
     bool atStart() const;

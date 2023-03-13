@@ -419,6 +419,11 @@ TextCursor::Position TextCursor::selectionEndPos() const {
     }
 }
 
+void TextCursor::selectAll() {
+    moveToStartOfDocument(false);
+    moveToEndOfDocument(true);
+}
+
 bool TextCursor::hasSelection() const {
     return _file->_startSelectX != -1;
 }
