@@ -377,6 +377,10 @@ void TextCursor::setPosition(TextCursor::Position pos, bool extendSelection) {
 }
 
 TextCursor::Position TextCursor::anchor() {
+    if (!hasSelection()) {
+        // FIXME: This should not be needed anymore when hasSelection() := anchor() == position()
+        return position();
+    }
     return Position{_file->_startSelectX, _file->_startSelectY};
 }
 
