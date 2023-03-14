@@ -673,14 +673,13 @@ QPair<int,int> File::getSelectLines() {
 void File::selectLines(int startY, int endY) {
     resetSelect();
     if(startY > endY) {
-        select(_doc._text[startY].size(), startY);
-        select(0, endY);
-        setCursorPositionOld({0,endY});
+        _cursor.setPosition({_doc._text[startY].size(), startY});
+        _cursor.setPosition({0, endY}, true);
     } else {
-        select(0, startY);
-        select(_doc._text[endY].size(), endY);
-        setCursorPositionOld({_doc._text[endY].size(), endY});
+        _cursor.setPosition({0, startY});
+        _cursor.setPosition({_doc._text[endY].size(), endY}, true);
     }
+    safeCursorPosition();
 }
 
 void File::resetSelect() {
