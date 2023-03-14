@@ -30,7 +30,6 @@ public:
     bool highlightBracket = false;
     bool showLineNumber = false;
     QString attributesFile;
-    bool select_cursor_position_x0 = true;
     int rightMarginHint = 0;
 };
 

@@ -634,12 +634,6 @@ QPair<int,int> File::getSelectLinesSort() {
 }
 
 QPair<int,int> File::getSelectLines() {
-/*
- * However other editors take that the chois
- * when the mouse cursor is at the beginning of a line
- * this line is not add to the selection.
-*/
-
     int startY;
     int endeY;
 
@@ -647,15 +641,13 @@ QPair<int,int> File::getSelectLines() {
         startY = _startSelectY;
         endeY = _endSelectY;
 
-        if (select_cursor_position_x0) {
-            if(_startSelectY > _endSelectY) {
-                if (_startSelectX == 0) {
-                    startY--;
-                }
-            } else {
-                if (_endSelectX == 0) {
-                    endeY--;
-                }
+        if (_startSelectY > _endSelectY) {
+            if (_startSelectX == 0) {
+                startY--;
+            }
+        } else {
+            if (_endSelectX == 0) {
+                endeY--;
             }
         }
     } else {
@@ -664,15 +656,13 @@ QPair<int,int> File::getSelectLines() {
         startY = startLine;
         endeY = endLine;
 
-        if (select_cursor_position_x0) {
-            if(startLine > endLine) {
-                if (startCodeUnit == 0) {
-                    startY--;
-                }
-            } else {
-                if (endCodeUnit == 0) {
-                    endeY--;
-                }
+        if (startLine > endLine) {
+            if (startCodeUnit == 0) {
+                startY--;
+            }
+        } else {
+            if (endCodeUnit == 0) {
+                endeY--;
             }
         }
     }

@@ -127,9 +127,6 @@ int main(int argc, char **argv) {
     bool hb = qsettings->value("highlight_bracket","false").toBool();
     settings.highlightBracket = hb;
 
-    bool scpx0 = qsettings->value("select_cursor_position_x0","true").toBool();
-    settings.select_cursor_position_x0 = scpx0;
-
     root->setInitialFileSettings(settings);
 
     QString theme = qsettings->value("theme","classic").toString();

@@ -100,7 +100,6 @@ public:
     void setRightMarginHint(int hint);
     int rightMarginHint() const;
     void toggleSelectMode();
-    bool select_cursor_position_x0;
     bool isNewFile();
 
 public:

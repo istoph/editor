@@ -387,7 +387,6 @@ FileWindow *Editor::createFileWindow() {
         file->setRightMarginHint(_file->rightMarginHint());
         file->setHighlightBracket(_file->getHighlightBracket());
         file->setAttributesfile(_file->getAttributesfile());
-        file->select_cursor_position_x0 = _file->select_cursor_position_x0;
     } else {
         file->setTabsize(initialFileSettings.tabSize);
         file->setLineNumber(initialFileSettings.showLineNumber);
@@ -400,7 +399,6 @@ FileWindow *Editor::createFileWindow() {
         file->setRightMarginHint(initialFileSettings.rightMarginHint);
         file->setHighlightBracket(initialFileSettings.highlightBracket);
         file->setAttributesfile(initialFileSettings.attributesFile);
-        file->select_cursor_position_x0 = initialFileSettings.select_cursor_position_x0;
     }
 
     return win;
