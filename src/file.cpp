@@ -641,13 +641,13 @@ QPair<int,int> File::getSelectLines() {
         startY = _startSelectY;
         endeY = _endSelectY;
 
-        if (_startSelectY > _endSelectY) {
-            if (_startSelectX == 0) {
-                startY--;
-            }
-        } else {
+        if (_startSelectY < _endSelectY) {
             if (_endSelectX == 0) {
                 endeY--;
+            }
+        } else if (_endSelectY < _startSelectY) {
+            if (_startSelectX == 0) {
+                startY--;
             }
         }
     } else {
@@ -656,13 +656,13 @@ QPair<int,int> File::getSelectLines() {
         startY = startLine;
         endeY = endLine;
 
-        if (startLine > endLine) {
-            if (startCodeUnit == 0) {
-                startY--;
-            }
-        } else {
+        if (startLine < endLine) {
             if (endCodeUnit == 0) {
                 endeY--;
+            }
+        } else if (endLine < startLine) {
+            if (startCodeUnit == 0) {
+                startY--;
             }
         }
     }
