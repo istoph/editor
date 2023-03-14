@@ -1969,36 +1969,46 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 t = addTabAt({_cursorPositionX,line});
             }
             blockSelectEdit(t.x());
-        } else if(isSelect()) {
-            //Tabs an in Markierten zeilen hinzufügen
-            for(int selectedLine = std::min(getSelectLines().first, getSelectLines().second); selectedLine <= std::max(getSelectLines().first, getSelectLines().second); selectedLine++) {
-                if(_doc._text[selectedLine].size() > 0) {
-                    if(getTabOption()) {
-                        _doc._text[selectedLine].insert(0, QString(" ").repeated(getTabsize()));
+        } else if (_cursor.hasSelection()) {
+            // Add one level of indent to the selected lines.
+
+            const auto [firstLine, lastLine] = getSelectLinesSort();
+            const auto [startLine, endLine] = getSelectLines();
+
+            bool savedSelectMode = getSelectMode();
+            resetSelect();
+
+            for (int line = firstLine; line <= lastLine; line++) {
+                if (_doc._text[line].size() > 0) {
+                    if (getTabOption()) {
+                        _doc._text[line].insert(0, QString(" ").repeated(getTabsize()));
                     } else {
-                        _doc._text[selectedLine].insert(0, '\t');
+                        _doc._text[line].insert(0, '\t');
                     }
                 }
             }
-            //Zeilen neu Markieren
-            selectLines(getSelectLines().first, getSelectLines().second);
+
+            selectLines(startLine, endLine);
+            setSelectMode(savedSelectMode);
+
+            safeCursorPosition();
         } else {
-            if(_eatSpaceBeforeTabs && _tabOption) {
+            if (_eatSpaceBeforeTabs && _tabOption) {
                 // If spaces in front of a tab
-                int i = 0;
-                for(; _doc._text[_cursorPositionY][i] == ' '; i++);
-                if(i > _cursorPositionX) {
-                    _cursorPositionX = i;
-                    setCursorPositionOld({i, _cursorPositionY});
+                const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+                int leadingSpace = 0;
+                for (; leadingSpace < _doc._text[cursorLine].size() && _doc._text[cursorLine][leadingSpace] == ' '; leadingSpace++);
+                if (leadingSpace > cursorCodeUnit) {
+                    setCursorPosition({leadingSpace, cursorLine});
                 }
             }
             // a normal tab
-            t = addTabAt({_cursorPositionX, _cursorPositionY});
-            setCursorPositionOld(t);
+            const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+            t = addTabAt({cursorCodeUnit, cursorLine});
+            setCursorPosition({t.x(), t.y()});
         }
         safeCursorPosition();
         _doc.saveUndoStep(this);
-
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == Qt::ShiftModifier) {
         // returns current line if no selection is active
         const auto [firstLine, lastLine] = getSelectLinesSort();
