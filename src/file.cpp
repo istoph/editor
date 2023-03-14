@@ -2080,8 +2080,17 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         // Fenster hoch Scrolen
         if (_scrollPositionY > 0) {
             --_scrollPositionY;
-            if (_scrollPositionY + geometry().height() < _cursorPositionY + 2) {
-                setCursorPositionOld({_cursorPositionX, _cursorPositionY -1});
+
+            const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+
+            if (_scrollPositionY + geometry().height() < cursorLine + 2) {
+                // This should scroll without moving the cursor. But that is currently impossible,
+                // for now just move the cursor.
+                // Also clear the selection as the moved cursor previously detached from the selection
+                // and movement without shift clears the selection anyway and movement with shift doesn't
+                // seem to have a very useful result.
+                clearComplexSelection();
+                setCursorPosition({cursorCodeUnit, cursorLine - 1});
             }
         }
         //TODO: #193 scrollup with Crl+Up and wraped lines.
@@ -2090,8 +2099,17 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         // Fenster runter Scrolen
         if (_doc._text.size() -1 > _scrollPositionY) {
             ++_scrollPositionY;
-            if (_scrollPositionY > _cursorPositionY - 1) {
-                setCursorPositionOld({_cursorPositionX, _cursorPositionY +1});
+
+            const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+
+            if (_scrollPositionY > cursorLine - 1) {
+                // This should scroll without moving the cursor. But that is currently impossible,
+                // for now just move the cursor.
+                // Also clear the selection as the moved cursor previously detached from the selection
+                // and movement without shift clears the selection anyway and movement with shift doesn't
+                // seem to have a very useful result.
+                clearComplexSelection();
+                setCursorPosition({cursorCodeUnit, cursorLine + 1});
             }
         }
         adjustScrollPosition();
