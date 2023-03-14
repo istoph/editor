@@ -2084,59 +2084,54 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         adjustScrollPosition();
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Up) {
+        // returns current line if no selection is active
+        const auto [firstLine, lastLine] = getSelectLinesSort();
 
-        //Nich markierte Zeile verschiben
-        bool _resetSelect = false;
-        if(!isSelect()) {
-            selectLines(_cursorPositionY, _cursorPositionY);
-            _resetSelect = true;
-        }
-        if(std::min(getSelectLines().first, getSelectLines().second) > 0) {
-            //Nach oben verschieben
-            if(getSelectLines().first >= getSelectLines().second) {
-                _doc._text.insert(getSelectLines().first +1, _doc._text[getSelectLines().second -1]);
-                _doc._text.remove(getSelectLines().second -1);
-            } else {
-                _doc._text.insert(getSelectLines().second +1, _doc._text[getSelectLines().first -1]);
-                _doc._text.remove(getSelectLines().first -1);
-            }
+        if (firstLine > 0) {
+            const auto [startLine, endLine] = getSelectLines();
+            const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
-            //Markirung Nachziehen
-            if (_resetSelect) {
-                setCursorPositionOld({0, std::min(_startSelectY -1, _endSelectY -1)});
-                resetSelect();
-            } else {
-                selectLines(getSelectLines().first -1, getSelectLines().second -1);
-            }
-            _doc.saveUndoStep(this);
-        } else if(_resetSelect) {
+            bool savedSelectMode = getSelectMode();
+            bool reselect = hasMultiInsert() || hasBlockSelection() || _cursor.hasSelection();
             resetSelect();
+
+            // move lines up
+            _doc._text.insert(endLine + 1, _doc._text[firstLine - 1]);
+            _doc._text.remove(firstLine - 1);
+
+            // Update cursor / recreate selection
+            if (!reselect) {
+                setCursorPosition({cursorCodeUnit, cursorLine - 1});
+            } else {
+                selectLines(startLine - 1, endLine - 1);
+            }
+            setSelectMode(savedSelectMode);
+
+            _doc.saveUndoStep(this);
         }
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Down) {
-        if(std::max(getSelectLines().first, getSelectLines().second) < _doc._text.size() -1) {
-            //Nich markierte Zeile verschiben
-            bool _resetSelect = false;
-            if(!isSelect()) {
-                selectLines(_cursorPositionY, _cursorPositionY);
-                _resetSelect = true;
-            }
+        // returns current line if no selection is active
+        const auto [firstLine, lastLine] = getSelectLinesSort();
 
-            //Nach unten verschieben
-            if(getSelectLines().first > getSelectLines().second) {
-                _doc._text.insert(getSelectLines().second, _doc._text[getSelectLines().first +1]);
-                _doc._text.remove(getSelectLines().first +2);
-            } else {
-                _doc._text.insert(getSelectLines().first, _doc._text[getSelectLines().second +1]);
-                _doc._text.remove(getSelectLines().second +2);
-            }
+        if (lastLine < _doc._text.size() - 1) {
+            const auto [startLine, endLine] = getSelectLines();
+            const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
-            //Markirung Nachziehen
-            if (_resetSelect) {
-                setCursorPositionOld({std::max(_startSelectX, _endSelectX), std::max(_startSelectY +1, _endSelectY +1)});
-                resetSelect();
+            bool savedSelectMode = getSelectMode();
+            bool reselect = hasMultiInsert() || hasBlockSelection() || _cursor.hasSelection();
+            resetSelect();
+
+            // Move lines down
+            _doc._text.insert(firstLine, _doc._text[lastLine + 1]);
+            _doc._text.remove(lastLine + 2);
+
+            // Update cursor / recreate selection
+            if (!reselect) {
+                setCursorPosition({cursorCodeUnit, cursorLine + 1});
             } else {
-                selectLines(getSelectLines().first +1, getSelectLines().second +1);
+                selectLines(startLine + 1, endLine + 1);
             }
+            setSelectMode(savedSelectMode);
             _doc.saveUndoStep(this);
         }
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
