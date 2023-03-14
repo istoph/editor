@@ -2000,46 +2000,49 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         _doc.saveUndoStep(this);
 
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == Qt::ShiftModifier) {
-        //Nich markierte Zeile verschiben
-        int selectedLine = _cursorPositionY;
-        int selectedEnd = _cursorPositionY;
-        if(isSelect()) {
-           selectedLine = std::min(getSelectLines().first, getSelectLines().second);
-           selectedEnd = std::max(getSelectLines().first, getSelectLines().second);
-        }
+        // returns current line if no selection is active
+        const auto [firstLine, lastLine] = getSelectLinesSort();
+        const auto [startLine, endLine] = getSelectLines();
+        const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
-        for(; selectedLine <= selectedEnd; selectedLine++) {
-            if(_doc._text[selectedLine][0] == '\t') {
-               _doc._text[selectedLine].remove(0,1);
-               if(selectedLine == _cursorPositionY && !isSelect()) {
-                   setCursorPositionOld({_cursorPositionX - 1,_cursorPositionY});
-               }
-            } else if (_doc._text[selectedLine].mid(0,getTabsize()) == QString(" ").repeated(getTabsize())) {
-                _doc._text[selectedLine].remove(0,getTabsize());
-                if(selectedLine == _cursorPositionY && !isSelect()) {
-                    setCursorPositionOld({_cursorPositionX - getTabsize(),_cursorPositionY});
-                }
+        bool savedSelectMode = getSelectMode();
+        bool reselect = hasMultiInsert() || hasBlockSelection() || _cursor.hasSelection();
+        resetSelect();
+
+        int cursorAdjust = 0;
+
+        for (int line = firstLine; line <= lastLine; line++) {
+            int codeUnitsToRemove = 0;
+            if (_doc._text[line][0] == '\t') {
+                codeUnitsToRemove = 1;
             } else {
-                for(int i = 0; i < getTabsize(); i++) {
-                    if (_doc._text[selectedLine].mid(0,1) == QString(" ")) {
-                        _doc._text[selectedLine].remove(0,1);
-                        if(selectedLine == _cursorPositionY && !isSelect()) {
-                            setCursorPositionOld({_cursorPositionX - 1,_cursorPositionY});
-                        }
+                while (true) {
+                    if (codeUnitsToRemove < _doc._text[line].size()
+                        && codeUnitsToRemove < getTabsize()
+                        && _doc._text[line][codeUnitsToRemove] == ' ') {
+                        codeUnitsToRemove++;
                     } else {
                         break;
                     }
                 }
             }
+
+            _doc._text[line].remove(0, codeUnitsToRemove);
+            if (!reselect && line == cursorLine) {
+                cursorAdjust = codeUnitsToRemove;
+            }
         }
 
-        if(isSelect()) {
-            selectLines(getSelectLines().first, getSelectLines().second);
+        // Update cursor / recreate selection
+        if (!reselect) {
+            setCursorPosition({cursorCodeUnit - cursorAdjust, cursorLine});
+        } else {
+            selectLines(startLine, endLine);
         }
+        setSelectMode(savedSelectMode);
 
         safeCursorPosition();
         _doc.saveUndoStep(this);
-
     } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {
         //STRG + C // Strg+Einfg
