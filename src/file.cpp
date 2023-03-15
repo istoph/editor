@@ -693,7 +693,7 @@ void File::resetSelect() {
 
 QString File::getSelectText() {
     QString selectText = "";
-    if(isSelect()) {
+    if (hasBlockSelection() || hasMultiInsert() || _cursor.hasSelection()) {
         for(int y = 0; y < _doc._text.size();y++) {
             for (int x = 0; x < _doc._text[y].size(); x++) {
                 if(isSelect(x,y)) {
@@ -730,10 +730,7 @@ bool File::isSelect(int x, int y) {
 }
 
 bool File::isSelect() {
-    if (_startSelectX != -1) {
-        return true;
-    }
-    return false;
+    return hasBlockSelection() || hasMultiInsert() || _cursor.hasSelection();
 }
 
 void File::selectAll() {
@@ -744,7 +741,7 @@ void File::selectAll() {
 }
 
 bool File::delSelect() {
-    if(!isSelect()) {
+    if (!hasBlockSelection() && !hasMultiInsert() && !_cursor.hasSelection()) {
         return false;
     }
 
@@ -893,7 +890,7 @@ void File::followStandardInput(bool follow) {
 }
 
 void File::setReplaceSelected() {
-    if (isSelect()) {
+    if (hasBlockSelection() || hasMultiInsert() || _cursor.hasSelection()) {
         _doc.setGroupUndo(this, true);
 
         clearComplexSelection();
@@ -1594,7 +1591,7 @@ QPoint File::insertAtPosition(QVector<QString> str, QPoint cursor) {
 }
 
 void File::sortSelecedLines() {
-    if(isSelect()) {
+    if (hasBlockSelection() || hasMultiInsert() || _cursor.hasSelection()) {
         auto lines = getSelectLinesSort();
         std::sort(_doc._text.begin() + lines.first, _doc._text.begin() + lines.second +1);
     }
