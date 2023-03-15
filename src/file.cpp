@@ -760,32 +760,10 @@ bool File::delSelect() {
         setCursorPositionOld({pos, startSelect.y});
         _endSelectX = pos;
         _startSelectX = pos;
+        _doc.saveUndoStep(this);
     } else {
-        if (startSelect.y == endSelect.y) {
-            // selection only on one line
-            _doc._text[startSelect.y].remove(startSelect.x, endSelect.x - startSelect.x);
-        } else {
-            _doc._text[startSelect.y].remove(startSelect.x, _doc._text[startSelect.y].size() - startSelect.x);
-            const auto orignalTextLines = _doc._text.size();
-            if (startSelect.y + 1 < endSelect.y) {
-                _doc._text.remove(startSelect.y + 1, endSelect.y - startSelect.y - 1);
-            }
-            if (endSelect.y == orignalTextLines) {
-                // selected until the end of buffer, no last selection line to edit
-            } else {
-                _doc._text[startSelect.y].append(_doc._text[startSelect.y + 1].midRef(endSelect.x));
-                if (startSelect.y + 1 < _doc._text.size()) {
-                    _doc._text.removeAt(startSelect.y + 1);
-                } else {
-                    _doc._text[startSelect.y + 1].clear();
-                }
-            }
-        }
-        setCursorPositionOld({startSelect.x, startSelect.y});
-        safeCursorPosition();
-        resetSelect();
+        _cursor.removeSelectedText();
     }
-    _doc.saveUndoStep(this);
     return true;
 }
 
