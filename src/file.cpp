@@ -287,9 +287,8 @@ bool File::initText() {
     _doc._text.append(QString());
     _scrollPositionX = 0;
     _scrollPositionY = 0;
-    _cursorPositionX = 0;
-    _cursorPositionY = 0;
-    _saveCursorPositionX = 0;
+    _cursor.setPosition({0, 0});
+    _cursor.setVerticalMovementColumn(0);
     _doc.initalUndoStep(this);
     cursorPositionChanged(0, 0, 0);
     scrollPositionChanged(0, 0);
