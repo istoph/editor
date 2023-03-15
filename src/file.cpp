@@ -2038,8 +2038,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         //STRG + X // Umschalt+Entf
         cut();
     } else if (event->text() == "z" && event->modifiers() == Qt::ControlModifier) {
+        setSelectMode(false);
         _doc.undo(this);
     } else if (event->text() == "y" && event->modifiers() == Qt::ControlModifier) {
+        setSelectMode(false);
         _doc.redo(this);
     } else if (event->text() == "a" && event->modifiers() == Qt::ControlModifier) {
         //STRG + a
