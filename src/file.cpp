@@ -735,8 +735,7 @@ bool File::isSelect() {
 
 void File::selectAll() {
     resetSelect();
-    select(0,0);
-    select(_doc._text[_doc._text.size() - 1].size(), _doc._text.size() -1);
+    _cursor.selectAll();
     adjustScrollPosition();
 }
 
