@@ -470,7 +470,7 @@ void File::copy() {
 void File::paste() {
     Clipboard *clipboard = findFacet<Clipboard>();
     if (clipboard->getClipboard().size()) {
-        insertAtCursorPosition(clipboard->getClipboard().split('\n'));
+        insertAtCursorPosition(clipboard->getClipboard());
 
         safeCursorPosition();
         adjustScrollPosition();
@@ -1523,14 +1523,15 @@ void File::appendLine(const QString &line) {
     adjustScrollPosition();
 }
 
-void File::insertAtCursorPosition(QStringList str) {
+void File::insertAtCursorPosition(const QString &str) {
     QPoint t;
     if(_blockSelect) {
+        QStringList vec = str.split('\n');
         blockSelectEdit(_cursorPositionX);
-        if(str.size() -1 == (std::max(_startSelectY, _endSelectY) - std::min(_startSelectY, _endSelectY))) {
+        if(vec.size() - 1 == (std::max(_startSelectY, _endSelectY) - std::min(_startSelectY, _endSelectY))) {
             QStringList qst;
             for(int line: getBlockSelectedLines()) {
-                qst.append(str.takeAt(0));
+                qst.append(vec.takeAt(0));
                 t = insertAtPosition(qst, {_cursorPositionX, line});
                 qst.clear();
             }
@@ -1538,8 +1539,8 @@ void File::insertAtCursorPosition(QStringList str) {
         } else {
             int offset = 0;
             for(int line: getBlockSelectedLines()) {
-                t = insertAtPosition(str, {_cursorPositionX, line + offset});
-                offset += str.size() -1;
+                t = insertAtPosition(vec, {_cursorPositionX, line + offset});
+                offset += vec.size() - 1;
             }
             if(offset > 0) {
                 resetSelect();
@@ -1547,14 +1548,12 @@ void File::insertAtCursorPosition(QStringList str) {
                 blockSelectEdit(t.x());
             }
         }
+        safeCursorPosition();
+        adjustScrollPosition();
+        _doc.saveUndoStep(this);
     } else {
-        delSelect();
-        t = insertAtPosition(str, {_cursorPositionX, _cursorPositionY});
-        setCursorPosition({t.x(), t.y()});
+        _cursor.insertText(str);
     }
-    safeCursorPosition();
-    adjustScrollPosition();
-    _doc.saveUndoStep(this);
 }
 
 QPoint File::insertAtPosition(QStringList str, QPoint cursor) {
@@ -1602,7 +1601,7 @@ void File::pasteEvent(Tui::ZPasteEvent *event) {
     text.replace(QString("\r\n"), QString('\n'));
     text.replace(QString('\r'), QString('\n'));
 
-    insertAtCursorPosition(text.split('\n'));
+    insertAtCursorPosition(text);
 }
 
 void File::resizeEvent(Tui::ZResizeEvent *event) {

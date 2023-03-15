@@ -75,7 +75,7 @@ public:
     QPoint addTabAt(QPoint cursor);
     int getVisibleLines();
     void appendLine(const QString &line);
-    void insertAtCursorPosition(QStringList str);
+    void insertAtCursorPosition(const QString &str);
     QPoint insertAtPosition(QStringList str, QPoint cursor);
     bool isModified() const { return _doc.isModified(); };
     void setSearchText(QString searchText);
