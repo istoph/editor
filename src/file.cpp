@@ -1630,8 +1630,7 @@ bool File::isNewFile() {
 
 void File::keyEvent(Tui::ZKeyEvent *event) {
     QString text = event->text();
-    bool extendBlockSelect = event->modifiers() == (Qt::AltModifier | Qt::ShiftModifier);
-    //bool extendBlockSelect = getSelectMode();
+    const bool extendBlockSelect = event->modifiers() == (Qt::AltModifier | Qt::ShiftModifier);
 
     if(event->key() == Qt::Key_Space && event->modifiers() == 0) {
         text = " ";
@@ -1946,7 +1945,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             const auto [firstLine, lastLine] = getSelectLinesSort();
             const auto [startLine, endLine] = getSelectLines();
 
-            bool savedSelectMode = getSelectMode();
+            const bool savedSelectMode = getSelectMode();
             resetSelect();
 
             for (int line = firstLine; line <= lastLine; line++) {
@@ -1986,8 +1985,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         const auto [startLine, endLine] = getSelectLines();
         const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
-        bool savedSelectMode = getSelectMode();
-        bool reselect = hasMultiInsert() || hasBlockSelection() || _cursor.hasSelection();
+        const bool savedSelectMode = getSelectMode();
+        const bool reselect = hasMultiInsert() || hasBlockSelection() || _cursor.hasSelection();
         resetSelect();
 
         int cursorAdjust = 0;
@@ -2095,8 +2094,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             const auto [startLine, endLine] = getSelectLines();
             const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
-            bool savedSelectMode = getSelectMode();
-            bool reselect = hasMultiInsert() || hasBlockSelection() || _cursor.hasSelection();
+            const bool savedSelectMode = getSelectMode();
+            const bool reselect = hasMultiInsert() || hasBlockSelection() || _cursor.hasSelection();
             resetSelect();
 
             // move lines up
@@ -2121,8 +2120,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             const auto [startLine, endLine] = getSelectLines();
             const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
-            bool savedSelectMode = getSelectMode();
-            bool reselect = hasMultiInsert() || hasBlockSelection() || _cursor.hasSelection();
+            const bool savedSelectMode = getSelectMode();
+            const bool reselect = hasMultiInsert() || hasBlockSelection() || _cursor.hasSelection();
             resetSelect();
 
             // Move lines down
