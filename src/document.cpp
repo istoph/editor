@@ -405,6 +405,14 @@ void TextCursor::setAnchorPosition(TextCursor::Position pos) {
     }
 }
 
+int TextCursor::verticalMovementColumn() {
+    return _file->_saveCursorPositionX;
+}
+
+void TextCursor::setVerticalMovementColumn(int column) {
+    _file->_saveCursorPositionX = std::max(0, column);
+}
+
 TextCursor::Position TextCursor::selectionStartPos() const {
     if (hasSelection()) {
         return std::min(Position{_file->_startSelectX, _file->_startSelectY},

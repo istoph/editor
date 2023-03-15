@@ -76,6 +76,9 @@ public:
     Position anchor();
     void setAnchorPosition(Position pos);
 
+    int verticalMovementColumn();
+    void setVerticalMovementColumn(int column);
+
     // for hasSelection() == true
     Position selectionStartPos() const;
     Position selectionEndPos() const;
