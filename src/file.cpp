@@ -2049,6 +2049,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         _doc._collapseUndoStep = false;
     } else if (event->text() == "k" && event->modifiers() == Qt::ControlModifier) {
         //STRG + k //cut and copy line
+        setSelectMode(false);
         cutline();
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Up) {
         // Fenster hoch Scrolen
