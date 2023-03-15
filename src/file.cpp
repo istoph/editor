@@ -1630,7 +1630,6 @@ bool File::isNewFile() {
 
 void File::keyEvent(Tui::ZKeyEvent *event) {
     QString text = event->text();
-    bool extendSelect = event->modifiers() == Qt::ShiftModifier || event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) || getSelectMode();
     bool extendBlockSelect = event->modifiers() == (Qt::AltModifier | Qt::ShiftModifier);
     //bool extendBlockSelect = getSelectMode();
 
@@ -1875,7 +1874,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         _doc._collapseUndoStep = false;
     } else if (event->key() == Qt::Key_PageDown && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if (_blockSelect) {
-            if (extendSelect) {
+            if (event->modifiers() == Qt::ShiftModifier || getSelectMode()) {
                 select(_cursorPositionX, _cursorPositionY);
             } else {
                 resetSel();
@@ -1885,7 +1884,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             } else {
                 _cursorPositionY = _doc._text.size() -1;
             }
-            if (extendSelect) {
+            if (event->modifiers() == Qt::ShiftModifier || getSelectMode()) {
                 _cursorPositionX = _doc._text[_cursorPositionY].size();
                 select(_cursorPositionX, _cursorPositionY);
             }
@@ -1901,7 +1900,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         _doc._collapseUndoStep = false;
     } else if (event->key() == Qt::Key_PageUp && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if (_blockSelect) {
-            if (extendSelect) {
+            if (event->modifiers() == Qt::ShiftModifier || getSelectMode()) {
                 select(_cursorPositionX, _cursorPositionY);
             } else {
                 resetSel();
@@ -1912,7 +1911,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _cursorPositionY = 0;
                 _scrollPositionY = 0;
             }
-            if (extendSelect) {
+            if (event->modifiers() == Qt::ShiftModifier || getSelectMode()) {
                 _cursorPositionX = 0;
                 select(_cursorPositionX, _cursorPositionY);
             }
