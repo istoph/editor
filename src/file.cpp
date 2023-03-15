@@ -91,7 +91,7 @@ void File::getAttributes() {
         QJsonObject data = _jo.value(getFilename()).toObject();
         if(_doc._text.size() > data.value("cursorPositionY").toInt() && _doc._text[data.value("cursorPositionY").toInt()].size() +1 > data.value("cursorPositionX").toInt()) {
             setCursorPosition({data.value("cursorPositionX").toInt(), data.value("cursorPositionY").toInt()});
-            _saveCursorPositionX = _cursorPositionX;
+            _cursor.setVerticalMovementColumn(data.value("cursorPositionX").toInt());
             _scrollPositionX = data.value("scrollPositionX").toInt();
             _scrollPositionY = data.value("scrollPositionY").toInt();
             adjustScrollPosition();
