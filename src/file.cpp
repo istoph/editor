@@ -1516,7 +1516,7 @@ void File::appendLine(const QString &line) {
     }
     _doc._text.append(line);
     if(_follow) {
-        _cursorPositionY = _doc._text.size() -1;
+        _cursor.moveToEndOfDocument();
     }
     _doc.saveUndoStep(this);
     adjustScrollPosition();
