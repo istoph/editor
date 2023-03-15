@@ -21,8 +21,8 @@ protected:
         Clipboard *clipboard = findFacet<Clipboard>();
 
         if(event->text() == "v" && event->modifiers() == Qt::Modifier::CTRL) {
-            if(!clipboard->getClipboard().empty()) {
-                insertAtCursorPosition(clipboard->getClipboard()[0]);
+            if (clipboard->getClipboard().size()) {
+                insertAtCursorPosition(clipboard->getClipboard());
             }
         } else {
             Tui::ZInputBox::keyEvent(event);

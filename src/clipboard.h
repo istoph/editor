@@ -12,14 +12,12 @@ class Clipboard : public QObject
     Q_OBJECT
 public:
     Clipboard();
-    void append(QString append);
-    void append(QVector<QString> append);
     void clear();
-    QVector<QString> getClipboard();
-    void setClipboard(QVector<QString> clipboard);
+    QString getClipboard();
+    void setClipboard(const QString &clipboard);
 
 private:
-    QVector<QString> _clipboard;
+    QString _clipboard;
 };
 
 #endif // CLIPBOARD_H

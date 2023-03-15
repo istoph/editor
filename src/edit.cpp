@@ -135,7 +135,7 @@ void Editor::setupUi() {
     QObject::connect(new Tui::ZCommandNotifier("InsertCharacter", this), &Tui::ZCommandNotifier::activated,
          [this] {
             QObject::connect(new InsertCharacter(this), &InsertCharacter::characterSelected, this, [this] (QString str) {
-                QVector<QString> vec;
+                QStringList vec;
                 vec.append(str);
                 if (_file) {
                     _file->insertAtCursorPosition(vec);
