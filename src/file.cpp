@@ -447,7 +447,7 @@ void File::cutline() {
 }
 
 void File::copy() {
-    if(hasBlockSelection() || _cursor.hasSelection()) {
+    if (hasBlockSelection()) {
         Clipboard *clipboard = findFacet<Clipboard>();
         QStringList _clipboard;
         _clipboard.append("");
@@ -462,6 +462,10 @@ void File::copy() {
             }
         }
         clipboard->setClipboard(_clipboard.join('\n'));
+        _cmdPaste->setEnabled(true);
+    } else if (_cursor.hasSelection()) {
+        Clipboard *clipboard = findFacet<Clipboard>();
+        clipboard->setClipboard(_cursor.selectedText());
         _cmdPaste->setEnabled(true);
     }
 }
