@@ -1276,6 +1276,15 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     if(startSelect > endSelect) {
         std::swap(startSelect,endSelect);
     }
+
+    TextCursor::Position startSelectCursor(-1, -1);
+    TextCursor::Position endSelectCursor(-1, -1);
+
+    if (_cursor.hasSelection()) {
+        startSelectCursor = _cursor.selectionStartPos();
+        endSelectCursor = _cursor.selectionEndPos();
+    }
+
     QVector<Tui::ZFormatRange> highlights;
     const Tui::ZTextStyle base{fg, bg};
     const Tui::ZTextStyle baseInMargin{fg, marginMarkBg};
@@ -1340,18 +1349,18 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 }
             }
         } else {
-            if (line > startSelect.first && line < endSelect.first) {
+            if (line > startSelectCursor.y && line < endSelectCursor.y) {
                 // whole line
                 highlights.append(Tui::ZFormatRange{0, _doc._text[line].size(), selected, selectedFormatingChar});
-            } else if (line > startSelect.first && line == endSelect.first) {
+            } else if (line > startSelectCursor.y && line == endSelectCursor.y) {
                 // selection ends on this line
-                highlights.append(Tui::ZFormatRange{0, endSelect.second, selected, selectedFormatingChar});
-            } else if (line == startSelect.first && line < endSelect.first) {
+                highlights.append(Tui::ZFormatRange{0, endSelectCursor.x, selected, selectedFormatingChar});
+            } else if (line == startSelectCursor.y && line < endSelectCursor.y) {
                 // selection starts on this line
-                highlights.append(Tui::ZFormatRange{startSelect.second, _doc._text[line].size() - startSelect.second, selected, selectedFormatingChar});
-            } else if (line == startSelect.first && line == endSelect.first) {
+                highlights.append(Tui::ZFormatRange{startSelectCursor.x, _doc._text[line].size() - startSelectCursor.x, selected, selectedFormatingChar});
+            } else if (line == startSelectCursor.y && line == endSelectCursor.y) {
                 // selection is contained in this line
-                highlights.append(Tui::ZFormatRange{startSelect.second, endSelect.second - startSelect.second, selected, selectedFormatingChar});
+                highlights.append(Tui::ZFormatRange{startSelectCursor.x, endSelectCursor.x - startSelectCursor.x, selected, selectedFormatingChar});
             }
         }
         if (_rightMarginHint && lay.maximumWidth() > _rightMarginHint) {
