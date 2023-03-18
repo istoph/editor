@@ -696,7 +696,7 @@ void File::resetSelect() {
 
 QString File::getSelectText() {
     QString selectText = "";
-    if (hasBlockSelection() || hasMultiInsert() || _cursor.hasSelection()) {
+    if (hasBlockSelection() || hasMultiInsert()) {
         for(int y = 0; y < _doc._text.size();y++) {
             for (int x = 0; x < _doc._text[y].size(); x++) {
                 if(isSelect(x,y)) {
@@ -707,6 +707,8 @@ QString File::getSelectText() {
                 selectText += "\n";
             }
         }
+    } else if (_cursor.hasSelection()) {
+        selectText = _cursor.selectedText();
     }
     return selectText;
 }
