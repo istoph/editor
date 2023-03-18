@@ -1271,10 +1271,10 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 
     Tui::ZTextOption option = getTextOption(false);
 
-    auto startSelect = std::make_pair(_startSelectY,_startSelectX);
-    auto endSelect = std::make_pair(_endSelectY,_endSelectX);
-    if(startSelect > endSelect) {
-        std::swap(startSelect,endSelect);
+    auto startSelectBlock = std::make_pair(_startSelectY,_startSelectX);
+    auto endSelectBlock = std::make_pair(_endSelectY,_endSelectX);
+    if(startSelectBlock > endSelectBlock) {
+        std::swap(startSelectBlock,endSelectBlock);
     }
 
     TextCursor::Position startSelectCursor(-1, -1);
@@ -1340,12 +1340,12 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         }
 
         // selection
-        if(_blockSelect) {
-            if (line >= std::min(startSelect.first, endSelect.first) && line <= std::max(endSelect.first, startSelect.first)) {
-                if(startSelect.second == endSelect.second) {
-                    highlights.append(Tui::ZFormatRange{startSelect.second, 1, blockSelected, blockSelectedFormatingChar});
+        if (_blockSelect) {
+            if (line >= std::min(startSelectBlock.first, endSelectBlock.first) && line <= std::max(endSelectBlock.first, startSelectBlock.first)) {
+                if(startSelectBlock.second == endSelectBlock.second) {
+                    highlights.append(Tui::ZFormatRange{startSelectBlock.second, 1, blockSelected, blockSelectedFormatingChar});
                 } else {
-                    highlights.append(Tui::ZFormatRange{std::min(startSelect.second, endSelect.second), std::max(startSelect.second, endSelect.second) - std::min(startSelect.second, endSelect.second), selected, selectedFormatingChar});
+                    highlights.append(Tui::ZFormatRange{std::min(startSelectBlock.second, endSelectBlock.second), std::max(startSelectBlock.second, endSelectBlock.second) - std::min(startSelectBlock.second, endSelectBlock.second), selected, selectedFormatingChar});
                 }
             }
         } else {
