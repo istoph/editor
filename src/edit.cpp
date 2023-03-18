@@ -473,9 +473,9 @@ void Editor::setupSearchDialogs() {
             _file->setSearchText(text);
             _file->setSearchDirection(forward);
             if(forward) {
-                _file->setCursorPositionOld({_file->getCursorPosition().x() - text.size(), _file->getCursorPosition().y()});
+                _file->setCursorPosition({_file->getCursorPosition().x() - text.size(), _file->getCursorPosition().y()});
             } else {
-                _file->setCursorPositionOld({_file->getCursorPosition().x() + text.size(), _file->getCursorPosition().y()});
+                _file->setCursorPosition({_file->getCursorPosition().x() + text.size(), _file->getCursorPosition().y()});
             }
             _file->runSearch(false);
         }
