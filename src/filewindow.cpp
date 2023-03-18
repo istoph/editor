@@ -241,7 +241,7 @@ void FileWindow::reload() {
     watcherRemove();
     _file->openText(_file->getFilename());
     fileChangedExternally(false);
-    _file->setCursorPositionOld(xy);
+    _file->setCursorPosition({xy.x(), xy.y()});
     watcherAdd();
 }
 
