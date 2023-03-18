@@ -196,6 +196,29 @@ void TextCursor::clearSelection() {
     _file->_endSelectX = _file->_endSelectY = -1;
 }
 
+QString TextCursor::selectedText() const {
+    if (!hasSelection()) {
+        return "";
+    }
+
+    const Position start = selectionStartPos();
+    const Position end = selectionEndPos();
+
+    if (start.y == end.y) {
+        // selection only on one line
+        return _doc->_text[start.y].mid(start.x, end.x - start.x);
+    } else {
+        QString res = _doc->_text[start.y].mid(start.x);
+        for (int line = start.y + 1; line < end.y; line++) {
+            res += "\n";
+            res += _doc->_text[line];
+        }
+        res += "\n";
+        res += _doc->_text[end.y].mid(0, end.x);
+        return res;
+    }
+}
+
 void TextCursor::deleteCharacter() {
     if (!hasSelection()) {
         moveCharacterRight(true);

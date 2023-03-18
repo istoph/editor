@@ -49,6 +49,7 @@ public:
     void insertText(const QString &text);
     void removeSelectedText();
     void clearSelection();
+    QString selectedText() const;
 
     void deleteCharacter();
     void deletePreviousCharacter();
