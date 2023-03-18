@@ -719,13 +719,10 @@ bool File::isSelect(int x, int y) {
                 x >= std::min(_startSelectX, _endSelectX) && x < std::max(_startSelectX, _endSelectX)) {
             return true;
         }
-    } else {
-        auto startSelect = std::make_pair(_startSelectY,_startSelectX);
-        auto endSelect = std::make_pair(_endSelectY,_endSelectX);
+    } else if (_cursor.hasSelection()) {
+        auto startSelect = std::make_pair(_cursor.selectionStartPos().y, _cursor.selectionStartPos().x);
+        auto endSelect = std::make_pair(_cursor.selectionEndPos().y,_cursor.selectionEndPos().x);
 
-        if(startSelect > endSelect) {
-            std::swap(startSelect,endSelect);
-        }
         auto current = std::make_pair(y,x);
         if(startSelect <= current && current < endSelect) {
             return true;
