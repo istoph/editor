@@ -237,6 +237,7 @@ void FileWindow::openFile(QString filename) {
 
 void FileWindow::reload() {
     closePipe();
+    _file->resetSelect();
     QPoint xy = _file->getCursorPosition();
     watcherRemove();
     _file->openText(_file->getFilename());
