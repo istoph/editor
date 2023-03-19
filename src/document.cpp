@@ -21,11 +21,9 @@ void Document::undo(File *file) {
     --_currentUndoStep;
 
     _text = _undoSteps[_currentUndoStep].text;
-    file->_cursorPositionX = _undoSteps[_currentUndoStep].cursorPositionX;
-    file->_cursorPositionY = _undoSteps[_currentUndoStep].cursorPositionY;
+    file->_cursor.setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
     file->modifiedChanged(isModified());
     file->checkUndo();
-    file->safeCursorPosition();
     file->adjustScrollPosition();
 }
 
@@ -41,11 +39,9 @@ void Document::redo(File *file) {
     ++_currentUndoStep;
 
     _text = _undoSteps[_currentUndoStep].text;
-    file->_cursorPositionX = _undoSteps[_currentUndoStep].cursorPositionX;
-    file->_cursorPositionY = _undoSteps[_currentUndoStep].cursorPositionY;
+    file->_cursor.setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
     file->modifiedChanged(isModified());
     file->checkUndo();
-    file->safeCursorPosition();
     file->adjustScrollPosition();
 }
 
@@ -81,7 +77,8 @@ void Document::saveUndoStep(File *file, bool collapsable) {
         } else if (_collapseUndoStep && collapsable && _currentUndoStep != _savedUndoStep) {
             _undoSteps.removeLast();
         }
-        _undoSteps.append({ _text, file->_cursorPositionX, file->_cursorPositionY});
+        const auto [endCodeUnit, endLine] = file->_cursor.position();
+        _undoSteps.append({ _text, endCodeUnit, endLine});
         _currentUndoStep = _undoSteps.size() - 1;
         _collapseUndoStep = collapsable;
         file->modifiedChanged(isModified());
@@ -139,17 +136,17 @@ void TextCursor::insertText(const QString &text) {
         lines.removeLast();
         _doc->_nonewline = false;
     }
-    _doc->insertIntoLine(_file->_cursorPositionY, _file->_cursorPositionX, lines.front());
-    _file->_cursorPositionX += lines.front().size();
+    _doc->insertIntoLine(_cursorPositionY, _cursorPositionX, lines.front());
+    _cursorPositionX += lines.front().size();
     for (int i = 1; i < lines.size(); i++) {
-        _doc->splitLine({_file->_cursorPositionX, _file->_cursorPositionY});
-        _file->_cursorPositionY++;
-        _file->_cursorPositionX = 0;
-        _doc->insertIntoLine(_file->_cursorPositionY, _file->_cursorPositionX, lines.at(i));
-        _file->_cursorPositionX = lines.at(i).size();
+        _doc->splitLine({_cursorPositionX, _cursorPositionY});
+        _cursorPositionY++;
+        _cursorPositionX = 0;
+        _doc->insertIntoLine(_cursorPositionY, _cursorPositionX, lines.at(i));
+        _cursorPositionX = lines.at(i).size();
     }
 
-    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+    Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
     updateVerticalMovementColumn(lay);
     _doc->saveUndoStep(_file);
 }
@@ -189,8 +186,8 @@ void TextCursor::removeSelectedText() {
 }
 
 void TextCursor::clearSelection() {
-    _file->_startSelectX = _file->_startSelectY = -1;
-    _file->_endSelectX = _file->_endSelectY = -1;
+    _startSelectX = _startSelectY = -1;
+    _endSelectX = _endSelectY = -1;
 }
 
 QString TextCursor::selectedText() const {
@@ -251,7 +248,7 @@ void TextCursor::deletePreviousWord() {
 void TextCursor::moveCharacterLeft(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit) {
-        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
         setPosition({lay.previousCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipCharacters), currentLine},
                     extendSelection);
     } else if (currentLine > 0) {
@@ -262,7 +259,7 @@ void TextCursor::moveCharacterLeft(bool extendSelection) {
 void TextCursor::moveCharacterRight(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit < _doc->_text[currentLine].size()) {
-        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
         setPosition({lay.nextCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipCharacters), currentLine},
                     extendSelection);
     } else if (currentLine + 1 < _doc->_text.size()) {
@@ -273,7 +270,7 @@ void TextCursor::moveCharacterRight(bool extendSelection) {
 void TextCursor::moveWordLeft(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit) {
-        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
         setPosition({lay.previousCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipWords), currentLine},
                     extendSelection);
     } else if (currentLine > 0) {
@@ -284,7 +281,7 @@ void TextCursor::moveWordLeft(bool extendSelection) {
 void TextCursor::moveWordRight(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit < _doc->_text[currentLine].size()) {
-        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
         setPosition({lay.nextCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipWords), currentLine},
                     extendSelection);
     } else if (currentLine + 1 < _doc->_text.size()) {
@@ -297,7 +294,7 @@ void TextCursor::moveUp(bool extendSelection) {
     if (currentLine > 0) {
         Tui::ZTextLayout lay = _createTextLayout(currentLine - 1, false);
         Tui::ZTextLineRef la = lay.lineAt(0);
-        setPositionPreservingVerticalMovementColumn({la.xToCursor(_file->_saveCursorPositionX), currentLine - 1}, extendSelection);
+        setPositionPreservingVerticalMovementColumn({la.xToCursor(_saveCursorPositionX), currentLine - 1}, extendSelection);
     }
 }
 
@@ -306,7 +303,7 @@ void TextCursor::moveDown(bool extendSelection) {
     if (currentLine < _doc->_text.size() - 1) {
         Tui::ZTextLayout lay = _createTextLayout(currentLine + 1, false);
         Tui::ZTextLineRef la = lay.lineAt(0);
-        setPositionPreservingVerticalMovementColumn({la.xToCursor(_file->_saveCursorPositionX), currentLine + 1}, extendSelection);
+        setPositionPreservingVerticalMovementColumn({la.xToCursor(_saveCursorPositionX), currentLine + 1}, extendSelection);
     }
 }
 
@@ -342,13 +339,13 @@ void TextCursor::moveToEndOfDocument(bool extendSelection) {
 }
 
 TextCursor::Position TextCursor::position() {
-    return Position{_file->_cursorPositionX, _file->_cursorPositionY};
+    return Position{_cursorPositionX, _cursorPositionY};
 }
 
 void TextCursor::setPosition(TextCursor::Position pos, bool extendSelection) {
     setPositionPreservingVerticalMovementColumn(pos, extendSelection);
     if (!_file || _file->terminal()) { // TODO rethink this hack to allow using setPosition before terminal is connected
-        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
         updateVerticalMovementColumn(lay);
     }
 }
@@ -357,28 +354,28 @@ void TextCursor::setPositionPreservingVerticalMovementColumn(TextCursor::Positio
     const bool hadSel = hasSelection();
     if (extendSelection) {
         if (!hadSel) {
-            _file->_startSelectX = _file->_cursorPositionX;
-            _file->_startSelectY = _file->_cursorPositionY;
+            _startSelectX = _cursorPositionX;
+            _startSelectY = _cursorPositionY;
         }
     } else {
         clearSelection();
     }
 
-    _file->_cursorPositionY = std::max(std::min(pos.y, _doc->_text.size() - 1), 0);
-    _file->_cursorPositionX = std::max(std::min(pos.x, _doc->_text[_file->_cursorPositionY].size()), 0);
+    _cursorPositionY = std::max(std::min(pos.y, _doc->_text.size() - 1), 0);
+    _cursorPositionX = std::max(std::min(pos.x, _doc->_text[_cursorPositionY].size()), 0);
 
     // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
-    if (_file->_cursorPositionX > 0) {
+    if (_cursorPositionX > 0) {
         if (!_file || _file->terminal()) { // TODO rethink this hack to allow using setPosition before terminal is connected
-            Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
-            _file->_cursorPositionX = lay.previousCursorPosition(_file->_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
-            _file->_cursorPositionX = lay.nextCursorPosition(_file->_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
+            Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
+            _cursorPositionX = lay.previousCursorPosition(_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
+            _cursorPositionX = lay.nextCursorPosition(_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
         }
     }
 
     if (extendSelection) {
-        _file->_endSelectX = _file->_cursorPositionX;
-        _file->_endSelectY = _file->_cursorPositionY;
+        _endSelectX = _cursorPositionX;
+        _endSelectY = _cursorPositionY;
     }
 }
 
@@ -387,53 +384,53 @@ TextCursor::Position TextCursor::anchor() {
         // FIXME: This should not be needed anymore when hasSelection() := anchor() == position()
         return position();
     }
-    return Position{_file->_startSelectX, _file->_startSelectY};
+    return Position{_startSelectX, _startSelectY};
 }
 
 void TextCursor::setAnchorPosition(TextCursor::Position pos) {
     clearSelection();
 
-    _file->_startSelectY = std::max(std::min(pos.y, _doc->_text.size() - 1), 0);
-    _file->_startSelectX = std::max(std::min(pos.x, _doc->_text[_file->_startSelectY].size()), 0);
+    _startSelectY = std::max(std::min(pos.y, _doc->_text.size() - 1), 0);
+    _startSelectX = std::max(std::min(pos.x, _doc->_text[_startSelectY].size()), 0);
 
     // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
-    if (_file->_startSelectX > 0) {
-        Tui::ZTextLayout lay = _createTextLayout(_file->_startSelectY, false);
-        _file->_startSelectX = lay.previousCursorPosition(_file->_startSelectX, Tui::ZTextLayout::SkipCharacters);
-        _file->_startSelectX = lay.nextCursorPosition(_file->_startSelectX, Tui::ZTextLayout::SkipCharacters);
+    if (_startSelectX > 0) {
+        Tui::ZTextLayout lay = _createTextLayout(_startSelectY, false);
+        _startSelectX = lay.previousCursorPosition(_startSelectX, Tui::ZTextLayout::SkipCharacters);
+        _startSelectX = lay.nextCursorPosition(_startSelectX, Tui::ZTextLayout::SkipCharacters);
     }
 
-    if (_file->_startSelectY != _file->_cursorPositionY || _file->_startSelectX != _file->_cursorPositionX) {
-        _file->_endSelectX = _file->_cursorPositionX;
-        _file->_endSelectY = _file->_cursorPositionY;
+    if (_startSelectY != _cursorPositionY || _startSelectX != _cursorPositionX) {
+        _endSelectX = _cursorPositionX;
+        _endSelectY = _cursorPositionY;
     } else {
         clearSelection();
     }
 }
 
 int TextCursor::verticalMovementColumn() {
-    return _file->_saveCursorPositionX;
+    return _saveCursorPositionX;
 }
 
 void TextCursor::setVerticalMovementColumn(int column) {
-    _file->_saveCursorPositionX = std::max(0, column);
+    _saveCursorPositionX = std::max(0, column);
 }
 
 TextCursor::Position TextCursor::selectionStartPos() const {
     if (hasSelection()) {
-        return std::min(Position{_file->_startSelectX, _file->_startSelectY},
-                        Position{_file->_endSelectX, _file->_endSelectY});
+        return std::min(Position{_startSelectX, _startSelectY},
+                        Position{_endSelectX, _endSelectY});
     } else {
-        return Position{_file->_cursorPositionX, _file->_cursorPositionY};
+        return Position{_cursorPositionX, _cursorPositionY};
     }
 }
 
 TextCursor::Position TextCursor::selectionEndPos() const {
     if (hasSelection()) {
-        return std::max(Position{_file->_startSelectX, _file->_startSelectY},
-                        Position{_file->_endSelectX, _file->_endSelectY});
+        return std::max(Position{_startSelectX, _startSelectY},
+                        Position{_endSelectX, _endSelectY});
     } else {
-        return Position{_file->_cursorPositionX, _file->_cursorPositionY};
+        return Position{_cursorPositionX, _cursorPositionY};
     }
 }
 
@@ -443,34 +440,34 @@ void TextCursor::selectAll() {
 }
 
 bool TextCursor::hasSelection() const {
-    return _file->_startSelectX != -1;
+    return _startSelectX != -1;
 }
 
 bool TextCursor::atStart() const {
-    return _file->_cursorPositionY == 0 && _file->_cursorPositionX == 0;
+    return _cursorPositionY == 0 && _cursorPositionX == 0;
 }
 
 bool TextCursor::atEnd() const {
-    return _file->_cursorPositionY == _doc->_text.size() - 1
-            && _file->_cursorPositionX == _doc->_text[_file->_cursorPositionY].size();
+    return _cursorPositionY == _doc->_text.size() - 1
+            && _cursorPositionX == _doc->_text[_cursorPositionY].size();
 }
 
 bool TextCursor::atLineStart() const {
-    return _file->_cursorPositionX == 0;
+    return _cursorPositionX == 0;
 }
 
 bool TextCursor::atLineEnd() const {
-    return _file->_cursorPositionX == _doc->_text[_file->_cursorPositionY].size();
+    return _cursorPositionX == _doc->_text[_cursorPositionY].size();
 }
 
 void TextCursor::updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForCursorLine) {
-    Tui::ZTextLineRef tlr = layoutForCursorLine.lineForTextPosition(_file->_cursorPositionX);
-    _file->_saveCursorPositionX = tlr.cursorToX(_file->_cursorPositionX, Tui::ZTextLayout::Leading);
+    Tui::ZTextLineRef tlr = layoutForCursorLine.lineForTextPosition(_cursorPositionX);
+    _saveCursorPositionX = tlr.cursorToX(_cursorPositionX, Tui::ZTextLayout::Leading);
 }
 
 void TextCursor::tmp_ensureInRange() {
     // FIXME: Remove when everything uses TextCursor and TextCursor can ensure it does not point outside of the line.
-    if (_doc->_text[_file->_cursorPositionY].size() < _file->_cursorPositionX) {
-        _file->_cursorPositionX = _doc->_text[_file->_cursorPositionY].size();
+    if (_doc->_text[_cursorPositionY].size() < _cursorPositionX) {
+        _cursorPositionX = _doc->_text[_cursorPositionY].size();
     }
 }

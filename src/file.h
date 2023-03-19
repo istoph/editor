@@ -38,7 +38,6 @@ public:
     void paste();
     bool isInsertable();
     void insertLinebreak();
-    QPoint insertLinebreakAtPosition(QPoint cursor);
     void gotoline(QString pos);
     bool setTabsize(int tab);
     int getTabsize();
@@ -54,29 +53,20 @@ public:
     void setColorSpaceEnd(bool colorSpaceEnd);
     void setWrapOption(Tui::ZTextOption::WrapMode wrap);
     Tui::ZTextOption::WrapMode getWrapOption();
-    void select(int x, int y);
-    void blockSelect(int x, int y);
-    bool blockSelectEdit(int x);
     QPair<int, int> getSelectLinesSort();
     QPair<int, int> getSelectLines();
     void selectLines(int startY, int endY);
     void resetSelect();
     QString getSelectText();
-    bool isSelect(int x, int y);
     bool isSelect();
     void selectAll();
     bool delSelect();
     void toggleOverwrite();
     bool isOverwrite();
-    void deletePreviousCharacterOrWord(Tui::ZTextLayout::CursorMode mode);
-    QPoint deletePreviousCharacterOrWordAt(Tui::ZTextLayout::CursorMode mode, int x, int y);
-    void deleteNextCharacterOrWord(Tui::ZTextLayout::CursorMode mode);
-    QPoint deleteNextCharacterOrWordAt(Tui::ZTextLayout::CursorMode mode, int x, int y);
     QPoint addTabAt(QPoint cursor);
     int getVisibleLines();
     void appendLine(const QString &line);
     void insertAtCursorPosition(const QString &str);
-    QPoint insertAtPosition(QStringList str, QPoint cursor);
     bool isModified() const { return _doc.isModified(); };
     void setSearchText(QString searchText);
     void setReplaceText(QString replaceText);
@@ -95,7 +85,6 @@ public:
     int replaceAll(QString searchText, QString replaceText);
     QPoint getCursorPosition();
     void setCursorPosition(TextCursor::Position position);
-    void setCursorPositionOld(QPoint position);
     QPoint getScrollPosition();
     void setRightMarginHint(int hint);
     int rightMarginHint() const;
@@ -146,11 +135,8 @@ protected:
 private:
     bool initText();
     void adjustScrollPosition();
-    void safeCursorPosition();
     void updateCommands();
     void checkUndo();
-
-    void clearComplexSelection();
 
     bool hasBlockSelection() const;
     bool hasMultiInsert() const;
@@ -161,24 +147,36 @@ private:
     void searchSelect(int line, int found, int length, bool direction);
     SearchLine searchNext(QVector<QString> text, SearchParameter search);
     //void searchSelectPrevious(int line, int found);
-    Range getBlockSelectedLines();
-    void selectCursorPosition(Qt::KeyboardModifiers modifiers);
     void setSelectMode(bool f4);
     bool getSelectMode();
     int shiftLinenumber();
+    Tui::ZTextLayout getTextLayoutForLineWithoutWrapping(int line);
+    TextCursor createCursor();
+
+    // block selection
+    void activateBlockSelection();
+    void disableBlockSelection();
+    void blockSelectRemoveSelectedAndConvertToMultiInsert();
+    static const int mi_add_spaces = 1;
+    static const int mi_skip_short_lines = 2;
+    template<typename F>
+    void multiInsertForEachCursor(int flags, F f);
+    void multiInsertDeletePreviousCharacter();
+    void multiInsertDeletePreviousWord();
+    void multiInsertDeleteCharacter();
+    void multiInsertDeleteWord();
+    void multiInsertInsert(const QString &text);
 
 private:
     Document _doc;
     TextCursor _cursor;
-    // this will move into TextCursor with time
-    int _cursorPositionX = 0;
-    int _cursorPositionY = 0;
-    int _startSelectX = -1;
-    int _startSelectY = -1;
-    int _endSelectX = -1;
-    int _endSelectY = -1;
-    int _saveCursorPositionX = 0;
-    // </>
+
+    // block selection
+    bool _blockSelect = false;
+    int _blockSelectStartLine = -1;
+    int _blockSelectEndLine = -1;
+    int _blockSelectStartColumn = -1;
+    int _blockSelectEndColumn = -1;
 
     int _scrollPositionX = 0;
     int _scrollPositionY = 0;
@@ -217,7 +215,6 @@ private:
     Tui::ZCommandNotifier *_cmdSearchNext = nullptr;
     Tui::ZCommandNotifier *_cmdSearchPrevious = nullptr;
     bool _selectMode = false;
-    bool _blockSelect = false;
 
     friend class Document;
 };

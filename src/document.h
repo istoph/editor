@@ -102,6 +102,14 @@ private:
     void updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForCursorLine);
 
 private:
+    int _cursorPositionX = 0;
+    int _cursorPositionY = 0;
+    int _startSelectX = -1;
+    int _startSelectY = -1;
+    int _endSelectX = -1;
+    int _endSelectY = -1;
+    int _saveCursorPositionX = 0;
+
     Document *_doc;
     File *_file;
     std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> _createTextLayout;
