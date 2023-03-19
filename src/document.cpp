@@ -252,7 +252,7 @@ void TextCursor::deletePreviousWord() {
 }
 
 void TextCursor::moveCharacterLeft(bool extendSelection) {
-    auto [currentCodeUnit, currentLine] = position();
+    const auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit) {
         Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
         setPosition({lay.previousCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipCharacters), currentLine},
@@ -266,7 +266,7 @@ void TextCursor::moveCharacterLeft(bool extendSelection) {
 }
 
 void TextCursor::moveCharacterRight(bool extendSelection) {
-    auto [currentCodeUnit, currentLine] = position();
+    const auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit < _doc->_text[currentLine].size()) {
         Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
         setPosition({lay.nextCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipCharacters), currentLine},
@@ -280,7 +280,7 @@ void TextCursor::moveCharacterRight(bool extendSelection) {
 }
 
 void TextCursor::moveWordLeft(bool extendSelection) {
-    auto [currentCodeUnit, currentLine] = position();
+    const auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit) {
         Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
         setPosition({lay.previousCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipWords), currentLine},
@@ -294,7 +294,7 @@ void TextCursor::moveWordLeft(bool extendSelection) {
 }
 
 void TextCursor::moveWordRight(bool extendSelection) {
-    auto [currentCodeUnit, currentLine] = position();
+    const auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit < _doc->_text[currentLine].size()) {
         Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
         setPosition({lay.nextCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipWords), currentLine},
@@ -326,14 +326,14 @@ void TextCursor::moveDown(bool extendSelection) {
 }
 
 void TextCursor::moveToStartOfLine(bool extendSelection) {
-    auto [currentCodeUnit, currentLine] = position();
+    const auto [currentCodeUnit, currentLine] = position();
     setPosition({0, currentLine}, extendSelection);
     Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
     updateVerticalMovementColumn(lay);
 }
 
 void TextCursor::moveToStartIndentedText(bool extendSelection) {
-    auto [currentCodeUnit, currentLine] = position();
+    const auto [currentCodeUnit, currentLine] = position();
 
     int i = 0;
     for (; i < _doc->_text[currentLine].size(); i++) {
@@ -348,7 +348,7 @@ void TextCursor::moveToStartIndentedText(bool extendSelection) {
 }
 
 void TextCursor::moveToEndOfLine(bool extendSelection) {
-    auto [currentCodeUnit, currentLine] = position();
+    const auto [currentCodeUnit, currentLine] = position();
     setPosition({_doc->_text[currentLine].size(), currentLine}, extendSelection);
     Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
     updateVerticalMovementColumn(lay);
