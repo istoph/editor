@@ -185,9 +185,6 @@ void TextCursor::removeSelectedText() {
     clearSelection();
     setPosition(start);
 
-    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
-    updateVerticalMovementColumn(lay);
-
     _doc->saveUndoStep(_file);
 }
 
@@ -257,11 +254,8 @@ void TextCursor::moveCharacterLeft(bool extendSelection) {
         Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
         setPosition({lay.previousCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipCharacters), currentLine},
                     extendSelection);
-        updateVerticalMovementColumn(lay);
     } else if (currentLine > 0) {
         setPosition({_doc->_text[currentLine - 1].size(), currentLine - 1}, extendSelection);
-        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
-        updateVerticalMovementColumn(lay);
     }
 }
 
@@ -271,11 +265,8 @@ void TextCursor::moveCharacterRight(bool extendSelection) {
         Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
         setPosition({lay.nextCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipCharacters), currentLine},
                     extendSelection);
-        updateVerticalMovementColumn(lay);
     } else if (currentLine + 1 < _doc->_text.size()) {
         setPosition({0, currentLine + 1}, extendSelection);
-        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
-        updateVerticalMovementColumn(lay);
     }
 }
 
@@ -285,11 +276,8 @@ void TextCursor::moveWordLeft(bool extendSelection) {
         Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
         setPosition({lay.previousCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipWords), currentLine},
                     extendSelection);
-        updateVerticalMovementColumn(lay);
     } else if (currentLine > 0) {
         setPosition({_doc->_text[currentLine - 1].size(), currentLine - 1}, extendSelection);
-        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
-        updateVerticalMovementColumn(lay);
     }
 }
 
@@ -299,11 +287,8 @@ void TextCursor::moveWordRight(bool extendSelection) {
         Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
         setPosition({lay.nextCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipWords), currentLine},
                     extendSelection);
-        updateVerticalMovementColumn(lay);
     } else if (currentLine + 1 < _doc->_text.size()) {
         setPosition({0, currentLine + 1}, extendSelection);
-        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
-        updateVerticalMovementColumn(lay);
     }
 }
 
@@ -312,7 +297,7 @@ void TextCursor::moveUp(bool extendSelection) {
     if (currentLine > 0) {
         Tui::ZTextLayout lay = _createTextLayout(currentLine - 1, false);
         Tui::ZTextLineRef la = lay.lineAt(0);
-        setPosition({la.xToCursor(_file->_saveCursorPositionX), currentLine - 1}, extendSelection);
+        setPositionPreservingVerticalMovementColumn({la.xToCursor(_file->_saveCursorPositionX), currentLine - 1}, extendSelection);
     }
 }
 
@@ -321,15 +306,13 @@ void TextCursor::moveDown(bool extendSelection) {
     if (currentLine < _doc->_text.size() - 1) {
         Tui::ZTextLayout lay = _createTextLayout(currentLine + 1, false);
         Tui::ZTextLineRef la = lay.lineAt(0);
-        setPosition({la.xToCursor(_file->_saveCursorPositionX), currentLine + 1}, extendSelection);
+        setPositionPreservingVerticalMovementColumn({la.xToCursor(_file->_saveCursorPositionX), currentLine + 1}, extendSelection);
     }
 }
 
 void TextCursor::moveToStartOfLine(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
     setPosition({0, currentLine}, extendSelection);
-    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
-    updateVerticalMovementColumn(lay);
 }
 
 void TextCursor::moveToStartIndentedText(bool extendSelection) {
@@ -343,27 +326,19 @@ void TextCursor::moveToStartIndentedText(bool extendSelection) {
     }
 
     setPosition({i, currentLine}, extendSelection);
-    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
-    updateVerticalMovementColumn(lay);
 }
 
 void TextCursor::moveToEndOfLine(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
     setPosition({_doc->_text[currentLine].size(), currentLine}, extendSelection);
-    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
-    updateVerticalMovementColumn(lay);
 }
 
 void TextCursor::moveToStartOfDocument(bool extendSelection) {
     setPosition({0, 0}, extendSelection);
-    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
-    updateVerticalMovementColumn(lay);
 }
 
 void TextCursor::moveToEndOfDocument(bool extendSelection) {
     setPosition({_doc->_text.last().size(), _doc->_text.size() - 1}, extendSelection);
-    Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
-    updateVerticalMovementColumn(lay);
 }
 
 TextCursor::Position TextCursor::position() {
@@ -371,6 +346,14 @@ TextCursor::Position TextCursor::position() {
 }
 
 void TextCursor::setPosition(TextCursor::Position pos, bool extendSelection) {
+    setPositionPreservingVerticalMovementColumn(pos, extendSelection);
+    if (!_file || _file->terminal()) { // TODO rethink this hack to allow using setPosition before terminal is connected
+        Tui::ZTextLayout lay = _createTextLayout(_file->_cursorPositionY, false);
+        updateVerticalMovementColumn(lay);
+    }
+}
+
+void TextCursor::setPositionPreservingVerticalMovementColumn(TextCursor::Position pos, bool extendSelection) {
     const bool hadSel = hasSelection();
     if (extendSelection) {
         if (!hadSel) {

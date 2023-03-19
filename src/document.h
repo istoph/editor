@@ -73,6 +73,7 @@ public:
 
     Position position();
     void setPosition(Position pos, bool extendSelection = false);
+    void setPositionPreservingVerticalMovementColumn(Position pos, bool extendSelection = false);
 
     Position anchor();
     void setAnchorPosition(Position pos);

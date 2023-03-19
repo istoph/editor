@@ -288,7 +288,6 @@ bool File::initText() {
     _scrollPositionX = 0;
     _scrollPositionY = 0;
     _cursor.setPosition({0, 0});
-    _cursor.setVerticalMovementColumn(0);
     _doc.initalUndoStep(this);
     cursorPositionChanged(0, 0, 0);
     scrollPositionChanged(0, 0);
@@ -519,7 +518,6 @@ void File::gotoline(QString pos) {
         lineChar = list1[1].toInt() -1;
     }
     setCursorPosition({lineChar, lineNumber});
-    safeCursorPosition();
 }
 
 bool File::setTabsize(int tab) {
@@ -682,7 +680,6 @@ void File::selectLines(int startY, int endY) {
         _cursor.setPosition({0, startY});
         _cursor.setPosition({_doc._text[endY].size(), endY}, true);
     }
-    safeCursorPosition();
 }
 
 void File::resetSelect() {
@@ -1060,7 +1057,6 @@ void File::searchSelect(int line, int found, int length, bool direction) {
         if (currentLine - 1 > 0) {
             _scrollPositionY = currentLine - 1;
         }
-        safeCursorPosition();
         adjustScrollPosition();
     }
 }
@@ -1951,6 +1947,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 t = addTabAt({_cursorPositionX,line});
             }
             blockSelectEdit(t.x());
+            safeCursorPosition();
         } else if (_cursor.hasSelection()) {
             // Add one level of indent to the selected lines.
 
@@ -1972,8 +1969,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
             selectLines(startLine, endLine);
             setSelectMode(savedSelectMode);
-
-            safeCursorPosition();
         } else {
             if (_eatSpaceBeforeTabs && _tabOption) {
                 // If spaces in front of a tab
@@ -1989,7 +1984,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             t = addTabAt({cursorCodeUnit, cursorLine});
             setCursorPosition({t.x(), t.y()});
         }
-        safeCursorPosition();
         _doc.saveUndoStep(this);
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == Qt::ShiftModifier) {
         // returns current line if no selection is active
@@ -2033,7 +2027,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         setSelectMode(savedSelectMode);
 
-        safeCursorPosition();
         _doc.saveUndoStep(this);
     } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {
