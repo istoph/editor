@@ -93,6 +93,9 @@ public:
     bool atLineStart() const;
     bool atLineEnd() const;
 
+public: // temporary hacks
+    void tmp_ensureInRange();
+
 private:
     //TextLayout createTextLayout(int line, bool wrappingAllowed);
     void updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForCursorLine);

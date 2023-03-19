@@ -484,3 +484,10 @@ void TextCursor::updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForC
     Tui::ZTextLineRef tlr = layoutForCursorLine.lineForTextPosition(_file->_cursorPositionX);
     _file->_saveCursorPositionX = tlr.cursorToX(_file->_cursorPositionX, Tui::ZTextLayout::Leading);
 }
+
+void TextCursor::tmp_ensureInRange() {
+    // FIXME: Remove when everything uses TextCursor and TextCursor can ensure it does not point outside of the line.
+    if (_doc->_text[_file->_cursorPositionY].size() < _file->_cursorPositionX) {
+        _file->_cursorPositionX = _doc->_text[_file->_cursorPositionY].size();
+    }
+}
