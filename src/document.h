@@ -55,6 +55,7 @@ public:
     void deletePreviousCharacter();
     void deleteWord();
     void deletePreviousWord();
+    void deleteLine();
 
     void moveCharacterLeft(bool extendSelection = false);
     void moveCharacterRight(bool extendSelection = false);

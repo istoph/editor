@@ -245,6 +245,18 @@ void TextCursor::deletePreviousWord() {
     removeSelectedText();
 }
 
+void TextCursor::deleteLine() {
+    clearSelection();
+    moveToStartOfLine();
+    moveToEndOfLine(true);
+    removeSelectedText();
+    if (atEnd()) {
+        deletePreviousCharacter();
+    } else {
+        deleteCharacter();
+    }
+}
+
 void TextCursor::moveCharacterLeft(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit) {

@@ -124,4 +124,84 @@ TEST_CASE("Document") {
         cursor.setPosition({3,2}, selection);
         CHECK(cursor.position() == TextCursor::Position{0,0});
     }
+    SECTION("delete-line") {
+        bool emptyline = GENERATE(true, false);
+        if(emptyline) {
+            cursor.insertText("test test\n\ntest test");
+            cursor.setPosition({0,1});
+            CHECK(cursor.position() == TextCursor::Position{0,1});
+        } else {
+            cursor.insertText("test test\nremove remove\ntest test");
+            cursor.setPosition({4,0});
+            cursor.moveDown(true);
+            cursor.moveWordRight(true);
+            CHECK(cursor.position() == TextCursor::Position{6,1});
+        }
+        REQUIRE(doc._text.size() == 3);
+
+        cursor.deleteLine();
+        CAPTURE(doc._text);
+        CHECK(cursor.position() == TextCursor::Position{0,1});
+        CHECK(doc._text.size() == 2);
+
+        QVector<QString> text;
+        text.append("test test");
+        text.append("test test");
+
+        CHECK(doc._text == text);
+    }
+
+    SECTION("delete-fist-line") {
+        bool emptyline = GENERATE(true, false);
+        CAPTURE(emptyline);
+        if(emptyline) {
+            cursor.insertText("\ntest test\ntest test");
+            cursor.setPosition({0,0});
+            CHECK(cursor.position() == TextCursor::Position{0,0});
+        } else {
+            cursor.insertText("remove remove\ntest test\ntest test");
+            cursor.setPosition({0,1});
+            cursor.moveUp(true);
+            CHECK(cursor.position() == TextCursor::Position{0,0});
+        }
+        REQUIRE(doc._text.size() == 3);
+        cursor.deleteLine();
+        CAPTURE(doc._text);
+        CHECK(cursor.position() == TextCursor::Position{0,0});
+        CHECK(doc._text.size() == 2);
+        CHECK(cursor.hasSelection() == false);
+
+        QVector<QString> text;
+        text.append("test test");
+        text.append("test test");
+
+        CHECK(doc._text == text);
+    }
+
+    SECTION("delete-last-line") {
+        bool emptyline = GENERATE(true, false);
+        CAPTURE(emptyline);
+        if(emptyline) {
+            cursor.insertText("test test\ntest test\n");
+            cursor.setPosition({0,2});
+            CHECK(cursor.position() == TextCursor::Position{0,2});
+        } else {
+            cursor.insertText("test test\ntest test\nremove remove");
+            cursor.setPosition({0,2});
+            CHECK(cursor.position() == TextCursor::Position{0,2});
+        }
+        REQUIRE(doc._text.size() == 3);
+        cursor.deleteLine();
+        CAPTURE(doc._text);
+        CHECK(cursor.position() == TextCursor::Position{9,1});
+        CHECK(doc._text.size() == 2);
+        CHECK(cursor.hasSelection() == false);
+
+        QVector<QString> text;
+        text.append("test test");
+        text.append("test test");
+
+        CHECK(doc._text == text);
+    }
+
 }
