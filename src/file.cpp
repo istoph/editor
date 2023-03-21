@@ -1365,14 +1365,21 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     int y = 0;
     int tmpLastLineWidth = 0;
     for (int line = _scrollPositionY; y < rect().height() && line < _doc._text.size(); line++) {
-        Tui::ZTextLayout lay = [&] {
-                const auto [cursorCodeUnit, cursorLine] = _cursor.position();
-
-                if (line == cursorLine && _doc._text[cursorLine].size() == cursorCodeUnit) {
-                    return getTextLayoutForLine(getTextOption(true), line);
+        const bool multiIns = hasMultiInsert();
+        const bool cursorAtEndOfCurrentLine = [&, cursorCodeUnit=cursorCodeUnit] {
+            if (_blockSelect) {
+                if (multiIns && firstSelectBlockLine <= line && line <= lastSelectBlockLine) {
+                    auto testLayout = getTextLayoutForLineWithoutWrapping(line);
+                    auto testLayoutLine = testLayout.lineAt(0);
+                    return testLayoutLine.width() == firstSelectBlockColumn;
                 }
-                return getTextLayoutForLine(option, line);
-            }();
+                return false;
+            } else {
+                return line == cursorLine && _doc._text[cursorLine].size() == cursorCodeUnit;
+            }
+        }();
+        Tui::ZTextLayout lay = cursorAtEndOfCurrentLine ? getTextLayoutForLine(getTextOption(true), line)
+                                                        : getTextLayoutForLine(option, line);
 
         // highlights
         highlights.clear();
@@ -1452,7 +1459,6 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         tmpLastLineWidth = lastLine.width();
 
         bool lineBreakSelected = false;
-        const bool multiIns = hasMultiInsert();
         if (_blockSelect) {
             const int lastSelectBlockHighlightColumn = lastSelectBlockColumn + (multiIns ? 1 : 0);
             if (firstSelectBlockLine <= line && line <= lastSelectBlockLine) {
