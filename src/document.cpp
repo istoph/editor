@@ -22,8 +22,7 @@ void Document::undo(File *file) {
 
     _text = _undoSteps[_currentUndoStep].text;
     file->_cursor.setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
-    file->modifiedChanged(isModified());
-    file->checkUndo();
+    emitModifedSignals();
     file->adjustScrollPosition();
 }
 
@@ -40,8 +39,7 @@ void Document::redo(File *file) {
 
     _text = _undoSteps[_currentUndoStep].text;
     file->_cursor.setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
-    file->modifiedChanged(isModified());
-    file->checkUndo();
+    emitModifedSignals();
     file->adjustScrollPosition();
 }
 
@@ -81,8 +79,7 @@ void Document::saveUndoStep(File *file, bool collapsable) {
         _undoSteps.append({ _text, endCodeUnit, endLine});
         _currentUndoStep = _undoSteps.size() - 1;
         _collapseUndoStep = collapsable;
-        file->modifiedChanged(isModified());
-        file->checkUndo();
+        emitModifedSignals();
     }
 }
 
@@ -109,6 +106,13 @@ void Document::insertLine(int before, const QString &data) {
 void Document::splitLine(TextCursor::Position pos) {
     _text.insert(pos.y + 1, _text[pos.y].mid(pos.x));
     _text[pos.y].resize(pos.x);
+}
+
+void Document::emitModifedSignals() {
+    // TODO: Ideally emit these only when changed
+    undoAvailable(_undoSteps.size() && _currentUndoStep != 0);
+    redoAvailable(_undoSteps.size() && _currentUndoStep + 1 < _undoSteps.size());
+    modificationChanged(isModified());
 }
 
 bool operator<(const TextCursor::Position &a, const TextCursor::Position &b) {

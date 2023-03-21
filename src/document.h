@@ -136,6 +136,11 @@ public:
         int cursorPositionY;
     };
 
+signals:
+    void modificationChanged(bool changed);
+    void redoAvailable(bool available);
+    void undoAvailable(bool available);
+
 private: // TextCursor interface
     void removeFromLine(int line, int codeUnitStart, int codeUnits);
     void insertIntoLine(int line, int codeUnitStart, const QString &data);
@@ -143,6 +148,9 @@ private: // TextCursor interface
     void removeLines(int start, int count);
     void insertLine(int before, const QString &data);
     void splitLine(TextCursor::Position pos);
+
+private:
+    void emitModifedSignals();
 
 public:
     QString _filename;

@@ -45,9 +45,11 @@ File::File(Tui::ZWidget *parent)
     _cmdUndo = new Tui::ZCommandNotifier("Undo", this, Qt::WindowShortcut);
     QObject::connect(_cmdUndo, &Tui::ZCommandNotifier::activated, this, [this]{_doc.undo(this);});
     _cmdUndo->setEnabled(false);
+    QObject::connect(&_doc, &Document::undoAvailable, _cmdUndo, &Tui::ZCommandNotifier::setEnabled);
     _cmdRedo = new Tui::ZCommandNotifier("Redo", this, Qt::WindowShortcut);
     QObject::connect(_cmdRedo, &Tui::ZCommandNotifier::activated, this, [this]{_doc.redo(this);});
     _cmdRedo->setEnabled(false);
+    QObject::connect(&_doc, &Document::redoAvailable, _cmdRedo, &Tui::ZCommandNotifier::setEnabled);
 
     _cmdSearchNext = new Tui::ZCommandNotifier("Search Next", this, Qt::WindowShortcut);
     QObject::connect(_cmdSearchNext, &Tui::ZCommandNotifier::activated, this, [this]{runSearch(false);});
@@ -64,6 +66,8 @@ File::File(Tui::ZWidget *parent)
           [this] {
             runSearch(true);
           });
+
+    QObject::connect(&_doc, &Document::modificationChanged, this, &File::modifiedChanged);
 }
 
 bool File::readAttributes() {
@@ -696,21 +700,6 @@ void File::toggleOverwrite() {
 
 bool File::isOverwrite() {
     return _overwrite;
-}
-
-void File::checkUndo() {
-    if(_cmdUndo != nullptr) {
-        if(_doc._currentUndoStep != _doc._savedUndoStep) {
-            _cmdUndo->setEnabled(true);
-        } else {
-            _cmdUndo->setEnabled(false);
-        }
-        if(_doc._undoSteps.size() > _doc._currentUndoStep +1) {
-            _cmdRedo->setEnabled(true);
-        } else {
-            _cmdRedo->setEnabled(false);
-        }
-    }
 }
 
 bool File::hasBlockSelection() const {

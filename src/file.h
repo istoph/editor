@@ -136,7 +136,6 @@ private:
     bool initText();
     void adjustScrollPosition();
     void updateCommands();
-    void checkUndo();
 
     bool hasBlockSelection() const;
     bool hasMultiInsert() const;
