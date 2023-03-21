@@ -10,9 +10,14 @@
 
 #include "clipboard.h"
 #include "document.h"
-#include "documenttests.h"
 #include "file.h"
 
+class DocumentTestHelper {
+public:
+    Document &getDoc(File *f) {
+        return f->_doc;
+    }
+};
 
 class Rootabgeletiet : public Tui::ZRoot {
 public:

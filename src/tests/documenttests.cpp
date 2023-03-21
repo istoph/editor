@@ -1,25 +1,26 @@
 // SPDX-License-Identifier: BSL-1.0
 
-#include "catchwrapper.h"
 #include "document.h"
-#include "file.h"
+
+#include "documenttests.h"
+
+#include "catchwrapper.h"
+
 #include <Tui/ZRoot.h>
 #include <Tui/ZTest.h>
 
 #include <Tui/ZTerminal.h>
 #include <Tui/ZTextMetrics.h>
 
-#include "documenttests.h"
 
 TEST_CASE("Document") {
     Tui::ZTerminal terminal{Tui::ZTerminal::OffScreen{1, 1}};
     Tui::ZRoot root;
     terminal.setMainWidget(&root);
-    DocumentTestHelper t;
 
-    File file(&root);
-    Document &doc = t.getDoc(&file);
-    TextCursor cursor{&doc, &file, [&terminal,&doc](int line, bool wrappingAllowed) {
+    Document doc;
+
+    TextCursor cursor{&doc, nullptr, [&terminal,&doc](int line, bool wrappingAllowed) {
             Tui::ZTextLayout lay(terminal.textMetrics(), doc._text[line]);
             lay.doLayout(65000);
             return lay;
