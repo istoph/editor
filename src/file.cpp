@@ -1452,19 +1452,42 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         tmpLastLineWidth = lastLine.width();
 
         bool lineBreakSelected = false;
+        const bool multiIns = hasMultiInsert();
         if (_blockSelect) {
-            lineBreakSelected = firstSelectBlockLine <= line && line <= lastSelectBlockLine
-                && firstSelectBlockColumn <= lastLine.width() && lastLine.width() <= lastSelectBlockColumn;
+            const int lastSelectBlockHighlightColumn = lastSelectBlockColumn + (multiIns ? 1 : 0);
+            if (firstSelectBlockLine <= line && line <= lastSelectBlockLine) {
+                lineBreakSelected = firstSelectBlockColumn <= lastLine.width() && lastLine.width() < lastSelectBlockHighlightColumn;
+
+                // FIXME this does not work with soft wrapped lines, so disable for now when in a wrapped line
+                if (lay.lineCount() == 1 && lastLine.width() + 1 < lastSelectBlockHighlightColumn) {
+                    Tui::ZTextStyle markStyle = selected;
+                    if (firstSelectBlockColumn == lastSelectBlockColumn) {
+                        markStyle = blockSelected;
+                    }
+                    const int firstColumnAfterLineBreakMarker = std::max(lastLine.width() + 1, firstSelectBlockColumn);
+                    painter->clearRect(-_scrollPositionX + firstColumnAfterLineBreakMarker + shiftLinenumber(),
+                                       y + lastLine.y(), std::max(1, lastSelectBlockColumn - firstColumnAfterLineBreakMarker),
+                                       1, markStyle.foregroundColor(), markStyle.backgroundColor());
+                }
+            }
         } else {
             lineBreakSelected = startSelectCursor.y <= line && endSelectCursor.y > line;
         }
 
         if (lineBreakSelected) {
             if (formattingCharacters()) {
+                Tui::ZTextStyle markStyle = selectedFormatingChar;
+                if (multiIns) {
+                    markStyle = blockSelected;
+                }
                 painter->writeWithAttributes(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), QStringLiteral("¶"),
-                                         selectedFormatingChar.foregroundColor(), selectedFormatingChar.backgroundColor(), selectedFormatingChar.attributes());
+                                         markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
             } else {
-                painter->clearRect(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), 1, 1, selected.foregroundColor(), selected.backgroundColor());
+                Tui::ZTextStyle markStyle = selected;
+                if (multiIns) {
+                    markStyle = blockSelected;
+                }
+                painter->clearRect(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), 1, 1, markStyle.foregroundColor(), markStyle.backgroundColor());
             }
         } else if (formattingCharacters()) {
             const Tui::ZTextStyle &markStyle = (_rightMarginHint && lastLine.width() > _rightMarginHint) ? formatingCharInMargin : formatingChar;
