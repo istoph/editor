@@ -608,4 +608,56 @@ TEST_CASE("Document") {
         CHECK(doc._text[0].size() == 1);
         CHECK(doc._text[0] == "b");
     }
+
+    SECTION("at") {
+        CHECK(cursor.atStart() == true);
+        CHECK(cursor.atEnd() == true);
+        CHECK(cursor.atLineStart() == true);
+        CHECK(cursor.atLineEnd() == true);
+
+        cursor.insertText(" ");
+        CHECK(cursor.atStart() == false);
+        CHECK(cursor.atEnd() == true);
+        CHECK(cursor.atLineStart() == false);
+        CHECK(cursor.atLineEnd() == true);
+
+        cursor.insertText("\n");
+        CHECK(cursor.atStart() == false);
+        CHECK(cursor.atEnd() == true);
+        CHECK(cursor.atLineStart() == true);
+        CHECK(cursor.atLineEnd() == true);
+
+        cursor.insertText(" ");
+        CHECK(cursor.atStart() == false);
+        CHECK(cursor.atEnd() == true);
+        CHECK(cursor.atLineStart() == false);
+        CHECK(cursor.atLineEnd() == true);
+
+        cursor.moveCharacterLeft();
+        CHECK(cursor.atStart() == false);
+        CHECK(cursor.atEnd() == false);
+        CHECK(cursor.atLineStart() == true);
+        CHECK(cursor.atLineEnd() == false);
+
+        cursor.moveToStartOfDocument();
+        CHECK(cursor.atStart() == true);
+        CHECK(cursor.atEnd() == false);
+        CHECK(cursor.atLineStart() == true);
+        CHECK(cursor.atLineEnd() == false);
+
+        //clear
+        cursor.selectAll();
+        cursor.insertText("\n");
+        CHECK(cursor.atStart() == false);
+        CHECK(cursor.atEnd() == true);
+        CHECK(cursor.atLineStart() == true);
+        CHECK(cursor.atLineEnd() == true);
+
+        cursor.moveUp();
+        CHECK(cursor.atStart() == true);
+        CHECK(cursor.atEnd() == false);
+        CHECK(cursor.atLineStart() == true);
+        CHECK(cursor.atLineEnd() == true);
+
+    }
 }
