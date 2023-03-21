@@ -461,4 +461,151 @@ TEST_CASE("Document") {
         CHECK(cursor.selectionStartPos() == cursor.position());
         CHECK(cursor.selectionEndPos() == cursor.position());
     }
+
+    SECTION("selectAll") {
+        cursor.selectAll();
+        CHECK(cursor.hasSelection() == true); //fix false
+        CHECK(cursor.selectedText() == "");
+
+        cursor.clearSelection();
+        CHECK(cursor.hasSelection() == false);
+        CHECK(cursor.selectedText() == "");
+
+        cursor.clearSelection();
+        CHECK(cursor.hasSelection() == false);
+        CHECK(cursor.selectedText() == "");
+
+        cursor.insertText(" ");
+        CHECK(cursor.selectedText() == "");
+        CHECK(cursor.hasSelection() == false);
+
+        cursor.selectAll();
+        CHECK(cursor.selectedText() == " ");
+        CHECK(cursor.hasSelection() == true);
+
+        cursor.clearSelection();
+        CHECK(cursor.hasSelection() == false);
+        CHECK(cursor.selectedText() == "");
+
+        cursor.moveCharacterLeft();
+
+        cursor.clearSelection();
+        CHECK(cursor.hasSelection() == false);
+        CHECK(cursor.selectedText() == "");
+
+        cursor.selectAll();
+        cursor.insertText("\n");
+        CHECK(cursor.selectedText() == "");
+        CHECK(cursor.hasSelection() == false);
+
+        cursor.selectAll();
+        CHECK(cursor.selectedText() == "\n");
+        CHECK(cursor.hasSelection() == true);
+    }
+
+    SECTION("removeSelectedText") {
+        CHECK(cursor.hasSelection() == false);
+        cursor.removeSelectedText();
+        CHECK(doc._text.size() == 1);
+        CHECK(doc._text[0].size() == 0);
+
+        cursor.selectAll();
+        CHECK(cursor.hasSelection() == true); //fix false
+        cursor.removeSelectedText();
+        CHECK(doc._text.size() == 1);
+        CHECK(doc._text[0].size() == 0);
+
+        cursor.insertText(" ");
+        cursor.selectAll();
+        cursor.removeSelectedText();
+        CHECK(doc._text.size() == 1);
+        CHECK(doc._text[0].size() == 0);
+
+        cursor.insertText("\n");
+        CHECK(doc._text.size() == 2);
+        cursor.selectAll();
+        cursor.removeSelectedText();
+        CHECK(doc._text.size() == 1);
+        CHECK(doc._text[0].size() == 0);
+
+        cursor.insertText("aRemovEb");
+        cursor.moveCharacterLeft();
+        for(int i=0; i < 6; i++) {
+            cursor.moveCharacterLeft(true);
+        }
+        CHECK(cursor.selectedText() == "RemovE");
+        cursor.removeSelectedText();
+        CHECK(doc._text.size() == 1);
+        CHECK(doc._text[0].size() == 2);
+
+        //clear
+        cursor.selectAll();
+        cursor.removeSelectedText();
+
+        cursor.insertText("RemovEb");
+        cursor.moveCharacterLeft();
+        for(int i=0; i < 6; i++) {
+            cursor.moveCharacterLeft(true);
+        }
+        CHECK(cursor.selectedText() == "RemovE");
+        cursor.removeSelectedText();
+        CHECK(doc._text.size() == 1);
+        CHECK(doc._text[0].size() == 1);
+
+        //clear
+        cursor.selectAll();
+        cursor.removeSelectedText();
+
+        cursor.insertText("aRemovE");
+        for(int i=0; i < 6; i++) {
+            cursor.moveCharacterLeft(true);
+        }
+        CHECK(cursor.selectedText() == "RemovE");
+        cursor.removeSelectedText();
+        CHECK(doc._text.size() == 1);
+        CHECK(doc._text[0].size() == 1);
+
+        //clear
+        cursor.selectAll();
+        cursor.removeSelectedText();
+
+        cursor.insertText("aRem\novEb");
+        cursor.moveCharacterLeft();
+        for(int i=0; i < 7; i++) {
+            cursor.moveCharacterLeft(true);
+        }
+        CHECK(cursor.selectedText() == "Rem\novE");
+        cursor.removeSelectedText();
+        CHECK(doc._text.size() == 1);
+        CHECK(doc._text[0].size() == 2);
+
+        //clear
+        cursor.selectAll();
+        cursor.removeSelectedText();
+
+        cursor.insertText("aRem\novE\n");
+        for(int i=0; i < 8; i++) {
+            cursor.moveCharacterLeft(true);
+        }
+        CHECK(cursor.selectedText() == "Rem\novE\n");
+        cursor.removeSelectedText();
+        CHECK(doc._text.size() == 1);
+        CHECK(doc._text[0].size() == 1);
+        CHECK(doc._text[0] == "a");
+
+        //clear
+        cursor.selectAll();
+        cursor.removeSelectedText();
+
+        cursor.insertText("\nRem\novEb");
+        cursor.moveCharacterLeft();
+        for(int i=0; i < 8; i++) {
+            cursor.moveCharacterLeft(true);
+        }
+        CHECK(cursor.selectedText() == "\nRem\novE");
+        cursor.removeSelectedText();
+        CHECK(doc._text.size() == 1);
+        CHECK(doc._text[0].size() == 1);
+        CHECK(doc._text[0] == "b");
+    }
 }
