@@ -2264,12 +2264,21 @@ void File::adjustScrollPosition() {
         return;
     }
 
-    const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+    const auto [cursorCodeUnit, cursorLine, cursorColumn] = [&]{
+        if (_blockSelect) {
+            const int cursorLine = _blockSelectEndLine;
+            const int cursorColumn = _blockSelectEndColumn;
+            Tui::ZTextLayout layNoWrap = getTextLayoutForLineWithoutWrapping(cursorLine);
+            const int cursorCodeUnit = layNoWrap.lineAt(0).xToCursor(cursorColumn);
+            return std::make_tuple(cursorCodeUnit, cursorLine, cursorColumn);
+        } else {
+            const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+            Tui::ZTextLayout layNoWrap = getTextLayoutForLineWithoutWrapping(cursorLine);
+            int cursorColumn = layNoWrap.lineAt(0).cursorToX(cursorCodeUnit, Tui::ZTextLayout::Leading);
 
-    Tui::ZTextOption option = getTextOption(false);
-    option.setWrapMode(Tui::ZTextOption::NoWrap);
-    Tui::ZTextLayout lay = getTextLayoutForLine(option, cursorLine);
-    int cursorColumn = lay.lineAt(0).cursorToX(cursorCodeUnit, Tui::ZTextLayout::Leading);
+            return std::make_tuple(cursorCodeUnit, cursorLine, cursorColumn);
+        }
+    }();
 
     int viewWidth = geometry().width() - shiftLinenumber();
     //x
@@ -2304,7 +2313,7 @@ void File::adjustScrollPosition() {
         }
     } else {
         //TODO: #193 scrollup with Crl+Up and wraped lines.
-        option = getTextOption(false);
+        Tui::ZTextOption option = getTextOption(false);
         int y = 0;
         QVector<int> sizes;
         for (int line = _scrollPositionY; line <= cursorLine && line < _doc._text.size(); line++) {
