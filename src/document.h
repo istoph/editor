@@ -12,7 +12,6 @@
 #include <Tui/ZTerminal.h>
 #include <Tui/ZTextLayout.h>
 
-class File;
 class Document;
 
 class RangeIterator {
@@ -45,7 +44,7 @@ public:
 
 
 public:
-    TextCursor(Document *doc, File *file, std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> createTextLayout);
+    TextCursor(Document *doc, Tui::ZWidget *widget, std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> createTextLayout);
 
     void insertText(const QString &text);
     void removeSelectedText();
@@ -113,7 +112,7 @@ private:
     int _saveCursorPositionX = 0;
 
     Document *_doc;
-    File *_file;
+    Tui::ZWidget *_widget;
     std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> _createTextLayout;
 };
 

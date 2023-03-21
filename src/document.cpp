@@ -136,8 +136,8 @@ bool operator==(const TextCursor::Position &a, const TextCursor::Position &b) {
 }
 
 
-TextCursor::TextCursor(Document *doc, File *file, std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> createTextLayout)
-    : _doc(doc), _file(file), _createTextLayout(createTextLayout) {
+TextCursor::TextCursor(Document *doc, Tui::ZWidget *widget, std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> createTextLayout)
+    : _doc(doc), _widget(widget), _createTextLayout(createTextLayout) {
 }
 
 void TextCursor::insertText(const QString &text) {
@@ -368,7 +368,7 @@ TextCursor::Position TextCursor::position() {
 
 void TextCursor::setPosition(TextCursor::Position pos, bool extendSelection) {
     setPositionPreservingVerticalMovementColumn(pos, extendSelection);
-    if (!_file || _file->terminal()) { // TODO rethink this hack to allow using setPosition before terminal is connected
+    if (!_widget || _widget->terminal()) { // TODO rethink this hack to allow using setPosition before terminal is connected
         Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
         updateVerticalMovementColumn(lay);
     }
@@ -390,7 +390,7 @@ void TextCursor::setPositionPreservingVerticalMovementColumn(TextCursor::Positio
 
     // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
     if (_cursorPositionX > 0) {
-        if (!_file || _file->terminal()) { // TODO rethink this hack to allow using setPosition before terminal is connected
+        if (!_widget || _widget->terminal()) { // TODO rethink this hack to allow using setPosition before terminal is connected
             Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
             _cursorPositionX = lay.previousCursorPosition(_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
             _cursorPositionX = lay.nextCursorPosition(_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
