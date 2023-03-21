@@ -48,7 +48,7 @@ void Document::setGroupUndo(File *file, bool onoff) {
         _groupUndo++;
     } else if(_groupUndo <= 1) {
         _groupUndo = 0;
-        saveUndoStep(file);
+        saveUndoStep(&file->_cursor);
     } else {
         _groupUndo--;
     }
@@ -58,24 +58,24 @@ int Document::getGroupUndo() {
     return _groupUndo;
 }
 
-void Document::initalUndoStep(File *file) {
+void Document::initalUndoStep(TextCursor *cursor) {
     _undoSteps.clear();
     _collapseUndoStep = false;
     _groupUndo = 0;
     _currentUndoStep = -1;
     _savedUndoStep = -1;
-    saveUndoStep(file);
+    saveUndoStep(cursor);
     _savedUndoStep = _currentUndoStep;
 }
 
-void Document::saveUndoStep(File *file, bool collapsable) {
+void Document::saveUndoStep(TextCursor *cursor, bool collapsable) {
     if(getGroupUndo() == 0) {
         if (_currentUndoStep + 1 != _undoSteps.size()) {
             _undoSteps.resize(_currentUndoStep + 1);
         } else if (_collapseUndoStep && collapsable && _currentUndoStep != _savedUndoStep) {
             _undoSteps.removeLast();
         }
-        const auto [endCodeUnit, endLine] = file->_cursor.position();
+        const auto [endCodeUnit, endLine] = cursor->position();
         _undoSteps.append({ _text, endCodeUnit, endLine});
         _currentUndoStep = _undoSteps.size() - 1;
         _collapseUndoStep = collapsable;
@@ -152,7 +152,7 @@ void TextCursor::insertText(const QString &text) {
 
     Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
     updateVerticalMovementColumn(lay);
-    _doc->saveUndoStep(_file);
+    _doc->saveUndoStep(this);
 }
 
 void TextCursor::removeSelectedText() {
@@ -186,7 +186,7 @@ void TextCursor::removeSelectedText() {
     clearSelection();
     setPosition(start);
 
-    _doc->saveUndoStep(_file);
+    _doc->saveUndoStep(this);
 }
 
 void TextCursor::clearSelection() {

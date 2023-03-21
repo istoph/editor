@@ -128,8 +128,8 @@ public:
     void setGroupUndo(File *file, bool onoff);
     int getGroupUndo();
 
-    void initalUndoStep(File *file);
-    void saveUndoStep(File *file, bool collapsable=false);
+    void initalUndoStep(TextCursor *cursor);
+    void saveUndoStep(TextCursor *cursor, bool collapsable=false);
     struct UndoStep {
         QVector<QString> text;
         int cursorPositionX;
