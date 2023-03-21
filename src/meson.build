@@ -54,6 +54,7 @@ editor_headers = [
   'commandlinewidget.h',
   'confirmsave.h',
   'dlgfilemodel.h',
+  'document.h',
   'edit.h',
   'file.h',
   'filecategorize.h',

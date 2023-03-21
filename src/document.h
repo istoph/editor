@@ -5,6 +5,7 @@
 
 #include <functional>
 
+#include <QObject>
 #include <QString>
 #include <QVector>
 
@@ -116,7 +117,8 @@ private:
     std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> _createTextLayout;
 };
 
-class Document {
+class Document : public QObject {
+    Q_OBJECT
     friend class TextCursor;
 public:
     bool isModified() const;
