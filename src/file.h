@@ -90,6 +90,8 @@ public:
     int rightMarginHint() const;
     void toggleSelectMode();
     bool isNewFile();
+    void undo();
+    void redo();
 
 public:
     void setSearchWrap(bool wrap);

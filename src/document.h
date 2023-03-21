@@ -127,8 +127,8 @@ public:
 public:
     bool isModified() const;
 
-    void undo(File *file);
-    void redo(File *file);
+    void undo(TextCursor *cursor);
+    void redo(TextCursor *cursor);
     void setGroupUndo(TextCursor *cursor, bool onoff);
     int getGroupUndo();
 

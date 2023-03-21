@@ -43,11 +43,11 @@ File::File(Tui::ZWidget *parent)
     QObject::connect(_cmdPaste, &Tui::ZCommandNotifier::activated, this, [this]{paste();});
     _cmdPaste->setEnabled(false);
     _cmdUndo = new Tui::ZCommandNotifier("Undo", this, Qt::WindowShortcut);
-    QObject::connect(_cmdUndo, &Tui::ZCommandNotifier::activated, this, [this]{_doc.undo(this);});
+    QObject::connect(_cmdUndo, &Tui::ZCommandNotifier::activated, this, &File::undo);
     _cmdUndo->setEnabled(false);
     QObject::connect(&_doc, &Document::undoAvailable, _cmdUndo, &Tui::ZCommandNotifier::setEnabled);
     _cmdRedo = new Tui::ZCommandNotifier("Redo", this, Qt::WindowShortcut);
-    QObject::connect(_cmdRedo, &Tui::ZCommandNotifier::activated, this, [this]{_doc.redo(this);});
+    QObject::connect(_cmdRedo, &Tui::ZCommandNotifier::activated, this, &File::redo);
     _cmdRedo->setEnabled(false);
     QObject::connect(&_doc, &Document::redoAvailable, _cmdRedo, &Tui::ZCommandNotifier::setEnabled);
 
@@ -1683,6 +1683,24 @@ bool File::isNewFile() {
     return false;
 }
 
+void File::undo() {
+    if (_blockSelect) {
+        disableBlockSelection();
+    }
+    setSelectMode(false);
+    _doc.undo(&_cursor);
+    adjustScrollPosition();
+}
+
+void File::redo() {
+    if (_blockSelect) {
+        disableBlockSelection();
+    }
+    setSelectMode(false);
+    _doc.redo(&_cursor);
+    adjustScrollPosition();
+}
+
 void File::keyEvent(Tui::ZKeyEvent *event) {
     QString text = event->text();
     const bool isAltShift = event->modifiers() == (Qt::AltModifier | Qt::ShiftModifier);
@@ -2131,17 +2149,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         //STRG + X // Umschalt+Entf
         cut();
     } else if (event->text() == "z" && event->modifiers() == Qt::ControlModifier) {
-        if (_blockSelect) {
-            disableBlockSelection();
-        }
-        setSelectMode(false);
-        _doc.undo(this);
+        undo();
     } else if (event->text() == "y" && event->modifiers() == Qt::ControlModifier) {
-        if (_blockSelect) {
-            disableBlockSelection();
-        }
-        setSelectMode(false);
-        _doc.redo(this);
+        redo();
     } else if (event->text() == "a" && event->modifiers() == Qt::ControlModifier) {
         //STRG + a
         selectAll();

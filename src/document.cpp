@@ -14,7 +14,7 @@ bool Document::isModified() const {
     return _currentUndoStep != _savedUndoStep;
 }
 
-void Document::undo(File *file) {
+void Document::undo(TextCursor *cursor) {
     if(_undoSteps.isEmpty()) {
         return;
     }
@@ -26,12 +26,11 @@ void Document::undo(File *file) {
     --_currentUndoStep;
 
     _text = _undoSteps[_currentUndoStep].text;
-    file->_cursor.setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
+    cursor->setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
     emitModifedSignals();
-    file->adjustScrollPosition();
 }
 
-void Document::redo(File *file) {
+void Document::redo(TextCursor *cursor) {
     if(_undoSteps.isEmpty()) {
         return;
     }
@@ -43,9 +42,8 @@ void Document::redo(File *file) {
     ++_currentUndoStep;
 
     _text = _undoSteps[_currentUndoStep].text;
-    file->_cursor.setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
+    cursor->setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
     emitModifedSignals();
-    file->adjustScrollPosition();
 }
 
 void Document::setGroupUndo(TextCursor *cursor, bool onoff) {
