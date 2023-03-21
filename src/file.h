@@ -20,7 +20,6 @@ struct SearchParameter;
 class File : public Tui::ZWidget {
     Q_OBJECT
 
-    friend class TextCursor;
     friend class DocumentTestHelper;
 public:
     using Position = TextCursor::Position;
@@ -216,8 +215,6 @@ private:
     Tui::ZCommandNotifier *_cmdSearchNext = nullptr;
     Tui::ZCommandNotifier *_cmdSearchPrevious = nullptr;
     bool _selectMode = false;
-
-    friend class Document;
 };
 
 #endif // FILE_H
