@@ -917,7 +917,7 @@ void File::followStandardInput(bool follow) {
 
 void File::setReplaceSelected() {
     if (hasBlockSelection() || hasMultiInsert() || _cursor.hasSelection()) {
-        _doc.setGroupUndo(this, true);
+        _doc.setGroupUndo(&_cursor, true);
 
         if (_blockSelect) {
             disableBlockSelection();
@@ -949,7 +949,7 @@ void File::setReplaceSelected() {
         _cursor.insertText(text);
 
         adjustScrollPosition();
-        _doc.setGroupUndo(this, false);
+        _doc.setGroupUndo(&_cursor, false);
     }
 }
 
@@ -1117,7 +1117,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
     int counter = 0;
     setSearchText(searchText);
     setReplaceText(replaceText);
-    _doc.setGroupUndo(this, true);
+    _doc.setGroupUndo(&_cursor, true);
 
     _cursor.setPosition({0, 0});
     while (true) {
@@ -1131,7 +1131,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
         setReplaceSelected();
         counter++;
     }
-    _doc.setGroupUndo(this, false);
+    _doc.setGroupUndo(&_cursor, false);
 
     return counter;
 }

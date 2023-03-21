@@ -129,7 +129,7 @@ public:
 
     void undo(File *file);
     void redo(File *file);
-    void setGroupUndo(File *file, bool onoff);
+    void setGroupUndo(TextCursor *cursor, bool onoff);
     int getGroupUndo();
 
     void initalUndoStep(TextCursor *cursor);

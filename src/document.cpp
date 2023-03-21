@@ -48,12 +48,12 @@ void Document::redo(File *file) {
     file->adjustScrollPosition();
 }
 
-void Document::setGroupUndo(File *file, bool onoff) {
+void Document::setGroupUndo(TextCursor *cursor, bool onoff) {
     if(onoff) {
         _groupUndo++;
     } else if(_groupUndo <= 1) {
         _groupUndo = 0;
-        saveUndoStep(&file->_cursor);
+        saveUndoStep(cursor);
     } else {
         _groupUndo--;
     }
