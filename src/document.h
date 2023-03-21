@@ -120,6 +120,10 @@ private:
 class Document : public QObject {
     Q_OBJECT
     friend class TextCursor;
+
+public:
+    Document(QObject *parent=nullptr);
+
 public:
     bool isModified() const;
 

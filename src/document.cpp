@@ -5,6 +5,11 @@
 #include "file.h"
 
 
+Document::Document(QObject *parent) : QObject (parent) {
+    _text.append(QString());
+    initalUndoStep(nullptr);
+}
+
 bool Document::isModified() const {
     return _currentUndoStep != _savedUndoStep;
 }
@@ -59,13 +64,18 @@ int Document::getGroupUndo() {
 }
 
 void Document::initalUndoStep(TextCursor *cursor) {
-    _undoSteps.clear();
     _collapseUndoStep = false;
     _groupUndo = 0;
-    _currentUndoStep = -1;
-    _savedUndoStep = -1;
-    saveUndoStep(cursor);
+    _undoSteps.clear();
+    if (cursor) {
+        const auto [endCodeUnit, endLine] = cursor->position();
+        _undoSteps.append({ _text, endCodeUnit, endLine});
+    } else {
+        _undoSteps.append({ _text, 0, 0});
+    }
+    _currentUndoStep = 0;
     _savedUndoStep = _currentUndoStep;
+    emitModifedSignals();
 }
 
 void Document::saveUndoStep(TextCursor *cursor, bool collapsable) {
