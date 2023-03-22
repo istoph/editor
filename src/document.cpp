@@ -10,6 +10,10 @@ Document::Document(QObject *parent) : QObject (parent) {
     initalUndoStep(nullptr);
 }
 
+int Document::lineCount() const {
+    return _text.size();
+}
+
 bool Document::isModified() const {
     return _currentUndoStep != _savedUndoStep;
 }

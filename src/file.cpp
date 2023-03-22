@@ -93,7 +93,7 @@ void File::getAttributes() {
     }
     if(readAttributes()) {
         QJsonObject data = _jo.value(getFilename()).toObject();
-        if(_doc._text.size() > data.value("cursorPositionY").toInt() && _doc._text[data.value("cursorPositionY").toInt()].size() +1 > data.value("cursorPositionX").toInt()) {
+        if (_doc.lineCount() > data.value("cursorPositionY").toInt() && _doc._text[data.value("cursorPositionY").toInt()].size() + 1 > data.value("cursorPositionX").toInt()) {
             setCursorPosition({data.value("cursorPositionX").toInt(), data.value("cursorPositionY").toInt()});
             _cursor.setVerticalMovementColumn(data.value("cursorPositionX").toInt());
             _scrollPositionX = data.value("scrollPositionX").toInt();
@@ -179,7 +179,7 @@ int File::tabToSpace() {
     Tui::ZTextLayout lay = getTextLayoutForLine(option, cursorLine);
     int cursorPosition = lay.lineAt(0).cursorToX(cursorCodeUnit, Tui::ZTextLayout::Leading);
 
-    for (int line = 0, found = -1; line < _doc._text.size(); line++) {
+    for (int line = 0, found = -1; line < _doc.lineCount(); line++) {
         found = _doc._text[line].lastIndexOf("\t");
         if(found != -1) {
             Tui::ZTextLayout lay = getTextLayoutForLine(option, line);
@@ -291,9 +291,9 @@ bool File::saveText() {
     QFile file(getFilename());
     //QSaveFile file(getFilename());
     if (file.open(QIODevice::WriteOnly)) {
-        for (int i=0; i<_doc._text.size(); i++) {
+        for (int i = 0; i < _doc.lineCount(); i++) {
             file.write(Tui::Misc::SurrogateEscape::encode(_doc._text[i]));
-            if(i+1 == _doc._text.size() && _doc._nonewline) {
+            if (i + 1 == _doc.lineCount() && _doc._nonewline) {
                 // omit newline
             } else {
                 if(getMsDosMode()) {
@@ -401,7 +401,7 @@ bool File::openText(QString filename) {
         _doc.initalUndoStep(&_cursor);
         modifiedChanged(false);
 
-        for (int l = 0; l < _doc._text.size(); l++) {
+        for (int l = 0; l < _doc.lineCount(); l++) {
             if(_doc._text[l].size() >= 1 && _doc._text[l].at(_doc._text[l].size() -1) == QChar('\r')) {
                 _msdos = true;
             } else {
@@ -411,7 +411,7 @@ bool File::openText(QString filename) {
         }
         if(_msdos) {
             msdosMode(true);
-            for (int i = 0; i < _doc._text.size(); i++) {
+            for (int i = 0; i < _doc.lineCount(); i++) {
                 _doc._text[i].remove(_doc._text[i].size() -1, 1);
             }
         }
@@ -458,7 +458,7 @@ void File::copy() {
         const int lastSelectBlockColumn = std::max(_blockSelectStartColumn, _blockSelectEndColumn);
 
         QString selectedText;
-        for (int line = firstSelectBlockLine; line < _doc._text.size() && line <= lastSelectBlockLine; line++) {
+        for (int line = firstSelectBlockLine; line < _doc.lineCount() && line <= lastSelectBlockLine; line++) {
             Tui::ZTextLayout laySel = getTextLayoutForLineWithoutWrapping(line);
             Tui::ZTextLineRef tlrSel = laySel.lineAt(0);
 
@@ -646,7 +646,7 @@ QString File::getSelectText() {
         const int firstSelectBlockColumn = std::min(_blockSelectStartColumn, _blockSelectEndColumn);
         const int lastSelectBlockColumn = std::max(_blockSelectStartColumn, _blockSelectEndColumn);
 
-        for (int line = firstSelectBlockLine; line < _doc._text.size() && line <= lastSelectBlockLine; line++) {
+        for (int line = firstSelectBlockLine; line < _doc.lineCount() && line <= lastSelectBlockLine; line++) {
             Tui::ZTextLayout laySel = getTextLayoutForLineWithoutWrapping(line);
             Tui::ZTextLineRef tlrSel = laySel.lineAt(0);
 
@@ -742,7 +742,7 @@ void File::disableBlockSelection() {
     _blockSelect = false;
 
     // just to be sure
-    const int cursorLine = std::min(_blockSelectEndLine, _doc._text.size() - 1);
+    const int cursorLine = std::min(_blockSelectEndLine, _doc.lineCount() - 1);
     const int cursorColumn = _blockSelectEndColumn;
 
     _blockSelectStartLine = _blockSelectEndLine = -1;
@@ -759,7 +759,7 @@ void File::blockSelectRemoveSelectedAndConvertToMultiInsert() {
     const int firstSelectBlockColumn = std::min(_blockSelectStartColumn, _blockSelectEndColumn);
     const int lastSelectBlockColumn = std::max(_blockSelectStartColumn, _blockSelectEndColumn);
 
-    for (int line = firstSelectBlockLine; line < _doc._text.size() && line <= lastSelectBlockLine; line++) {
+    for (int line = firstSelectBlockLine; line < _doc.lineCount() && line <= lastSelectBlockLine; line++) {
         Tui::ZTextLayout laySel = getTextLayoutForLineWithoutWrapping(line);
         Tui::ZTextLineRef tlrSel = laySel.lineAt(0);
 
@@ -786,7 +786,7 @@ void File::multiInsertForEachCursor(int flags, F f) {
     bool endSkipped = false;
     int fallbackColumn = _blockSelectStartColumn;
 
-    for (int line = firstSelectBlockLine; line < _doc._text.size() && line <= lastSelectBlockLine; line++) {
+    for (int line = firstSelectBlockLine; line < _doc.lineCount() && line <= lastSelectBlockLine; line++) {
         Tui::ZTextLayout laySel = getTextLayoutForLineWithoutWrapping(line);
         Tui::ZTextLineRef tlrSel = laySel.lineAt(0);
 
@@ -1240,7 +1240,7 @@ bool File::highlightBracket() {
                 int y = 0;
                 int counter = 0;
                 int startX = cursorCodeUnit + 1;
-                for (int line = cursorLine; y++ < rect().height() && line < _doc._text.size(); line++) {
+                for (int line = cursorLine; y++ < rect().height() && line < _doc.lineCount(); line++) {
                     for(; startX < _doc._text[line].size(); startX++) {
                         if (_doc._text[line][startX] == openBracket[i]) {
                             counter++;
@@ -1289,7 +1289,7 @@ bool File::highlightBracket() {
 
 int File::shiftLinenumber() {
     if(_linenumber) {
-        return QString::number(_doc._text.size()).size() + 1;
+        return QString::number(_doc.lineCount()).size() + 1;
     }
     return 0;
 }
@@ -1367,7 +1367,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     QString strlinenumber;
     int y = 0;
     int tmpLastLineWidth = 0;
-    for (int line = _scrollPositionY; y < rect().height() && line < _doc._text.size(); line++) {
+    for (int line = _scrollPositionY; y < rect().height() && line < _doc.lineCount(); line++) {
         const bool multiIns = hasMultiInsert();
         const bool cursorAtEndOfCurrentLine = [&, cursorCodeUnit=cursorCodeUnit] {
             if (_blockSelect) {
@@ -1564,7 +1564,7 @@ int File::getVisibleLines() {
 }
 
 void File::appendLine(const QString &line) {
-    if(_doc._text.size() == 1 && _doc._text[0] == "") {
+    if (_doc.lineCount() == 1 && _doc._text[0] == "") {
         _doc._text.clear();
     }
     _doc._text.append(line);
@@ -1593,7 +1593,7 @@ void File::insertAtCursorPosition(const QString &str) {
 
             int sourceLine = 0;
 
-            for (int line = firstSelectBlockLine; line < _doc._text.size() && line <= lastSelectBlockLine; line++) {
+            for (int line = firstSelectBlockLine; line < _doc.lineCount() && line <= lastSelectBlockLine; line++) {
                 if (sourceLine >= source.size()) {
                     break;
                 }
@@ -1885,7 +1885,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 activateBlockSelection();
             }
 
-            if (_doc._text.size() - 1 > _blockSelectEndLine) {
+            if (_doc.lineCount() - 1 > _blockSelectEndLine) {
                 _blockSelectEndLine += 1;
             }
         } else {
@@ -2011,10 +2011,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         _doc._collapseUndoStep = false;
     } else if (event->key() == Qt::Key_PageDown && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if (_blockSelect && event->modifiers() == Qt::ShiftModifier) {
-            if (_doc._text.size() > _blockSelectEndLine + getVisibleLines()) {
+            if (_doc.lineCount() > _blockSelectEndLine + getVisibleLines()) {
                 _blockSelectEndLine += getVisibleLines();
             } else {
-                _blockSelectEndLine = _doc._text.size() - 1;
+                _blockSelectEndLine = _doc.lineCount() - 1;
             }
         } else {
             if (_blockSelect) {
@@ -2197,7 +2197,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Down) {
         // Fenster runter Scrolen
-        if (_doc._text.size() -1 > _scrollPositionY) {
+        if (_doc.lineCount() -1 > _scrollPositionY) {
             ++_scrollPositionY;
 
             const auto [cursorCodeUnit, cursorLine] = _cursor.position();
@@ -2242,7 +2242,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         // returns current line if no selection is active
         const auto [firstLine, lastLine] = getSelectLinesSort();
 
-        if (lastLine < _doc._text.size() - 1) {
+        if (lastLine < _doc.lineCount() - 1) {
             const auto [startLine, endLine] = getSelectLines();
             const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
@@ -2330,15 +2330,15 @@ void File::adjustScrollPosition() {
             _scrollPositionY = cursorLine - geometry().height() + 2;
         }
 
-        if (_doc._text.size() - _scrollPositionY < geometry().height() -1) {
-            _scrollPositionY = std::max(0, _doc._text.size() - geometry().height() +1);
+        if (_doc.lineCount() - _scrollPositionY < geometry().height() - 1) {
+            _scrollPositionY = std::max(0, _doc.lineCount() - geometry().height() + 1);
         }
     } else {
         //TODO: #193 scrollup with Crl+Up and wraped lines.
         Tui::ZTextOption option = getTextOption(false);
         int y = 0;
         QVector<int> sizes;
-        for (int line = _scrollPositionY; line <= cursorLine && line < _doc._text.size(); line++) {
+        for (int line = _scrollPositionY; line <= cursorLine && line < _doc.lineCount(); line++) {
             Tui::ZTextLayout lay = getTextLayoutForLine(option, line);
             if (cursorLine == line) {
                 int cursorPhysicalLineInViewport = y + lay.lineForTextPosition(cursorCodeUnit).y();
@@ -2358,12 +2358,12 @@ void File::adjustScrollPosition() {
     scrollPositionChanged(_scrollPositionX, _scrollPositionY);
 
     int max=0;
-    for (int i=_scrollPositionY; i < _doc._text.count() && i < _scrollPositionY + geometry().height(); i++) {
+    for (int i = _scrollPositionY; i < _doc.lineCount() && i < _scrollPositionY + geometry().height(); i++) {
         if(max < _doc._text[i].count()) {
             max = _doc._text[i].count();
         }
     }
-    textMax(max - viewWidth, _doc._text.count() - geometry().height());
+    textMax(max - viewWidth, _doc.lineCount() - geometry().height());
 
     update();
 }

@@ -124,6 +124,8 @@ public:
     Document(QObject *parent=nullptr);
 
 public:
+    int lineCount() const;
+
     bool isModified() const;
 
     void undo(TextCursor *cursor);
