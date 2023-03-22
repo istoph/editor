@@ -434,6 +434,20 @@ void File::cutline() {
     _doc.saveUndoStep(&_cursor);
 }
 
+void File::deleteLine() {
+    _doc.setGroupUndo(&_cursor, true);
+    if (_cursor.hasSelection() || hasBlockSelection() || hasMultiInsert()) {
+        const auto [start, end] = getSelectLinesSort();
+        resetSelect();
+        _cursor.setPosition({0,end});
+        _cursor.moveToEndOfLine();
+        _cursor.setPosition({0,start}, true);
+        _cursor.removeSelectedText();
+    }
+    _cursor.deleteLine();
+    _doc.setGroupUndo(&_cursor, false);
+}
+
 void File::copy() {
     if (hasBlockSelection()) {
         Clipboard *clipboard = findFacet<Clipboard>();
@@ -2160,6 +2174,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         //STRG + k //cut and copy line
         setSelectMode(false);
         cutline();
+    } else if (event->text() == "d" && event->modifiers() == Qt::ControlModifier) {
+        //STRG + d //delete single line
+        deleteLine();
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Up) {
         // Fenster hoch Scrolen
         if (_scrollPositionY > 0) {

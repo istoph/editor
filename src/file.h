@@ -33,6 +33,7 @@ public:
     bool openText(QString filename);
     void cut();
     void cutline();
+    void deleteLine();
     void copy();
     void paste();
     bool isInsertable();

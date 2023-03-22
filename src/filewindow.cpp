@@ -112,6 +112,11 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
             _file->cutline();
         }
     );
+    QObject::connect(new Tui::ZCommandNotifier("DeleteLine", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
+         [this] {
+            _file->deleteLine();
+        }
+    );
     QObject::connect(new Tui::ZCommandNotifier("SelectMode", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
          [this] {
             _file->toggleSelectMode();
