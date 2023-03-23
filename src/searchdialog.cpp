@@ -116,7 +116,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
             _parseBox->setEnabled(false);
             nbox->addWidget(_parseBox);
 
-            _wrapBox = new Tui::ZCheckBox(Tui::withMarkup, "Wrap <m>a</m>round", gbox);
+            _wrapBox = new Tui::ZCheckBox(Tui::withMarkup, "Wrap around", gbox);
             _wrapBox->setCheckState(Qt::Checked);
             nbox->addWidget(_wrapBox);
 
