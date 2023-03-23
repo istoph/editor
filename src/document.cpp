@@ -14,6 +14,14 @@ int Document::lineCount() const {
     return _text.size();
 }
 
+QString Document::line(int line) const {
+    return _text[line];
+}
+
+int Document::lineCodeUnits(int line) const {
+    return _text[line].size();
+}
+
 bool Document::isModified() const {
     return _currentUndoStep != _savedUndoStep;
 }

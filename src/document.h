@@ -125,6 +125,8 @@ public:
 
 public:
     int lineCount() const;
+    QString line(int line) const;
+    int lineCodeUnits(int line) const;
 
     bool isModified() const;
 
