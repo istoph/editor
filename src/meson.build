@@ -76,6 +76,12 @@ editor_headers = [
   'wrapdialog.h',
 ]
 
+vcs_dep = vcs_tag(command : ['git', 'rev-parse', '--short', 'HEAD'],
+        fallback: '000000',
+        input:'git_version.h.in',
+        output:'git_version.h',
+        replace_string:'%GIT_VERSION%')
+
 editor_lib = static_library('editor', editor_sources,
   qt5.preprocess(moc_headers: editor_headers, moc_sources: editor_sources,
   include_directories: include_directories('.')),
@@ -83,6 +89,7 @@ editor_lib = static_library('editor', editor_sources,
   dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep])
 
 executable('editor', main,
+  vcs_dep,
   include_directories: include_directories('.'),
   link_with: editor_lib,
   dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep])

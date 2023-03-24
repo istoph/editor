@@ -14,12 +14,14 @@
 #include "edit.h"
 #include "filecategorize.h"
 #include "filelistparser.h"
+#include "git_version.h"
 
 int main(int argc, char **argv) {
 
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName("chr");
-    QCoreApplication::setApplicationVersion("%VERSION%");
+    const QString version = "%VERSION% "+ QString(GIT_VERSION_ID);
+    QCoreApplication::setApplicationVersion(version);
 
     QCommandLineParser parser;
     parser.setApplicationDescription("chr.edit");
