@@ -575,21 +575,23 @@ void Editor::watchPipe() {
     }
 }
 
-void Editor::openFile(QString fileName) {
+FileWindow* Editor::openFile(QString fileName) {
     QFileInfo filenameInfo(fileName);
     QString absFileName = filenameInfo.absoluteFilePath();
     if (_nameToWindow.contains(absFileName)) {
         _nameToWindow.value(absFileName)->getFileWidget()->setFocus();
-        return;
+        return _nameToWindow.value(absFileName);
     }
 
     if (_win && !_win->getFileWidget()->isModified() && _win->getFileWidget()->getFilename() == "NEWFILE") {
         _win->openFile(fileName);
+        return _win;
     } else {
         FileWindow *win = createFileWindow();
         _mdiLayout->addWindow(win);
         win->openFile(fileName);
         win->getFileWidget()->setFocus();
+        return win;
     }
 }
 

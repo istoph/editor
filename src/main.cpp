@@ -189,9 +189,9 @@ int main(int argc, char **argv) {
                     out << "The file is bigger then " << maxMB << "MB (" << datei.size()/1024/1024 << "MB). Please start with -b for big files.\n";
                     return 0;
                 }
-                root->openFile(datei.absoluteFilePath());
+                FileWindow* win = root->openFile(datei.absoluteFilePath());
                 if (fle.pos != "") {
-                    root->gotoLineInCurrentFile(fle.pos);
+                    win->getFileWidget()->gotoline(fle.pos);
                 }
 
             } else if (filecategory == FileCategory::invalid_filetype) {

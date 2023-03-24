@@ -50,7 +50,7 @@ public:
     void setTheme(Theme theme);
     void setInitialFileSettings(const Settings &initial);
     void windowTitle(QString filename);
-    void openFile(QString fileName);
+    FileWindow* openFile(QString fileName);
     void openFileDialog(QString path = "");
     void newFile(QString filename = "");
     void openFileMenue();
