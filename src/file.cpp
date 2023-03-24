@@ -1565,14 +1565,16 @@ int File::getVisibleLines() {
 }
 
 void File::appendLine(const QString &line) {
-    if (_doc.lineCount() == 1 && _doc._text[0] == "") {
-        _doc._text.clear();
+    TextCursor cur = createCursor();
+    if (_doc.lineCount() == 1 && _doc.lineCodeUnits(0) == 0) {
+        cur.insertText(line);
+    } else {
+        cur.moveToEndOfDocument();
+        cur.insertText("\n" + line);
     }
-    _doc._text.append(line);
     if(_follow) {
         _cursor.moveToEndOfDocument();
     }
-    _doc.saveUndoStep(&_cursor);
     adjustScrollPosition();
 }
 
