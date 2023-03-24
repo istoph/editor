@@ -891,7 +891,7 @@ void File::setSearchText(QString searchText) {
         SearchCount sc;
         QObject::connect(&sc, &SearchCount::searchCount, this, &File::emitSearchCount);
         sc.run(text, searchText, caseSensitivity, gen, searchGen);
-    },_doc._text, _searchText, searchCaseSensitivity, gen, searchGeneration);
+    }, _doc.getLines(), _searchText, searchCaseSensitivity, gen, searchGeneration);
 }
 
 void File::setReplaceText(QString replaceText) {
@@ -1094,9 +1094,9 @@ void File::runSearch(bool direction) {
         SearchParameter search = { _searchText, _searchWrap, searchCaseSensitivity, cursorLine, cursorCodeUnit, _searchReg};
         QFuture<SearchLine> future;
         if(efectivDirection) {
-            future = QtConcurrent::run(conSearchNext, _doc._text, search, gen, searchNextGeneration);
+            future = QtConcurrent::run(conSearchNext, _doc.getLines(), search, gen, searchNextGeneration);
         } else {
-            future = QtConcurrent::run(conSearchPrevious, _doc._text, search, gen, searchNextGeneration);
+            future = QtConcurrent::run(conSearchPrevious, _doc.getLines(), search, gen, searchNextGeneration);
         }
         watcher->setFuture(future);
     }
@@ -1137,7 +1137,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
     while (true) {
         const auto [cursorCodeUnit, cursorLine] = _cursor.position();
         SearchParameter search = { _searchText, false, searchCaseSensitivity, cursorLine, cursorCodeUnit, _searchReg};
-        SearchLine sl = searchNext(_doc._text, search);
+        SearchLine sl = searchNext(_doc.getLines(), search);
         if(sl.length == -1) {
             break;
         }

@@ -22,6 +22,10 @@ int Document::lineCodeUnits(int line) const {
     return _text[line].size();
 }
 
+QVector<QString> Document::getLines() const {
+    return _text;
+}
+
 bool Document::isModified() const {
     return _currentUndoStep != _savedUndoStep;
 }
