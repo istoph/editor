@@ -63,7 +63,7 @@ public:
     bool delSelect();
     void toggleOverwrite();
     bool isOverwrite();
-    QPoint addTabAt(QPoint cursor);
+    void addTabAt(TextCursor &cur);
     int getVisibleLines();
     void appendLine(const QString &line);
     void insertAtCursorPosition(const QString &str);

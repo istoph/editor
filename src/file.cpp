@@ -1541,19 +1541,17 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     }
 }
 
-QPoint File::addTabAt(QPoint cursor) {
+void File::addTabAt(TextCursor &cur) {
     if (getTabOption()) {
-        _doc._text[cursor.y()].insert(cursor.x(), '\t');
-        cursor.setX(cursor.x() +1);
+        cur.insertText("\t");
     } else {
-        for (int i=0; i<getTabsize(); i++) {
-            if(cursor.x() % getTabsize() == 0 && i != 0)
+        for (int i = 0; i < getTabsize(); i++) {
+            // TODO this needs to work on columns not on codeUnits
+            if (cur.position().x % getTabsize() == 0 && i != 0)
                 break;
-            _doc._text[cursor.y()].insert(cursor.x(), ' ');
-            cursor.setX(cursor.x() +1);
+            cur.insertText(" ");
         }
     }
-    return {cursor.x(), cursor.y()};
 }
 
 int File::getVisibleLines() {
@@ -2066,9 +2064,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             }
 
             multiInsertForEachCursor(mi_add_spaces, [&](TextCursor &cur) {
-                const auto [cursorCodeUnit, cursorLine] = cur.position();
-                t = addTabAt({cursorCodeUnit, cursorLine});
-                cur.setPosition({t.x(), t.y()});
+                addTabAt(cur);
             });
         } else if (_cursor.hasSelection()) {
             // Add one level of indent to the selected lines.
@@ -2102,9 +2098,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 }
             }
             // a normal tab
-            const auto [cursorCodeUnit, cursorLine] = _cursor.position();
-            t = addTabAt({cursorCodeUnit, cursorLine});
-            setCursorPosition({t.x(), t.y()});
+            addTabAt(_cursor);
+            updateCommands();
+            adjustScrollPosition();
+            update();
         }
         _doc.saveUndoStep(&_cursor);
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == Qt::ShiftModifier) {
