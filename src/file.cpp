@@ -2080,12 +2080,16 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             const bool savedSelectMode = getSelectMode();
             resetSelect();
 
+            TextCursor cur = createCursor();
+
             for (int line = firstLine; line <= lastLine; line++) {
                 if (_doc.lineCodeUnits(line) > 0) {
                     if (getTabOption()) {
-                        _doc._text[line].insert(0, '\t');
+                        cur.setPosition({0, line});
+                        cur.insertText(QString("\t"));
                     } else {
-                        _doc._text[line].insert(0, QString(" ").repeated(getTabsize()));
+                        cur.setPosition({0, line});
+                        cur.insertText(QString(" ").repeated(getTabsize()));
                     }
                 }
             }
