@@ -34,6 +34,15 @@ void Document::tmp_sortLines(int first, int last) {
     std::sort(_text.begin() + first, _text.begin() + last);
 }
 
+void Document::tmp_moveLine(int from, int to) {
+    _text.insert(to, _text[from]);
+    if (from < to) {
+        _text.remove(from);
+    } else {
+        _text.remove(from + 1);
+    }
+}
+
 void Document::undo(TextCursor *cursor) {
     if(_undoSteps.isEmpty()) {
         return;

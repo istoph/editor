@@ -2227,8 +2227,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             resetSelect();
 
             // move lines up
-            _doc._text.insert(endLine + 1, _doc._text[firstLine - 1]);
-            _doc._text.remove(firstLine - 1);
+            _doc.tmp_moveLine(firstLine - 1, endLine + 1);
 
             // Update cursor / recreate selection
             if (!reselect) {
@@ -2253,8 +2252,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             resetSelect();
 
             // Move lines down
-            _doc._text.insert(firstLine, _doc._text[lastLine + 1]);
-            _doc._text.remove(lastLine + 2);
+            _doc.tmp_moveLine(lastLine + 1, firstLine);
 
             // Update cursor / recreate selection
             if (!reselect) {
