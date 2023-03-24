@@ -30,6 +30,10 @@ bool Document::isModified() const {
     return _currentUndoStep != _savedUndoStep;
 }
 
+void Document::tmp_sortLines(int first, int last) {
+    std::sort(_text.begin() + first, _text.begin() + last);
+}
+
 void Document::undo(TextCursor *cursor) {
     if(_undoSteps.isEmpty()) {
         return;

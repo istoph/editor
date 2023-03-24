@@ -131,6 +131,8 @@ public:
 
     bool isModified() const;
 
+    void tmp_sortLines(int first, int last);
+
     void undo(TextCursor *cursor);
     void redo(TextCursor *cursor);
     void setGroupUndo(TextCursor *cursor, bool onoff);

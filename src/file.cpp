@@ -1633,7 +1633,7 @@ void File::insertAtCursorPosition(const QString &str) {
 void File::sortSelecedLines() {
     if (hasBlockSelection() || hasMultiInsert() || _cursor.hasSelection()) {
         auto lines = getSelectLinesSort();
-        std::sort(_doc._text.begin() + lines.first, _doc._text.begin() + lines.second +1);
+        _doc.tmp_sortLines(lines.first, lines.second + 1);
     }
 }
 
