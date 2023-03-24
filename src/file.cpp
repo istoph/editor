@@ -179,6 +179,8 @@ int File::tabToSpace() {
     Tui::ZTextLayout lay = getTextLayoutForLine(option, cursorLine);
     int cursorPosition = lay.lineAt(0).cursorToX(cursorCodeUnit, Tui::ZTextLayout::Leading);
 
+    TextCursor cur = createCursor();
+
     for (int line = 0, found = -1; line < _doc.lineCount(); line++) {
         found = _doc.line(line).lastIndexOf("\t");
         if(found != -1) {
@@ -186,8 +188,9 @@ int File::tabToSpace() {
             while (found != -1) {
                 int columnStart = lay.lineAt(0).cursorToX(found, Tui::ZTextLayout::Leading);
                 int columnEnd = lay.lineAt(0).cursorToX(found, Tui::ZTextLayout::Trailing);
-                _doc._text[line].remove(found, 1);
-                _doc._text[line].insert(found, QString(" ").repeated(columnEnd-columnStart));
+                cur.setPosition({found, line});
+                cur.moveCharacterRight(true);
+                cur.insertText(QString(" ").repeated(columnEnd-columnStart));
                 count++;
                 found = _doc.line(line).lastIndexOf("\t", found);
             }
