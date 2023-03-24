@@ -2137,7 +2137,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 }
             }
 
-            _doc._text[line].remove(0, codeUnitsToRemove);
+            _cursor.setPosition({0, line});
+            _cursor.setPosition({codeUnitsToRemove, line}, true);
+            _cursor.removeSelectedText();
             if (!reselect && line == cursorLine) {
                 cursorAdjust = codeUnitsToRemove;
             }
