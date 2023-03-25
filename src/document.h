@@ -176,7 +176,7 @@ private: // TextCursor interface
 private:
     void emitModifedSignals();
 
-public:
+private:
     QString _filename;
     QVector<QString> _text;
     bool _nonewline = false;
