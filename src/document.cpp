@@ -2,6 +2,8 @@
 
 #include "document.h"
 
+#include <Tui/Misc/SurrogateEscape.h>
+
 #include "file.h"
 
 
@@ -14,6 +16,21 @@ void Document::clear() {
     _text.clear();
     _text.append(QString());
     initalUndoStep(nullptr);
+}
+
+void Document::writeTo(QIODevice *file, bool crLfMode) {
+    for (int i = 0; i < lineCount(); i++) {
+        file->write(Tui::Misc::SurrogateEscape::encode(_text[i]));
+        if (i + 1 == lineCount() && _nonewline) {
+            // omit newline
+        } else {
+            if (crLfMode) {
+                file->write("\r\n", 2);
+            } else {
+                file->write("\n", 1);
+            }
+        }
+    }
 }
 
 int Document::lineCount() const {

@@ -5,6 +5,7 @@
 
 #include <functional>
 
+#include <QIODevice>
 #include <QObject>
 #include <QString>
 #include <QVector>
@@ -125,6 +126,7 @@ public:
 
 public:
     void clear();
+    void writeTo(QIODevice *file, bool crLfMode = false);
     int lineCount() const;
     QString line(int line) const;
     int lineCodeUnits(int line) const;

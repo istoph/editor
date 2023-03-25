@@ -293,18 +293,7 @@ bool File::saveText() {
     QFile file(getFilename());
     //QSaveFile file(getFilename());
     if (file.open(QIODevice::WriteOnly)) {
-        for (int i = 0; i < _doc.lineCount(); i++) {
-            file.write(Tui::Misc::SurrogateEscape::encode(_doc._text[i]));
-            if (i + 1 == _doc.lineCount() && _doc._nonewline) {
-                // omit newline
-            } else {
-                if(getMsDosMode()) {
-                    file.write("\r\n", 2);
-                } else {
-                    file.write("\n", 1);
-                }
-            }
-        }
+        _doc.writeTo(&file);
 
         //file.commit();
         file.close();
