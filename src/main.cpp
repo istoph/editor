@@ -28,42 +28,51 @@ int main(int argc, char **argv) {
     parser.addHelpOption();
     parser.addVersionOption();
 
-    // Line Number
-
-    QCommandLineOption lineNumberOption({"l","linenumber"},
-                                    QCoreApplication::translate("main", "The line numbers are displayed"));
+    // line number
+    QCommandLineOption lineNumberOption({"l", "linenumber"},
+                    QCoreApplication::translate("main", "The line numbers are displayed"));
     parser.addOption(lineNumberOption);
 
-    QCommandLineOption append({"a","append"},
-                              QCoreApplication::translate("main", "Only with read from standard input, then append to a file"),
-                              QCoreApplication::translate("main", "file"));
+    // append mode
+    QCommandLineOption append({"a", "append"},
+                    QCoreApplication::translate("main", "Only with read from standard input, then append to a file"),
+                    QCoreApplication::translate("main", "file"));
     parser.addOption(append);
 
-    QCommandLineOption follow({"f","follow"},QCoreApplication::translate("main", "Only with read from standard input, then follow the input stream"));
+    // follow mode
+    QCommandLineOption follow({"f", "follow"},
+                    QCoreApplication::translate("main", "Only with read from standard input, then follow the input stream"));
     parser.addOption(follow);
 
-    // Big Files
-    QCommandLineOption bigOption("b",QCoreApplication::translate("main", "Open bigger files then 1MB"));
+    // big file
+    QCommandLineOption bigOption("b",
+                    QCoreApplication::translate("main", "Open bigger file then 1MB"));
     parser.addOption(bigOption);
 
-    // Wrap Lines
-    QCommandLineOption wraplines("w",QCoreApplication::translate("main", "Wrap log lines"));
+    // wrap log lines
+    QCommandLineOption wraplines("w",
+                    QCoreApplication::translate("main", "Wrap log lines"));
     parser.addOption(wraplines);
 
-    //Safe Attributes
+    // safe attributes
     QCommandLineOption attributesfileOption("attributesfile",
-                                            QCoreApplication::translate("main", "Safe file for attributes, default ~/.cache/chr.json"),
-                                            QCoreApplication::translate("main", "config file"));
+                    QCoreApplication::translate("main", "Safe file for attributes, default ~/.cache/chr.json"),
+                    QCoreApplication::translate("main", "config"));
     parser.addOption(attributesfileOption);
 
-    // Config File
-    QCommandLineOption configOption({"c","config"},
-                                    QCoreApplication::translate("main", "Load customized config file. The default if it exist is ~/.config/chr"),
-                                    QCoreApplication::translate("main", "config"));
+    // config file
+    QCommandLineOption configOption({"c", "config"},
+                    QCoreApplication::translate("main", "Load customized config file. The default if it exist is ~/.config/chr"),
+                    QCoreApplication::translate("main", "config"));
     parser.addOption(configOption);
 
-    parser.addPositionalArgument("[[+line[,char]] file …]", QCoreApplication::translate("main", "Optional is the line number, several files can be opened in multiple windows."));
-    parser.addPositionalArgument("[/directory]", QCoreApplication::translate("main", "Or a directory can be specified to search in the open dialog."));
+    // goto line
+    parser.addPositionalArgument("[[+line[,char]] file …]",
+                    QCoreApplication::translate("main", "Optional is the line number, several files can be opened in multiple windows."));
+
+    // open directory
+    parser.addPositionalArgument("[/directory]",
+                    QCoreApplication::translate("main", "Or a directory can be specified to search in the open dialog."));
     parser.process(app);
 
     parser.parse(QCoreApplication::arguments());
@@ -77,62 +86,62 @@ int main(int argc, char **argv) {
 
     // READ CONFIG FILE AND SET DEFAULT OPTIONS
     QString configDir = "";
-    if(parser.isSet(configOption)) {
+    if (parser.isSet(configOption)) {
         configDir = parser.value(configOption);
     } else {
-        //default
+        //default config
         configDir = QDir::homePath() +"/.config/chr";
     }
 
     QString attributesfile = "";
-    if(parser.isSet(attributesfileOption)) {
+    if (parser.isSet(attributesfileOption)) {
         attributesfile = parser.value(attributesfileOption);
     }
 
 
-    // Default settings
+    // default settings
     QSettings * qsettings = new QSettings(configDir, QSettings::IniFormat);
-    int tabsize = qsettings->value("tabsize","4").toInt();
+    int tabsize = qsettings->value("tabsize", "4").toInt();
     Settings settings;
     settings.tabSize = tabsize;
 
     bool tab = qsettings->value("tab","true").toBool();
     settings.tabOption = tab;
 
-    bool eatSpaceBeforeTabs = qsettings->value("eatSpaceBeforeTabs","true").toBool();
+    bool eatSpaceBeforeTabs = qsettings->value("eatSpaceBeforeTabs", "true").toBool();
     settings.eatSpaceBeforeTabs = eatSpaceBeforeTabs;
 
-    bool ln = qsettings->value("line_number","0").toBool() || qsettings->value("linenumber","0").toBool();
+    bool ln = qsettings->value("line_number", "0").toBool() || qsettings->value("linenumber", "0").toBool();
     settings.showLineNumber = ln || parser.isSet(lineNumberOption);
 
-    settings.formattingCharacters = qsettings->value("formatting_characters","0").toBool();
-    settings.colorTabs = qsettings->value("color_tabs","0").toBool();
-    settings.colorSpaceEnd = qsettings->value("color_space_end","0").toBool();
+    settings.formattingCharacters = qsettings->value("formatting_characters", "0").toBool();
+    settings.colorTabs = qsettings->value("color_tabs", "0").toBool();
+    settings.colorSpaceEnd = qsettings->value("color_space_end", "0").toBool();
 
     bool bigfile = qsettings->value("bigfile", "false").toBool();
 
     QString attributesfileDefault = qsettings->value("attributesfile", QDir::homePath() + "/.cache/chr.json").toString();
-    if(attributesfile.isEmpty()) {
+    if (attributesfile.isEmpty()) {
         attributesfile = attributesfileDefault;
     }
     settings.attributesFile = attributesfile;
 
-    bool wl = qsettings->value("wrap_lines","false").toBool();
+    bool wl = qsettings->value("wrap_lines", "false").toBool();
     if (wl || parser.isSet(wraplines)) {
         settings.wrap = Tui::ZTextOption::WordWrap;
     } else {
         settings.wrap = Tui::ZTextOption::NoWrap;
     }
 
-    settings.rightMarginHint = qsettings->value("right_margin_hint","0").toInt();
+    settings.rightMarginHint = qsettings->value("right_margin_hint", "0").toInt();
 
-    bool hb = qsettings->value("highlight_bracket","false").toBool();
+    bool hb = qsettings->value("highlight_bracket", "false").toBool();
     settings.highlightBracket = hb;
 
     root->setInitialFileSettings(settings);
 
-    QString theme = qsettings->value("theme","classic").toString();
-    if(theme.toLower() == "dark" || theme.toLower() == "black") {
+    QString theme = qsettings->value("theme", "classic").toString();
+    if (theme.toLower() == "dark" || theme.toLower() == "black") {
         root->setTheme(Editor::Theme::dark);
     } else {
         root->setTheme(Editor::Theme::classic);
@@ -148,7 +157,7 @@ int main(int argc, char **argv) {
     qDebug("%i chr starting", (int)QCoreApplication::applicationPid());
 
     // OPEN FILE
-    if(args.empty()) {
+    if (args.empty()) {
         root->newFile("");
     } else {
         QVector<FileListEntry> fles = parseFileList(args);
@@ -159,7 +168,7 @@ int main(int argc, char **argv) {
         for (FileListEntry fle: fles) {
             FileCategory filecategory = fileCategorize(fle.fileName);
             if (filecategory == FileCategory::stdin_file) {
-                if(parser.isSet(append) &&
+                if (parser.isSet(append) &&
                         (fileCategorize(parser.value(append)) == FileCategory::new_file ||
                          fileCategorize(parser.value(append)) == FileCategory::open_file )
                         ) {
@@ -187,7 +196,7 @@ int main(int argc, char **argv) {
             } else if (filecategory == FileCategory::open_file) {
                 QFileInfo datei(fle.fileName);
                 int maxMB = 100;
-                if(datei.size()/1024/1024 >= maxMB && !parser.isSet(bigOption) && !bigfile) {
+                if (datei.size()/1024/1024 >= maxMB && !parser.isSet(bigOption) && !bigfile) {
                     out << "The file is bigger then " << maxMB << "MB (" << datei.size()/1024/1024 << "MB). Please start with -b for big files.\n";
                     return 0;
                 }
@@ -212,7 +221,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    if(parser.isSet(follow)) {
+    if (parser.isSet(follow)) {
         root->followInCurrentFile();
     }
 
@@ -230,7 +239,7 @@ int main(int argc, char **argv) {
     });
 
     app.exec();
-    if(Tui::ZSimpleStringLogger::getMessages().size() > 0) {
+    if (Tui::ZSimpleStringLogger::getMessages().size() > 0) {
         terminal.pauseOperation();
         printf("\e[90m%s\e[0m", Tui::ZSimpleStringLogger::getMessages().toUtf8().data());
     }
