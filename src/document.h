@@ -124,6 +124,7 @@ public:
     Document(QObject *parent=nullptr);
 
 public:
+    void clear();
     int lineCount() const;
     QString line(int line) const;
     int lineCodeUnits(int line) const;

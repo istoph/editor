@@ -275,12 +275,11 @@ bool File::stdinText() {
 }
 
 bool File::initText() {
-    _doc._text.clear();
-    _doc._text.append(QString());
+    _doc.clear();
+
     _scrollPositionX = 0;
     _scrollPositionY = 0;
     _cursor.setPosition({0, 0});
-    _doc.initalUndoStep(&_cursor);
     cursorPositionChanged(0, 0, 0);
     scrollPositionChanged(0, 0);
     setMsDosMode(false);

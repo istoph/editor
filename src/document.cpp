@@ -10,6 +10,12 @@ Document::Document(QObject *parent) : QObject (parent) {
     initalUndoStep(nullptr);
 }
 
+void Document::clear() {
+    _text.clear();
+    _text.append(QString());
+    initalUndoStep(nullptr);
+}
+
 int Document::lineCount() const {
     return _text.size();
 }
