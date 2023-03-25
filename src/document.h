@@ -137,6 +137,8 @@ public:
     QString filename() const;
     void setFilename(const QString &filename);
 
+    void clearCollapseUndoStep();
+
     void tmp_sortLines(int first, int last);
     void tmp_moveLine(int from, int to);
 

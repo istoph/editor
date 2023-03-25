@@ -1847,7 +1847,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         updateCommands();
         adjustScrollPosition();
-        _doc._collapseUndoStep = false;
+        _doc.clearCollapseUndoStep();
     } else if(event->key() == Qt::Key_Right) {
         if (isAltShift || isAltCtrlShift) {
             if (!_blockSelect) {
@@ -1881,7 +1881,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         updateCommands();
         adjustScrollPosition();
-        _doc._collapseUndoStep = false;
+        _doc.clearCollapseUndoStep();
     } else if (event->key() == Qt::Key_Down && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier || isAltShift)) {
         if (isAltShift) {
             if (!_blockSelect) {
@@ -1901,7 +1901,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         updateCommands();
         adjustScrollPosition();
-        _doc._collapseUndoStep = false;
+        _doc.clearCollapseUndoStep();
     } else if (event->key() == Qt::Key_Up && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier || isAltShift)) {
         if (isAltShift) {
             if (!_blockSelect) {
@@ -1921,7 +1921,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         updateCommands();
         adjustScrollPosition();
-        _doc._collapseUndoStep = false;
+        _doc.clearCollapseUndoStep();
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier || isAltShift)) {
         if (isAltShift) {
             if (!_blockSelect) {
@@ -1958,7 +1958,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         updateCommands();
         adjustScrollPosition();
-        _doc._collapseUndoStep = false;
+        _doc.clearCollapseUndoStep();
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == Qt::ControlModifier || event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) )) {
         if (_blockSelect) {
             disableBlockSelection();
@@ -1972,7 +1972,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
         updateCommands();
         adjustScrollPosition();
-        _doc._collapseUndoStep = false;
+        _doc.clearCollapseUndoStep();
     } else if(event->key() == Qt::Key_End && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier || isAltShift)) {
         if (isAltShift) {
             if (!_blockSelect) {
@@ -1997,7 +1997,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
 
         adjustScrollPosition();
-        _doc._collapseUndoStep = false;
+        _doc.clearCollapseUndoStep();
     } else if(event->key() == Qt::Key_End && (event->modifiers() == Qt::ControlModifier || (event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)))) {
         if (_blockSelect) {
             disableBlockSelection();
@@ -2011,7 +2011,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
         updateCommands();
         adjustScrollPosition();
-        _doc._collapseUndoStep = false;
+        _doc.clearCollapseUndoStep();
     } else if (event->key() == Qt::Key_PageDown && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if (_blockSelect && event->modifiers() == Qt::ShiftModifier) {
             if (_doc.lineCount() > _blockSelectEndLine + getVisibleLines()) {
@@ -2031,7 +2031,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             }
         }
         adjustScrollPosition();
-        _doc._collapseUndoStep = false;
+        _doc.clearCollapseUndoStep();
     } else if (event->key() == Qt::Key_PageUp && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if (_blockSelect && event->modifiers() == Qt::ShiftModifier) {
             if (_blockSelectEndLine > getVisibleLines()) {
@@ -2052,7 +2052,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             }
         }
         adjustScrollPosition();
-        _doc._collapseUndoStep = false;
+        _doc.clearCollapseUndoStep();
     } else if(event->key() == Qt::Key_Enter && (event->modifiers() & ~Qt::KeypadModifier) == 0) {
         setSelectMode(false);
         if (_blockSelect) {
@@ -2177,7 +2177,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if (event->text() == "a" && event->modifiers() == Qt::ControlModifier) {
         //STRG + a
         selectAll();
-        _doc._collapseUndoStep = false;
+        _doc.clearCollapseUndoStep();
     } else if (event->text() == "k" && event->modifiers() == Qt::ControlModifier) {
         //STRG + k //cut and copy line
         setSelectMode(false);
