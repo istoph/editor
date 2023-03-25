@@ -18,6 +18,7 @@ tests_headers = [
 
 #ide:editable-filelist
 editor_sources = [
+  'aboutdialog.cpp',
   'alert.cpp',
   'clipboard.cpp',
   'commandlinewidget.cpp',
@@ -49,6 +50,7 @@ editor_sources = [
 
 #ide:editable-filelist
 editor_headers = [
+  'aboutdialog.h',
   'alert.h',
   'clipboard.h',
   'commandlinewidget.h',

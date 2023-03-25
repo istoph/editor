@@ -14,6 +14,7 @@
 #include <Tui/ZTextLine.h>
 #include <Tui/ZVBoxLayout.h>
 
+#include "aboutdialog.h"
 #include "confirmsave.h"
 #include "formattingdialog.h"
 #include "gotoline.h"
@@ -298,6 +299,12 @@ void Editor::setupUi() {
                          &Tui::ZShortcut::activated, this, code);
         }
     }
+
+    QObject::connect(new Tui::ZCommandNotifier("About", this), &Tui::ZCommandNotifier::activated,
+        [this] {
+            new AboutDialog(this);
+        }
+    );
 
     // Background
     setFillChar(u'▒');
