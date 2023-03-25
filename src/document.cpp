@@ -30,6 +30,14 @@ bool Document::isModified() const {
     return _currentUndoStep != _savedUndoStep;
 }
 
+void Document::setNoNewline(bool value) {
+    _nonewline = value;
+}
+
+bool Document::noNewLine() const {
+    return _nonewline;
+}
+
 void Document::tmp_sortLines(int first, int last) {
     std::sort(_text.begin() + first, _text.begin() + last);
 }

@@ -1530,7 +1530,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         }
         y += lay.lineCount();
     }
-    if (_doc._nonewline) {
+    if (_doc.noNewLine()) {
         if (formattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
             const Tui::ZTextStyle &markStyle = (_rightMarginHint && tmpLastLineWidth > _rightMarginHint) ? formatingCharInMargin : formatingChar;
 
@@ -1768,7 +1768,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _cursor.deleteWord();
             } else {
                 if (_cursor.atEnd()) {
-                    _doc._nonewline = true;
+                    _doc.setNoNewline(true);
                 }
                 _cursor.deleteCharacter();
             }

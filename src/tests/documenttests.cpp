@@ -28,7 +28,7 @@ TEST_CASE("Document") {
     };
 
     SECTION("insert nonewline") {
-        doc._nonewline = true;
+        doc.setNoNewline(true);
 
         cursor.insertText("test\ntest");
 
@@ -37,10 +37,10 @@ TEST_CASE("Document") {
         CHECK(doc.getLines()[1] == "test");
     }
     SECTION("insert and remove nonewline") {
-        doc._nonewline = true;
+        doc.setNoNewline(true);
         cursor.insertText("\n");
         REQUIRE(doc.getLines().size() == 1);
-        CHECK(doc._nonewline == false);
+        CHECK(doc.noNewLine() == false);
     }
 
     SECTION("inser-empty") {

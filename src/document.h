@@ -131,6 +131,9 @@ public:
 
     bool isModified() const;
 
+    void setNoNewline(bool value);
+    bool noNewLine() const;
+
     void tmp_sortLines(int first, int last);
     void tmp_moveLine(int from, int to);
 
