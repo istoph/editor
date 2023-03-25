@@ -1543,7 +1543,7 @@ void File::insertAtCursorPosition(const QString &str) {
             int sourceLine = 0;
 
             for (int line = firstSelectBlockLine; line < _doc.lineCount() && line <= lastSelectBlockLine; line++) {
-                if (sourceLine >= source.size()) {
+                if (source.size() != 1 && sourceLine >= source.size()) {
                     break;
                 }
 
@@ -1560,17 +1560,22 @@ void File::insertAtCursorPosition(const QString &str) {
                 }
 
                 cur.insertText(source[sourceLine]);
-                sourceLine += 1;
-                if (line == lastSelectBlockLine) {
-                    Tui::ZTextLayout layNew = getTextLayoutForLineWithoutWrapping(line);
-                    Tui::ZTextLineRef tlrNew = layNew.lineAt(0);
-                    _blockSelectStartColumn = _blockSelectEndColumn = tlrNew.cursorToX(cur.position().x, Tui::ZTextLayout::Leading);
-                    if (sourceLine < source.size()) {
-                        // Now sure what do do with the overflowing lines, for now just dump them in the last line
-                        for (; sourceLine < source.size(); sourceLine++) {
-                            cur.insertText("|" + source[sourceLine]);
+
+                if (source.size() > 1) {
+                    sourceLine += 1;
+                    if (line == lastSelectBlockLine) {
+                        Tui::ZTextLayout layNew = getTextLayoutForLineWithoutWrapping(line);
+                        Tui::ZTextLineRef tlrNew = layNew.lineAt(0);
+                        _blockSelectStartColumn = _blockSelectEndColumn = tlrNew.cursorToX(cur.position().x, Tui::ZTextLayout::Leading);
+                        if (sourceLine < source.size()) {
+                            // Now sure what do do with the overflowing lines, for now just dump them in the last line
+                            for (; sourceLine < source.size(); sourceLine++) {
+                                cur.insertText("|" + source[sourceLine]);
+                            }
                         }
                     }
+                } else {
+                    // keep repeating the one line for all selected lines
                 }
             }
         }
