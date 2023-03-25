@@ -176,14 +176,14 @@ void Editor::setupUi() {
                 }
                 QObject::connect(_tabDialog, &TabDialog::convert, this, [this] (bool useTabs, int indentSize) {
                     if (_file) {
-                        _file->setTabOption(!useTabs);
+                        _file->setTabOption(useTabs);
                         _file->setTabsize(indentSize);
                         _file->tabToSpace();
                     }
                 });
                 QObject::connect(_tabDialog, &TabDialog::settingsChanged, this, [this] (bool useTabs, int indentSize, bool eatSpaceBeforeTabs) {
                     if (_file) {
-                        _file->setTabOption(!useTabs);
+                        _file->setTabOption(useTabs);
                         _file->setTabsize(indentSize);
                         _file->setEatSpaceBeforeTabs(eatSpaceBeforeTabs);
                     }

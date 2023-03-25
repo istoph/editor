@@ -21,7 +21,7 @@
 class Settings {
 public:
     int tabSize = 4;
-    bool tabOption = true;
+    bool tabOption = false;
     bool eatSpaceBeforeTabs = true;
     bool formattingCharacters = false;
     bool colorSpaceEnd = false;

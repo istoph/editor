@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
     Settings settings;
     settings.tabSize = tabsize;
 
-    bool tab = qsettings->value("tab","true").toBool();
+    bool tab = qsettings->value("tab", "false").toBool();
     settings.tabOption = tab;
 
     bool eatSpaceBeforeTabs = qsettings->value("eatSpaceBeforeTabs", "true").toBool();

@@ -522,7 +522,7 @@ int File::getTabsize() {
 }
 
 void File::setTabOption(bool tab) {
-    //true is space, false is real \t
+    //false is space, true is real \t
     this->_tabOption = tab;
 }
 
@@ -1159,9 +1159,9 @@ Tui::ZTextOption File::getTextOption(bool lineWithCursor) {
     if (formattingCharacters()) {
         flags |= Tui::ZTextOption::ShowTabsAndSpaces;
     }
-    if(colorTabs()) {
+    if (colorTabs()) {
         flags |= Tui::ZTextOption::ShowTabsAndSpacesWithColors;
-        if (getTabOption()) {
+        if (!getTabOption()) {
             option.setTabColor([] (int pos, int size, int hidden, const Tui::ZTextStyle &base, const Tui::ZTextStyle &formating, const Tui::ZFormatRange* range) -> Tui::ZTextStyle {
                 (void)formating;
                 if (range) {
@@ -1542,16 +1542,16 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 }
 
 QPoint File::addTabAt(QPoint cursor) {
-    if(getTabOption()) {
+    if (getTabOption()) {
+        _doc._text[cursor.y()].insert(cursor.x(), '\t');
+        cursor.setX(cursor.x() +1);
+    } else {
         for (int i=0; i<getTabsize(); i++) {
             if(cursor.x() % getTabsize() == 0 && i != 0)
                 break;
             _doc._text[cursor.y()].insert(cursor.x(), ' ');
             cursor.setX(cursor.x() +1);
         }
-    } else {
-        _doc._text[cursor.y()].insert(cursor.x(), '\t');
-        cursor.setX(cursor.x() +1);
     }
     return {cursor.x(), cursor.y()};
 }
@@ -2082,9 +2082,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             for (int line = firstLine; line <= lastLine; line++) {
                 if (_doc._text[line].size() > 0) {
                     if (getTabOption()) {
-                        _doc._text[line].insert(0, QString(" ").repeated(getTabsize()));
-                    } else {
                         _doc._text[line].insert(0, '\t');
+                    } else {
+                        _doc._text[line].insert(0, QString(" ").repeated(getTabsize()));
                     }
                 }
             }
@@ -2092,7 +2092,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             selectLines(startLine, endLine);
             setSelectMode(savedSelectMode);
         } else {
-            if (_eatSpaceBeforeTabs && _tabOption) {
+            if (_eatSpaceBeforeTabs && !_tabOption) {
                 // If spaces in front of a tab
                 const auto [cursorCodeUnit, cursorLine] = _cursor.position();
                 int leadingSpace = 0;

@@ -101,7 +101,7 @@ TEST_CASE("file") {
         }
     }
     SECTION("key-tab-space") {
-        f->setTabOption(true);
+        f->setTabOption(false);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, testCase);
         if (Qt::KeyboardModifier::NoModifier == testCase) {
             CHECK(f->getCursorPosition() == QPoint{8,0});
@@ -111,7 +111,7 @@ TEST_CASE("file") {
         }
     }
     SECTION("key-tab") {
-        f->setTabOption(false);
+        f->setTabOption(true);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, testCase);
         if (Qt::KeyboardModifier::NoModifier == testCase) {
             CHECK(f->getCursorPosition() == QPoint{1,0});
@@ -282,6 +282,7 @@ TEST_CASE("actions") {
         CHECK(doc._text[1] == "new1");
     }
     SECTION("select-shift-tab") {
+        f->setTabOption(false);
         Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
         CHECK(f->isSelect() == true);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, Qt::KeyboardModifier::NoModifier);
@@ -290,3 +291,4 @@ TEST_CASE("actions") {
 
 
 }
+
