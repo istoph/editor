@@ -33,6 +33,60 @@ void Document::writeTo(QIODevice *file, bool crLfMode) {
     }
 }
 
+bool Document::readFrom(QIODevice *file) {
+    _text.clear();
+    QByteArray lineBuf;
+    lineBuf.resize(16384);
+    while (!file->atEnd()) { // each line
+        int lineBytes = 0;
+        _nonewline = true;
+        while (!file->atEnd()) { // chunks of the line
+            int res = file->readLine(lineBuf.data() + lineBytes, lineBuf.size() - 1 - lineBytes);
+            if (res < 0) {
+                // Some kind of error
+                return false;
+            } else if (res > 0) {
+                lineBytes += res;
+                if (lineBuf[lineBytes - 1] == '\n') {
+                    --lineBytes; // remove \n
+                    _nonewline = false;
+                    break;
+                } else if (lineBytes == lineBuf.size() - 2) {
+                    lineBuf.resize(lineBuf.size() * 2);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        QString text = Tui::Misc::SurrogateEscape::decode(lineBuf.constData(), lineBytes);
+        _text.append(text);
+    }
+
+    if (_text.isEmpty()) {
+        _text.append("");
+        _nonewline = true;
+    }
+
+    bool allLinesCrLf = false;
+
+    for (int l = 0; l < lineCount(); l++) {
+        if (_text[l].size() >= 1 && _text[l].at(_text[l].size() - 1) == QChar('\r')) {
+            allLinesCrLf = true;
+        } else {
+            allLinesCrLf = false;
+            break;
+        }
+    }
+    if (allLinesCrLf) {
+        for (int i = 0; i < lineCount(); i++) {
+            _text[i].remove(_text[i].size() - 1, 1);
+        }
+    }
+
+    return allLinesCrLf;
+}
+
 int Document::lineCount() const {
     return _text.size();
 }

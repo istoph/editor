@@ -346,35 +346,10 @@ bool File::openText(QString filename) {
     QFile file(getFilename());
     if (file.open(QIODevice::ReadOnly)) {
         initText();
-        _doc._text.clear();
-        QByteArray lineBuf;
-        lineBuf.resize(16384);
-        while (!file.atEnd()) { // each line
-            int lineBytes = 0;
-            _doc._nonewline = true;
-            while (!file.atEnd()) { // chunks of the line
-                int res = file.readLine(lineBuf.data() + lineBytes, lineBuf.size() - 1 - lineBytes);
-                if (res < 0) {
-                    // Some kind of error
-                    return false;
-                } else if (res > 0) {
-                    lineBytes += res;
-                    if (lineBuf[lineBytes - 1] == '\n') {
-                        --lineBytes; // remove \n
-                        _doc._nonewline = false;
-                        break;
-                    } else if (lineBytes == lineBuf.size() - 2) {
-                        lineBuf.resize(lineBuf.size() * 2);
-                    } else {
-                        break;
-                    }
-                }
-            }
 
-            QString text = Tui::Misc::SurrogateEscape::decode(lineBuf.constData(), lineBytes);
-            _doc._text.append(text);
-        }
+        _msdos = _doc.readFrom(&file);
         file.close();
+        msdosMode(_msdos);
 
         if (getWritable()) {
             setSaveAs(false);
@@ -382,30 +357,13 @@ bool File::openText(QString filename) {
             setSaveAs(true);
         }
 
-        if (_doc._text.isEmpty()) {
-            _doc._text.append("");
-            _doc._nonewline = true;
-        }
-
-        checkWritable();
         getAttributes();
         _doc.initalUndoStep(&_cursor);
+
+        checkWritable();
+
         modifiedChanged(false);
 
-        for (int l = 0; l < _doc.lineCount(); l++) {
-            if(_doc._text[l].size() >= 1 && _doc._text[l].at(_doc._text[l].size() -1) == QChar('\r')) {
-                _msdos = true;
-            } else {
-                _msdos = false;
-                break;
-            }
-        }
-        if(_msdos) {
-            msdosMode(true);
-            for (int i = 0; i < _doc.lineCount(); i++) {
-                _doc._text[i].remove(_doc._text[i].size() -1, 1);
-            }
-        }
         return true;
     }
     return false;

@@ -127,6 +127,8 @@ public:
 public:
     void clear();
     void writeTo(QIODevice *file, bool crLfMode = false);
+    bool readFrom(QIODevice *file);
+
     int lineCount() const;
     QString line(int line) const;
     int lineCodeUnits(int line) const;
