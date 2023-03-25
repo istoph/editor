@@ -38,6 +38,14 @@ bool Document::noNewLine() const {
     return _nonewline;
 }
 
+QString Document::filename() const {
+    return _filename;
+}
+
+void Document::setFilename(const QString &filename) {
+    _filename = filename;
+}
+
 void Document::tmp_sortLines(int first, int last) {
     std::sort(_text.begin() + first, _text.begin() + last);
 }

@@ -134,6 +134,9 @@ public:
     void setNoNewline(bool value);
     bool noNewLine() const;
 
+    QString filename() const;
+    void setFilename(const QString &filename);
+
     void tmp_sortLines(int first, int last);
     void tmp_moveLine(int from, int to);
 

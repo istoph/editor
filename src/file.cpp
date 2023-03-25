@@ -244,18 +244,18 @@ bool File::setFilename(QString filename) {
     if(filenameInfo.isSymLink()) {
         return setFilename(filenameInfo.symLinkTarget());
     }
-    _doc._filename = filenameInfo.absoluteFilePath();
+    _doc.setFilename(filenameInfo.absoluteFilePath());
     return true;
 }
 
 QString File::getFilename() {
-    return _doc._filename;
+    return _doc.filename();
 }
 
 bool File::newText(QString filename = "") {
     initText();
     if (filename == "") {
-        _doc._filename = "NEWFILE";
+        _doc.setFilename("NEWFILE");
         setSaveAs(true);
     } else {
         setSaveAs(false);
@@ -266,7 +266,7 @@ bool File::newText(QString filename = "") {
 }
 
 bool File::stdinText() {
-    _doc._filename = "STDIN";
+    _doc.setFilename("STDIN");
     initText();
     _doc.saveUndoStep(&_cursor, false);
     modifiedChanged(true);
@@ -1694,7 +1694,7 @@ void File::toggleSelectMode() {
 }
 
 bool File::isNewFile() {
-    if (_doc._filename == "NEWFILE") {
+    if (_doc.filename() == "NEWFILE") {
         return true;
     }
     return false;
