@@ -154,11 +154,6 @@ public:
 
     void initalUndoStep(TextCursor *cursor);
     void saveUndoStep(TextCursor *cursor, bool collapsable=false);
-    struct UndoStep {
-        QVector<QString> text;
-        int cursorPositionX;
-        int cursorPositionY;
-    };
 
 signals:
     void modificationChanged(bool changed);
@@ -175,6 +170,13 @@ private: // TextCursor interface
 
 private:
     void emitModifedSignals();
+
+private:
+    struct UndoStep {
+        QVector<QString> text;
+        int cursorPositionX;
+        int cursorPositionY;
+    };
 
 private:
     QString _filename;
