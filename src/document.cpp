@@ -127,17 +127,19 @@ void Document::clearCollapseUndoStep() {
     _collapseUndoStep = false;
 }
 
-void Document::tmp_sortLines(int first, int last) {
+void Document::tmp_sortLines(int first, int last, TextCursor *cursorForUndoStep) {
     std::sort(_text.begin() + first, _text.begin() + last);
+    saveUndoStep(cursorForUndoStep);
 }
 
-void Document::tmp_moveLine(int from, int to) {
+void Document::tmp_moveLine(int from, int to, TextCursor *cursorForUndoStep) {
     _text.insert(to, _text[from]);
     if (from < to) {
         _text.remove(from);
     } else {
         _text.remove(from + 1);
     }
+    saveUndoStep(cursorForUndoStep);
 }
 
 void Document::undo(TextCursor *cursor) {

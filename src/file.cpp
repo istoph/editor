@@ -1593,7 +1593,7 @@ void File::insertAtCursorPosition(const QString &str) {
 void File::sortSelecedLines() {
     if (hasBlockSelection() || hasMultiInsert() || _cursor.hasSelection()) {
         auto lines = getSelectLinesSort();
-        _doc.tmp_sortLines(lines.first, lines.second + 1);
+        _doc.tmp_sortLines(lines.first, lines.second + 1, &_cursor);
     }
 }
 
@@ -2188,7 +2188,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             resetSelect();
 
             // move lines up
-            _doc.tmp_moveLine(firstLine - 1, endLine + 1);
+            _doc.tmp_moveLine(firstLine - 1, endLine + 1, &_cursor);
 
             // Update cursor / recreate selection
             if (!reselect) {
@@ -2197,8 +2197,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 selectLines(startLine - 1, endLine - 1);
             }
             setSelectMode(savedSelectMode);
-
-            _doc.saveUndoStep(&_cursor);
         }
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Down) {
         // returns current line if no selection is active
@@ -2213,7 +2211,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             resetSelect();
 
             // Move lines down
-            _doc.tmp_moveLine(lastLine + 1, firstLine);
+            _doc.tmp_moveLine(lastLine + 1, firstLine, &_cursor);
 
             // Update cursor / recreate selection
             if (!reselect) {
@@ -2222,7 +2220,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 selectLines(startLine + 1, endLine + 1);
             }
             setSelectMode(savedSelectMode);
-            _doc.saveUndoStep(&_cursor);
         }
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
         setSearchText("");
