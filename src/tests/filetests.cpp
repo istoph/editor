@@ -282,7 +282,6 @@ TEST_CASE("actions") {
         CHECK(doc.getLines()[1] == "new1");
     }
     SECTION("select-shift-tab") {
-        f->setTabOption(false);
         Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
         CHECK(f->isSelect() == true);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, Qt::KeyboardModifier::NoModifier);

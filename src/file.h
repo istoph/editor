@@ -182,7 +182,7 @@ private:
     int _scrollPositionX = 0;
     int _scrollPositionY = 0;
     int _tabsize = 8;
-    bool _tabOption = true;
+    bool _tabOption = false;
     bool _eatSpaceBeforeTabs = true;
     Tui::ZTextOption::WrapMode _wrapOption = Tui::ZTextOption::NoWrap;
     bool _overwrite = false;
