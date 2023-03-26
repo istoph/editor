@@ -122,6 +122,9 @@ class Document : public QObject {
     friend class TextCursor;
 
 public:
+    class UndoGroup;
+
+public:
     Document(QObject *parent=nullptr);
 
 public:
@@ -149,16 +152,34 @@ public:
 
     void undo(TextCursor *cursor);
     void redo(TextCursor *cursor);
-    void setGroupUndo(TextCursor *cursor, bool onoff);
-    int getGroupUndo();
+    UndoGroup startUndoGroup(TextCursor *cursor);
 
     void initalUndoStep(TextCursor *cursor);
-    void saveUndoStep(TextCursor *cursor, bool collapsable=false);
 
 signals:
     void modificationChanged(bool changed);
     void redoAvailable(bool available);
     void undoAvailable(bool available);
+
+public:
+    class UndoGroup {
+    public:
+        UndoGroup(const UndoGroup&) = delete;
+        UndoGroup &operator=(const UndoGroup&) = delete;
+
+        ~UndoGroup();
+
+    public:
+        void closeGroup();
+
+    private:
+        friend class Document;
+        UndoGroup(Document *doc, TextCursor *cursor);
+
+        Document *_doc = nullptr;
+        TextCursor *_cursor = nullptr;
+        bool _closed = false;
+    };
 
 private: // TextCursor interface
     void removeFromLine(int line, int codeUnitStart, int codeUnits);
@@ -167,6 +188,10 @@ private: // TextCursor interface
     void removeLines(int start, int count);
     void insertLine(int before, const QString &data);
     void splitLine(TextCursor::Position pos);
+    void saveUndoStep(TextCursor *cursor, bool collapsable=false);
+
+private: // UndoGroup interface
+    void closeUndoGroup(TextCursor *cursor);
 
 private:
     void emitModifedSignals();

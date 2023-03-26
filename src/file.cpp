@@ -166,6 +166,8 @@ void File::setMsDosMode(bool msdos) {
 }
 
 int File::tabToSpace() {
+    auto undoGroup = _doc.startUndoGroup(&_cursor);
+
     int count = 0;
 
     Tui::ZTextOption option = getTextOption(false);
@@ -379,7 +381,7 @@ void File::cutline() {
 }
 
 void File::deleteLine() {
-    _doc.setGroupUndo(&_cursor, true);
+    auto undoGroup = _doc.startUndoGroup(&_cursor);
     if (_cursor.hasSelection() || hasBlockSelection() || hasMultiInsert()) {
         const auto [start, end] = getSelectLinesSort();
         resetSelect();
@@ -389,7 +391,6 @@ void File::deleteLine() {
         _cursor.removeSelectedText();
     }
     _cursor.deleteLine();
-    _doc.setGroupUndo(&_cursor, false);
 }
 
 void File::copy() {
@@ -423,6 +424,7 @@ void File::copy() {
 }
 
 void File::paste() {
+    auto undoGroup = _doc.startUndoGroup(&_cursor);
     Clipboard *clipboard = findFacet<Clipboard>();
     if (clipboard->getClipboard().size()) {
         insertAtCursorPosition(clipboard->getClipboard());
@@ -617,6 +619,8 @@ void File::selectAll() {
 }
 
 bool File::delSelect() {
+    auto undoGroup = _doc.startUndoGroup(&_cursor);
+
     if (!hasBlockSelection() && !hasMultiInsert() && !_cursor.hasSelection()) {
         return false;
     }
@@ -876,8 +880,10 @@ void File::followStandardInput(bool follow) {
 }
 
 void File::setReplaceSelected() {
+    auto undoGroup = _doc.startUndoGroup(&_cursor);
+
     if (hasBlockSelection() || hasMultiInsert() || _cursor.hasSelection()) {
-        _doc.setGroupUndo(&_cursor, true);
+        auto undoGroup = _doc.startUndoGroup(&_cursor);
 
         if (_blockSelect) {
             disableBlockSelection();
@@ -909,7 +915,6 @@ void File::setReplaceSelected() {
         _cursor.insertText(text);
 
         adjustScrollPosition();
-        _doc.setGroupUndo(&_cursor, false);
     }
 }
 
@@ -1077,7 +1082,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
     int counter = 0;
     setSearchText(searchText);
     setReplaceText(replaceText);
-    _doc.setGroupUndo(&_cursor, true);
+    auto undoGroup = _doc.startUndoGroup(&_cursor);
 
     _cursor.setPosition({0, 0});
     while (true) {
@@ -1091,7 +1096,6 @@ int File::replaceAll(QString searchText, QString replaceText) {
         setReplaceSelected();
         counter++;
     }
-    _doc.setGroupUndo(&_cursor, false);
 
     return counter;
 }
@@ -1488,6 +1492,8 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 }
 
 void File::addTabAt(TextCursor &cur) {
+    auto undoGroup = _doc.startUndoGroup(&_cursor);
+
     if (getTabOption()) {
         cur.insertText("\t");
     } else {
@@ -1522,6 +1528,8 @@ void File::appendLine(const QString &line) {
 }
 
 void File::insertAtCursorPosition(const QString &str) {
+    auto undoGroup = _doc.startUndoGroup(&_cursor);
+
     if (_blockSelect) {
         if (hasBlockSelection()) {
             blockSelectRemoveSelectedAndConvertToMultiInsert();
@@ -1666,6 +1674,8 @@ void File::redo() {
 }
 
 void File::keyEvent(Tui::ZKeyEvent *event) {
+    auto undoGroup = _doc.startUndoGroup(&_cursor);
+
     QString text = event->text();
     const bool isAltShift = event->modifiers() == (Qt::AltModifier | Qt::ShiftModifier);
     const bool isAltCtrlShift = event->modifiers() == (Qt::AltModifier | Qt::ControlModifier | Qt::ShiftModifier);
@@ -2114,8 +2124,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         //STRG + X // Umschalt+Entf
         cut();
     } else if (event->text() == "z" && event->modifiers() == Qt::ControlModifier) {
+        undoGroup.closeGroup();
         undo();
     } else if (event->text() == "y" && event->modifiers() == Qt::ControlModifier) {
+        undoGroup.closeGroup();
         redo();
     } else if (event->text() == "a" && event->modifiers() == Qt::ControlModifier) {
         //STRG + a
@@ -2219,6 +2231,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if (event->key() == Qt::Key_F4 && event->modifiers() == 0) {
         toggleSelectMode();
     } else {
+        undoGroup.closeGroup();
         Tui::ZWidget::keyEvent(event);
     }
 }

@@ -174,10 +174,13 @@ void Document::redo(TextCursor *cursor) {
     emitModifedSignals();
 }
 
-void Document::setGroupUndo(TextCursor *cursor, bool onoff) {
-    if(onoff) {
-        _groupUndo++;
-    } else if(_groupUndo <= 1) {
+Document::UndoGroup Document::startUndoGroup(TextCursor *cursor) {
+    _groupUndo++;
+    return UndoGroup{this, cursor};
+}
+
+void Document::closeUndoGroup(TextCursor *cursor) {
+    if(_groupUndo <= 1) {
         _groupUndo = 0;
         if (_undoStepCreationDeferred) {
             saveUndoStep(cursor);
@@ -188,8 +191,20 @@ void Document::setGroupUndo(TextCursor *cursor, bool onoff) {
     }
 }
 
-int Document::getGroupUndo() {
-    return _groupUndo;
+Document::UndoGroup::~UndoGroup() {
+    if (!_closed) {
+        closeGroup();
+    }
+}
+
+void Document::UndoGroup::closeGroup() {
+    _doc->closeUndoGroup(_cursor);
+    _closed = true;
+}
+
+Document::UndoGroup::UndoGroup(Document *doc, TextCursor *cursor)
+    : _doc(doc), _cursor(cursor)
+{
 }
 
 void Document::initalUndoStep(TextCursor *cursor) {
@@ -209,7 +224,7 @@ void Document::initalUndoStep(TextCursor *cursor) {
 }
 
 void Document::saveUndoStep(TextCursor *cursor, bool collapsable) {
-    if (getGroupUndo() == 0) {
+    if (_groupUndo == 0) {
         if (_currentUndoStep + 1 != _undoSteps.size()) {
             _undoSteps.resize(_currentUndoStep + 1);
         } else if (_collapseUndoStep && collapsable && _currentUndoStep != _savedUndoStep) {
