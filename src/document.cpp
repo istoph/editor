@@ -12,7 +12,7 @@ Document::Document(QObject *parent) : QObject (parent) {
     initalUndoStep(nullptr);
 }
 
-void Document::clear() {
+void Document::reset() {
     _text.clear();
     _text.append(QString());
     initalUndoStep(nullptr);

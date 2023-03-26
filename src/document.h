@@ -125,7 +125,7 @@ public:
     Document(QObject *parent=nullptr);
 
 public:
-    void clear();
+    void reset();
     void writeTo(QIODevice *file, bool crLfMode = false);
     bool readFrom(QIODevice *file);
 

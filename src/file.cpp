@@ -275,7 +275,7 @@ bool File::stdinText() {
 }
 
 bool File::initText() {
-    _doc.clear();
+    _doc.reset();
 
     _scrollPositionX = 0;
     _scrollPositionY = 0;
