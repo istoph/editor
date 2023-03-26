@@ -451,9 +451,9 @@ void Editor::setupSearchDialogs() {
     auto searchCaseSensitiveChanged = [this](bool value) {
         if (_file) {
             if(value) {
-                _file->searchCaseSensitivity = Qt::CaseInsensitive;
+                _file->setSearchCaseSensitivity(Qt::CaseInsensitive);
             } else {
-                _file->searchCaseSensitivity = Qt::CaseSensitive;
+                _file->setSearchCaseSensitivity(Qt::CaseSensitive);
             }
         }
     };

@@ -69,9 +69,9 @@ public:
     void insertAtCursorPosition(const QString &str);
     bool isModified() const { return _doc.isModified(); };
     void setSearchText(QString searchText);
+    void setSearchCaseSensitivity(Qt::CaseSensitivity searchCaseSensitivity);
     void setReplaceText(QString replaceText);
     void setReplaceSelected();
-    Qt::CaseSensitivity searchCaseSensitivity;
     void setHighlightBracket(bool hb);
     bool getHighlightBracket();
     bool readAttributes();
@@ -187,6 +187,7 @@ private:
     Tui::ZTextOption::WrapMode _wrapOption = Tui::ZTextOption::NoWrap;
     bool _overwrite = false;
     QString _searchText;
+    Qt::CaseSensitivity _searchCaseSensitivity = Qt::CaseSensitivity::CaseSensitive;
     QString _replaceText;
     bool _searchWrap = true;
     bool _searchReg = false;

@@ -840,7 +840,11 @@ void File::setSearchText(QString searchText) {
         SearchCount sc;
         QObject::connect(&sc, &SearchCount::searchCount, this, &File::emitSearchCount);
         sc.run(text, searchText, caseSensitivity, gen, searchGen);
-    }, _doc.getLines(), _searchText, searchCaseSensitivity, gen, searchGeneration);
+    }, _doc.getLines(), _searchText, _searchCaseSensitivity, gen, searchGeneration);
+}
+
+void File::setSearchCaseSensitivity(Qt::CaseSensitivity searchCaseSensitivity) {
+    _searchCaseSensitivity = searchCaseSensitivity;
 }
 
 void File::setReplaceText(QString replaceText) {
@@ -1040,7 +1044,7 @@ void File::runSearch(bool direction) {
         });
 
         const auto [cursorCodeUnit, cursorLine] = _cursor.position();
-        SearchParameter search = { _searchText, _searchWrap, searchCaseSensitivity, cursorLine, cursorCodeUnit, _searchReg};
+        SearchParameter search = { _searchText, _searchWrap, _searchCaseSensitivity, cursorLine, cursorCodeUnit, _searchReg};
         QFuture<SearchLine> future;
         if(efectivDirection) {
             future = QtConcurrent::run(conSearchNext, _doc.getLines(), search, gen, searchNextGeneration);
@@ -1085,7 +1089,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
     _cursor.setPosition({0, 0});
     while (true) {
         const auto [cursorCodeUnit, cursorLine] = _cursor.position();
-        SearchParameter search = { _searchText, false, searchCaseSensitivity, cursorLine, cursorCodeUnit, _searchReg};
+        SearchParameter search = { _searchText, false, _searchCaseSensitivity, cursorLine, cursorCodeUnit, _searchReg};
         SearchLine sl = searchNext(_doc.getLines(), search);
         if(sl.length == -1) {
             break;
@@ -1348,7 +1352,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                     }
                 }
             } else {
-                while ((found = _doc.line(line).indexOf(_searchText, found + 1, searchCaseSensitivity)) != -1) {
+                while ((found = _doc.line(line).indexOf(_searchText, found + 1, _searchCaseSensitivity)) != -1) {
                     highlights.append(Tui::ZFormatRange{found, _searchText.size(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZTextAttribute::Bold}, selectedFormatingChar});
                 }
             }
