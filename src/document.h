@@ -189,6 +189,7 @@ private:
 
     bool _collapseUndoStep = false;
     int _groupUndo = 0;
+    bool _undoStepCreationDeferred = false;
 };
 
 #endif // DOCUMENT_H

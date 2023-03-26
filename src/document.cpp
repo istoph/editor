@@ -179,7 +179,10 @@ void Document::setGroupUndo(TextCursor *cursor, bool onoff) {
         _groupUndo++;
     } else if(_groupUndo <= 1) {
         _groupUndo = 0;
-        saveUndoStep(cursor);
+        if (_undoStepCreationDeferred) {
+            saveUndoStep(cursor);
+            _undoStepCreationDeferred = false;
+        }
     } else {
         _groupUndo--;
     }
@@ -192,6 +195,7 @@ int Document::getGroupUndo() {
 void Document::initalUndoStep(TextCursor *cursor) {
     _collapseUndoStep = false;
     _groupUndo = 0;
+    _undoStepCreationDeferred = false;
     _undoSteps.clear();
     if (cursor) {
         const auto [endCodeUnit, endLine] = cursor->position();
@@ -205,7 +209,7 @@ void Document::initalUndoStep(TextCursor *cursor) {
 }
 
 void Document::saveUndoStep(TextCursor *cursor, bool collapsable) {
-    if(getGroupUndo() == 0) {
+    if (getGroupUndo() == 0) {
         if (_currentUndoStep + 1 != _undoSteps.size()) {
             _undoSteps.resize(_currentUndoStep + 1);
         } else if (_collapseUndoStep && collapsable && _currentUndoStep != _savedUndoStep) {
@@ -216,6 +220,8 @@ void Document::saveUndoStep(TextCursor *cursor, bool collapsable) {
         _currentUndoStep = _undoSteps.size() - 1;
         _collapseUndoStep = collapsable;
         emitModifedSignals();
+    } else {
+        _undoStepCreationDeferred = true;
     }
 }
 
