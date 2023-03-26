@@ -204,9 +204,6 @@ int File::tabToSpace() {
         _cursor.setPosition({newCursorPosition, cursorLine});
     }
 
-    if (count > 0) {
-        _doc.saveUndoStep(&_cursor);
-    }
     return count;
 }
 
@@ -268,7 +265,6 @@ bool File::newText(QString filename = "") {
 bool File::stdinText() {
     _doc.setFilename("STDIN");
     initText();
-    _doc.saveUndoStep(&_cursor, false);
     modifiedChanged(true);
     setSaveAs(true);
     return true;
@@ -380,7 +376,6 @@ void File::cutline() {
     _cursor.moveToStartOfLine();
     _cursor.moveToEndOfLine(true);
     cut();
-    _doc.saveUndoStep(&_cursor);
 }
 
 void File::deleteLine() {
@@ -432,7 +427,6 @@ void File::paste() {
     if (clipboard->getClipboard().size()) {
         insertAtCursorPosition(clipboard->getClipboard());
         adjustScrollPosition();
-        _doc.saveUndoStep(&_cursor);
     }
 }
 
@@ -643,7 +637,6 @@ bool File::delSelect() {
         _blockSelectStartColumn = _blockSelectEndColumn = -1;
 
         setCursorPosition({tlr.xToCursor(newCursorColumn), newCursorLine});
-        _doc.saveUndoStep(&_cursor);
     } else {
         _cursor.removeSelectedText();
     }
@@ -1584,7 +1577,6 @@ void File::insertAtCursorPosition(const QString &str) {
             }
         }
         adjustScrollPosition();
-        _doc.saveUndoStep(&_cursor);
     } else {
         _cursor.insertText(str);
     }
@@ -1762,7 +1754,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _cursor.insertText(text);
             }
             adjustScrollPosition();
-            _doc.saveUndoStep(&_cursor, text != " ");
         }
         updateCommands();
     } else if (event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == Qt::AltModifier | Qt::ShiftModifier)  && isSelect()) {
@@ -2067,7 +2058,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             adjustScrollPosition();
             update();
         }
-        _doc.saveUndoStep(&_cursor);
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == Qt::ShiftModifier) {
         // returns current line if no selection is active
         const auto [firstLine, lastLine] = getSelectLinesSort();
@@ -2111,8 +2101,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             selectLines(startLine, endLine);
         }
         setSelectMode(savedSelectMode);
-
-        _doc.saveUndoStep(&_cursor);
     } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {
         //STRG + C // Strg+Einfg
