@@ -109,7 +109,7 @@ TEST_CASE("read write dos text") {
 
     QFile fp("text");
     CHECK(fp.open(QFile::WriteOnly));
-    fp.write(QByteArray("test\r\n\nblub\r\n"));
+    fp.write(QByteArray("test\r\nblub\r\n"));
     fp.close();
 
     readWrite("text");

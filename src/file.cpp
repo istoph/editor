@@ -293,7 +293,7 @@ bool File::saveText() {
     QFile file(getFilename());
     //QSaveFile file(getFilename());
     if (file.open(QIODevice::WriteOnly)) {
-        _doc.writeTo(&file);
+        _doc.writeTo(&file, getMsDosMode());
 
         //file.commit();
         file.close();
