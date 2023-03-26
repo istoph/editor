@@ -28,7 +28,7 @@ public:
     explicit File(Tui::ZWidget *parent);
     bool setFilename(QString _filename);
     QString getFilename();
-    QString emptyFilename();
+    //QString emptyFilename();
     bool saveText();
     bool openText(QString filename);
     void cut();
@@ -101,7 +101,7 @@ public:
     bool getWritable();
     void runSearch(bool direction);
     void setSearchDirection(bool searchDirection);
-    void searchSelect(int found = -1);
+    //void searchSelect(int found = -1);
     void setLineNumber(bool linenumber);
     bool getLineNumber();
     void toggleLineNumber();
