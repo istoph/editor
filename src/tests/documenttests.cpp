@@ -462,6 +462,16 @@ TEST_CASE("Document") {
         CHECK(cursor.selectionEndPos() == cursor.position());
     }
 
+    SECTION("no-selection") {
+        cursor.insertText("abc");
+        cursor.moveCharacterLeft();
+        cursor.moveCharacterLeft(true);
+        cursor.moveCharacterRight(true);
+        CHECK(cursor.hasSelection() == false);
+        cursor.deletePreviousCharacter();
+        CHECK(doc.getLines()[0] == "ac");
+    }
+
     SECTION("selectAll") {
         cursor.selectAll();
         CHECK(cursor.hasSelection() == false);
