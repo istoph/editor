@@ -435,8 +435,7 @@ TEST_CASE("Document") {
         CHECK(cursor.selectionEndPos() == TextCursor::Position{1,0});
 
         cursor.moveCharacterRight(true);
-        CHECK(cursor.hasSelection() == true); //fix false
-        //der bug führt auch dazu das backspace 2x gedrückt werden muss
+        CHECK(cursor.hasSelection() == false);
         CHECK(cursor.selectionStartPos() == cursor.position());
         CHECK(cursor.selectionEndPos() == cursor.position());
 
@@ -451,7 +450,7 @@ TEST_CASE("Document") {
         CHECK(cursor.selectionEndPos() == TextCursor::Position{1,0});
 
         cursor.moveCharacterRight(true);
-        CHECK(cursor.hasSelection() == true); //fix false
+        CHECK(cursor.hasSelection() == false);
         CHECK(cursor.selectionStartPos() == cursor.position());
         CHECK(cursor.selectionEndPos() == cursor.position());
 
@@ -465,7 +464,7 @@ TEST_CASE("Document") {
 
     SECTION("selectAll") {
         cursor.selectAll();
-        CHECK(cursor.hasSelection() == true); //fix false
+        CHECK(cursor.hasSelection() == false);
         CHECK(cursor.selectedText() == "");
 
         cursor.clearSelection();
@@ -511,7 +510,7 @@ TEST_CASE("Document") {
         CHECK(doc.getLines()[0].size() == 0);
 
         cursor.selectAll();
-        CHECK(cursor.hasSelection() == true); //fix false
+        CHECK(cursor.hasSelection() == false);
         cursor.removeSelectedText();
         CHECK(doc.getLines().size() == 1);
         CHECK(doc.getLines()[0].size() == 0);

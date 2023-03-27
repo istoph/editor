@@ -306,6 +306,8 @@ void TextCursor::insertText(const QString &text) {
         _doc->insertIntoLine(_cursorPositionY, _cursorPositionX, lines.at(i));
         _cursorPositionX = lines.at(i).size();
     }
+    _anchorPositionX = _cursorPositionX;
+    _anchorPositionY = _cursorPositionY;
 
     Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
     updateVerticalMovementColumn(lay);
@@ -347,8 +349,8 @@ void TextCursor::removeSelectedText() {
 }
 
 void TextCursor::clearSelection() {
-    _startSelectX = _startSelectY = -1;
-    _endSelectX = _endSelectY = -1;
+    _anchorPositionX = _cursorPositionX;
+    _anchorPositionY = _cursorPositionY;
 }
 
 QString TextCursor::selectedText() const {
@@ -524,16 +526,6 @@ void TextCursor::setPosition(TextCursor::Position pos, bool extendSelection) {
 }
 
 void TextCursor::setPositionPreservingVerticalMovementColumn(TextCursor::Position pos, bool extendSelection) {
-    const bool hadSel = hasSelection();
-    if (extendSelection) {
-        if (!hadSel) {
-            _startSelectX = _cursorPositionX;
-            _startSelectY = _cursorPositionY;
-        }
-    } else {
-        clearSelection();
-    }
-
     _cursorPositionY = std::max(std::min(pos.y, _doc->_text.size() - 1), 0);
     _cursorPositionX = std::max(std::min(pos.x, _doc->_text[_cursorPositionY].size()), 0);
 
@@ -546,38 +538,27 @@ void TextCursor::setPositionPreservingVerticalMovementColumn(TextCursor::Positio
         }
     }
 
-    if (extendSelection) {
-        _endSelectX = _cursorPositionX;
-        _endSelectY = _cursorPositionY;
+    if (!extendSelection) {
+        _anchorPositionX = _cursorPositionX;
+        _anchorPositionY = _cursorPositionY;
     }
 }
 
 TextCursor::Position TextCursor::anchor() {
-    if (!hasSelection()) {
-        // FIXME: This should not be needed anymore when hasSelection() := anchor() == position()
-        return position();
-    }
-    return Position{_startSelectX, _startSelectY};
+    return Position{_anchorPositionX, _anchorPositionY};
 }
 
 void TextCursor::setAnchorPosition(TextCursor::Position pos) {
     clearSelection();
 
-    _startSelectY = std::max(std::min(pos.y, _doc->_text.size() - 1), 0);
-    _startSelectX = std::max(std::min(pos.x, _doc->_text[_startSelectY].size()), 0);
+    _anchorPositionY = std::max(std::min(pos.y, _doc->_text.size() - 1), 0);
+    _anchorPositionX = std::max(std::min(pos.x, _doc->_text[_anchorPositionY].size()), 0);
 
     // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
-    if (_startSelectX > 0) {
-        Tui::ZTextLayout lay = _createTextLayout(_startSelectY, false);
-        _startSelectX = lay.previousCursorPosition(_startSelectX, Tui::ZTextLayout::SkipCharacters);
-        _startSelectX = lay.nextCursorPosition(_startSelectX, Tui::ZTextLayout::SkipCharacters);
-    }
-
-    if (_startSelectY != _cursorPositionY || _startSelectX != _cursorPositionX) {
-        _endSelectX = _cursorPositionX;
-        _endSelectY = _cursorPositionY;
-    } else {
-        clearSelection();
+    if (_anchorPositionX > 0) {
+        Tui::ZTextLayout lay = _createTextLayout(_anchorPositionY, false);
+        _anchorPositionX = lay.previousCursorPosition(_anchorPositionX, Tui::ZTextLayout::SkipCharacters);
+        _anchorPositionX = lay.nextCursorPosition(_anchorPositionX, Tui::ZTextLayout::SkipCharacters);
     }
 }
 
@@ -590,21 +571,13 @@ void TextCursor::setVerticalMovementColumn(int column) {
 }
 
 TextCursor::Position TextCursor::selectionStartPos() const {
-    if (hasSelection()) {
-        return std::min(Position{_startSelectX, _startSelectY},
-                        Position{_endSelectX, _endSelectY});
-    } else {
-        return Position{_cursorPositionX, _cursorPositionY};
-    }
+    return std::min(Position{_anchorPositionX, _anchorPositionY},
+                    Position{_cursorPositionX, _cursorPositionY});
 }
 
 TextCursor::Position TextCursor::selectionEndPos() const {
-    if (hasSelection()) {
-        return std::max(Position{_startSelectX, _startSelectY},
-                        Position{_endSelectX, _endSelectY});
-    } else {
-        return Position{_cursorPositionX, _cursorPositionY};
-    }
+    return std::max(Position{_anchorPositionX, _anchorPositionY},
+                    Position{_cursorPositionX, _cursorPositionY});
 }
 
 void TextCursor::selectAll() {
@@ -613,7 +586,8 @@ void TextCursor::selectAll() {
 }
 
 bool TextCursor::hasSelection() const {
-    return _startSelectX != -1;
+    return _cursorPositionX != _anchorPositionX
+            || _cursorPositionY != _anchorPositionY;
 }
 
 bool TextCursor::atStart() const {

@@ -106,10 +106,8 @@ private:
 private:
     int _cursorPositionX = 0;
     int _cursorPositionY = 0;
-    int _startSelectX = -1;
-    int _startSelectY = -1;
-    int _endSelectX = -1;
-    int _endSelectY = -1;
+    int _anchorPositionX = 0;
+    int _anchorPositionY = 0;
     int _saveCursorPositionX = 0;
 
     Document *_doc;
