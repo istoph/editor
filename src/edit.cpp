@@ -670,9 +670,10 @@ void Editor::setTheme(Theme theme) {
     if (theme == Theme::dark) {
         Tui::ZPalette tmpPalette = Tui::ZPalette::black();
         tmpPalette.setColors({
-                                 {"chr.fgbehindText", { 0xaa, 0xaa, 0xaa}},
+                                 {"chr.fgbehindText", { 0xdd, 0xdd, 0xdd}},
                                  {"chr.trackBgColor", { 0x80, 0x80, 0x80}},
-                                 {"chr.thumbBgColor", { 0xd9, 0xd9, 0xd9}},
+                                 {"chr.thumbBgColor", { 0x69, 0x69, 0x69}},
+                                 {"chr.trackFgColor", Tui::Colors::brightWhite},
                                  {"chr.linenumberFg", { 0xdd, 0xdd, 0xdd}},
                                  {"chr.linenumberBg", { 0x80, 0x80, 0x80}},
                                  {"chr.statusbarBg", Tui::Colors::darkGray},
@@ -681,9 +682,10 @@ void Editor::setTheme(Theme theme) {
     } else if (theme == Theme::classic) {
         Tui::ZPalette tmpPalette = Tui::ZPalette::classic();
         tmpPalette.setColors({
-                                 {"chr.fgbehindText", { 0xaa, 0xaa, 0xaa}},
+                                 {"chr.fgbehindText", { 0xdd, 0xdd, 0xdd}},
                                  {"chr.trackBgColor", { 0,    0,    0x80}},
                                  {"chr.thumbBgColor", { 0,    0,    0xd9}},
+                                 {"chr.trackFgColor", Tui::Colors::brightWhite},
                                  {"chr.linenumberFg", { 0xdd, 0xdd, 0xdd}},
                                  {"chr.linenumberBg", { 0,    0,    0x80}},
                                  {"chr.statusbarBg", {0, 0xaa, 0xaa}},

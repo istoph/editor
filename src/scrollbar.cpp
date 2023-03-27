@@ -17,7 +17,7 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
     auto *painter = event->painter();
     Tui::ZColor controlfg = getColor("scrollbar.control.fg");
     Tui::ZColor controlbg = getColor("scrollbar.control.bg");
-    Tui::ZColor fg = getColor("scrollbar.fg");
+    Tui::ZColor fg = getColor("chr.trackFgColor");
     Tui::ZColor bg = getColor("scrollbar.bg");
     Tui::ZColor fgbehindText =  getColor("chr.fgbehindText");
     Tui::ZColor trackBgColor = getColor("chr.trackBgColor");
