@@ -428,6 +428,9 @@ void TextCursor::moveCharacterLeft(bool extendSelection) {
                     extendSelection);
     } else if (currentLine > 0) {
         setPosition({_doc->_text[currentLine - 1].size(), currentLine - 1}, extendSelection);
+    } else {
+        // here we update the selection and the vertical movemend position
+        setPosition({currentCodeUnit, currentLine}, extendSelection);
     }
 }
 
@@ -439,6 +442,9 @@ void TextCursor::moveCharacterRight(bool extendSelection) {
                     extendSelection);
     } else if (currentLine + 1 < _doc->_text.size()) {
         setPosition({0, currentLine + 1}, extendSelection);
+    } else {
+        // here we update the selection and the vertical movemend position
+        setPosition({currentCodeUnit, currentLine}, extendSelection);
     }
 }
 
