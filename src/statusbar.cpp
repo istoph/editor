@@ -98,7 +98,7 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
         bg = {0xFF,0xDD,0};
     }
     if(_selectMode) {
-        text += " | SELECT MODE";
+        text += " | SELECT MODE (F4)";
     }
     if(_modifiedFile) {
         text += " | 🖫";
