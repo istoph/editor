@@ -500,5 +500,84 @@ TEST_CASE("actions") {
         CHECK(f->getCursorPosition() == QPoint{0,0});
         CHECK(f->isSelect() == true);
     }
+
+    //eat space
+    SECTION("eat space") {
+        f->setTabsize(4);
+        Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
+
+        //prepare enviromend
+        for(int i = 1; i <= 6; i++) {
+            for(int space = 1; space < i; space++) {
+                Tui::ZTest::sendKey(&terminal, Qt::Key_Space, Qt::KeyboardModifier::NoModifier);
+            }
+            Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::NoModifier);
+            Tui::ZTest::sendKey(&terminal, Qt::Key_Enter, Qt::KeyboardModifier::NoModifier);
+        }
+        CHECK(doc.getLines()[0] == "a");
+        CHECK(doc.getLines()[1] == " a");
+        CHECK(doc.getLines()[2] == "  a");
+        CHECK(doc.getLines()[3] == "   a");
+        CHECK(doc.getLines()[4] == "    a");
+        CHECK(doc.getLines()[5] == "     a");
+
+        SECTION("tab") {
+            Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::ControlModifier);
+            for(int i = 1; i <= 6; i++) {
+                Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, Qt::KeyboardModifier::NoModifier);
+                Tui::ZTest::sendKey(&terminal, Qt::Key_Down, Qt::KeyboardModifier::NoModifier);
+                Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::NoModifier);
+            }
+            CHECK(doc.getLines()[0] == "    a");
+            CHECK(doc.getLines()[1] == "    a");
+            CHECK(doc.getLines()[2] == "    a");
+            CHECK(doc.getLines()[3] == "    a");
+            CHECK(doc.getLines()[4] == "        a");
+            CHECK(doc.getLines()[5] == "        a");
+        }
+        SECTION("shift+tab") {
+            Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::ControlModifier);
+            for(int i = 1; i <= 6; i++) {
+                Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, Qt::KeyboardModifier::ShiftModifier);
+                Tui::ZTest::sendKey(&terminal, Qt::Key_Down, Qt::KeyboardModifier::NoModifier);
+            }
+            CHECK(doc.getLines()[0] == "a");
+            CHECK(doc.getLines()[1] == "a");
+            CHECK(doc.getLines()[2] == "a");
+            CHECK(doc.getLines()[3] == "a");
+            CHECK(doc.getLines()[4] == "a");
+            CHECK(doc.getLines()[5] == " a");
+        }
+    }
+
+    //page up down
+    SECTION("page") {
+        //80x24 terminal
+        //f->setGeometry({0, 0, 80, 24});
+
+        Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
+        Qt::KeyboardModifier shift = GENERATE(Qt::KeyboardModifier::NoModifier, Qt::KeyboardModifier::ShiftModifier);
+        CAPTURE(shift);
+
+        //prepare enviromend
+        for(int i = 1; i <= 50; i++) {
+            Tui::ZTest::sendKey(&terminal, Qt::Key_Enter, Qt::KeyboardModifier::NoModifier);
+        }
+
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::ControlModifier);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_PageDown, shift);
+        CHECK(f->getCursorPosition() == QPoint{0,23});
+        Tui::ZTest::sendKey(&terminal, Qt::Key_PageDown, shift);
+        CHECK(f->getCursorPosition() == QPoint{0,46});
+        Tui::ZTest::sendKey(&terminal, Qt::Key_PageDown, shift);
+        CHECK(f->getCursorPosition() == QPoint{0,50});
+
+        Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, shift);
+        CHECK(f->getCursorPosition() == QPoint{0,27});
+        Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, shift);
+        CHECK(f->getCursorPosition() == QPoint{0,4});
+        Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, shift);
+        CHECK(f->getCursorPosition() == QPoint{0,0});
+    }
 }
 
