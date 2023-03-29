@@ -60,6 +60,8 @@ public:
 
     void watchPipe();
 
+    void setStartActions(std::vector<std::function<void()>> actions);
+
 public:
     QObject *facet(const QMetaObject &metaObject) const override;
 
@@ -106,6 +108,7 @@ private:
     int _tab = 8;
     Tui::ZWindow *pendingKeySequence = nullptr;
     QTimer pendingKeySequenceTimer;
+    std::vector<std::function<void()>> startActions;
 };
 
 #endif // EDIT_H

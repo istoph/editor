@@ -157,8 +157,11 @@ int main(int argc, char **argv) {
     qDebug("%i chr starting", (int)QCoreApplication::applicationPid());
 
     // OPEN FILE
+
+    std::vector<std::function<void()>> actions;
+
     if (args.empty()) {
-        root->newFile("");
+        actions.push_back([root] { root->newFile(""); });
     } else {
         QVector<FileListEntry> fles = parseFileList(args);
         if (fles.empty()) {
@@ -172,27 +175,19 @@ int main(int argc, char **argv) {
                         (fileCategorize(parser.value(append)) == FileCategory::new_file ||
                          fileCategorize(parser.value(append)) == FileCategory::open_file )
                         ) {
-                    root->openFile(parser.value(append));
+                    actions.push_back([root, name=parser.value(append)] { root->openFile(name); });
                 } else {
-                    root->newFile("");
+                    actions.push_back([root] { root->newFile(""); });
                 }
-                root->watchPipe();
+                actions.push_back([root] { root->watchPipe(); });
 
             } else if (filecategory == FileCategory::dir) {
                 QFileInfo datei(fle.fileName);
                 QString tmp = datei.absoluteFilePath();
-                QTimer *t = new QTimer();
-                QObject::connect(t, &QTimer::timeout, t, [t, root, tmp] {
-                    root->openFileDialog(tmp);
-                    t->deleteLater();
-                });
-                t->setSingleShot(true);
-                t->start(0);
-
+                actions.push_back([root, tmp] { root->openFileDialog(tmp); });
             } else if (filecategory == FileCategory::new_file) {
                 QFileInfo datei(fle.fileName);
-                root->newFile(datei.absoluteFilePath());
-
+                actions.push_back([root, name=datei.absoluteFilePath()] { root->newFile(name); });
             } else if (filecategory == FileCategory::open_file) {
                 QFileInfo datei(fle.fileName);
                 int maxMB = 100;
@@ -200,11 +195,12 @@ int main(int argc, char **argv) {
                     out << "The file is bigger then " << maxMB << "MB (" << datei.size()/1024/1024 << "MB). Please start with -b for big files.\n";
                     return 0;
                 }
-                FileWindow* win = root->openFile(datei.absoluteFilePath());
-                if (fle.pos != "") {
-                    win->getFileWidget()->gotoline(fle.pos);
-                }
-
+                actions.push_back([root, name=datei.absoluteFilePath(), pos=fle.pos] {
+                    FileWindow* win = root->openFile(name);
+                    if (pos != "") {
+                        win->getFileWidget()->gotoline(pos);
+                    }
+                });
             } else if (filecategory == FileCategory::invalid_filetype) {
                 out << "File type cannot be opened.\n";
                 return 1;
@@ -222,8 +218,10 @@ int main(int argc, char **argv) {
     }
 
     if (parser.isSet(follow)) {
-        root->followInCurrentFile();
+        actions.push_back([root] { root->followInCurrentFile(); });
     }
+
+    root->setStartActions(actions);
 
     QObject::connect(&terminal, &Tui::ZTerminal::terminalConnectionLost, [=] {
         //TODO file save

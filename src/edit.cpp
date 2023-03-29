@@ -23,7 +23,6 @@
 
 
 Editor::Editor() {
-    setupUi();
 }
 
 Editor::~Editor() {
@@ -326,6 +325,8 @@ void Editor::setupUi() {
 }
 
 void Editor::terminalChanged() {
+    setupUi();
+
     QObject::connect(terminal(), &Tui::ZTerminal::focusChanged, this, [this] {
         Tui::ZWidget *w = terminal()->focusWidget();
         while (w && !qobject_cast<FileWindow*>(w)) {
@@ -367,6 +368,10 @@ void Editor::terminalChanged() {
         pendingKeySequence->setDefaultPlacement(Qt::AlignCenter);
     });
     setupSearchDialogs();
+
+    for (auto &action: startActions) {
+        action();
+    }
 }
 
 FileWindow *Editor::createFileWindow() {
@@ -624,6 +629,10 @@ void Editor::watchPipe() {
     if (_win) {
         _win->watchPipe();
     }
+}
+
+void Editor::setStartActions(std::vector<std::function<void ()>> actions) {
+    startActions = actions;
 }
 
 FileWindow* Editor::openFile(QString fileName) {
