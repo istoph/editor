@@ -325,6 +325,50 @@ void Editor::setupUi() {
     rootLayout->addWidget(_statusBar);
 }
 
+void Editor::terminalChanged() {
+    QObject::connect(terminal(), &Tui::ZTerminal::focusChanged, this, [this] {
+        Tui::ZWidget *w = terminal()->focusWidget();
+        while (w && !qobject_cast<FileWindow*>(w)) {
+            w = w->parentWidget();
+        }
+        if (qobject_cast<FileWindow*>(w)) {
+            _win = qobject_cast<FileWindow*>(w);
+            if (_file != _win->getFileWidget()) {
+                _file = _win->getFileWidget();
+                if (_tabDialog) {
+                    _tabDialog->updateSettings(!_file->getTabOption(), _file->getTabsize(), _file->eatSpaceBeforeTabs());
+                }
+            }
+            _mux.selectInput(_win);
+        }
+    });
+
+    Tui::ZPendingKeySequenceCallbacks pending;
+    pending.setPendingSequenceStarted([this] {
+        pendingKeySequenceTimer.setInterval(2000);
+        pendingKeySequenceTimer.setSingleShot(true);
+        pendingKeySequenceTimer.start();
+    });
+    pending.setPendingSequenceFinished([this] (bool matched) {
+        pendingKeySequenceTimer.stop();
+        if (pendingKeySequence) {
+            pendingKeySequence->deleteLater();
+            pendingKeySequence = nullptr;
+        }
+    });
+    terminal()->registerPendingKeySequenceCallbacks(pending);
+
+    QObject::connect(&pendingKeySequenceTimer, &QTimer::timeout, this, [this] {
+        pendingKeySequence = new Tui::ZWindow(this);
+        auto *layout = new Tui::ZWindowLayout();
+        pendingKeySequence->setLayout(layout);
+        layout->setCentralWidget(new Tui::ZTextLine("Incomplete key sequence. Press 2nd key.", pendingKeySequence));
+        pendingKeySequence->setGeometry({{0,0}, pendingKeySequence->sizeHint()});
+        pendingKeySequence->setDefaultPlacement(Qt::AlignCenter);
+    });
+    setupSearchDialogs();
+}
+
 FileWindow *Editor::createFileWindow() {
     FileWindow *win = new FileWindow(this);
     File *file = win->getFileWidget();
@@ -734,48 +778,4 @@ void Editor::commandLineExecute(QString cmd) {
         system(qgetenv("SHELL"));
         term->unpauseOperation();
     }
-}
-
-void Editor::terminalChanged() {
-    QObject::connect(terminal(), &Tui::ZTerminal::focusChanged, this, [this] {
-        Tui::ZWidget *w = terminal()->focusWidget();
-        while (w && !qobject_cast<FileWindow*>(w)) {
-            w = w->parentWidget();
-        }
-        if (qobject_cast<FileWindow*>(w)) {
-            _win = qobject_cast<FileWindow*>(w);
-            if (_file != _win->getFileWidget()) {
-                _file = _win->getFileWidget();
-                if (_tabDialog) {
-                    _tabDialog->updateSettings(!_file->getTabOption(), _file->getTabsize(), _file->eatSpaceBeforeTabs());
-                }
-            }
-            _mux.selectInput(_win);
-        }
-    });
-
-    Tui::ZPendingKeySequenceCallbacks pending;
-    pending.setPendingSequenceStarted([this] {
-        pendingKeySequenceTimer.setInterval(2000);
-        pendingKeySequenceTimer.setSingleShot(true);
-        pendingKeySequenceTimer.start();
-    });
-    pending.setPendingSequenceFinished([this] (bool matched) {
-        pendingKeySequenceTimer.stop();
-        if (pendingKeySequence) {
-            pendingKeySequence->deleteLater();
-            pendingKeySequence = nullptr;
-        }
-    });
-    terminal()->registerPendingKeySequenceCallbacks(pending);
-
-    QObject::connect(&pendingKeySequenceTimer, &QTimer::timeout, this, [this] {
-        pendingKeySequence = new Tui::ZWindow(this);
-        auto *layout = new Tui::ZWindowLayout();
-        pendingKeySequence->setLayout(layout);
-        layout->setCentralWidget(new Tui::ZTextLine("Incomplete key sequence. Press 2nd key.", pendingKeySequence));
-        pendingKeySequence->setGeometry({{0,0}, pendingKeySequence->sizeHint()});
-        pendingKeySequence->setDefaultPlacement(Qt::AlignCenter);
-    });
-    setupSearchDialogs();
 }
