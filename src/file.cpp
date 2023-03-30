@@ -1061,13 +1061,8 @@ void File::searchSelect(int line, int found, int length, bool direction) {
         const TextCursor::Position positionStart = {found, line};
         const TextCursor::Position positionEnd = {found + length, line};
 
-        if (direction) {
-            _cursor.setPosition(positionStart);
-            _cursor.setPosition(positionEnd, true);
-        } else {
-            _cursor.setPosition(positionEnd);
-            _cursor.setPosition(positionStart, true);
-        }
+        _cursor.setPosition(positionStart);
+        _cursor.setPosition(positionEnd, true);
 
         const auto [currentCodeUnit, currentLine] = _cursor.position();
 
