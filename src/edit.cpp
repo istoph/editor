@@ -525,14 +525,19 @@ void Editor::setupSearchDialogs() {
 
     auto liveSearch = [this](QString text, bool forward) {
         if (_file) {
-            _file->setSearchText(text);
-            _file->setSearchDirection(forward);
-            if(forward) {
-                _file->setCursorPosition({_file->getCursorPosition().x() - text.size(), _file->getCursorPosition().y()});
+            if (text.size() == 0) {
+                _file->setSearchText("");
+                _file->resetSelect();
             } else {
-                _file->setCursorPosition({_file->getCursorPosition().x() + text.size(), _file->getCursorPosition().y()});
+                _file->setSearchText(text);
+                _file->setSearchDirection(forward);
+                if(forward) {
+                    _file->setCursorPosition({_file->getCursorPosition().x() - text.size(), _file->getCursorPosition().y()});
+                } else {
+                    _file->setCursorPosition({_file->getCursorPosition().x() + text.size(), _file->getCursorPosition().y()});
+                }
+                _file->runSearch(false);
             }
-            _file->runSearch(false);
         }
     };
 

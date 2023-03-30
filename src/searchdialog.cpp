@@ -170,7 +170,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         if (_replaceAllBtn) {
             _replaceAllBtn->setEnabled(newText.size());
         }
-        if(_searchText->text() != "" && _liveSearchBox->checkState() == Qt::Checked) {
+        if(_liveSearchBox->checkState() == Qt::Checked) {
             Q_EMIT liveSearch(_searchText->text(), _forward->checked());
         }
     });
