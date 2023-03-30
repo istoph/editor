@@ -176,20 +176,24 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
     });
 
     QObject::connect(_findNextBtn, &Tui::ZButton::clicked, [this]{
-        Q_EMIT findNext(_searchText->text(), _regexMatchBox->checkState(), _forward->checked());
+        Q_EMIT findNext(_searchText->text(), _forward->checked());
     });
 
     if (_replaceBtn) {
         QObject::connect(_replaceBtn, &Tui::ZButton::clicked, [this]{
-            Q_EMIT replace1(_searchText->text(), _replaceText->text(), _regexMatchBox->checkState(), _forward->checked());
+            Q_EMIT replace1(_searchText->text(), _replaceText->text(), _forward->checked());
         });
     }
 
     if (_replaceAllBtn) {
         QObject::connect(_replaceAllBtn, &Tui::ZButton::clicked, [=]{
-            Q_EMIT replaceAll(_searchText->text(), _replaceText->text(), _regexMatchBox->checkState());
+            Q_EMIT replaceAll(_searchText->text(), _replaceText->text());
         });
     }
+
+    QObject::connect(_regexMatchBox, &Tui::ZCheckBox::stateChanged, [this]{
+        Q_EMIT regex(_regexMatchBox->checkState());
+    });
 
     QObject::connect(_cancelBtn, &Tui::ZButton::clicked, [=]{
         Q_EMIT canceled();

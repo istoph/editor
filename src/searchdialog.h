@@ -24,9 +24,10 @@ signals:
     void forwardChanged(bool value);
     void canceled();
     void liveSearch(QString text, bool forward);
-    void findNext(QString text, bool regex, bool forward);
-    void replace1(QString text, QString replacement, bool regex, bool forward);
-    void replaceAll(QString text, QString replacement, bool regex);
+    void findNext(QString text, bool forward);
+    void replace1(QString text, QString replacement, bool forward);
+    void replaceAll(QString text, QString replacement);
+    void regex(bool regex);
 
 public slots:
     void open();

@@ -536,13 +536,18 @@ void Editor::setupSearchDialogs() {
         }
     };
 
-    auto searchNext = [this](QString text, bool regex, bool forward) {
+    auto searchNext = [this](QString text, bool forward) {
         if (_file) {
             _file->setSearchText(text);
-            _file->setRegex(regex);
             _file->setSearchDirection(forward);
             _file->runSearch(false);
         }
+    };
+
+    auto regex = [this] (bool regex) {
+         if (_file) {
+            _file->setRegex(regex);
+         }
     };
 
     _searchDialog = new SearchDialog(this);
@@ -554,6 +559,7 @@ void Editor::setupSearchDialogs() {
     QObject::connect(_searchDialog, &SearchDialog::forwardChanged, this, searchForwardChanged);
     QObject::connect(_searchDialog, &SearchDialog::liveSearch, this, liveSearch);
     QObject::connect(_searchDialog, &SearchDialog::findNext, this, searchNext);
+    QObject::connect(_searchDialog, &SearchDialog::regex, this, regex);
 
     _replaceDialog = new SearchDialog(this, true);
     QObject::connect(new Tui::ZCommandNotifier("replace", this), &Tui::ZCommandNotifier::activated,
@@ -564,19 +570,17 @@ void Editor::setupSearchDialogs() {
     QObject::connect(_replaceDialog, &SearchDialog::forwardChanged, this, searchForwardChanged);
     QObject::connect(_replaceDialog, &SearchDialog::liveSearch, this, liveSearch);
     QObject::connect(_replaceDialog, &SearchDialog::findNext, this, searchNext);
-    QObject::connect(_replaceDialog, &SearchDialog::replace1, this, [this] (QString text, QString replacement, bool regex, bool forward) {
+    QObject::connect(_replaceDialog, &SearchDialog::replace1, this, [this] (QString text, QString replacement, bool forward) {
         if (_file) {
             _file->setSearchText(text);
             _file->setReplaceText(replacement);
-            _file->setRegex(regex);
             _file->setReplaceSelected();
             _file->setSearchDirection(forward);
             _file->runSearch(false);
         }
     });
-    QObject::connect(_replaceDialog, &SearchDialog::replaceAll, this, [this] (QString text, QString replacement, bool regex) {
+    QObject::connect(_replaceDialog, &SearchDialog::replaceAll, this, [this] (QString text, QString replacement) {
         if (_file) {
-            _file->setRegex(regex);
             _file->replaceAll(text, replacement);
         }
     });
