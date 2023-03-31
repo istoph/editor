@@ -833,10 +833,14 @@ void File::setSearchText(QString searchText) {
         _cmdSearchPrevious->setEnabled(true);
     }
 
-    QtConcurrent::run([this](QVector<QString> text, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
+    SearchCountSignalForwarder *searchCountSignalForwarder = new SearchCountSignalForwarder();
+    QObject::connect(searchCountSignalForwarder, &SearchCountSignalForwarder::searchCount, this, &File::emitSearchCount);
+
+    QtConcurrent::run([searchCountSignalForwarder](QVector<QString> text, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
         SearchCount sc;
-        QObject::connect(&sc, &SearchCount::searchCount, this, &File::emitSearchCount);
+        QObject::connect(&sc, &SearchCount::searchCount, searchCountSignalForwarder, &SearchCountSignalForwarder::searchCount);
         sc.run(text, searchText, caseSensitivity, gen, searchGen);
+        searchCountSignalForwarder->deleteLater();
     }, _doc.getLines(), _searchText, _searchCaseSensitivity, gen, searchGeneration);
 }
 

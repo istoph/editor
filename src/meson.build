@@ -10,10 +10,12 @@ tests = [
   'tests/filesavetests.cpp',
   'tests/filetests.cpp',
   'tests/tests.cpp',
+  'tests/eventrecorder.cpp',
 ]
 
 tests_headers = [
   'tests/documenttests.h',
+  'tests/eventrecorder.h',
 ]
 
 #ide:editable-filelist

@@ -11,6 +11,7 @@
 #include "clipboard.h"
 #include "document.h"
 #include "file.h"
+#include "eventrecorder.h"
 
 class DocumentTestHelper {
 public:
@@ -578,6 +579,43 @@ TEST_CASE("actions") {
         CHECK(f->getCursorPosition() == QPoint{0,4});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, shift);
         CHECK(f->getCursorPosition() == QPoint{0,0});
+    }
+
+    SECTION("search") {
+        EventRecorder recorder;
+        auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
+
+        CHECK(f->getCursorPosition() == QPoint{8,1});
+        f->setSearchText("t");
+
+        Tui::ZTest::sendKey(&terminal, Qt::Key_F3, Qt::KeyboardModifier::NoModifier);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{5,0});
+
+        Tui::ZTest::sendKey(&terminal, Qt::Key_F3, Qt::KeyboardModifier::NoModifier);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{8,0});
+
+        Tui::ZTest::sendKey(&terminal, Qt::Key_F3, Qt::KeyboardModifier::NoModifier);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{5,0});
+
+    }
+    SECTION("replace") {
+        CHECK(f->getCursorPosition() == QPoint{8,1});
+        f->replaceAll("1","2");
+        CHECK(f->getCursorPosition() == QPoint{8,1});
+        CHECK(doc.getLines()[1] == "    new2");
+
+        f->replaceAll("e","E");
+        CHECK(f->getCursorPosition() == QPoint{6,1});
+
+        f->replaceAll(" ","   ");
+        CHECK(doc.getLines()[0] == "            tExt");
+        CHECK(doc.getLines()[1] == "            nEw2");
+        CHECK(f->getCursorPosition() == QPoint{12,1});
+
+
     }
 }
 

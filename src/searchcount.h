@@ -19,4 +19,10 @@ signals:
     void searchCount(int sc);
 };
 
+class SearchCountSignalForwarder : public QObject {
+    Q_OBJECT
+signals:
+    void searchCount(int count);
+};
+
 #endif // SEARCHCOUNT_H
