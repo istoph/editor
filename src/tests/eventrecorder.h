@@ -96,6 +96,7 @@ public:
     bool noMoreEvents();
 
     void waitForEvent(std::shared_ptr<RecorderEvent> event);
+    void clearEvents();
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 

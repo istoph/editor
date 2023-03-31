@@ -2,6 +2,7 @@
 
 #include "eventrecorder.h"
 
+#include <QElapsedTimer>
 #include <QSet>
 #include <Tui/ZSymbol.h>
 
@@ -200,8 +201,24 @@ bool EventRecorder::eventFilter(QObject *watched, QEvent *event) {
 }
 
 void EventRecorder::waitForEvent(std::shared_ptr<RecorderEvent> event) {
+    for (const auto &record: records) {
+        if (record.event == event) {
+            return;
+        }
+    }
+
     _waitingEvent = event;
+    QElapsedTimer timer;
+    timer.start();
     while (_waitingEvent != nullptr) {
+        if (timer.hasExpired(10000)) {
+            FAIL_CHECK("EventRecorder::waitForEvent: Timeout");
+            return;
+        }
         QCoreApplication::processEvents(QEventLoop::AllEvents);
     }
+}
+
+void EventRecorder::clearEvents() {
+    records.clear();
 }

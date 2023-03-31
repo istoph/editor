@@ -592,10 +592,12 @@ TEST_CASE("actions") {
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{5,0});
 
+        recorder.clearEvents();
         Tui::ZTest::sendKey(&terminal, Qt::Key_F3, Qt::KeyboardModifier::NoModifier);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{8,0});
 
+        recorder.clearEvents();
         Tui::ZTest::sendKey(&terminal, Qt::Key_F3, Qt::KeyboardModifier::NoModifier);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{5,0});
