@@ -939,7 +939,6 @@ struct SearchParameter {
 };
 
 static SearchLine conSearchNext(QVector<QString> text, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
-    int start = search.startAtLine;
     int line = search.startAtLine;
     int found = search.startPosition -1;
     bool reg = search.reg;
@@ -947,6 +946,7 @@ static SearchLine conSearchNext(QVector<QString> text, SearchParameter search, i
     QRegularExpression rx(search.searchText);
     int length = 0;
 
+    bool haswrapped = false;
     while (true) {
         for(;line < end; line++) {
             if(reg) {
@@ -968,12 +968,12 @@ static SearchLine conSearchNext(QVector<QString> text, SearchParameter search, i
             if(nextGeneration != nullptr && gen != *nextGeneration) return {-1, -1, -1};
             if(found != -1) return {line, found, length};
         }
-        if(!search.searchWrap || start == 0) {
+        if(!search.searchWrap || haswrapped) {
             return {-1, -1, -1};
-        } else {
-            end = std::min(start+1, text.size());
-            start = line = 0;
         }
+        end = std::min(search.startAtLine +1, text.size());
+        line = 0;
+        haswrapped = true;
     }
     return {-1, -1, -1};
 }
@@ -983,17 +983,17 @@ SearchLine File::searchNext(QVector<QString> text, SearchParameter search) {
 }
 
 static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
-    int start = search.startAtLine;
     int line = search.startAtLine;
     bool reg = search.reg;
     int found = search.startPosition -1;
-    if(found <= 0 && start > 0) {
+    if(found <= 0 && search.startAtLine > 0) {
         --line;
         found = text[line].size();
     }
     int end = 0;
     QRegularExpression rx(search.searchText);
     int length = 0;
+    bool haswrapped = false;
     while (true) {
         for (; line >= end;) {
             if(reg) {
@@ -1020,13 +1020,12 @@ static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter searc
             if(found != -1) return {line, found, length};
             if(--line >= 0) found = text[line].size();
         }
-        if(!search.searchWrap || start == text.size()) {
+        if(!search.searchWrap || haswrapped) {
             return {-1, -1, -1};
-        } else {
-            end = start;
-            start = line = text.size() -1;
-            found = text[text.size() -1].size();
         }
+        end = search.startAtLine;
+        found = text[text.size() -1].size();
+        haswrapped = true;
     }
     return {-1, -1, -1};
 }
