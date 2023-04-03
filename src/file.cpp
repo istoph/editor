@@ -1024,7 +1024,8 @@ static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter searc
             return {-1, -1, -1};
         }
         end = search.startAtLine;
-        found = text[text.size() -1].size();
+        line = text.size() -1;
+        found = text[line].size();
         haswrapped = true;
     }
     return {-1, -1, -1};
