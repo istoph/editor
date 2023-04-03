@@ -18,6 +18,19 @@ public:
     Document &getDoc(File *f) {
         return f->_doc;
     }
+    void f3(bool backword, Tui::ZTerminal *terminal, File *f) {
+        bool t = GENERATE(true, false);
+        CAPTURE(t);
+        if (t) {
+            if (backword) {
+                Tui::ZTest::sendKey(terminal, Qt::Key_F3, Qt::KeyboardModifier::ShiftModifier);
+            } else {
+                Tui::ZTest::sendKey(terminal, Qt::Key_F3, Qt::KeyboardModifier::NoModifier);
+            }
+        } else {
+            f->runSearch(backword);
+        }
+    }
 };
 
 class Rootabgeletiet : public Tui::ZRoot {
@@ -588,36 +601,258 @@ TEST_CASE("actions") {
         CHECK(f->getCursorPosition() == QPoint{8,1});
         f->setSearchText("t");
 
-        Tui::ZTest::sendKey(&terminal, Qt::Key_F3, Qt::KeyboardModifier::NoModifier);
+        t.f3(false, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{5,0});
 
         recorder.clearEvents();
-        Tui::ZTest::sendKey(&terminal, Qt::Key_F3, Qt::KeyboardModifier::NoModifier);
+        t.f3(false, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{8,0});
 
         recorder.clearEvents();
-        Tui::ZTest::sendKey(&terminal, Qt::Key_F3, Qt::KeyboardModifier::NoModifier);
+        t.f3(false, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{5,0});
-
+        recorder.clearEvents();
     }
+    SECTION("search-t") {
+        EventRecorder recorder;
+        auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
+
+        bool backword = GENERATE(true, false);
+        CAPTURE(backword);
+        bool reg = GENERATE(true, false);
+        CAPTURE(reg);
+        f->setRegex(reg);
+
+        CAPTURE(backword);
+
+        f->selectAll();
+        f->insertAtCursorPosition("t");
+        CHECK(f->getCursorPosition() == QPoint{1,0});
+        CHECK(f->isSelect() == false);
+        recorder.clearEvents();
+
+        f->setSearchText("t");
+
+        t.f3(backword, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{1,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+
+        t.f3(backword, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{1,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+    }
+    SECTION("search-t-t") {
+        EventRecorder recorder;
+        auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
+
+        bool backword = GENERATE(true, false);
+        CAPTURE(backword);
+        bool reg = GENERATE(true, false);
+        CAPTURE(reg);
+        f->setRegex(reg);
+
+
+        f->selectAll();
+        f->insertAtCursorPosition("t t");
+        CHECK(f->getCursorPosition() == QPoint{3,0});
+        CHECK(f->isSelect() == false);
+        recorder.clearEvents();
+
+        f->setSearchText("t");
+        t.f3(backword, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{1,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+
+        t.f3(backword, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{3,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+
+        t.f3(backword, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{1,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+    }
+
+    SECTION("search-space-t-t") {
+        EventRecorder recorder;
+        auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
+
+        bool reg = GENERATE(true, false);
+        CAPTURE(reg);
+        f->setRegex(reg);
+
+        f->selectAll();
+        f->insertAtCursorPosition(" t t ");
+        CHECK(f->getCursorPosition() == QPoint{5,0});
+        CHECK(f->isSelect() == false);
+        recorder.clearEvents();
+
+        f->setSearchText("t");
+
+        t.f3(false, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{2,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+
+        t.f3(false, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{4,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+
+        t.f3(false, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{2,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+    }
+
+    SECTION("searchBackword-space-t-t") {
+        EventRecorder recorder;
+        auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
+
+        bool reg = GENERATE(true, false);
+        CAPTURE(reg);
+        f->setRegex(reg);
+
+        f->selectAll();
+        f->insertAtCursorPosition(" t t ");
+        CHECK(f->getCursorPosition() == QPoint{5,0});
+        CHECK(f->isSelect() == false);
+        recorder.clearEvents();
+
+        f->setSearchText("t");
+
+        t.f3(true, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{4,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+
+        t.f3(true, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{2,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+
+        t.f3(true, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{4,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+    }
+
+    SECTION("search-t-newline-t") {
+        EventRecorder recorder;
+        auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
+
+        bool backword = GENERATE(true, false);
+        CAPTURE(backword);
+        bool reg = GENERATE(true, false);
+        CAPTURE(reg);
+        f->setRegex(reg);
+
+        f->selectAll();
+        f->insertAtCursorPosition("t\nt");
+        CHECK(f->getCursorPosition() == QPoint{1,1});
+        CHECK(f->isSelect() == false);
+        recorder.clearEvents();
+
+        f->setSearchText("t");
+
+        t.f3(backword, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{1,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+
+        t.f3(backword, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{1,1});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+
+        t.f3(backword, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{1,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+    }
+
+    SECTION("search-t-newline-space-t") {
+        EventRecorder recorder;
+        auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
+
+        bool backword = GENERATE(true, false);
+        CAPTURE(backword);
+        bool reg = GENERATE(true, false);
+        CAPTURE(reg);
+        f->setRegex(reg);
+
+        f->selectAll();
+        f->insertAtCursorPosition(" t\n t");
+        CHECK(f->getCursorPosition() == QPoint{2,1});
+        CHECK(f->isSelect() == false);
+        recorder.clearEvents();
+
+        f->setSearchText("t");
+
+        t.f3(backword, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{2,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+
+        t.f3(backword, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{2,1});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+
+        t.f3(backword, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{2,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+    }
+
+
+
     SECTION("replace") {
+        EventRecorder recorder;
+        auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
         CHECK(f->getCursorPosition() == QPoint{8,1});
+
         f->replaceAll("1","2");
+        recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{8,1});
         CHECK(doc.getLines()[1] == "    new2");
+        recorder.clearEvents();
 
         f->replaceAll("e","E");
+        recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{6,1});
+        recorder.clearEvents();
 
         f->replaceAll(" ","   ");
+        recorder.waitForEvent(cursorSignal);
         CHECK(doc.getLines()[0] == "            tExt");
         CHECK(doc.getLines()[1] == "            nEw2");
         CHECK(f->getCursorPosition() == QPoint{12,1});
-
-
+        recorder.clearEvents();
     }
 }
 
