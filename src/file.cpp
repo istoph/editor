@@ -986,8 +986,10 @@ static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter searc
     int line = search.startAtLine;
     bool reg = search.reg;
     int found = search.startPosition -1;
-    if(found <= 0 && search.startAtLine > 0) {
-        --line;
+    if(found <= 0) {
+        if(--line < 0) {
+            line = text.size() -1;
+        }
         found = text[line].size();
     }
     int end = 0;
