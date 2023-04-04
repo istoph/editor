@@ -985,7 +985,7 @@ SearchLine File::searchNext(QVector<QString> text, SearchParameter search) {
 static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
     int line = search.startAtLine;
     bool reg = search.reg;
-    int found = search.startPosition -1;
+    int found = search.startPosition - search.searchText.size();
     if(found <= 0) {
         if(--line < 0) {
             line = text.size() -1;
@@ -1015,7 +1015,14 @@ static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter searc
                     return t;
                 found = -1;
             } else {
-                found = text[line].lastIndexOf(search.searchText, found -1, search.caseSensitivity);
+                // we unfortunately have to skip the last found area
+                int tfound = found;
+                for (int i = search.searchText.size(); i > 0 ; i--) {
+                    found = text[line].lastIndexOf(search.searchText, found - i, search.caseSensitivity);
+                    if(found != tfound) {
+                        break;
+                    }
+                }
                 length = search.searchText.size();
             }
             if(gen != *nextGeneration) return {-1, -1, -1};
