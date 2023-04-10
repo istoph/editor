@@ -269,6 +269,66 @@ TEST_CASE("actions") {
         CHECK(doc.getLines().size() == 2);
         CHECK(f->isSelect() == true);
     }
+    SECTION("sort-231") {
+        f->newText("123");
+        f->insertAtCursorPosition("3\n2\n1");
+        CHECK(doc.getLines().size() == 3);
+        CHECK(f->getCursorPosition() == QPoint{1,2});
+        Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, Qt::KeyboardModifier::NoModifier);
+        CHECK(f->getCursorPosition() == QPoint{1,0});
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::NoModifier);
+        CHECK(f->getCursorPosition() == QPoint{0,0});
+        CHECK(f->isSelect() == false);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Down, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->getCursorPosition() == QPoint{0,1});
+        CHECK(f->isSelect() == true);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Down, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->getCursorPosition() == QPoint{0,2});
+        CHECK(f->isSelect() == true);
+        CHECK(f->getSelectText() == "3\n2\n");
+        Tui::ZTest::sendText(&terminal, "S", Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier);
+        CHECK(doc.getLines()[0] == "2");
+        CHECK(doc.getLines()[1] == "3");
+        CHECK(doc.getLines()[2] == "1");
+    }
+    SECTION("sort-312") {
+        f->newText("123");
+        f->insertAtCursorPosition("3\n2\n1");
+        CHECK(doc.getLines().size() == 3);
+        CHECK(f->getCursorPosition() == QPoint{1,2});
+        Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, Qt::KeyboardModifier::NoModifier);
+        CHECK(f->getCursorPosition() == QPoint{1,0});
+        CHECK(f->isSelect() == false);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Down, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->getCursorPosition() == QPoint{1,1});
+        CHECK(f->isSelect() == true);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Down, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->getCursorPosition() == QPoint{1,2});
+        CHECK(f->isSelect() == true);
+        CHECK(f->getSelectText() == "\n2\n1");
+        Tui::ZTest::sendText(&terminal, "S", Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier);
+        CHECK(doc.getLines()[0] == "1"); // for my opinion this is wrong,
+        CHECK(doc.getLines()[1] == "2");
+        CHECK(doc.getLines()[2] == "3");
+    }
+    SECTION("sort-231") {
+        f->newText("123");
+        f->insertAtCursorPosition("3\n2\n1");
+        CHECK(doc.getLines().size() == 3);
+        CHECK(f->getCursorPosition() == QPoint{1,2});
+        Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, Qt::KeyboardModifier::NoModifier);
+        CHECK(f->getCursorPosition() == QPoint{1,0});
+        CHECK(f->isSelect() == false);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Right, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->getCursorPosition() == QPoint{0,1});
+        CHECK(f->isSelect() == true);
+        CHECK(f->getSelectText() == "\n");
+        Tui::ZTest::sendText(&terminal, "S", Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier);
+        CHECK(doc.getLines()[0] == "3"); // for my opinion this is wrong,
+        CHECK(doc.getLines()[1] == "2");
+        CHECK(doc.getLines()[2] == "1");
+    }
+
     //delete
     SECTION("key-delete") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::NoModifier);
