@@ -380,6 +380,7 @@ void File::cutline() {
     _cursor.moveToEndOfLine(true);
     cut();
     updateCommands();
+    adjustScrollPosition();
 }
 
 void File::deleteLine() {
@@ -394,6 +395,7 @@ void File::deleteLine() {
     }
     _cursor.deleteLine();
     updateCommands();
+    adjustScrollPosition();
 }
 
 void File::copy() {
