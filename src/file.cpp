@@ -2046,7 +2046,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         updateCommands();
         adjustScrollPosition();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
-        QPoint t;
         if (_blockSelect) {
             if (hasBlockSelection()) {
                 blockSelectRemoveSelectedAndConvertToMultiInsert();
