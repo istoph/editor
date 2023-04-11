@@ -133,6 +133,7 @@ protected:
     void keyEvent(Tui::ZKeyEvent *event) override;
     void pasteEvent(Tui::ZPasteEvent *event) override;
     void resizeEvent(Tui::ZResizeEvent *event) override;
+    void focusInEvent(Tui::ZFocusEvent *event) override;
 
 private:
     bool initText();

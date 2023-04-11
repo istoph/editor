@@ -370,6 +370,7 @@ bool File::openText(QString filename) {
 void File::cut() {
     copy();
     delSelect();
+    updateCommands();
     adjustScrollPosition();
 }
 
@@ -378,6 +379,7 @@ void File::cutline() {
     _cursor.moveToStartOfLine();
     _cursor.moveToEndOfLine(true);
     cut();
+    updateCommands();
 }
 
 void File::deleteLine() {
@@ -391,6 +393,7 @@ void File::deleteLine() {
         _cursor.removeSelectedText();
     }
     _cursor.deleteLine();
+    updateCommands();
 }
 
 void File::copy() {
@@ -615,6 +618,7 @@ bool File::isSelect() {
 void File::selectAll() {
     resetSelect();
     _cursor.selectAll();
+    updateCommands();
     adjustScrollPosition();
 }
 
@@ -644,6 +648,7 @@ bool File::delSelect() {
     } else {
         _cursor.removeSelectedText();
     }
+    updateCommands();
     return true;
 }
 
@@ -1643,6 +1648,19 @@ void File::resizeEvent(Tui::ZResizeEvent *event) {
     }
 }
 
+void File::focusInEvent(Tui::ZFocusEvent *event) {
+    Q_UNUSED(event);
+    updateCommands();
+    if(_searchText == "") {
+        _cmdSearchNext->setEnabled(false);
+        _cmdSearchPrevious->setEnabled(false);
+        return;
+    } else {
+        _cmdSearchNext->setEnabled(true);
+        _cmdSearchPrevious->setEnabled(true);
+    }
+}
+
 void File::setSelectMode(bool event) {
     _selectMode = event;
     modifiedSelectMode(_selectMode);
@@ -2338,6 +2356,7 @@ void File::adjustScrollPosition() {
 void File::updateCommands() {
     _cmdCopy->setEnabled(hasBlockSelection() || _cursor.hasSelection());
     _cmdCut->setEnabled(hasBlockSelection() || _cursor.hasSelection());
+    _cmdPaste->setEnabled(isInsertable());
 }
 
 
