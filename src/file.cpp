@@ -463,7 +463,7 @@ void File::gotoline(QString pos) {
 }
 
 bool File::setTabsize(int tab) {
-    this->_tabsize = tab;
+    this->_tabsize = std::max(1, tab);
     return true;
 }
 
