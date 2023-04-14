@@ -170,6 +170,147 @@ TEST_CASE("file") {
     }
 }
 
+TEST_CASE("file-getseter") {
+    Tui::ZTerminal::OffScreen of(80, 24);
+    Tui::ZTerminal terminal(of);
+    Rootabgeletiet root;
+    Tui::ZWindow *w = new Tui::ZWindow(&root);
+    terminal.setMainWidget(&root);
+    w->setGeometry({0, 0, 80, 24});
+
+    File *f = new File(w);
+
+    DocumentTestHelper t;
+
+    Document &doc = t.getDoc(f);
+    TextCursor cursor{&doc, f, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc.getLines()[line]); lay.doLayout(65000); return lay; }};
+
+    CHECK(f->getFilename() == "");
+    CHECK(f->isInsertable() == false);
+    CHECK(f->getTabsize() == 8); //default?
+    CHECK(f->getTabOption() == false);
+    CHECK(f->eatSpaceBeforeTabs() == true);
+    CHECK(f->formattingCharacters() == true);
+    CHECK(f->colorTabs() == true); //default?
+    CHECK(f->colorSpaceEnd() == true); //default?
+    CHECK(f->getSelectText() == "");
+    CHECK(f->isSelect() == false);
+    CHECK(f->isOverwrite() == false);
+    CHECK(f->getVisibleLines() == 1);
+    CHECK(f->isModified() == false);
+    CHECK(f->getHighlightBracket() == false);
+    CHECK(f->readAttributes() == false);
+    CHECK(f->getAttributesfile() == "");
+    CHECK(f->getMsDosMode() == false);
+    CHECK(f->tabToSpace() == false);
+    CHECK(f->getCursorPosition() == QPoint{0,0});
+    CHECK(f->getScrollPosition() == QPoint{0,0});
+    CHECK(f->rightMarginHint() == 0);
+    CHECK(f->isNewFile() == false); //default?
+
+
+    SECTION("getFilename") {
+        f->setFilename("test");
+        //TODO: set path
+        //CHECK(f->getFilename() == "test");
+    }
+    SECTION("gotoline") {
+        QString str = GENERATE("+", "");
+        f->insertAtCursorPosition("123\n123\n123");
+
+        f->gotoline(str + "0,0");
+        CHECK(f->getCursorPosition() == QPoint{0,0});
+        f->gotoline(str + "0,-1");
+        CHECK(f->getCursorPosition() == QPoint{0,0});
+        f->gotoline(str + "-1,0");
+        CHECK(f->getCursorPosition() == QPoint{0,0});
+        f->gotoline(str + "1,1");
+        CHECK(f->getCursorPosition() == QPoint{0,0});
+        f->gotoline(str + "2,2");
+        CHECK(f->getCursorPosition() == QPoint{1,1});
+        f->gotoline(str + "3,3");
+        CHECK(f->getCursorPosition() == QPoint{2,2});
+        f->gotoline(str + "4,4");
+        CHECK(f->getCursorPosition() == QPoint{3,2});
+        f->gotoline(str + "6500000,6500000");
+        CHECK(f->getCursorPosition() == QPoint{3,2});
+
+        f->gotoline(str + "1");
+        CHECK(f->getCursorPosition() == QPoint{0,0});
+        f->gotoline(str + "2");
+        CHECK(f->getCursorPosition() == QPoint{0,1});
+        f->gotoline(str + "3");
+        CHECK(f->getCursorPosition() == QPoint{0,2});
+        f->gotoline(str + "4");
+        CHECK(f->getCursorPosition() == QPoint{0,2});
+    }
+    SECTION("tabsize") {
+        for(int i = -1; i <= 10; i++) {
+            CAPTURE(i);
+            f->setTabsize(i);
+            CHECK(f->getTabsize() == std::max(1,i));
+        }
+    }
+    SECTION("setTabOption") {
+        f->setTabOption(true);
+        CHECK(f->getTabOption() == true);
+        f->setTabOption(false);
+        CHECK(f->getTabOption() == false);
+    }
+    SECTION("setEatSpaceBeforeTabs") {
+        f->setEatSpaceBeforeTabs(true);
+        CHECK(f->eatSpaceBeforeTabs() == true);
+        f->setEatSpaceBeforeTabs(false);
+        CHECK(f->eatSpaceBeforeTabs() == false);
+    }
+    SECTION("setFormattingCharacters") {
+        f->setFormattingCharacters(true);
+        CHECK(f->formattingCharacters() == true);
+        f->setFormattingCharacters(false);
+        CHECK(f->formattingCharacters() == false);
+    }
+    SECTION("colorTabs") {
+        f->setColorTabs(true);
+        CHECK(f->colorTabs() == true);
+        f->setColorTabs(false);
+        CHECK(f->colorTabs() == false);
+    }
+    SECTION("colorSpaceEnd") {
+        f->setColorSpaceEnd(true);
+        CHECK(f->colorSpaceEnd() == true);
+        f->setColorSpaceEnd(false);
+        CHECK(f->colorSpaceEnd() == false);
+    }
+    SECTION("colorSpaceEnd") {
+        Tui::ZTextOption::WrapMode wrap = GENERATE(Tui::ZTextOption::WrapMode::NoWrap,
+                                                   Tui::ZTextOption::WrapMode::WordWrap,
+                                                   Tui::ZTextOption::WrapMode::WrapAnywhere);
+        f->setWrapOption(wrap);
+        CHECK(f->getWrapOption() == wrap);
+
+    }
+    SECTION("overwrite") {
+        f->toggleOverwrite();
+        CHECK(f->isOverwrite() == true);
+        f->toggleOverwrite();
+        CHECK(f->isOverwrite() == false);
+    }
+    SECTION("getMsDosMode") {
+        f->setMsDosMode(true);
+        CHECK(f->getMsDosMode() == true);
+        f->setMsDosMode(false);
+        CHECK(f->getMsDosMode() == false);
+        //TODO check output file
+    }
+    SECTION("rightMarginHint") {
+        for(int i = -1; i <= 10; i++) {
+            CAPTURE(i);
+            f->setRightMarginHint(i);
+            CHECK(f->rightMarginHint() == std::max(0,i));
+        }
+    }
+}
+
 TEST_CASE("actions") {
     Tui::ZTerminal::OffScreen of(80, 24);
     Tui::ZTerminal terminal(of);
@@ -307,7 +448,7 @@ TEST_CASE("actions") {
         CHECK(f->isSelect() == true);
         CHECK(f->getSelectText() == "\n2\n1");
         Tui::ZTest::sendText(&terminal, "S", Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier);
-        CHECK(doc.getLines()[0] == "1"); // for my opinion this is wrong,
+        CHECK(doc.getLines()[0] == "1");
         CHECK(doc.getLines()[1] == "2");
         CHECK(doc.getLines()[2] == "3");
     }
@@ -324,7 +465,7 @@ TEST_CASE("actions") {
         CHECK(f->isSelect() == true);
         CHECK(f->getSelectText() == "\n");
         Tui::ZTest::sendText(&terminal, "S", Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier);
-        CHECK(doc.getLines()[0] == "3"); // for my opinion this is wrong,
+        CHECK(doc.getLines()[0] == "3");
         CHECK(doc.getLines()[1] == "2");
         CHECK(doc.getLines()[2] == "1");
     }
