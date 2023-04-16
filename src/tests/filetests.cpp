@@ -1061,6 +1061,41 @@ TEST_CASE("actions") {
         CHECK(f->isSelect() == true);
     }
 
+    SECTION("search-aa-aa") {
+        EventRecorder recorder;
+        auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
+
+        bool backword = GENERATE(true, false);
+        CAPTURE(backword);
+        bool reg = GENERATE(true, false);
+        CAPTURE(reg);
+        f->setRegex(reg);
+
+        f->selectAll();
+        f->insertAtCursorPosition(" aa aa\naa");
+        CHECK(f->getCursorPosition() == QPoint{2,1});
+        CHECK(f->isSelect() == false);
+        recorder.clearEvents();
+
+        f->setSearchText("aa");
+
+        QList<QPoint> qpoints;
+
+        if (backword) {
+            qpoints << QPoint{6,0} << QPoint{3,0} << QPoint{2,1};
+        } else {
+            qpoints << QPoint{3,0} << QPoint{6,0} << QPoint{2,1};
+        }
+
+        for (QPoint point : qpoints) {
+            t.f3(backword, &terminal, f);
+            recorder.waitForEvent(cursorSignal);
+            CHECK(f->getCursorPosition() == point);
+            recorder.clearEvents();
+            CHECK(f->isSelect() == true);
+        }
+    }
+
     SECTION("search-smiley") {
         EventRecorder recorder;
         auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
