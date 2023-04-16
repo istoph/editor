@@ -1117,7 +1117,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
 
 Tui::ZTextOption File::getTextOption(bool lineWithCursor) {
     Tui::ZTextOption option;
-    option.setWrapMode(_wrapOption ? Tui::ZTextOption::WrapAnywhere : Tui::ZTextOption::NoWrap);
+    option.setWrapMode(_wrapOption);
     option.setTabStopDistance(_tabsize);
 
     Tui::ZTextOption::Flags flags;
