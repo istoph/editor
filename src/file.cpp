@@ -994,13 +994,7 @@ SearchLine File::searchNext(QVector<QString> text, SearchParameter search) {
 static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
     int line = search.startAtLine;
     bool reg = search.reg;
-    int searchAt = search.startPosition - search.searchText.size();
-    if (searchAt <= 0) {
-        if(--line < 0) {
-            line = text.size() -1;
-        }
-        searchAt = text[line].size();
-    }
+    int searchAt = search.startPosition;
     int found = -1;
     int end = 0;
     QRegularExpression rx(search.searchText);
@@ -1056,12 +1050,23 @@ void File::runSearch(bool direction) {
             watcher->deleteLater();
         });
 
-        const auto [cursorCodeUnit, cursorLine] = _cursor.position();
-        SearchParameter search = { _searchText, _searchWrap, _searchCaseSensitivity, cursorLine, cursorCodeUnit, _searchReg};
+        auto [startCodeUnit, startLine] = _cursor.selectionEndPos();
         QFuture<SearchLine> future;
         if(efectivDirection) {
+            SearchParameter search = { _searchText, _searchWrap, _searchCaseSensitivity, startLine, startCodeUnit, _searchReg};
             future = QtConcurrent::run(conSearchNext, _doc.getLines(), search, gen, searchNextGeneration);
         } else {
+            if (_cursor.hasSelection()) {
+                startCodeUnit = startCodeUnit - 1;
+                if (startCodeUnit <= 0) {
+                    if(--startLine < 0) {
+                        startLine = _doc.lineCount() - 1;
+                    }
+                    startCodeUnit = _doc.lineCodeUnits(startLine);
+                }
+            }
+            SearchParameter search = { _searchText, _searchWrap, _searchCaseSensitivity, startLine, startCodeUnit, _searchReg};
+
             future = QtConcurrent::run(conSearchPrevious, _doc.getLines(), search, gen, searchNextGeneration);
         }
         watcher->setFuture(future);

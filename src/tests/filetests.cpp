@@ -863,7 +863,8 @@ TEST_CASE("actions") {
         f->selectAll();
         f->insertAtCursorPosition("t t");
         CHECK(f->getCursorPosition() == QPoint{3,0});
-        CHECK(f->isSelect() == false);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->isSelect() == true);
         recorder.clearEvents();
 
         f->setSearchText("t");
@@ -969,7 +970,8 @@ TEST_CASE("actions") {
         f->selectAll();
         f->insertAtCursorPosition("t\nt");
         CHECK(f->getCursorPosition() == QPoint{1,1});
-        CHECK(f->isSelect() == false);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->isSelect() == true);
         recorder.clearEvents();
 
         f->setSearchText("t");
@@ -1006,7 +1008,8 @@ TEST_CASE("actions") {
         f->selectAll();
         f->insertAtCursorPosition(" t\n t");
         CHECK(f->getCursorPosition() == QPoint{2,1});
-        CHECK(f->isSelect() == false);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->isSelect() == true);
         recorder.clearEvents();
 
         f->setSearchText("t");
@@ -1043,7 +1046,9 @@ TEST_CASE("actions") {
         f->selectAll();
         f->insertAtCursorPosition(" aa\naa");
         CHECK(f->getCursorPosition() == QPoint{2,1});
-        CHECK(f->isSelect() == false);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->isSelect() == true);
         recorder.clearEvents();
 
         f->setSearchText("aa");
@@ -1074,7 +1079,9 @@ TEST_CASE("actions") {
         f->selectAll();
         f->insertAtCursorPosition(" aa aa\naa");
         CHECK(f->getCursorPosition() == QPoint{2,1});
-        CHECK(f->isSelect() == false);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->isSelect() == true);
         recorder.clearEvents();
 
         f->setSearchText("aa");
@@ -1109,7 +1116,8 @@ TEST_CASE("actions") {
         f->selectAll();
         f->insertAtCursorPosition("😎😎");
         CHECK(f->getCursorPosition() == QPoint{4,0});
-        CHECK(f->isSelect() == false);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->isSelect() == true);
         recorder.clearEvents();
 
         f->setSearchText("😎");
@@ -1140,7 +1148,8 @@ TEST_CASE("actions") {
         f->selectAll();
         f->insertAtCursorPosition("😎\n😎");
         CHECK(f->getCursorPosition() == QPoint{2,1});
-        CHECK(f->isSelect() == false);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->isSelect() == true);
         recorder.clearEvents();
 
         f->setSearchText("😎");
