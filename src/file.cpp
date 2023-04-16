@@ -98,6 +98,7 @@ void File::getAttributes() {
             _cursor.setVerticalMovementColumn(data.value("cursorPositionX").toInt());
             _scrollPositionX = data.value("scrollPositionX").toInt();
             _scrollPositionY = data.value("scrollPositionY").toInt();
+            _scrollFineLine = 0;
             adjustScrollPosition();
         }
     }
@@ -277,6 +278,7 @@ bool File::initText() {
 
     _scrollPositionX = 0;
     _scrollPositionY = 0;
+    _scrollFineLine = 0;
     _cursor.setPosition({0, 0});
     cursorPositionChanged(0, 0, 0);
     scrollPositionChanged(0, 0);
@@ -1341,7 +1343,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     const int cursorLine = _blockSelect ? _blockSelectEndLine : cursorLineReal;
 
     QString strlinenumber;
-    int y = 0;
+    int y = -_scrollFineLine;
     int tmpLastLineWidth = 0;
     for (int line = _scrollPositionY; y < rect().height() && line < _doc.lineCount(); line++) {
         const bool multiIns = hasMultiInsert();
@@ -1489,16 +1491,21 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 }
             }
         }
-        //linenumber
-        if(_linenumber) {
-            strlinenumber = QString::number(line + 1) + QString(" ").repeated(shiftLinenumber() - QString::number(line + 1).size());
-            if (line == cursorLine) {
-                painter->writeWithAttributes(0, y, strlinenumber, getColor("chr.linenumberFg"), getColor("chr.linenumberBg"), Tui::ZTextAttribute::Bold);
-            } else {
-                painter->writeWithColors(0, y, strlinenumber, getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
-            }
-            for(int i = lay.lineCount() -1; i > 0; i--) {
+        // linenumber
+        if (_linenumber) {
+            for (int i = lay.lineCount() - 1; i > 0; i--) {
                 painter->writeWithColors(0, y + i, QString(" ").repeated(shiftLinenumber()), getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
+            }
+            strlinenumber = QString::number(line + 1) + QString(" ").repeated(shiftLinenumber() - QString::number(line + 1).size());
+            int lineNumberY = y;
+            if (y < 0) {
+                strlinenumber.replace(' ', '^');
+                lineNumberY = 0;
+            }
+            if (line == cursorLine) {
+                painter->writeWithAttributes(0, lineNumberY, strlinenumber, getColor("chr.linenumberFg"), getColor("chr.linenumberBg"), Tui::ZTextAttribute::Bold);
+            } else {
+                painter->writeWithColors(0, lineNumberY, strlinenumber, getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
             }
         }
         y += lay.lineCount();
@@ -2300,7 +2307,7 @@ void File::adjustScrollPosition() {
     }();
 
     int viewWidth = geometry().width() - shiftLinenumber();
-    //x
+    // horizontal scroll position
     if (!_wrapOption) {
         if (cursorColumn - _scrollPositionX >= viewWidth) {
              _scrollPositionX = cursorColumn - viewWidth + 1;
@@ -2316,13 +2323,15 @@ void File::adjustScrollPosition() {
         _scrollPositionX = 0;
     }
 
-    //y
-    if (cursorLine >= 0) {
-        if (cursorLine - _scrollPositionY < 1) {
-            _scrollPositionY = cursorLine;
-        }
-    }
+    // vertical scroll position
     if (!_wrapOption) {
+        if (cursorLine >= 0) {
+            if (cursorLine - _scrollPositionY < 1) {
+                _scrollPositionY = cursorLine;
+                _scrollFineLine = 0;
+            }
+        }
+
         if (cursorLine - _scrollPositionY >= geometry().height() - 1) {
             _scrollPositionY = cursorLine - geometry().height() + 2;
         }
@@ -2333,20 +2342,73 @@ void File::adjustScrollPosition() {
     } else {
         //TODO: #193 scrollup with Crl+Up and wraped lines.
         Tui::ZTextOption option = getTextOption(false);
-        int y = 0;
-        QVector<int> sizes;
-        for (int line = _scrollPositionY; line <= cursorLine && line < _doc.lineCount(); line++) {
-            Tui::ZTextLayout lay = getTextLayoutForLine(option, line);
-            if (cursorLine == line) {
-                int cursorPhysicalLineInViewport = y + lay.lineForTextPosition(cursorCodeUnit).y();
-                while (sizes.size() && cursorPhysicalLineInViewport >= rect().height() - 1) {
-                    cursorPhysicalLineInViewport -= sizes.takeFirst();
-                    _scrollPositionY += 1;
+
+        const int availableLinesAbove = geometry().height() - 2;
+
+        Tui::ZTextLayout layCursorLayout = getTextLayoutForLine(option, cursorLine);
+        int linesAbove = layCursorLayout.lineForTextPosition(cursorCodeUnit).lineNumber();
+
+        if (linesAbove >= availableLinesAbove) {
+            if (_scrollPositionY < cursorLine) {
+                _scrollPositionY = cursorLine;
+                _scrollFineLine = linesAbove - availableLinesAbove;
+            } if (_scrollPositionY == cursorLine) {
+                if (_scrollFineLine < linesAbove - availableLinesAbove) {
+                    _scrollFineLine = linesAbove - availableLinesAbove;
                 }
-                break;
             }
-            sizes.append(lay.lineCount());
-            y += lay.lineCount();
+        } else {
+            for (int line = cursorLine - 1; line >= 0; line--) {
+                Tui::ZTextLayout lay = getTextLayoutForLine(option, line);
+                if (linesAbove + lay.lineCount() >= availableLinesAbove) {
+                    if (_scrollPositionY < line) {
+                        _scrollPositionY = line;
+                        _scrollFineLine = (linesAbove + lay.lineCount()) - availableLinesAbove;
+                    } if (_scrollPositionY == line) {
+                        if (_scrollFineLine < (linesAbove + lay.lineCount()) - availableLinesAbove) {
+                            _scrollFineLine = (linesAbove + lay.lineCount()) - availableLinesAbove;
+                        }
+                    }
+
+                    //_scrollPositionY = line;
+                    //_scrollFineLine = (linesAbove + lay.lineCount()) - availableLinesAbove;
+                    break;
+                }
+                linesAbove += lay.lineCount();
+            }
+        }
+
+        linesAbove = layCursorLayout.lineForTextPosition(cursorCodeUnit).lineNumber();
+
+        if (_scrollPositionY == cursorLine) {
+            if (linesAbove < _scrollFineLine) {
+                _scrollFineLine = linesAbove;
+            }
+        } else if (_scrollPositionY > cursorLine) {
+            _scrollPositionY = cursorLine;
+            _scrollFineLine = linesAbove;
+        }
+
+        // scroll when window is larger than the document shown (unless scrolled to top)
+        if (_scrollPositionY && _scrollPositionY + (geometry().height() - 1) > _doc.lineCount()) {
+            int linesCounted = 0;
+            QVector<int> sizes;
+
+            for (int line = _doc.lineCount() - 1; line >= 0; line--) {
+                Tui::ZTextLayout lay = getTextLayoutForLine(option, line);
+                sizes.append(lay.lineCount());
+                linesCounted += lay.lineCount();
+                if (linesCounted >= geometry().height() - 1) {
+                    if (_scrollPositionY > line) {
+                        _scrollPositionY = line;
+                        _scrollFineLine = linesCounted - (geometry().height() - 1);
+                    } else if (_scrollPositionY == line &&
+                               _scrollFineLine > linesCounted - (geometry().height() - 1)) {
+                        _scrollFineLine = linesCounted - (geometry().height() - 1);
+                    }
+                    break;
+                }
+            }
         }
     }
 

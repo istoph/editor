@@ -182,6 +182,7 @@ private:
 
     int _scrollPositionX = 0;
     int _scrollPositionY = 0;
+    int _scrollFineLine = 0;
     int _tabsize = 8;
     bool _tabOption = false;
     bool _eatSpaceBeforeTabs = true;
