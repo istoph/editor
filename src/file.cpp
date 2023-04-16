@@ -994,27 +994,27 @@ SearchLine File::searchNext(QVector<QString> text, SearchParameter search) {
 static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
     int line = search.startAtLine;
     bool reg = search.reg;
-    int found = search.startPosition - search.searchText.size();
-    if(found <= 0) {
+    int searchAt = search.startPosition - search.searchText.size();
+    if (searchAt <= 0) {
         if(--line < 0) {
             line = text.size() -1;
         }
-        found = text[line].size();
+        searchAt = text[line].size();
     }
+    int found = -1;
     int end = 0;
     QRegularExpression rx(search.searchText);
-    int length = 0;
     bool haswrapped = false;
     while (true) {
         for (; line >= end;) {
-            if(reg) {
+            if (reg) {
                 SearchLine t = {-1,-1,-1};
                 QRegularExpressionMatchIterator remi = rx.globalMatch(text[line]);
                 while (remi.hasNext()) {
                     QRegularExpressionMatch match = remi.next();
                     if(gen != *nextGeneration) return {-1, -1, -1};
                     if(match.capturedLength() <= 0) continue;
-                    if(match.capturedStart() <= found - match.capturedLength()) {
+                    if(match.capturedStart() <= searchAt - match.capturedLength()) {
                         t = {line, match.capturedStart(), match.capturedLength()};
                         continue;
                     }
@@ -1024,29 +1024,22 @@ static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter searc
                     return t;
                 found = -1;
             } else {
-                // we unfortunately have to skip the last found area
-                int tfound = found;
-                for (int i = search.searchText.size(); i > 0 ; i--) {
-                    found = text[line].lastIndexOf(search.searchText, found - i, search.caseSensitivity);
-                    if(found != tfound) {
-                        break;
-                    }
+                if (searchAt >= search.searchText.size()) {
+                    found = text[line].lastIndexOf(search.searchText, searchAt - search.searchText.size(), search.caseSensitivity);
                 }
-                length = search.searchText.size();
             }
-            if(gen != *nextGeneration) return {-1, -1, -1};
-            if(found != -1) return {line, found, length};
-            if(--line >= 0) found = text[line].size();
+            if (gen != *nextGeneration) return {-1, -1, -1};
+            if (found != -1) return {line, found, search.searchText.size()};
+            if (--line >= 0) searchAt = text[line].size();
         }
         if(!search.searchWrap || haswrapped) {
             return {-1, -1, -1};
         }
         end = search.startAtLine;
         line = text.size() -1;
-        found = text[line].size();
+        searchAt = text[line].size();
         haswrapped = true;
     }
-    return {-1, -1, -1};
 }
 
 void File::runSearch(bool direction) {
