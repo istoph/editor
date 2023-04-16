@@ -309,7 +309,7 @@ void TextCursor::insertText(const QString &text) {
     _anchorPositionX = _cursorPositionX;
     _anchorPositionY = _cursorPositionY;
 
-    Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
+    Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, true);
     updateVerticalMovementColumn(lay);
     _doc->saveUndoStep(this);
 }
@@ -472,17 +472,53 @@ void TextCursor::moveWordRight(bool extendSelection) {
 
 void TextCursor::moveUp(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
+
+    Tui::ZTextLayout layStarting = _createTextLayout(currentLine, true);
+    Tui::ZTextLineRef lineStarting = layStarting.lineForTextPosition(currentCodeUnit);
+
+    if (lineStarting.lineNumber() > 0) {
+        int fineMoveCodeUnit = layStarting.lineAt(lineStarting.lineNumber() - 1).xToCursor(_saveCursorPositionX);
+        if (layStarting.lineForTextPosition(fineMoveCodeUnit).lineNumber() != lineStarting.lineNumber() - 1) {
+            // When the line is shorter than _saveCursorPositionX the cursor ends up in the next line,
+            // which is not intended, move once to the left in that case
+            fineMoveCodeUnit = layStarting.previousCursorPosition(fineMoveCodeUnit, Tui::ZTextLayout::SkipCharacters);
+        }
+
+        setPositionPreservingVerticalMovementColumn(
+                {fineMoveCodeUnit, currentLine},
+                extendSelection);
+        return;
+    }
+
     if (currentLine > 0) {
-        Tui::ZTextLayout lay = _createTextLayout(currentLine - 1, false);
-        Tui::ZTextLineRef la = lay.lineAt(0);
+        Tui::ZTextLayout lay = _createTextLayout(currentLine - 1, true);
+        Tui::ZTextLineRef la = lay.lineAt(lay.lineCount() - 1);
         setPositionPreservingVerticalMovementColumn({la.xToCursor(_saveCursorPositionX), currentLine - 1}, extendSelection);
     }
 }
 
 void TextCursor::moveDown(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
+
+    Tui::ZTextLayout layStarting = _createTextLayout(currentLine, true);
+    Tui::ZTextLineRef lineStarting = layStarting.lineForTextPosition(currentCodeUnit);
+
+    if (lineStarting.lineNumber() + 1 < layStarting.lineCount()) {
+        int fineMoveCodeUnit = layStarting.lineAt(lineStarting.lineNumber() + 1).xToCursor(_saveCursorPositionX);
+        if (layStarting.lineForTextPosition(fineMoveCodeUnit).lineNumber() != lineStarting.lineNumber() + 1) {
+            // When the line is shorter than _saveCursorPositionX the cursor ends up in the next line,
+            // which is not intended, move once to the left in that case
+            fineMoveCodeUnit = layStarting.previousCursorPosition(fineMoveCodeUnit, Tui::ZTextLayout::SkipCharacters);
+        }
+
+        setPositionPreservingVerticalMovementColumn(
+                {fineMoveCodeUnit,
+                currentLine}, extendSelection);
+        return;
+    }
+
     if (currentLine < _doc->_text.size() - 1) {
-        Tui::ZTextLayout lay = _createTextLayout(currentLine + 1, false);
+        Tui::ZTextLayout lay = _createTextLayout(currentLine + 1, true);
         Tui::ZTextLineRef la = lay.lineAt(0);
         setPositionPreservingVerticalMovementColumn({la.xToCursor(_saveCursorPositionX), currentLine + 1}, extendSelection);
     }
@@ -526,7 +562,7 @@ TextCursor::Position TextCursor::position() {
 void TextCursor::setPosition(TextCursor::Position pos, bool extendSelection) {
     setPositionPreservingVerticalMovementColumn(pos, extendSelection);
     if (!_widget || _widget->terminal()) { // TODO rethink this hack to allow using setPosition before terminal is connected
-        Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
+        Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, true);
         updateVerticalMovementColumn(lay);
     }
 }

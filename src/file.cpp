@@ -26,7 +26,7 @@
 
 File::File(Tui::ZWidget *parent)
     : Tui::ZWidget(parent),
-      _cursor(&_doc, this, [this](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal()->textMetrics(), _doc.line(line)); lay.doLayout(65000); return lay; })
+      _cursor(createCursor())
 {
     setFocusPolicy(Qt::StrongFocus);
     setCursorStyle(Tui::CursorStyle::Bar);
@@ -1267,7 +1267,18 @@ Tui::ZTextLayout File::getTextLayoutForLineWithoutWrapping(int line) {
 
 TextCursor File::createCursor() {
     return TextCursor(&_doc, this, [this](int line, bool wrappingAllowed) {
-        Tui::ZTextLayout lay(terminal()->textMetrics(), _doc.line(line)); lay.doLayout(65000); return lay;
+        Tui::ZTextLayout lay(terminal()->textMetrics(), _doc.line(line));
+        Tui::ZTextOption option;
+        option.setTabStopDistance(_tabsize);
+        if (wrappingAllowed) {
+            option.setWrapMode(_wrapOption);
+            lay.setTextOption(option);
+            lay.doLayout(std::max(rect().width() - shiftLinenumber(), 0));
+        } else {
+            lay.setTextOption(option);
+            lay.doLayout(65000);
+        }
+        return lay;
     });
 }
 
