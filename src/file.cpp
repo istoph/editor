@@ -1432,7 +1432,11 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                                               *leftOfMarginBuffer, 0, 0, _rightMarginHint, lay.lineCount(),
                                               Tui::ZTilingMode::NoTiling, Tui::ZTilingMode::Put);
         } else {
-            lay.draw(*painter, {-_scrollPositionX + shiftLinenumber(), y}, base, &formatingChar, highlights);
+            if (_formattingCharacters) {
+                lay.draw(*painter, {-_scrollPositionX + shiftLinenumber(), y}, base, &formatingChar, highlights);
+            } else {
+                lay.draw(*painter, {-_scrollPositionX + shiftLinenumber(), y}, base, &base, highlights);
+            }
         }
         Tui::ZTextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
         tmpLastLineWidth = lastLine.width();
