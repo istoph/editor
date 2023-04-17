@@ -8,19 +8,19 @@
 
 
 Document::Document(QObject *parent) : QObject (parent) {
-    _text.append(QString());
+    _lines.append(QString());
     initalUndoStep(nullptr);
 }
 
 void Document::reset() {
-    _text.clear();
-    _text.append(QString());
+    _lines.clear();
+    _lines.append(QString());
     initalUndoStep(nullptr);
 }
 
 void Document::writeTo(QIODevice *file, bool crLfMode) {
     for (int i = 0; i < lineCount(); i++) {
-        file->write(Tui::Misc::SurrogateEscape::encode(_text[i]));
+        file->write(Tui::Misc::SurrogateEscape::encode(_lines[i]));
         if (i + 1 == lineCount() && _nonewline) {
             // omit newline
         } else {
@@ -34,7 +34,7 @@ void Document::writeTo(QIODevice *file, bool crLfMode) {
 }
 
 bool Document::readFrom(QIODevice *file) {
-    _text.clear();
+    _lines.clear();
     QByteArray lineBuf;
     lineBuf.resize(16384);
     while (!file->atEnd()) { // each line
@@ -60,18 +60,18 @@ bool Document::readFrom(QIODevice *file) {
         }
 
         QString text = Tui::Misc::SurrogateEscape::decode(lineBuf.constData(), lineBytes);
-        _text.append(text);
+        _lines.append(text);
     }
 
-    if (_text.isEmpty()) {
-        _text.append("");
+    if (_lines.isEmpty()) {
+        _lines.append("");
         _nonewline = true;
     }
 
     bool allLinesCrLf = false;
 
     for (int l = 0; l < lineCount(); l++) {
-        if (_text[l].size() >= 1 && _text[l].at(_text[l].size() - 1) == QChar('\r')) {
+        if (_lines[l].size() >= 1 && _lines[l].at(_lines[l].size() - 1) == QChar('\r')) {
             allLinesCrLf = true;
         } else {
             allLinesCrLf = false;
@@ -80,7 +80,7 @@ bool Document::readFrom(QIODevice *file) {
     }
     if (allLinesCrLf) {
         for (int i = 0; i < lineCount(); i++) {
-            _text[i].remove(_text[i].size() - 1, 1);
+            _lines[i].remove(_lines[i].size() - 1, 1);
         }
     }
 
@@ -88,19 +88,19 @@ bool Document::readFrom(QIODevice *file) {
 }
 
 int Document::lineCount() const {
-    return _text.size();
+    return _lines.size();
 }
 
 QString Document::line(int line) const {
-    return _text[line];
+    return _lines[line];
 }
 
 int Document::lineCodeUnits(int line) const {
-    return _text[line].size();
+    return _lines[line].size();
 }
 
 QVector<QString> Document::getLines() const {
-    return _text;
+    return _lines;
 }
 
 bool Document::isModified() const {
@@ -128,16 +128,16 @@ void Document::clearCollapseUndoStep() {
 }
 
 void Document::tmp_sortLines(int first, int last, TextCursor *cursorForUndoStep) {
-    std::sort(_text.begin() + first, _text.begin() + last);
+    std::sort(_lines.begin() + first, _lines.begin() + last);
     saveUndoStep(cursorForUndoStep);
 }
 
 void Document::tmp_moveLine(int from, int to, TextCursor *cursorForUndoStep) {
-    _text.insert(to, _text[from]);
+    _lines.insert(to, _lines[from]);
     if (from < to) {
-        _text.remove(from);
+        _lines.remove(from);
     } else {
-        _text.remove(from + 1);
+        _lines.remove(from + 1);
     }
     saveUndoStep(cursorForUndoStep);
 }
@@ -153,7 +153,7 @@ void Document::undo(TextCursor *cursor) {
 
     --_currentUndoStep;
 
-    _text = _undoSteps[_currentUndoStep].text;
+    _lines = _undoSteps[_currentUndoStep].text;
     cursor->setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
     emitModifedSignals();
 }
@@ -169,7 +169,7 @@ void Document::redo(TextCursor *cursor) {
 
     ++_currentUndoStep;
 
-    _text = _undoSteps[_currentUndoStep].text;
+    _lines = _undoSteps[_currentUndoStep].text;
     cursor->setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
     emitModifedSignals();
 }
@@ -214,9 +214,9 @@ void Document::initalUndoStep(TextCursor *cursor) {
     _undoSteps.clear();
     if (cursor) {
         const auto [endCodeUnit, endLine] = cursor->position();
-        _undoSteps.append({ _text, endCodeUnit, endLine});
+        _undoSteps.append({ _lines, endCodeUnit, endLine});
     } else {
-        _undoSteps.append({ _text, 0, 0});
+        _undoSteps.append({ _lines, 0, 0});
     }
     _currentUndoStep = 0;
     _savedUndoStep = _currentUndoStep;
@@ -231,7 +231,7 @@ void Document::saveUndoStep(TextCursor *cursor, bool collapsable) {
             _undoSteps.removeLast();
         }
         const auto [endCodeUnit, endLine] = cursor->position();
-        _undoSteps.append({ _text, endCodeUnit, endLine});
+        _undoSteps.append({ _lines, endCodeUnit, endLine});
         _currentUndoStep = _undoSteps.size() - 1;
         _collapseUndoStep = collapsable;
         emitModifedSignals();
@@ -241,28 +241,28 @@ void Document::saveUndoStep(TextCursor *cursor, bool collapsable) {
 }
 
 void Document::removeFromLine(int line, int codeUnitStart, int codeUnits) {
-    _text[line].remove(codeUnitStart, codeUnits);
+    _lines[line].remove(codeUnitStart, codeUnits);
 }
 
 void Document::insertIntoLine(int line, int codeUnitStart, const QString &data) {
-    _text[line].insert(codeUnitStart, data);
+    _lines[line].insert(codeUnitStart, data);
 }
 
 void Document::appendToLine(int line, const QString &data) {
-    _text[line].append(data);
+    _lines[line].append(data);
 }
 
 void Document::removeLines(int start, int count) {
-    _text.remove(start, count);
+    _lines.remove(start, count);
 }
 
 void Document::insertLine(int before, const QString &data) {
-    _text.insert(before, data);
+    _lines.insert(before, data);
 }
 
 void Document::splitLine(TextCursor::Position pos) {
-    _text.insert(pos.line + 1, _text[pos.line].mid(pos.codeUnit));
-    _text[pos.line].resize(pos.codeUnit);
+    _lines.insert(pos.line + 1, _lines[pos.line].mid(pos.codeUnit));
+    _lines[pos.line].resize(pos.codeUnit);
 }
 
 void Document::emitModifedSignals() {
@@ -326,19 +326,19 @@ void TextCursor::removeSelectedText() {
         // selection only on one line
         _doc->removeFromLine(start.line, start.codeUnit, end.codeUnit - start.codeUnit);
     } else {
-        _doc->removeFromLine(start.line, start.codeUnit, _doc->_text[start.line].size() - start.codeUnit);
-        const auto orignalTextLines = _doc->_text.size();
+        _doc->removeFromLine(start.line, start.codeUnit, _doc->_lines[start.line].size() - start.codeUnit);
+        const auto orignalTextLines = _doc->_lines.size();
         if (start.line + 1 < end.line) {
             _doc->removeLines(start.line + 1, end.line - start.line - 1);
         }
         if (end.line == orignalTextLines) {
             // selected until the end of buffer, no last selection line to edit
         } else {
-            _doc->appendToLine(start.line, _doc->_text[start.line + 1].mid(end.codeUnit));
-            if (start.line + 1 < _doc->_text.size()) {
+            _doc->appendToLine(start.line, _doc->_lines[start.line + 1].mid(end.codeUnit));
+            if (start.line + 1 < _doc->_lines.size()) {
                 _doc->removeLines(start.line + 1, 1);
             } else {
-                _doc->removeFromLine(start.line + 1, 0, _doc->_text[start.line + 1].size());
+                _doc->removeFromLine(start.line + 1, 0, _doc->_lines[start.line + 1].size());
             }
         }
     }
@@ -363,15 +363,15 @@ QString TextCursor::selectedText() const {
 
     if (start.line == end.line) {
         // selection only on one line
-        return _doc->_text[start.line].mid(start.codeUnit, end.codeUnit - start.codeUnit);
+        return _doc->_lines[start.line].mid(start.codeUnit, end.codeUnit - start.codeUnit);
     } else {
-        QString res = _doc->_text[start.line].mid(start.codeUnit);
+        QString res = _doc->_lines[start.line].mid(start.codeUnit);
         for (int line = start.line + 1; line < end.line; line++) {
             res += "\n";
-            res += _doc->_text[line];
+            res += _doc->_lines[line];
         }
         res += "\n";
-        res += _doc->_text[end.line].mid(0, end.codeUnit);
+        res += _doc->_lines[end.line].mid(0, end.codeUnit);
         return res;
     }
 }
@@ -427,7 +427,7 @@ void TextCursor::moveCharacterLeft(bool extendSelection) {
         setPosition({lay.previousCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipCharacters), currentLine},
                     extendSelection);
     } else if (currentLine > 0) {
-        setPosition({_doc->_text[currentLine - 1].size(), currentLine - 1}, extendSelection);
+        setPosition({_doc->_lines[currentLine - 1].size(), currentLine - 1}, extendSelection);
     } else {
         // here we update the selection and the vertical movemend position
         setPosition({currentCodeUnit, currentLine}, extendSelection);
@@ -436,11 +436,11 @@ void TextCursor::moveCharacterLeft(bool extendSelection) {
 
 void TextCursor::moveCharacterRight(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
-    if (currentCodeUnit < _doc->_text[currentLine].size()) {
+    if (currentCodeUnit < _doc->_lines[currentLine].size()) {
         Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
         setPosition({lay.nextCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipCharacters), currentLine},
                     extendSelection);
-    } else if (currentLine + 1 < _doc->_text.size()) {
+    } else if (currentLine + 1 < _doc->_lines.size()) {
         setPosition({0, currentLine + 1}, extendSelection);
     } else {
         // here we update the selection and the vertical movemend position
@@ -455,17 +455,17 @@ void TextCursor::moveWordLeft(bool extendSelection) {
         setPosition({lay.previousCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipWords), currentLine},
                     extendSelection);
     } else if (currentLine > 0) {
-        setPosition({_doc->_text[currentLine - 1].size(), currentLine - 1}, extendSelection);
+        setPosition({_doc->_lines[currentLine - 1].size(), currentLine - 1}, extendSelection);
     }
 }
 
 void TextCursor::moveWordRight(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
-    if (currentCodeUnit < _doc->_text[currentLine].size()) {
+    if (currentCodeUnit < _doc->_lines[currentLine].size()) {
         Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
         setPosition({lay.nextCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipWords), currentLine},
                     extendSelection);
-    } else if (currentLine + 1 < _doc->_text.size()) {
+    } else if (currentLine + 1 < _doc->_lines.size()) {
         setPosition({0, currentLine + 1}, extendSelection);
     }
 }
@@ -517,7 +517,7 @@ void TextCursor::moveDown(bool extendSelection) {
         return;
     }
 
-    if (currentLine < _doc->_text.size() - 1) {
+    if (currentLine < _doc->_lines.size() - 1) {
         Tui::ZTextLayout lay = _createTextLayout(currentLine + 1, true);
         Tui::ZTextLineRef la = lay.lineAt(0);
         setPositionPreservingVerticalMovementColumn({la.xToCursor(_saveCursorPositionX), currentLine + 1}, extendSelection);
@@ -533,8 +533,8 @@ void TextCursor::moveToStartIndentedText(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
 
     int i = 0;
-    for (; i < _doc->_text[currentLine].size(); i++) {
-        if (_doc->_text[currentLine][i] != ' ' && _doc->_text[currentLine][i] != '\t') {
+    for (; i < _doc->_lines[currentLine].size(); i++) {
+        if (_doc->_lines[currentLine][i] != ' ' && _doc->_lines[currentLine][i] != '\t') {
             break;
         }
     }
@@ -544,7 +544,7 @@ void TextCursor::moveToStartIndentedText(bool extendSelection) {
 
 void TextCursor::moveToEndOfLine(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
-    setPosition({_doc->_text[currentLine].size(), currentLine}, extendSelection);
+    setPosition({_doc->_lines[currentLine].size(), currentLine}, extendSelection);
 }
 
 void TextCursor::moveToStartOfDocument(bool extendSelection) {
@@ -552,7 +552,7 @@ void TextCursor::moveToStartOfDocument(bool extendSelection) {
 }
 
 void TextCursor::moveToEndOfDocument(bool extendSelection) {
-    setPosition({_doc->_text.last().size(), _doc->_text.size() - 1}, extendSelection);
+    setPosition({_doc->_lines.last().size(), _doc->_lines.size() - 1}, extendSelection);
 }
 
 TextCursor::Position TextCursor::position() {
@@ -568,8 +568,8 @@ void TextCursor::setPosition(TextCursor::Position pos, bool extendSelection) {
 }
 
 void TextCursor::setPositionPreservingVerticalMovementColumn(TextCursor::Position pos, bool extendSelection) {
-    _cursorPositionY = std::max(std::min(pos.line, _doc->_text.size() - 1), 0);
-    _cursorPositionX = std::max(std::min(pos.codeUnit, _doc->_text[_cursorPositionY].size()), 0);
+    _cursorPositionY = std::max(std::min(pos.line, _doc->_lines.size() - 1), 0);
+    _cursorPositionX = std::max(std::min(pos.codeUnit, _doc->_lines[_cursorPositionY].size()), 0);
 
     // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
     if (_cursorPositionX > 0) {
@@ -593,8 +593,8 @@ TextCursor::Position TextCursor::anchor() {
 void TextCursor::setAnchorPosition(TextCursor::Position pos) {
     clearSelection();
 
-    _anchorPositionY = std::max(std::min(pos.line, _doc->_text.size() - 1), 0);
-    _anchorPositionX = std::max(std::min(pos.codeUnit, _doc->_text[_anchorPositionY].size()), 0);
+    _anchorPositionY = std::max(std::min(pos.line, _doc->_lines.size() - 1), 0);
+    _anchorPositionX = std::max(std::min(pos.codeUnit, _doc->_lines[_anchorPositionY].size()), 0);
 
     // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
     if (_anchorPositionX > 0) {
@@ -637,8 +637,8 @@ bool TextCursor::atStart() const {
 }
 
 bool TextCursor::atEnd() const {
-    return _cursorPositionY == _doc->_text.size() - 1
-            && _cursorPositionX == _doc->_text[_cursorPositionY].size();
+    return _cursorPositionY == _doc->_lines.size() - 1
+            && _cursorPositionX == _doc->_lines[_cursorPositionY].size();
 }
 
 bool TextCursor::atLineStart() const {
@@ -646,7 +646,7 @@ bool TextCursor::atLineStart() const {
 }
 
 bool TextCursor::atLineEnd() const {
-    return _cursorPositionX == _doc->_text[_cursorPositionY].size();
+    return _cursorPositionX == _doc->_lines[_cursorPositionY].size();
 }
 
 void TextCursor::updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForCursorLine) {
@@ -656,7 +656,7 @@ void TextCursor::updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForC
 
 void TextCursor::tmp_ensureInRange() {
     // FIXME: Remove when everything uses TextCursor and TextCursor can ensure it does not point outside of the line.
-    if (_doc->_text[_cursorPositionY].size() < _cursorPositionX) {
-        _cursorPositionX = _doc->_text[_cursorPositionY].size();
+    if (_doc->_lines[_cursorPositionY].size() < _cursorPositionX) {
+        _cursorPositionX = _doc->_lines[_cursorPositionY].size();
     }
 }

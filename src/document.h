@@ -203,7 +203,7 @@ private:
 
 private:
     QString _filename;
-    QVector<QString> _text;
+    QVector<QString> _lines;
     bool _nonewline = false;
 
     QVector<UndoStep> _undoSteps;
