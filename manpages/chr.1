@@ -200,6 +200,8 @@ In the configuration file: ~/.config/chr the behavior can be influenced with the
 .SH Wrap long lines
 Lines that are drawn beyond the editor border are cut or wrapped here. It can be wrapped at the word boundary or hard at the end of the line. This behaviour can be influenced by the option "wrap_lines=true" in the ~/.config/chr file.
 
+In addition, the option "Display Right Margin at Column" can be used to specify a numerical value above which the background color is darkened. This value can also be set with the configuration option: "right_margin_hint=80" in ~/.config/chr.
+
 .SH Following standard input
 If data is transferred to the editor via standard input, the following mode can always be used to jump to the current end of the file.
 
@@ -236,6 +238,7 @@ There is a default config (~/.config/chr) where the following options can be set
   tabsize=8
   theme=classic
   wrap_lines=true
+  right_margin_hint=80
 
 .SH DESCRIPTION
 The chr terminal editor is inspired by the turbo pascal editor using Turbo Vision from the year 1997. For the keyboard shortcut he should be similar gedit, to facilitate the transition from desktop to console editor.

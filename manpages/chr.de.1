@@ -202,6 +202,8 @@ In der Konfigurationsdatei: ~/.config/chr kann mit der Option "formatting_charac
 .SH Wrap long lines
 Hier werden Zeilen die über den Editorrand hinaus gezeichnet werden abgeschnitten oder umgebrochen. Es kann an der Wortgrenze oder am Zeilenende hart umgebrochen werden. Diese verhalten kann über die Option "wrap_lines=true" in der ~/.config/chr Datei beeinflusst werden.
 
+Zudem kann mit der Option: "Display Right Margin at Column" ein numerischer Wert angegeben werden, ab dem die Hintergrundfarbe dunkel gefärbt wird. Dieser Wert lest sich auch mit der Konfigurationsoption: "right_margin_hint=80" in der ~/.config/chr einstellen.
+
 .SH Following standard input
 Wenn an den Editor mittels Standard-Eingabe Daten übergeben werden, kann mit dem Following-Mode immer an das aktuelle Ende der Datei gesprungen werden.
 
@@ -238,6 +240,7 @@ Es gibt eine Default Config (~/.config/chr) in der folgenden Optionen gesetzt we
   tabsize=8
   theme=classic
   wrap_lines=true
+  right_margin_hint=80
 
 .SH DESCRIPTION
 Der chr Konsoleneditor ist angelehnt an den in Turbo Pascal geschriebenen Editor Tubo Vison aus dem Jahr 1997. Die Tastenkombinationen sollen denen von gedit ähneln, um den Umstieg von Desktop- zu Konsoleneditor zu vereinfachen.
