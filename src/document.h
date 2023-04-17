@@ -104,11 +104,11 @@ private:
     void updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForCursorLine);
 
 private:
-    int _cursorPositionX = 0;
-    int _cursorPositionY = 0;
-    int _anchorPositionX = 0;
-    int _anchorPositionY = 0;
-    int _saveCursorPositionX = 0;
+    int _cursorCodeUnit = 0;
+    int _cursorLine = 0;
+    int _anchorCodeUnit = 0;
+    int _anchorLine = 0;
+    int _VerticalMovementColumn = 0;
 
     Document *_doc;
     Tui::ZWidget *_widget;

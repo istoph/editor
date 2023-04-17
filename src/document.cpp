@@ -297,19 +297,19 @@ void TextCursor::insertText(const QString &text) {
         lines.removeLast();
         _doc->_nonewline = false;
     }
-    _doc->insertIntoLine(_cursorPositionY, _cursorPositionX, lines.front());
-    _cursorPositionX += lines.front().size();
+    _doc->insertIntoLine(_cursorLine, _cursorCodeUnit, lines.front());
+    _cursorCodeUnit += lines.front().size();
     for (int i = 1; i < lines.size(); i++) {
-        _doc->splitLine({_cursorPositionX, _cursorPositionY});
-        _cursorPositionY++;
-        _cursorPositionX = 0;
-        _doc->insertIntoLine(_cursorPositionY, _cursorPositionX, lines.at(i));
-        _cursorPositionX = lines.at(i).size();
+        _doc->splitLine({_cursorCodeUnit, _cursorLine});
+        _cursorLine++;
+        _cursorCodeUnit = 0;
+        _doc->insertIntoLine(_cursorLine, _cursorCodeUnit, lines.at(i));
+        _cursorCodeUnit = lines.at(i).size();
     }
-    _anchorPositionX = _cursorPositionX;
-    _anchorPositionY = _cursorPositionY;
+    _anchorCodeUnit = _cursorCodeUnit;
+    _anchorLine = _cursorLine;
 
-    Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, true);
+    Tui::ZTextLayout lay = _createTextLayout(_cursorLine, true);
     updateVerticalMovementColumn(lay);
     _doc->saveUndoStep(this);
 }
@@ -349,8 +349,8 @@ void TextCursor::removeSelectedText() {
 }
 
 void TextCursor::clearSelection() {
-    _anchorPositionX = _cursorPositionX;
-    _anchorPositionY = _cursorPositionY;
+    _anchorCodeUnit = _cursorCodeUnit;
+    _anchorLine = _cursorLine;
 }
 
 QString TextCursor::selectedText() const {
@@ -423,7 +423,7 @@ void TextCursor::deleteLine() {
 void TextCursor::moveCharacterLeft(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit) {
-        Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
+        Tui::ZTextLayout lay = _createTextLayout(_cursorLine, false);
         setPosition({lay.previousCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipCharacters), currentLine},
                     extendSelection);
     } else if (currentLine > 0) {
@@ -437,7 +437,7 @@ void TextCursor::moveCharacterLeft(bool extendSelection) {
 void TextCursor::moveCharacterRight(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit < _doc->_lines[currentLine].size()) {
-        Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
+        Tui::ZTextLayout lay = _createTextLayout(_cursorLine, false);
         setPosition({lay.nextCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipCharacters), currentLine},
                     extendSelection);
     } else if (currentLine + 1 < _doc->_lines.size()) {
@@ -451,7 +451,7 @@ void TextCursor::moveCharacterRight(bool extendSelection) {
 void TextCursor::moveWordLeft(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit) {
-        Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
+        Tui::ZTextLayout lay = _createTextLayout(_cursorLine, false);
         setPosition({lay.previousCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipWords), currentLine},
                     extendSelection);
     } else if (currentLine > 0) {
@@ -462,7 +462,7 @@ void TextCursor::moveWordLeft(bool extendSelection) {
 void TextCursor::moveWordRight(bool extendSelection) {
     const auto [currentCodeUnit, currentLine] = position();
     if (currentCodeUnit < _doc->_lines[currentLine].size()) {
-        Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
+        Tui::ZTextLayout lay = _createTextLayout(_cursorLine, false);
         setPosition({lay.nextCursorPosition(currentCodeUnit, Tui::ZTextLayout::SkipWords), currentLine},
                     extendSelection);
     } else if (currentLine + 1 < _doc->_lines.size()) {
@@ -477,7 +477,7 @@ void TextCursor::moveUp(bool extendSelection) {
     Tui::ZTextLineRef lineStarting = layStarting.lineForTextPosition(currentCodeUnit);
 
     if (lineStarting.lineNumber() > 0) {
-        int fineMoveCodeUnit = layStarting.lineAt(lineStarting.lineNumber() - 1).xToCursor(_saveCursorPositionX);
+        int fineMoveCodeUnit = layStarting.lineAt(lineStarting.lineNumber() - 1).xToCursor(_VerticalMovementColumn);
         if (layStarting.lineForTextPosition(fineMoveCodeUnit).lineNumber() != lineStarting.lineNumber() - 1) {
             // When the line is shorter than _saveCursorPositionX the cursor ends up in the next line,
             // which is not intended, move once to the left in that case
@@ -493,7 +493,7 @@ void TextCursor::moveUp(bool extendSelection) {
     if (currentLine > 0) {
         Tui::ZTextLayout lay = _createTextLayout(currentLine - 1, true);
         Tui::ZTextLineRef la = lay.lineAt(lay.lineCount() - 1);
-        setPositionPreservingVerticalMovementColumn({la.xToCursor(_saveCursorPositionX), currentLine - 1}, extendSelection);
+        setPositionPreservingVerticalMovementColumn({la.xToCursor(_VerticalMovementColumn), currentLine - 1}, extendSelection);
     }
 }
 
@@ -504,7 +504,7 @@ void TextCursor::moveDown(bool extendSelection) {
     Tui::ZTextLineRef lineStarting = layStarting.lineForTextPosition(currentCodeUnit);
 
     if (lineStarting.lineNumber() + 1 < layStarting.lineCount()) {
-        int fineMoveCodeUnit = layStarting.lineAt(lineStarting.lineNumber() + 1).xToCursor(_saveCursorPositionX);
+        int fineMoveCodeUnit = layStarting.lineAt(lineStarting.lineNumber() + 1).xToCursor(_VerticalMovementColumn);
         if (layStarting.lineForTextPosition(fineMoveCodeUnit).lineNumber() != lineStarting.lineNumber() + 1) {
             // When the line is shorter than _saveCursorPositionX the cursor ends up in the next line,
             // which is not intended, move once to the left in that case
@@ -520,7 +520,7 @@ void TextCursor::moveDown(bool extendSelection) {
     if (currentLine < _doc->_lines.size() - 1) {
         Tui::ZTextLayout lay = _createTextLayout(currentLine + 1, true);
         Tui::ZTextLineRef la = lay.lineAt(0);
-        setPositionPreservingVerticalMovementColumn({la.xToCursor(_saveCursorPositionX), currentLine + 1}, extendSelection);
+        setPositionPreservingVerticalMovementColumn({la.xToCursor(_VerticalMovementColumn), currentLine + 1}, extendSelection);
     }
 }
 
@@ -556,70 +556,70 @@ void TextCursor::moveToEndOfDocument(bool extendSelection) {
 }
 
 TextCursor::Position TextCursor::position() {
-    return Position{_cursorPositionX, _cursorPositionY};
+    return Position{_cursorCodeUnit, _cursorLine};
 }
 
 void TextCursor::setPosition(TextCursor::Position pos, bool extendSelection) {
     setPositionPreservingVerticalMovementColumn(pos, extendSelection);
     if (!_widget || _widget->terminal()) { // TODO rethink this hack to allow using setPosition before terminal is connected
-        Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, true);
+        Tui::ZTextLayout lay = _createTextLayout(_cursorLine, true);
         updateVerticalMovementColumn(lay);
     }
 }
 
 void TextCursor::setPositionPreservingVerticalMovementColumn(TextCursor::Position pos, bool extendSelection) {
-    _cursorPositionY = std::max(std::min(pos.line, _doc->_lines.size() - 1), 0);
-    _cursorPositionX = std::max(std::min(pos.codeUnit, _doc->_lines[_cursorPositionY].size()), 0);
+    _cursorLine = std::max(std::min(pos.line, _doc->_lines.size() - 1), 0);
+    _cursorCodeUnit = std::max(std::min(pos.codeUnit, _doc->_lines[_cursorLine].size()), 0);
 
     // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
-    if (_cursorPositionX > 0) {
+    if (_cursorCodeUnit > 0) {
         if (!_widget || _widget->terminal()) { // TODO rethink this hack to allow using setPosition before terminal is connected
-            Tui::ZTextLayout lay = _createTextLayout(_cursorPositionY, false);
-            _cursorPositionX = lay.previousCursorPosition(_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
-            _cursorPositionX = lay.nextCursorPosition(_cursorPositionX, Tui::ZTextLayout::SkipCharacters);
+            Tui::ZTextLayout lay = _createTextLayout(_cursorLine, false);
+            _cursorCodeUnit = lay.previousCursorPosition(_cursorCodeUnit, Tui::ZTextLayout::SkipCharacters);
+            _cursorCodeUnit = lay.nextCursorPosition(_cursorCodeUnit, Tui::ZTextLayout::SkipCharacters);
         }
     }
 
     if (!extendSelection) {
-        _anchorPositionX = _cursorPositionX;
-        _anchorPositionY = _cursorPositionY;
+        _anchorCodeUnit = _cursorCodeUnit;
+        _anchorLine = _cursorLine;
     }
 }
 
 TextCursor::Position TextCursor::anchor() {
-    return Position{_anchorPositionX, _anchorPositionY};
+    return Position{_anchorCodeUnit, _anchorLine};
 }
 
 void TextCursor::setAnchorPosition(TextCursor::Position pos) {
     clearSelection();
 
-    _anchorPositionY = std::max(std::min(pos.line, _doc->_lines.size() - 1), 0);
-    _anchorPositionX = std::max(std::min(pos.codeUnit, _doc->_lines[_anchorPositionY].size()), 0);
+    _anchorLine = std::max(std::min(pos.line, _doc->_lines.size() - 1), 0);
+    _anchorCodeUnit = std::max(std::min(pos.codeUnit, _doc->_lines[_anchorLine].size()), 0);
 
     // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
-    if (_anchorPositionX > 0) {
-        Tui::ZTextLayout lay = _createTextLayout(_anchorPositionY, false);
-        _anchorPositionX = lay.previousCursorPosition(_anchorPositionX, Tui::ZTextLayout::SkipCharacters);
-        _anchorPositionX = lay.nextCursorPosition(_anchorPositionX, Tui::ZTextLayout::SkipCharacters);
+    if (_anchorCodeUnit > 0) {
+        Tui::ZTextLayout lay = _createTextLayout(_anchorLine, false);
+        _anchorCodeUnit = lay.previousCursorPosition(_anchorCodeUnit, Tui::ZTextLayout::SkipCharacters);
+        _anchorCodeUnit = lay.nextCursorPosition(_anchorCodeUnit, Tui::ZTextLayout::SkipCharacters);
     }
 }
 
 int TextCursor::verticalMovementColumn() {
-    return _saveCursorPositionX;
+    return _VerticalMovementColumn;
 }
 
 void TextCursor::setVerticalMovementColumn(int column) {
-    _saveCursorPositionX = std::max(0, column);
+    _VerticalMovementColumn = std::max(0, column);
 }
 
 TextCursor::Position TextCursor::selectionStartPos() const {
-    return std::min(Position{_anchorPositionX, _anchorPositionY},
-                    Position{_cursorPositionX, _cursorPositionY});
+    return std::min(Position{_anchorCodeUnit, _anchorLine},
+                    Position{_cursorCodeUnit, _cursorLine});
 }
 
 TextCursor::Position TextCursor::selectionEndPos() const {
-    return std::max(Position{_anchorPositionX, _anchorPositionY},
-                    Position{_cursorPositionX, _cursorPositionY});
+    return std::max(Position{_anchorCodeUnit, _anchorLine},
+                    Position{_cursorCodeUnit, _cursorLine});
 }
 
 void TextCursor::selectAll() {
@@ -628,35 +628,35 @@ void TextCursor::selectAll() {
 }
 
 bool TextCursor::hasSelection() const {
-    return _cursorPositionX != _anchorPositionX
-            || _cursorPositionY != _anchorPositionY;
+    return _cursorCodeUnit != _anchorCodeUnit
+            || _cursorLine != _anchorLine;
 }
 
 bool TextCursor::atStart() const {
-    return _cursorPositionY == 0 && _cursorPositionX == 0;
+    return _cursorLine == 0 && _cursorCodeUnit == 0;
 }
 
 bool TextCursor::atEnd() const {
-    return _cursorPositionY == _doc->_lines.size() - 1
-            && _cursorPositionX == _doc->_lines[_cursorPositionY].size();
+    return _cursorLine == _doc->_lines.size() - 1
+            && _cursorCodeUnit == _doc->_lines[_cursorLine].size();
 }
 
 bool TextCursor::atLineStart() const {
-    return _cursorPositionX == 0;
+    return _cursorCodeUnit == 0;
 }
 
 bool TextCursor::atLineEnd() const {
-    return _cursorPositionX == _doc->_lines[_cursorPositionY].size();
+    return _cursorCodeUnit == _doc->_lines[_cursorLine].size();
 }
 
 void TextCursor::updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForCursorLine) {
-    Tui::ZTextLineRef tlr = layoutForCursorLine.lineForTextPosition(_cursorPositionX);
-    _saveCursorPositionX = tlr.cursorToX(_cursorPositionX, Tui::ZTextLayout::Leading);
+    Tui::ZTextLineRef tlr = layoutForCursorLine.lineForTextPosition(_cursorCodeUnit);
+    _VerticalMovementColumn = tlr.cursorToX(_cursorCodeUnit, Tui::ZTextLayout::Leading);
 }
 
 void TextCursor::tmp_ensureInRange() {
     // FIXME: Remove when everything uses TextCursor and TextCursor can ensure it does not point outside of the line.
-    if (_doc->_lines[_cursorPositionY].size() < _cursorPositionX) {
-        _cursorPositionX = _doc->_lines[_cursorPositionY].size();
+    if (_doc->_lines[_cursorLine].size() < _cursorCodeUnit) {
+        _cursorCodeUnit = _doc->_lines[_cursorLine].size();
     }
 }
