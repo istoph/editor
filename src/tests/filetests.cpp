@@ -18,17 +18,17 @@ public:
     Document &getDoc(File *f) {
         return f->_doc;
     }
-    void f3(bool backword, Tui::ZTerminal *terminal, File *f) {
+    void f3(bool backward, Tui::ZTerminal *terminal, File *f) {
         bool t = GENERATE(true, false);
         CAPTURE(t);
         if (t) {
-            if (backword) {
+            if (backward) {
                 Tui::ZTest::sendKey(terminal, Qt::Key_F3, Qt::KeyboardModifier::ShiftModifier);
             } else {
                 Tui::ZTest::sendKey(terminal, Qt::Key_F3, Qt::KeyboardModifier::NoModifier);
             }
         } else {
-            f->runSearch(backword);
+            f->runSearch(backward);
         }
     }
 };
@@ -821,13 +821,13 @@ TEST_CASE("actions") {
         EventRecorder recorder;
         auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
 
-        bool backword = GENERATE(true, false);
-        CAPTURE(backword);
+        bool backward = GENERATE(true, false);
+        CAPTURE(backward);
         bool reg = GENERATE(true, false);
         CAPTURE(reg);
         f->setRegex(reg);
 
-        CAPTURE(backword);
+        CAPTURE(backward);
 
         f->selectAll();
         f->insertAtCursorPosition("t");
@@ -837,13 +837,13 @@ TEST_CASE("actions") {
 
         f->setSearchText("t");
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{1,0});
         recorder.clearEvents();
         CHECK(f->isSelect() == true);
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{1,0});
         recorder.clearEvents();
@@ -853,8 +853,8 @@ TEST_CASE("actions") {
         EventRecorder recorder;
         auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
 
-        bool backword = GENERATE(true, false);
-        CAPTURE(backword);
+        bool backward = GENERATE(true, false);
+        CAPTURE(backward);
         bool reg = GENERATE(true, false);
         CAPTURE(reg);
         f->setRegex(reg);
@@ -868,19 +868,19 @@ TEST_CASE("actions") {
         recorder.clearEvents();
 
         f->setSearchText("t");
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{1,0});
         recorder.clearEvents();
         CHECK(f->isSelect() == true);
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{3,0});
         recorder.clearEvents();
         CHECK(f->isSelect() == true);
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{1,0});
         recorder.clearEvents();
@@ -961,8 +961,8 @@ TEST_CASE("actions") {
         EventRecorder recorder;
         auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
 
-        bool backword = GENERATE(true, false);
-        CAPTURE(backword);
+        bool backward = GENERATE(true, false);
+        CAPTURE(backward);
         bool reg = GENERATE(true, false);
         CAPTURE(reg);
         f->setRegex(reg);
@@ -976,19 +976,19 @@ TEST_CASE("actions") {
 
         f->setSearchText("t");
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{1,0});
         recorder.clearEvents();
         CHECK(f->isSelect() == true);
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{1,1});
         recorder.clearEvents();
         CHECK(f->isSelect() == true);
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{1,0});
         recorder.clearEvents();
@@ -999,8 +999,8 @@ TEST_CASE("actions") {
         EventRecorder recorder;
         auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
 
-        bool backword = GENERATE(true, false);
-        CAPTURE(backword);
+        bool backward = GENERATE(true, false);
+        CAPTURE(backward);
         bool reg = GENERATE(true, false);
         CAPTURE(reg);
         f->setRegex(reg);
@@ -1014,19 +1014,19 @@ TEST_CASE("actions") {
 
         f->setSearchText("t");
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{2,0});
         recorder.clearEvents();
         CHECK(f->isSelect() == true);
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{2,1});
         recorder.clearEvents();
         CHECK(f->isSelect() == true);
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{2,0});
         recorder.clearEvents();
@@ -1037,8 +1037,8 @@ TEST_CASE("actions") {
         EventRecorder recorder;
         auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
 
-        bool backword = GENERATE(true, false);
-        CAPTURE(backword);
+        bool backward = GENERATE(true, false);
+        CAPTURE(backward);
         bool reg = GENERATE(true, false);
         CAPTURE(reg);
         f->setRegex(reg);
@@ -1053,13 +1053,13 @@ TEST_CASE("actions") {
 
         f->setSearchText("aa");
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{3,0});
         recorder.clearEvents();
         CHECK(f->isSelect() == true);
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{2,1});
         recorder.clearEvents();
@@ -1070,8 +1070,8 @@ TEST_CASE("actions") {
         EventRecorder recorder;
         auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
 
-        bool backword = GENERATE(true, false);
-        CAPTURE(backword);
+        bool backward = GENERATE(true, false);
+        CAPTURE(backward);
         bool reg = GENERATE(true, false);
         CAPTURE(reg);
         f->setRegex(reg);
@@ -1088,14 +1088,14 @@ TEST_CASE("actions") {
 
         QList<QPoint> qpoints;
 
-        if (backword) {
+        if (backward) {
             qpoints << QPoint{6,0} << QPoint{3,0} << QPoint{2,1};
         } else {
             qpoints << QPoint{3,0} << QPoint{6,0} << QPoint{2,1};
         }
 
         for (QPoint point : qpoints) {
-            t.f3(backword, &terminal, f);
+            t.f3(backward, &terminal, f);
             recorder.waitForEvent(cursorSignal);
             CHECK(f->getCursorPosition() == point);
             recorder.clearEvents();
@@ -1168,13 +1168,13 @@ TEST_CASE("actions") {
             qpoints << QPoint{2,1} << QPoint{2,0} << QPoint{2,1} << QPoint{2,2} << QPoint{2,0} << QPoint{2,2} << QPoint{2,1};
             bool backward = true;
             for (QPoint point : qpoints) {
-                t.f3(backword, &terminal, f);
+                t.f3(backward, &terminal, f);
                 recorder.waitForEvent(cursorSignal);
                 CHECK(f->getCursorPosition() == point);
                 recorder.clearEvents();
                 CHECK(f->isSelect() == true);
 
-                if (point.y() == 0) backword = !backword;
+                if (point.y() == 0) backward = !backward;
             }
         }
     }
@@ -1184,8 +1184,8 @@ TEST_CASE("actions") {
         EventRecorder recorder;
         auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
 
-        bool backword = GENERATE(true, false);
-        CAPTURE(backword);
+        bool backward = GENERATE(true, false);
+        CAPTURE(backward);
         bool reg = GENERATE(true, false);
         CAPTURE(reg);
         f->setRegex(reg);
@@ -1199,13 +1199,13 @@ TEST_CASE("actions") {
 
         f->setSearchText("😎");
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{2,0});
         recorder.clearEvents();
         CHECK(f->isSelect() == true);
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{4,0});
         recorder.clearEvents();
@@ -1216,8 +1216,8 @@ TEST_CASE("actions") {
         EventRecorder recorder;
         auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
 
-        bool backword = GENERATE(true, false);
-        CAPTURE(backword);
+        bool backward = GENERATE(true, false);
+        CAPTURE(backward);
         bool reg = GENERATE(true, false);
         CAPTURE(reg);
         f->setRegex(reg);
@@ -1231,13 +1231,13 @@ TEST_CASE("actions") {
 
         f->setSearchText("😎");
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{2,0});
         recorder.clearEvents();
         CHECK(f->isSelect() == true);
 
-        t.f3(backword, &terminal, f);
+        t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{2,1});
         recorder.clearEvents();
