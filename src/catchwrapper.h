@@ -44,9 +44,9 @@ namespace Catch {
     template<>
     struct StringMaker<TextCursor::Position, void> {
         static std::string convert(TextCursor::Position const& value) {
-            return QStringLiteral("(x: %0, y: %1)").arg(
-                        QString::number(value.x),
-                        QString::number(value.y)).toStdString();
+            return QStringLiteral("(codeUnit: %0, line: %1)").arg(
+                        QString::number(value.codeUnit),
+                        QString::number(value.line)).toStdString();
         }
     };
 

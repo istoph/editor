@@ -261,8 +261,8 @@ void Document::insertLine(int before, const QString &data) {
 }
 
 void Document::splitLine(TextCursor::Position pos) {
-    _text.insert(pos.y + 1, _text[pos.y].mid(pos.x));
-    _text[pos.y].resize(pos.x);
+    _text.insert(pos.line + 1, _text[pos.line].mid(pos.codeUnit));
+    _text[pos.line].resize(pos.codeUnit);
 }
 
 void Document::emitModifedSignals() {
@@ -273,15 +273,15 @@ void Document::emitModifedSignals() {
 }
 
 bool operator<(const TextCursor::Position &a, const TextCursor::Position &b) {
-    return std::tie(a.y, a.x) < std::tie(b.y, b.x);
+    return std::tie(a.line, a.codeUnit) < std::tie(b.line, b.codeUnit);
 }
 
 bool operator>(const TextCursor::Position &a, const TextCursor::Position &b) {
-    return std::tie(a.y, a.x) > std::tie(b.y, b.x);
+    return std::tie(a.line, a.codeUnit) > std::tie(b.line, b.codeUnit);
 }
 
 bool operator==(const TextCursor::Position &a, const TextCursor::Position &b) {
-    return std::tie(a.x, a.y) == std::tie(b.x, b.y);
+    return std::tie(a.codeUnit, a.line) == std::tie(b.codeUnit, b.line);
 }
 
 
@@ -322,23 +322,23 @@ void TextCursor::removeSelectedText() {
     const Position start = selectionStartPos();
     const Position end = selectionEndPos();
 
-    if (start.y == end.y) {
+    if (start.line == end.line) {
         // selection only on one line
-        _doc->removeFromLine(start.y, start.x, end.x - start.x);
+        _doc->removeFromLine(start.line, start.codeUnit, end.codeUnit - start.codeUnit);
     } else {
-        _doc->removeFromLine(start.y, start.x, _doc->_text[start.y].size() - start.x);
+        _doc->removeFromLine(start.line, start.codeUnit, _doc->_text[start.line].size() - start.codeUnit);
         const auto orignalTextLines = _doc->_text.size();
-        if (start.y + 1 < end.y) {
-            _doc->removeLines(start.y + 1, end.y - start.y - 1);
+        if (start.line + 1 < end.line) {
+            _doc->removeLines(start.line + 1, end.line - start.line - 1);
         }
-        if (end.y == orignalTextLines) {
+        if (end.line == orignalTextLines) {
             // selected until the end of buffer, no last selection line to edit
         } else {
-            _doc->appendToLine(start.y, _doc->_text[start.y + 1].mid(end.x));
-            if (start.y + 1 < _doc->_text.size()) {
-                _doc->removeLines(start.y + 1, 1);
+            _doc->appendToLine(start.line, _doc->_text[start.line + 1].mid(end.codeUnit));
+            if (start.line + 1 < _doc->_text.size()) {
+                _doc->removeLines(start.line + 1, 1);
             } else {
-                _doc->removeFromLine(start.y + 1, 0, _doc->_text[start.y + 1].size());
+                _doc->removeFromLine(start.line + 1, 0, _doc->_text[start.line + 1].size());
             }
         }
     }
@@ -361,17 +361,17 @@ QString TextCursor::selectedText() const {
     const Position start = selectionStartPos();
     const Position end = selectionEndPos();
 
-    if (start.y == end.y) {
+    if (start.line == end.line) {
         // selection only on one line
-        return _doc->_text[start.y].mid(start.x, end.x - start.x);
+        return _doc->_text[start.line].mid(start.codeUnit, end.codeUnit - start.codeUnit);
     } else {
-        QString res = _doc->_text[start.y].mid(start.x);
-        for (int line = start.y + 1; line < end.y; line++) {
+        QString res = _doc->_text[start.line].mid(start.codeUnit);
+        for (int line = start.line + 1; line < end.line; line++) {
             res += "\n";
             res += _doc->_text[line];
         }
         res += "\n";
-        res += _doc->_text[end.y].mid(0, end.x);
+        res += _doc->_text[end.line].mid(0, end.codeUnit);
         return res;
     }
 }
@@ -568,8 +568,8 @@ void TextCursor::setPosition(TextCursor::Position pos, bool extendSelection) {
 }
 
 void TextCursor::setPositionPreservingVerticalMovementColumn(TextCursor::Position pos, bool extendSelection) {
-    _cursorPositionY = std::max(std::min(pos.y, _doc->_text.size() - 1), 0);
-    _cursorPositionX = std::max(std::min(pos.x, _doc->_text[_cursorPositionY].size()), 0);
+    _cursorPositionY = std::max(std::min(pos.line, _doc->_text.size() - 1), 0);
+    _cursorPositionX = std::max(std::min(pos.codeUnit, _doc->_text[_cursorPositionY].size()), 0);
 
     // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
     if (_cursorPositionX > 0) {
@@ -593,8 +593,8 @@ TextCursor::Position TextCursor::anchor() {
 void TextCursor::setAnchorPosition(TextCursor::Position pos) {
     clearSelection();
 
-    _anchorPositionY = std::max(std::min(pos.y, _doc->_text.size() - 1), 0);
-    _anchorPositionX = std::max(std::min(pos.x, _doc->_text[_anchorPositionY].size()), 0);
+    _anchorPositionY = std::max(std::min(pos.line, _doc->_text.size() - 1), 0);
+    _anchorPositionX = std::max(std::min(pos.codeUnit, _doc->_text[_anchorPositionY].size()), 0);
 
     // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
     if (_anchorPositionX > 0) {

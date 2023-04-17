@@ -764,7 +764,7 @@ void File::multiInsertForEachCursor(int flags, F f) {
 
             Tui::ZTextLayout layNew = getTextLayoutForLineWithoutWrapping(line);
             Tui::ZTextLineRef tlrNew = layNew.lineAt(0);
-            fallbackColumn = tlrNew.cursorToX(cur.position().x, Tui::ZTextLayout::Leading);
+            fallbackColumn = tlrNew.cursorToX(cur.position().codeUnit, Tui::ZTextLayout::Leading);
 
             if (line == _blockSelectEndLine) {
                 _blockSelectStartColumn = _blockSelectEndColumn = fallbackColumn;
@@ -1404,18 +1404,18 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 }
             }
         } else {
-            if (line > startSelectCursor.y && line < endSelectCursor.y) {
+            if (line > startSelectCursor.line && line < endSelectCursor.line) {
                 // whole line
                 highlights.append(Tui::ZFormatRange{0, _doc.lineCodeUnits(line), selected, selectedFormatingChar});
-            } else if (line > startSelectCursor.y && line == endSelectCursor.y) {
+            } else if (line > startSelectCursor.line && line == endSelectCursor.line) {
                 // selection ends on this line
-                highlights.append(Tui::ZFormatRange{0, endSelectCursor.x, selected, selectedFormatingChar});
-            } else if (line == startSelectCursor.y && line < endSelectCursor.y) {
+                highlights.append(Tui::ZFormatRange{0, endSelectCursor.codeUnit, selected, selectedFormatingChar});
+            } else if (line == startSelectCursor.line && line < endSelectCursor.line) {
                 // selection starts on this line
-                highlights.append(Tui::ZFormatRange{startSelectCursor.x, _doc.lineCodeUnits(line) - startSelectCursor.x, selected, selectedFormatingChar});
-            } else if (line == startSelectCursor.y && line == endSelectCursor.y) {
+                highlights.append(Tui::ZFormatRange{startSelectCursor.codeUnit, _doc.lineCodeUnits(line) - startSelectCursor.codeUnit, selected, selectedFormatingChar});
+            } else if (line == startSelectCursor.line && line == endSelectCursor.line) {
                 // selection is contained in this line
-                highlights.append(Tui::ZFormatRange{startSelectCursor.x, endSelectCursor.x - startSelectCursor.x, selected, selectedFormatingChar});
+                highlights.append(Tui::ZFormatRange{startSelectCursor.codeUnit, endSelectCursor.codeUnit - startSelectCursor.codeUnit, selected, selectedFormatingChar});
             }
         }
         if (_rightMarginHint && lay.maximumWidth() > _rightMarginHint) {
@@ -1460,7 +1460,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 }
             }
         } else {
-            lineBreakSelected = startSelectCursor.y <= line && endSelectCursor.y > line;
+            lineBreakSelected = startSelectCursor.line <= line && endSelectCursor.line > line;
         }
 
         if (lineBreakSelected) {
@@ -1534,7 +1534,7 @@ void File::addTabAt(TextCursor &cur) {
     } else {
         for (int i = 0; i < getTabsize(); i++) {
             // TODO this needs to work on columns not on codeUnits
-            if (cur.position().x % getTabsize() == 0 && i != 0)
+            if (cur.position().codeUnit % getTabsize() == 0 && i != 0)
                 break;
             cur.insertText(" ");
         }
@@ -1606,7 +1606,7 @@ void File::insertAtCursorPosition(const QString &str) {
                     if (line == lastSelectBlockLine) {
                         Tui::ZTextLayout layNew = getTextLayoutForLineWithoutWrapping(line);
                         Tui::ZTextLineRef tlrNew = layNew.lineAt(0);
-                        _blockSelectStartColumn = _blockSelectEndColumn = tlrNew.cursorToX(cur.position().x, Tui::ZTextLayout::Leading);
+                        _blockSelectStartColumn = _blockSelectEndColumn = tlrNew.cursorToX(cur.position().codeUnit, Tui::ZTextLayout::Leading);
                         if (sourceLine < source.size()) {
                             // Now sure what do do with the overflowing lines, for now just dump them in the last line
                             for (; sourceLine < source.size(); sourceLine++) {
