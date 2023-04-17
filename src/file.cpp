@@ -2129,7 +2129,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
         for (int line = firstLine; line <= lastLine; line++) {
             int codeUnitsToRemove = 0;
-            if (_doc.line(line)[0] == '\t') {
+            if (_doc.lineCodeUnits(line) && _doc.line(line)[0] == '\t') {
                 codeUnitsToRemove = 1;
             } else {
                 while (true) {
