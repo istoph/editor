@@ -1103,6 +1103,83 @@ TEST_CASE("actions") {
         }
     }
 
+    SECTION("search-asd") {
+        EventRecorder recorder;
+        auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
+
+        bool reg = GENERATE(true, false);
+        CAPTURE(reg);
+        f->setRegex(reg);
+
+        f->selectAll();
+        f->insertAtCursorPosition("asd \n\nasd");
+        f->setCursorPosition(TextCursor::Position{4,0});
+        CHECK(f->getCursorPosition() == QPoint{4,0});
+        CHECK(f->isSelect() == false);
+        recorder.clearEvents();
+
+        f->setSearchText("asd");
+
+        t.f3(true, &terminal, f);
+        recorder.waitForEvent(cursorSignal);
+        CHECK(f->getCursorPosition() == QPoint{3,0});
+        recorder.clearEvents();
+        CHECK(f->isSelect() == true);
+
+    }
+
+    SECTION("search-forward-backward") {
+        EventRecorder recorder;
+        auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
+
+        bool reg = GENERATE(true, false);
+        CAPTURE(reg);
+        f->setRegex(reg);
+
+        f->selectAll();
+        f->insertAtCursorPosition("bb\nbb\nbb");
+        CHECK(f->getCursorPosition() == QPoint{2,2});
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->isSelect() == true);
+        recorder.clearEvents();
+
+        f->setSearchText("bb");
+
+        SECTION("toggel-wraparound") {
+            for(int i = 0; i < 3; i++) {
+                t.f3(false, &terminal, f);
+                recorder.waitForEvent(cursorSignal);
+                CHECK(f->getCursorPosition() == QPoint{2,0});
+                recorder.clearEvents();
+                CHECK(f->isSelect() == true);
+
+                t.f3(true, &terminal, f);
+                recorder.waitForEvent(cursorSignal);
+                CHECK(f->getCursorPosition() == QPoint{2,2});
+                recorder.clearEvents();
+                CHECK(f->isSelect() == true);
+            }
+        }
+
+        SECTION("without-wraparound") {
+            QList<QPoint> qpoints;
+
+            qpoints << QPoint{2,1} << QPoint{2,0} << QPoint{2,1} << QPoint{2,2} << QPoint{2,0} << QPoint{2,2} << QPoint{2,1};
+            bool backward = true;
+            for (QPoint point : qpoints) {
+                t.f3(backword, &terminal, f);
+                recorder.waitForEvent(cursorSignal);
+                CHECK(f->getCursorPosition() == point);
+                recorder.clearEvents();
+                CHECK(f->isSelect() == true);
+
+                if (point.y() == 0) backword = !backword;
+            }
+        }
+    }
+
+
     SECTION("search-smiley") {
         EventRecorder recorder;
         auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
