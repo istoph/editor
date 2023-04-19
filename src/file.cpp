@@ -1676,11 +1676,11 @@ void File::focusInEvent(Tui::ZFocusEvent *event) {
     if(_searchText == "") {
         _cmdSearchNext->setEnabled(false);
         _cmdSearchPrevious->setEnabled(false);
-        return;
     } else {
         _cmdSearchNext->setEnabled(true);
         _cmdSearchPrevious->setEnabled(true);
     }
+    modifiedChanged(isModified());
 }
 
 void File::setSelectMode(bool event) {
