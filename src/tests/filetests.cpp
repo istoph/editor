@@ -16,7 +16,7 @@
 class DocumentTestHelper {
 public:
     Document &getDoc(File *f) {
-        return f->_doc;
+        return *f->_doc;
     }
     void f3(bool backward, Tui::ZTerminal *terminal, File *f) {
         bool t = GENERATE(true, false);

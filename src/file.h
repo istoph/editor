@@ -3,6 +3,7 @@
 #ifndef FILE_H
 #define FILE_H
 
+#include <memory>
 #include <optional>
 
 #include <QJsonObject>
@@ -69,7 +70,7 @@ public:
     int getVisibleLines();
     void appendLine(const QString &line);
     void insertAtCursorPosition(const QString &str);
-    bool isModified() const { return _doc.isModified(); };
+    bool isModified() const { return _doc->isModified(); };
     void setSearchText(QString searchText);
     void setSearchCaseSensitivity(Qt::CaseSensitivity searchCaseSensitivity);
     void setReplaceText(QString replaceText);
@@ -172,7 +173,7 @@ private:
     void multiInsertInsert(const QString &text);
 
 private:
-    Document _doc;
+    std::shared_ptr<Document> _doc;
     TextCursor _cursor;
 
     // block selection
