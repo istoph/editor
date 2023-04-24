@@ -1662,6 +1662,7 @@ void File::pasteEvent(Tui::ZPasteEvent *event) {
     text.replace(QString('\r'), QString('\n'));
 
     insertAtCursorPosition(text);
+    adjustScrollPosition();
 }
 
 void File::resizeEvent(Tui::ZResizeEvent *event) {
