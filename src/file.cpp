@@ -26,7 +26,7 @@
 
 File::File(Tui::ZWidget *parent)
     : Tui::ZWidget(parent),
-      _cursor(createCursor())
+      _cursor(createCursor()), _scrollPositionY(&_doc)
 {
     setFocusPolicy(Qt::StrongFocus);
     setCursorStyle(Tui::CursorStyle::Bar);
@@ -97,7 +97,7 @@ void File::getAttributes() {
             setCursorPosition({data.value("cursorPositionX").toInt(), data.value("cursorPositionY").toInt()});
             _cursor.setVerticalMovementColumn(data.value("cursorPositionX").toInt());
             _scrollPositionX = data.value("scrollPositionX").toInt();
-            _scrollPositionY = data.value("scrollPositionY").toInt();
+            _scrollPositionY.setLine(data.value("scrollPositionY").toInt());
             _scrollFineLine = 0;
             adjustScrollPosition();
         }
@@ -117,7 +117,7 @@ bool File::writeAttributes() {
     data.insert("cursorPositionX", cursorCodeUnit);
     data.insert("cursorPositionY", cursorLine);
     data.insert("scrollPositionX",_scrollPositionX);
-    data.insert("scrollPositionY",_scrollPositionY);
+    data.insert("scrollPositionY",_scrollPositionY.line());
     _jo.insert(filenameInfo.absoluteFilePath(), data);
 
     QJsonDocument jsonDoc;
@@ -228,7 +228,7 @@ void File::setCursorPosition(TextCursor::Position position) {
 }
 
 QPoint File::getScrollPosition() {
-    return {_scrollPositionX, _scrollPositionY};
+    return {_scrollPositionX, _scrollPositionY.line()};
 }
 
 void File::setSaveAs(bool state) {
@@ -277,7 +277,7 @@ bool File::initText() {
     _doc.reset();
 
     _scrollPositionX = 0;
-    _scrollPositionY = 0;
+    _scrollPositionY.setLine(0);
     _scrollFineLine = 0;
     _cursor.setPosition({0, 0});
     cursorPositionChanged(0, 0, 0);
@@ -1088,7 +1088,7 @@ void File::searchSelect(int line, int found, int length, bool direction) {
         const auto [currentCodeUnit, currentLine] = _cursor.position();
 
         if (currentLine - 1 > 0) {
-            _scrollPositionY = currentLine - 1;
+            _scrollPositionY.setLine(currentLine - 1);
         }
         adjustScrollPosition();
     }
@@ -1346,7 +1346,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     QString strlinenumber;
     int y = -_scrollFineLine;
     int tmpLastLineWidth = 0;
-    for (int line = _scrollPositionY; y < rect().height() && line < _doc.lineCount(); line++) {
+    for (int line = _scrollPositionY.line(); y < rect().height() && line < _doc.lineCount(); line++) {
         const bool multiIns = hasMultiInsert();
         const bool cursorAtEndOfCurrentLine = [&, cursorCodeUnit=cursorCodeUnit] {
             if (_blockSelect) {
@@ -2197,12 +2197,12 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         deleteLine();
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Up) {
         // Fenster hoch Scrolen
-        if (_scrollPositionY > 0) {
-            --_scrollPositionY;
+        if (_scrollPositionY.line() > 0) {
+            _scrollPositionY.setLine(_scrollPositionY.line() - 1);
 
             const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
-            if (_scrollPositionY + geometry().height() < cursorLine + 2) {
+            if (_scrollPositionY.line() + geometry().height() < cursorLine + 2) {
                 // This should scroll without moving the cursor. But that is currently impossible,
                 // for now just move the cursor.
                 // Also clear the selection as the moved cursor previously detached from the selection
@@ -2215,12 +2215,12 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Down) {
         // Fenster runter Scrolen
-        if (_doc.lineCount() -1 > _scrollPositionY) {
-            ++_scrollPositionY;
+        if (_doc.lineCount() -1 > _scrollPositionY.line()) {
+            _scrollPositionY.setLine(_scrollPositionY.line() + 1);
 
             const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
-            if (_scrollPositionY > cursorLine - 1) {
+            if (_scrollPositionY.line() > cursorLine - 1) {
                 // This should scroll without moving the cursor. But that is currently impossible,
                 // for now just move the cursor.
                 // Also clear the selection as the moved cursor previously detached from the selection
@@ -2339,18 +2339,18 @@ void File::adjustScrollPosition() {
     // vertical scroll position
     if (!_wrapOption) {
         if (cursorLine >= 0) {
-            if (cursorLine - _scrollPositionY < 1) {
-                _scrollPositionY = cursorLine;
+            if (cursorLine - _scrollPositionY.line() < 1) {
+                _scrollPositionY.setLine(cursorLine);
                 _scrollFineLine = 0;
             }
         }
 
-        if (cursorLine - _scrollPositionY >= geometry().height() - 1) {
-            _scrollPositionY = cursorLine - geometry().height() + 2;
+        if (cursorLine - _scrollPositionY.line() >= geometry().height() - 1) {
+            _scrollPositionY.setLine(cursorLine - geometry().height() + 2);
         }
 
-        if (_doc.lineCount() - _scrollPositionY < geometry().height() - 1) {
-            _scrollPositionY = std::max(0, _doc.lineCount() - geometry().height() + 1);
+        if (_doc.lineCount() - _scrollPositionY.line() < geometry().height() - 1) {
+            _scrollPositionY.setLine(std::max(0, _doc.lineCount() - geometry().height() + 1));
         }
     } else {
         //TODO: #193 scrollup with Crl+Up and wraped lines.
@@ -2362,10 +2362,10 @@ void File::adjustScrollPosition() {
         int linesAbove = layCursorLayout.lineForTextPosition(cursorCodeUnit).lineNumber();
 
         if (linesAbove >= availableLinesAbove) {
-            if (_scrollPositionY < cursorLine) {
-                _scrollPositionY = cursorLine;
+            if (_scrollPositionY.line() < cursorLine) {
+                _scrollPositionY.setLine(cursorLine);
                 _scrollFineLine = linesAbove - availableLinesAbove;
-            } if (_scrollPositionY == cursorLine) {
+            } if (_scrollPositionY.line() == cursorLine) {
                 if (_scrollFineLine < linesAbove - availableLinesAbove) {
                     _scrollFineLine = linesAbove - availableLinesAbove;
                 }
@@ -2374,10 +2374,10 @@ void File::adjustScrollPosition() {
             for (int line = cursorLine - 1; line >= 0; line--) {
                 Tui::ZTextLayout lay = getTextLayoutForLine(option, line);
                 if (linesAbove + lay.lineCount() >= availableLinesAbove) {
-                    if (_scrollPositionY < line) {
-                        _scrollPositionY = line;
+                    if (_scrollPositionY.line() < line) {
+                        _scrollPositionY.setLine(line);
                         _scrollFineLine = (linesAbove + lay.lineCount()) - availableLinesAbove;
-                    } if (_scrollPositionY == line) {
+                    } if (_scrollPositionY.line() == line) {
                         if (_scrollFineLine < (linesAbove + lay.lineCount()) - availableLinesAbove) {
                             _scrollFineLine = (linesAbove + lay.lineCount()) - availableLinesAbove;
                         }
@@ -2393,17 +2393,17 @@ void File::adjustScrollPosition() {
 
         linesAbove = layCursorLayout.lineForTextPosition(cursorCodeUnit).lineNumber();
 
-        if (_scrollPositionY == cursorLine) {
+        if (_scrollPositionY.line() == cursorLine) {
             if (linesAbove < _scrollFineLine) {
                 _scrollFineLine = linesAbove;
             }
-        } else if (_scrollPositionY > cursorLine) {
-            _scrollPositionY = cursorLine;
+        } else if (_scrollPositionY.line() > cursorLine) {
+            _scrollPositionY.setLine(cursorLine);
             _scrollFineLine = linesAbove;
         }
 
         // scroll when window is larger than the document shown (unless scrolled to top)
-        if (_scrollPositionY && _scrollPositionY + (geometry().height() - 1) > _doc.lineCount()) {
+        if (_scrollPositionY.line() && _scrollPositionY.line() + (geometry().height() - 1) > _doc.lineCount()) {
             int linesCounted = 0;
             QVector<int> sizes;
 
@@ -2412,10 +2412,10 @@ void File::adjustScrollPosition() {
                 sizes.append(lay.lineCount());
                 linesCounted += lay.lineCount();
                 if (linesCounted >= geometry().height() - 1) {
-                    if (_scrollPositionY > line) {
-                        _scrollPositionY = line;
+                    if (_scrollPositionY.line() > line) {
+                        _scrollPositionY.setLine(line);
                         _scrollFineLine = linesCounted - (geometry().height() - 1);
-                    } else if (_scrollPositionY == line &&
+                    } else if (_scrollPositionY.line() == line &&
                                _scrollFineLine > linesCounted - (geometry().height() - 1)) {
                         _scrollFineLine = linesCounted - (geometry().height() - 1);
                     }
@@ -2427,10 +2427,10 @@ void File::adjustScrollPosition() {
 
     int _utf8PositionX = _doc.line(cursorLine).left(cursorCodeUnit).toUtf8().size();
     cursorPositionChanged(cursorColumn, _utf8PositionX, cursorLine);
-    scrollPositionChanged(_scrollPositionX, _scrollPositionY);
+    scrollPositionChanged(_scrollPositionX, _scrollPositionY.line());
 
     int max=0;
-    for (int i = _scrollPositionY; i < _doc.lineCount() && i < _scrollPositionY + geometry().height(); i++) {
+    for (int i = _scrollPositionY.line(); i < _doc.lineCount() && i < _scrollPositionY.line() + geometry().height(); i++) {
         if(max < _doc.lineCodeUnits(i)) {
             max = _doc.lineCodeUnits(i);
         }

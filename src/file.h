@@ -181,7 +181,7 @@ private:
     int _blockSelectEndColumn = -1;
 
     int _scrollPositionX = 0;
-    int _scrollPositionY = 0;
+    LineMarker _scrollPositionY;
     int _scrollFineLine = 0;
     int _tabsize = 8;
     bool _tabOption = false;
