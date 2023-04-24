@@ -115,6 +115,21 @@ private:
     std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> _createTextLayout;
 };
 
+class LineMarker {
+public:
+    explicit LineMarker(Document *doc);
+    explicit LineMarker(Document *doc, int line);
+    ~LineMarker();
+
+public:
+    int line();
+    void setLine(int line);
+
+private:
+    int _line = 0;
+    Document *_doc = nullptr;
+};
+
 class Document : public QObject {
     Q_OBJECT
     friend class TextCursor;

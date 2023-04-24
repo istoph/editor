@@ -660,3 +660,20 @@ void TextCursor::tmp_ensureInRange() {
         _cursorCodeUnit = _doc->_lines[_cursorLine].size();
     }
 }
+
+LineMarker::LineMarker(Document *doc) : _doc(doc) {
+}
+
+LineMarker::LineMarker(Document *doc, int line) : _line(line), _doc(doc) {
+}
+
+LineMarker::~LineMarker() {
+}
+
+int LineMarker::line() {
+    return _line;
+}
+
+void LineMarker::setLine(int line) {
+    _line = std::max(std::min(line, _doc->lineCount() - 1), 0);
+}
