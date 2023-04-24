@@ -3,6 +3,8 @@
 #ifndef FILE_H
 #define FILE_H
 
+#include <optional>
+
 #include <QJsonObject>
 #include <QPair>
 
@@ -175,8 +177,8 @@ private:
 
     // block selection
     bool _blockSelect = false;
-    int _blockSelectStartLine = -1;
-    int _blockSelectEndLine = -1;
+    std::optional<LineMarker> _blockSelectStartLine;
+    std::optional<LineMarker> _blockSelectEndLine;
     int _blockSelectStartColumn = -1;
     int _blockSelectEndColumn = -1;
 

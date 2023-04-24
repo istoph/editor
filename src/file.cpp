@@ -2,8 +2,6 @@
 
 #include "file.h"
 
-#include <optional>
-
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -404,8 +402,8 @@ void File::copy() {
     if (hasBlockSelection()) {
         Clipboard *clipboard = findFacet<Clipboard>();
 
-        const int firstSelectBlockLine = std::min(_blockSelectStartLine, _blockSelectEndLine);
-        const int lastSelectBlockLine = std::max(_blockSelectStartLine, _blockSelectEndLine);
+        const int firstSelectBlockLine = std::min(_blockSelectStartLine->line(), _blockSelectEndLine->line());
+        const int lastSelectBlockLine = std::max(_blockSelectStartLine->line(), _blockSelectEndLine->line());
         const int firstSelectBlockColumn = std::min(_blockSelectStartColumn, _blockSelectEndColumn);
         const int lastSelectBlockColumn = std::max(_blockSelectStartColumn, _blockSelectEndColumn);
 
@@ -545,8 +543,8 @@ QPair<int,int> File::getSelectLines() {
     int endeY;
 
     if (hasBlockSelection() || hasMultiInsert()) {
-        startY = _blockSelectStartLine;
-        endeY = _blockSelectEndLine;
+        startY = _blockSelectStartLine->line();
+        endeY = _blockSelectEndLine->line();
     } else {
         const auto [startCodeUnit, startLine] = _cursor.anchor();
         const auto [endCodeUnit, endLine] = _cursor.position();
@@ -593,8 +591,8 @@ void File::resetSelect() {
 QString File::getSelectText() {
     QString selectText = "";
     if (hasBlockSelection()) {
-        const int firstSelectBlockLine = std::min(_blockSelectStartLine, _blockSelectEndLine);
-        const int lastSelectBlockLine = std::max(_blockSelectStartLine, _blockSelectEndLine);
+        const int firstSelectBlockLine = std::min(_blockSelectStartLine->line(), _blockSelectEndLine->line());
+        const int lastSelectBlockLine = std::max(_blockSelectStartLine->line(), _blockSelectEndLine->line());
         const int firstSelectBlockColumn = std::min(_blockSelectStartColumn, _blockSelectEndColumn);
         const int lastSelectBlockColumn = std::max(_blockSelectStartColumn, _blockSelectEndColumn);
 
@@ -638,14 +636,15 @@ bool File::delSelect() {
             blockSelectRemoveSelectedAndConvertToMultiInsert();
         }
 
-        const int newCursorLine = _blockSelectEndLine;
+        const int newCursorLine = _blockSelectEndLine->line();
         const int newCursorColumn = _blockSelectStartColumn;
 
         Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(newCursorLine);
         Tui::ZTextLineRef tlr = lay.lineAt(0);
 
         _blockSelect = false;
-        _blockSelectStartLine = _blockSelectEndLine = -1;
+        _blockSelectStartLine.reset();
+        _blockSelectEndLine.reset();
         _blockSelectStartColumn = _blockSelectEndColumn = -1;
 
         setCursorPosition({tlr.xToCursor(newCursorColumn), newCursorLine});
@@ -685,7 +684,8 @@ void File::activateBlockSelection() {
     _blockSelect = true;
 
     const auto [cursorCodeUnit, cursorLine] = _cursor.position();
-    _blockSelectStartLine = _blockSelectEndLine = cursorLine;
+    _blockSelectStartLine.emplace(&_doc, cursorLine);
+    _blockSelectEndLine.emplace(&_doc, cursorLine);
 
     Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(cursorLine);
     Tui::ZTextLineRef tlr = lay.lineAt(0);
@@ -698,10 +698,11 @@ void File::disableBlockSelection() {
     _blockSelect = false;
 
     // just to be sure
-    const int cursorLine = std::min(_blockSelectEndLine, _doc.lineCount() - 1);
+    const int cursorLine = std::min(_blockSelectEndLine->line(), _doc.lineCount() - 1);
     const int cursorColumn = _blockSelectEndColumn;
 
-    _blockSelectStartLine = _blockSelectEndLine = -1;
+    _blockSelectStartLine.reset();
+    _blockSelectEndLine.reset();
     _blockSelectStartColumn = _blockSelectEndColumn = -1;
 
     Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(cursorLine);
@@ -710,8 +711,8 @@ void File::disableBlockSelection() {
 }
 
 void File::blockSelectRemoveSelectedAndConvertToMultiInsert() {
-    const int firstSelectBlockLine = std::min(_blockSelectStartLine, _blockSelectEndLine);
-    const int lastSelectBlockLine = std::max(_blockSelectStartLine, _blockSelectEndLine);
+    const int firstSelectBlockLine = std::min(_blockSelectStartLine->line(), _blockSelectEndLine->line());
+    const int lastSelectBlockLine = std::max(_blockSelectStartLine->line(), _blockSelectEndLine->line());
     const int firstSelectBlockColumn = std::min(_blockSelectStartColumn, _blockSelectEndColumn);
     const int lastSelectBlockColumn = std::max(_blockSelectStartColumn, _blockSelectEndColumn);
 
@@ -735,8 +736,8 @@ template<typename F>
 void File::multiInsertForEachCursor(int flags, F f) {
     // pre-condition: hasMultiInsert() = true
 
-    const int firstSelectBlockLine = std::min(_blockSelectStartLine, _blockSelectEndLine);
-    const int lastSelectBlockLine = std::max(_blockSelectStartLine, _blockSelectEndLine);
+    const int firstSelectBlockLine = std::min(_blockSelectStartLine->line(), _blockSelectEndLine->line());
+    const int lastSelectBlockLine = std::max(_blockSelectStartLine->line(), _blockSelectEndLine->line());
     const int column = _blockSelectStartColumn;
 
     bool endSkipped = false;
@@ -767,11 +768,11 @@ void File::multiInsertForEachCursor(int flags, F f) {
             Tui::ZTextLineRef tlrNew = layNew.lineAt(0);
             fallbackColumn = tlrNew.cursorToX(cur.position().codeUnit, Tui::ZTextLayout::Leading);
 
-            if (line == _blockSelectEndLine) {
+            if (line == _blockSelectEndLine->line()) {
                 _blockSelectStartColumn = _blockSelectEndColumn = fallbackColumn;
             }
         } else {
-            if (line == _blockSelectEndLine) {
+            if (line == _blockSelectEndLine->line()) {
                 endSkipped = true;
             }
         }
@@ -1317,8 +1318,8 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 
     Tui::ZTextOption option = getTextOption(false);
 
-    const int firstSelectBlockLine = std::min(_blockSelectStartLine, _blockSelectEndLine);
-    const int lastSelectBlockLine = std::max(_blockSelectStartLine, _blockSelectEndLine);
+    const int firstSelectBlockLine = std::min(_blockSelectStartLine->line(), _blockSelectEndLine->line());
+    const int lastSelectBlockLine = std::max(_blockSelectStartLine->line(), _blockSelectEndLine->line());
     const int firstSelectBlockColumn = std::min(_blockSelectStartColumn, _blockSelectEndColumn);
     const int lastSelectBlockColumn = std::max(_blockSelectStartColumn, _blockSelectEndColumn);
 
@@ -1341,7 +1342,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     const Tui::ZTextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
 
     const auto [cursorCodeUnit, cursorLineReal] = _cursor.position();
-    const int cursorLine = _blockSelect ? _blockSelectEndLine : cursorLineReal;
+    const int cursorLine = _blockSelect ? _blockSelectEndLine->line() : cursorLineReal;
 
     QString strlinenumber;
     int y = -_scrollFineLine;
@@ -1579,8 +1580,8 @@ void File::insertAtCursorPosition(const QString &str) {
         }
 
         if (source.size()) {
-            const int firstSelectBlockLine = std::min(_blockSelectStartLine, _blockSelectEndLine);
-            const int lastSelectBlockLine = std::max(_blockSelectStartLine, _blockSelectEndLine);
+            const int firstSelectBlockLine = std::min(_blockSelectStartLine->line(), _blockSelectEndLine->line());
+            const int lastSelectBlockLine = std::max(_blockSelectStartLine->line(), _blockSelectEndLine->line());
             const int column = _blockSelectStartColumn;
 
             int sourceLine = 0;
@@ -1833,10 +1834,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             if (_blockSelectEndColumn > 0) {
                 const auto mode = event->modifiers() & Qt::ControlModifier ?
                             Tui::ZTextLayout::SkipWords : Tui::ZTextLayout::SkipCharacters;
-                Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(_blockSelectEndLine);
+                Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(_blockSelectEndLine->line());
                 Tui::ZTextLineRef tlr = lay.lineAt(0);
                 const int codeUnitInLine = tlr.xToCursor(_blockSelectEndColumn);
-                if (codeUnitInLine != _doc.lineCodeUnits(_blockSelectEndLine)) {
+                if (codeUnitInLine != _doc.lineCodeUnits(_blockSelectEndLine->line())) {
                     _blockSelectEndColumn = tlr.cursorToX(lay.previousCursorPosition(codeUnitInLine, mode),
                                                           Tui::ZTextLayout::Leading);
                 } else {
@@ -1867,11 +1868,11 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             const auto mode = event->modifiers() & Qt::ControlModifier ?
                         Tui::ZTextLayout::SkipWords : Tui::ZTextLayout::SkipCharacters;
 
-            Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(_blockSelectEndLine);
+            Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(_blockSelectEndLine->line());
             Tui::ZTextLineRef tlr = lay.lineAt(0);
             const int codeUnitInLine = tlr.xToCursor(_blockSelectEndColumn);
             if (tlr.cursorToX(codeUnitInLine, Tui::ZTextLayout::Leading) == _blockSelectEndColumn
-                && codeUnitInLine != _doc.lineCodeUnits(_blockSelectEndLine)) {
+                && codeUnitInLine != _doc.lineCodeUnits(_blockSelectEndLine->line())) {
                 _blockSelectEndColumn = tlr.cursorToX(lay.nextCursorPosition(codeUnitInLine, mode),
                                                       Tui::ZTextLayout::Leading);
             } else {
@@ -1898,8 +1899,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 activateBlockSelection();
             }
 
-            if (_doc.lineCount() - 1 > _blockSelectEndLine) {
-                _blockSelectEndLine += 1;
+            if (_doc.lineCount() - 1 > _blockSelectEndLine->line()) {
+                _blockSelectEndLine->setLine(_blockSelectEndLine->line() + 1);
             }
         } else {
             if (_blockSelect) {
@@ -1918,8 +1919,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 activateBlockSelection();
             }
 
-            if (_blockSelectEndLine > 0) {
-                _blockSelectEndLine -= 1;
+            if (_blockSelectEndLine->line() > 0) {
+                _blockSelectEndLine->setLine(_blockSelectEndLine->line() - 1);
             }
         } else {
             if (_blockSelect) {
@@ -1940,13 +1941,13 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
             if (_blockSelectEndColumn == 0) {
                 int codeUnitInLine = 0;
-                for (; codeUnitInLine <= _doc.lineCodeUnits(_blockSelectEndLine) - 1; codeUnitInLine++) {
-                    if(_doc.line(_blockSelectEndLine)[codeUnitInLine] != ' ' && _doc.line(_blockSelectEndLine)[codeUnitInLine] != '\t') {
+                for (; codeUnitInLine <= _doc.lineCodeUnits(_blockSelectEndLine->line()) - 1; codeUnitInLine++) {
+                    if(_doc.line(_blockSelectEndLine->line())[codeUnitInLine] != ' ' && _doc.line(_blockSelectEndLine->line())[codeUnitInLine] != '\t') {
                         break;
                     }
                 }
 
-                Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(_blockSelectEndLine);
+                Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(_blockSelectEndLine->line());
                 Tui::ZTextLineRef tlr = lay.lineAt(0);
 
                 _blockSelectEndColumn = tlr.cursorToX(codeUnitInLine, Tui::ZTextLayout::Leading);
@@ -1989,10 +1990,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 activateBlockSelection();
             }
 
-            Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(_blockSelectEndLine);
+            Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(_blockSelectEndLine->line());
             Tui::ZTextLineRef tlr = lay.lineAt(0);
 
-            _blockSelectEndColumn = tlr.cursorToX(_doc.lineCodeUnits(_blockSelectEndLine), Tui::ZTextLayout::Leading);
+            _blockSelectEndColumn = tlr.cursorToX(_doc.lineCodeUnits(_blockSelectEndLine->line()), Tui::ZTextLayout::Leading);
         } else {
             if (_blockSelect) {
                 disableBlockSelection();
@@ -2024,10 +2025,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         _doc.clearCollapseUndoStep();
     } else if (event->key() == Qt::Key_PageDown && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if (_blockSelect && event->modifiers() == Qt::ShiftModifier) {
-            if (_doc.lineCount() > _blockSelectEndLine + getVisibleLines()) {
-                _blockSelectEndLine += getVisibleLines();
+            if (_doc.lineCount() > _blockSelectEndLine->line() + getVisibleLines()) {
+                _blockSelectEndLine->setLine(_blockSelectEndLine->line() + getVisibleLines());
             } else {
-                _blockSelectEndLine = _doc.lineCount() - 1;
+                _blockSelectEndLine->setLine(_doc.lineCount() - 1);
             }
         } else {
             if (_blockSelect) {
@@ -2044,11 +2045,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         _doc.clearCollapseUndoStep();
     } else if (event->key() == Qt::Key_PageUp && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
         if (_blockSelect && event->modifiers() == Qt::ShiftModifier) {
-            if (_blockSelectEndLine > getVisibleLines()) {
-                _blockSelectEndLine -= getVisibleLines();
+            if (_blockSelectEndLine->line() > getVisibleLines()) {
+                _blockSelectEndLine->setLine(_blockSelectEndLine->line() - getVisibleLines());
             } else {
-                _blockSelectEndLine = 0;
-                _blockSelectEndLine = 0;
+                _blockSelectEndLine->setLine(0);
             }
         } else {
             if (_blockSelect) {
@@ -2305,7 +2305,7 @@ void File::adjustScrollPosition() {
 
     const auto [cursorCodeUnit, cursorLine, cursorColumn] = [&]{
         if (_blockSelect) {
-            const int cursorLine = _blockSelectEndLine;
+            const int cursorLine = _blockSelectEndLine->line();
             const int cursorColumn = _blockSelectEndColumn;
             Tui::ZTextLayout layNoWrap = getTextLayoutForLineWithoutWrapping(cursorLine);
             const int cursorCodeUnit = layNoWrap.lineAt(0).xToCursor(cursorColumn);
