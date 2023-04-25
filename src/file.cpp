@@ -2235,6 +2235,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         const auto [firstLine, lastLine] = getSelectLinesSort();
 
         if (firstLine > 0) {
+            const auto scrollPositionYSave = _scrollPositionY.line();
             const auto [startLine, endLine] = getSelectLines();
             const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
@@ -2252,6 +2253,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 selectLines(startLine - 1, endLine - 1);
             }
             setSelectMode(savedSelectMode);
+            _scrollPositionY.setLine(scrollPositionYSave);
             adjustScrollPosition();
         }
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Down) {
@@ -2259,6 +2261,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         const auto [firstLine, lastLine] = getSelectLinesSort();
 
         if (lastLine < _doc->lineCount() - 1) {
+            const auto scrollPositionYSave = _scrollPositionY.line();
             const auto [startLine, endLine] = getSelectLines();
             const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
@@ -2276,6 +2279,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 selectLines(startLine + 1, endLine + 1);
             }
             setSelectMode(savedSelectMode);
+            _scrollPositionY.setLine(scrollPositionYSave);
             adjustScrollPosition();
         }
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {

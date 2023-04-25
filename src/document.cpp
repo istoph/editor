@@ -15,6 +15,14 @@ Document::Document(QObject *parent) : QObject (parent) {
 void Document::reset() {
     _lines.clear();
     _lines.append(QString());
+
+    for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
+        m->setLine(0);
+    }
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        c->setPosition({0, 0});
+    }
+
     initalUndoStep(nullptr);
 }
 
@@ -34,6 +42,15 @@ void Document::writeTo(QIODevice *file, bool crLfMode) {
 }
 
 bool Document::readFrom(QIODevice *file) {
+
+    // Clear line markers and cursors while _lines still has contents.
+    for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
+        m->setLine(0);
+    }
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        c->setPosition({0, 0});
+    }
+
     _lines.clear();
     QByteArray lineBuf;
     lineBuf.resize(16384);
@@ -129,6 +146,22 @@ void Document::clearCollapseUndoStep() {
 
 void Document::tmp_sortLines(int first, int last, TextCursor *cursorForUndoStep) {
     std::sort(_lines.begin() + first, _lines.begin() + last);
+
+    // ensure all cursors have valid positions.
+    // The sort currently does not have information on how lines moved to properly
+    // adjust the cursors, but at least all cursors should be on valid positions after this
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        const auto [anchorCodeUnit, anchorLine] = c->anchor();
+        const auto [cursorCodeUnit, cursorLine] = c->position();
+
+        if ((first <= anchorLine && anchorLine < last)
+                || (first <= cursorLine && cursorLine < last)) {
+
+            c->setAnchorPosition({anchorCodeUnit, anchorLine});
+            c->setPosition({cursorCodeUnit, cursorLine}, true);
+        }
+    }
+
     saveUndoStep(cursorForUndoStep);
 }
 
@@ -139,6 +172,58 @@ void Document::tmp_moveLine(int from, int to, TextCursor *cursorForUndoStep) {
     } else {
         _lines.remove(from + 1);
     }
+
+    auto transform = [&](int line, int data, auto fn) {
+        if (from < to) {
+            // from         -> mid
+            // mid          -> from
+            // to           -> to
+            if (line > from && line < to) {
+                fn(line - 1, data);
+            } else if (line == from) {
+                fn(to - 1, data);
+            }
+        } else {
+            // to           -> from
+            // mid          -> to
+            // from         -> mid
+            if (line >= to && line < from) {
+                fn(line + 1, data);
+            } else if (line == from) {
+                fn(to, data);
+            }
+        }
+    };
+
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        const auto [anchorCodeUnit, anchorLine] = c->anchor();
+        const auto [cursorCodeUnit, cursorLine] = c->position();
+
+        bool positionMustBeSet = false;
+
+        // anchor
+        transform(anchorLine, anchorCodeUnit, [&](int line, int codeUnit) {
+            c->setAnchorPosition({codeUnit, line});
+            positionMustBeSet = true;
+        });
+
+        // position
+        transform(cursorLine, cursorCodeUnit, [&](int line, int codeUnit) {
+            c->setPositionPreservingVerticalMovementColumn({codeUnit, line}, true);
+            positionMustBeSet = false;
+        });
+
+        if (positionMustBeSet) {
+            c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine}, true);
+        }
+    }
+    // similar for line markers
+    for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
+        transform(m->line(), 0, [&](int line, int) {
+            m->setLine(line);
+        });
+    }
+
     saveUndoStep(cursorForUndoStep);
 }
 
@@ -155,6 +240,24 @@ void Document::undo(TextCursor *cursor) {
 
     _lines = _undoSteps[_currentUndoStep].text;
     cursor->setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
+
+    // ensure all cursors have valid positions.
+    // Cursor positions after undo are still wonky as the undo state does not have enough information to properly
+    // adjust the cursors, but at least all cursors should be on valid positions after this
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        const auto [anchorCodeUnit, anchorLine] = c->anchor();
+        const auto [cursorCodeUnit, cursorLine] = c->position();
+
+        c->setAnchorPosition({anchorCodeUnit, anchorLine});
+        c->setPosition({cursorCodeUnit, cursorLine}, true);
+    }
+    // similar for line markers
+    for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
+        if (m->line() >= _lines.size()) {
+            m->setLine(_lines.size() - 1);
+        }
+    }
+
     emitModifedSignals();
 }
 
@@ -171,6 +274,24 @@ void Document::redo(TextCursor *cursor) {
 
     _lines = _undoSteps[_currentUndoStep].text;
     cursor->setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
+
+    // ensure all cursors have valid positions.
+    // Cursor positions after undo are still wonky as the undo state does not have enough information to properly
+    // adjust the cursors, but at least all cursors should be on valid positions after this
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        const auto [anchorCodeUnit, anchorLine] = c->anchor();
+        const auto [cursorCodeUnit, cursorLine] = c->position();
+
+        c->setAnchorPosition({anchorCodeUnit, anchorLine});
+        c->setPosition({cursorCodeUnit, cursorLine}, true);
+    }
+    // similar for line markers
+    for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
+        if (m->line() >= _lines.size()) {
+            m->setLine(_lines.size() - 1);
+        }
+    }
+
     emitModifedSignals();
 }
 
@@ -258,10 +379,84 @@ void Document::unregisterTextCursor(TextCursor *cursor) {
 
 void Document::removeFromLine(TextCursor *cursor, int line, int codeUnitStart, int codeUnits) {
     _lines[line].remove(codeUnitStart, codeUnits);
+
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        if (cursor == c) continue;
+
+        bool positionMustBeSet = false;
+
+        // anchor
+        const auto [anchorCodeUnit, anchorLine] = c->anchor();
+        if (anchorLine == line) {
+            if (anchorCodeUnit >= codeUnitStart + codeUnits) {
+                c->setAnchorPosition({anchorCodeUnit - codeUnits, anchorLine});
+                positionMustBeSet = true;
+            } else if (anchorCodeUnit >= codeUnitStart) {
+                c->setAnchorPosition({codeUnitStart, anchorLine});
+                positionMustBeSet = true;
+            }
+        }
+
+        // position
+        const auto [cursorCodeUnit, cursorLine] = c->position();
+        if (cursorLine == line) {
+            if (cursorCodeUnit >= codeUnitStart + codeUnits) {
+                c->setPosition({cursorCodeUnit - codeUnits, cursorLine}, true);
+                positionMustBeSet = false;
+            } else if (cursorCodeUnit >= codeUnitStart) {
+                c->setPosition({codeUnitStart, cursorLine}, true);
+                positionMustBeSet = false;
+            }
+        }
+
+        if (positionMustBeSet) {
+            c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine}, true);
+        }
+    }
 }
 
 void Document::insertIntoLine(TextCursor *cursor, int line, int codeUnitStart, const QString &data) {
     _lines[line].insert(codeUnitStart, data);
+
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        if (cursor == c) continue;
+
+        bool positionMustBeSet = false;
+
+        const auto [anchorCodeUnit, anchorLine] = c->anchor();
+        const auto [cursorCodeUnit, cursorLine] = c->position();
+
+        if (c->hasSelection()) {
+            const bool anchorBefore = anchorLine < cursorLine || (anchorLine == cursorLine && anchorCodeUnit < cursorCodeUnit);
+
+            // anchor
+            if (anchorLine == line) {
+                const int anchorAdj = anchorBefore ? 0 : -1;
+                if (anchorCodeUnit + anchorAdj >= codeUnitStart) {
+                    c->setAnchorPosition({anchorCodeUnit + data.size(), anchorLine});
+                    positionMustBeSet = true;
+                }
+            }
+
+            // position
+            if (cursorLine == line) {
+                const int cursorAdj = anchorBefore ? -1 : 1;
+                if (cursorCodeUnit + cursorAdj >= codeUnitStart) {
+                    c->setPosition({cursorCodeUnit + data.size(), cursorLine}, true);
+                    positionMustBeSet = false;
+                }
+            }
+
+            if (positionMustBeSet) {
+                c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine}, true);
+            }
+        } else {
+            if (cursorLine == line && cursorCodeUnit >= codeUnitStart) {
+                c->setPosition({cursorCodeUnit + data.size(), cursorLine}, false);
+            }
+        }
+
+    }
 }
 
 void Document::appendToLine(TextCursor *cursor, int line, const QString &data) {
@@ -270,15 +465,140 @@ void Document::appendToLine(TextCursor *cursor, int line, const QString &data) {
 
 void Document::removeLines(TextCursor *cursor, int start, int count) {
     _lines.remove(start, count);
+
+    for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
+        if (m->line() > start + count) {
+            m->setLine(m->line() - count);
+        } else if (m->line() > start) {
+            m->setLine(start);
+        }
+    }
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        if (cursor == c) continue;
+
+        bool positionMustBeSet = false;
+
+        // anchor
+        const auto [anchorCodeUnit, anchorLine] = c->anchor();
+        if (anchorLine > start + count) {
+            c->setAnchorPosition({anchorCodeUnit, anchorLine - count});
+            positionMustBeSet = true;
+        } else if (anchorLine >= _lines.size()) {
+            c->setAnchorPosition({_lines[_lines.size() - 1].size(), _lines.size() - 1});
+            positionMustBeSet = true;
+        } else if (anchorLine >= start) {
+            c->setAnchorPosition({0, start});
+            positionMustBeSet = true;
+        }
+
+        // position
+        const auto [cursorCodeUnit, cursorLine] = c->position();
+        if (cursorLine > start + count) {
+            c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine - count}, true);
+            positionMustBeSet = false;
+        } else if (cursorLine >= _lines.size()) {
+            c->setPositionPreservingVerticalMovementColumn({_lines[_lines.size() - 1].size(), _lines.size() - 1}, true);
+            positionMustBeSet = false;
+        } else if (cursorLine >= start) {
+            c->setPositionPreservingVerticalMovementColumn({0, start}, true);
+            positionMustBeSet = false;
+        }
+
+        if (positionMustBeSet) {
+            c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine}, true);
+        }
+    }
 }
 
 void Document::insertLine(TextCursor *cursor, int before, const QString &data) {
     _lines.insert(before, data);
+
+    for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
+        if (m->line() >= before) {
+            m->setLine(m->line() + 1);
+        }
+    }
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        if (cursor == c) continue;
+
+        bool positionMustBeSet = false;
+
+        // anchor
+        const auto [anchorCodeUnit, anchorLine] = c->anchor();
+        if (anchorLine > before) {
+            c->setAnchorPosition({anchorCodeUnit, anchorLine + 1});
+            positionMustBeSet = true;
+        }
+
+        // position
+        const auto [cursorCodeUnit, cursorLine] = c->position();
+        if (cursorLine > before) {
+            c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine + 1}, true);
+            positionMustBeSet = false;
+        }
+
+        if (positionMustBeSet) {
+            c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine}, true);
+        }
+    }
 }
 
 void Document::splitLine(TextCursor *cursor, TextCursor::Position pos) {
     _lines.insert(pos.line + 1, _lines[pos.line].mid(pos.codeUnit));
     _lines[pos.line].resize(pos.codeUnit);
+
+    for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
+        if (m->line() > pos.line || (m->line() == pos.line && pos.codeUnit == 0)) {
+            m->setLine(m->line() + 1);
+        }
+    }
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        if (cursor == c) continue;
+
+        bool positionMustBeSet = false;
+
+        const auto [anchorCodeUnit, anchorLine] = c->anchor();
+        const auto [cursorCodeUnit, cursorLine] = c->position();
+
+        // anchor
+
+        if (c->hasSelection()) {
+            const bool anchorBefore = anchorLine < cursorLine || (anchorLine == cursorLine && anchorCodeUnit < cursorCodeUnit);
+
+            if (anchorLine > pos.line) {
+                c->setAnchorPosition({anchorCodeUnit, anchorLine + 1});
+                positionMustBeSet = true;
+            } else if (anchorLine == pos.line) {
+                const int anchorAdj = anchorBefore ? 0 : -1;
+                if (anchorCodeUnit + anchorAdj >= pos.codeUnit) {
+                    c->setAnchorPosition({anchorCodeUnit - pos.codeUnit, anchorLine + 1});
+                    positionMustBeSet = true;
+                }
+            }
+
+            // position
+            if (cursorLine > pos.line) {
+                c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine + 1}, true);
+                positionMustBeSet = false;
+            } else if (cursorLine == pos.line) {
+                const int cursorAdj = anchorBefore ? -1 : 1;
+                if (cursorCodeUnit + cursorAdj >= pos.codeUnit) {
+                    c->setPosition({cursorCodeUnit - pos.codeUnit, cursorLine + 1}, true);
+                    positionMustBeSet = false;
+                }
+            }
+
+            if (positionMustBeSet) {
+                c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine}, true);
+            }
+        } else {
+            if (cursorLine > pos.line) {
+                c->setPosition({cursorCodeUnit, cursorLine + 1}, false);
+            } else if (cursorLine == pos.line && cursorCodeUnit >= pos.codeUnit) {
+                c->setPosition({cursorCodeUnit - pos.codeUnit, cursorLine + 1}, false);
+            }
+        }
+    }
 }
 
 void Document::emitModifedSignals() {
