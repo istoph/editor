@@ -15,6 +15,82 @@
 
 class Document;
 
+// TMP from tui widgets
+
+template <typename Tag>
+struct ListTrait;
+
+template <typename T>
+class ListNode;
+
+template <typename T, typename Tag>
+class ListHead {
+public:
+    ListHead(){}
+
+    ~ListHead() {
+        clear();
+    }
+
+    void clear() {
+        while (first) {
+            remove(first);
+        }
+    }
+
+    void appendOrMoveToLast(T *e) {
+        constexpr auto nodeOffset = ListTrait<Tag>::offset;
+        auto& node = e->*nodeOffset;
+        if (last == e) {
+            return;
+        }
+        if (node.next) {
+            //move
+            remove(e);
+        }
+        if (last) {
+            (last->*nodeOffset).next = e;
+            node.prev = last;
+            last = e;
+        } else {
+            first = e;
+            last = e;
+        }
+    }
+
+    void remove(T *e) {
+        constexpr auto nodeOffset = ListTrait<Tag>::offset;
+        auto &node = e->*nodeOffset;
+        if (e == first) {
+            first = node.next;
+        }
+        if (e == last) {
+            last = node.prev;
+        }
+        if (node.prev) {
+            (node.prev->*nodeOffset).next = node.next;
+        }
+        if (node.next) {
+            (node.next->*nodeOffset).prev = node.prev;
+        }
+        node.prev = nullptr;
+        node.next = nullptr;
+    }
+
+    T *first = nullptr;
+    T *last = nullptr;
+};
+
+
+template <typename T>
+class ListNode {
+public:
+    T *prev = nullptr;
+    T *next = nullptr;
+};
+
+// /TMP
+
 class RangeIterator {
 public:
     int i;
@@ -31,6 +107,8 @@ public:
     RangeIterator end() { return RangeIterator {stop};}
 };
 
+struct TextCursorToDocumentTag;
+
 class TextCursor {
 public:
     struct Position {
@@ -46,6 +124,7 @@ public:
 
 public:
     TextCursor(Document *doc, Tui::ZWidget *widget, std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> createTextLayout);
+    ~TextCursor();
 
     void insertText(const QString &text);
     void removeSelectedText();
@@ -113,7 +192,21 @@ private:
     Document *_doc;
     Tui::ZWidget *_widget;
     std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> _createTextLayout;
+
+private: // For use by Document
+    ListNode<TextCursor> markersList;
+
+    friend struct ListTrait<TextCursorToDocumentTag>;
+    friend class Document;
 };
+
+template<>
+struct ListTrait<TextCursorToDocumentTag> {
+    static constexpr auto offset = &TextCursor::markersList;
+};
+
+
+struct LineMarkerToDocumentTag;
 
 class LineMarker {
 public:
@@ -128,11 +221,24 @@ public:
 private:
     int _line = 0;
     Document *_doc = nullptr;
+
+private: // For use by Document
+    ListNode<LineMarker> markersList;
+
+    friend struct ListTrait<LineMarkerToDocumentTag>;
+    friend class Document;
 };
+
+template<>
+struct ListTrait<LineMarkerToDocumentTag> {
+    static constexpr auto offset = &LineMarker::markersList;
+};
+
 
 class Document : public QObject {
     Q_OBJECT
     friend class TextCursor;
+    friend class LineMarker;
 
 public:
     class UndoGroup;
@@ -202,9 +308,15 @@ private: // TextCursor interface
     void insertLine(TextCursor *cursor, int before, const QString &data);
     void splitLine(TextCursor *cursor, TextCursor::Position pos);
     void saveUndoStep(TextCursor *cursor, bool collapsable=false);
+    void registerTextCursor(TextCursor *marker);
+    void unregisterTextCursor(TextCursor *marker);
 
 private: // UndoGroup interface
     void closeUndoGroup(TextCursor *cursor);
+
+private: // LineMarker interface
+    void registerLineMarker(LineMarker *marker);
+    void unregisterLineMarker(LineMarker *marker);
 
 private:
     void emitModifedSignals();
@@ -228,6 +340,9 @@ private:
     bool _collapseUndoStep = false;
     int _groupUndo = 0;
     bool _undoStepCreationDeferred = false;
+
+    ListHead<LineMarker, LineMarkerToDocumentTag> lineMarkerList;
+    ListHead<TextCursor, TextCursorToDocumentTag> cursorList;
 };
 
 #endif // DOCUMENT_H

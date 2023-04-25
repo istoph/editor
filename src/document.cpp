@@ -191,6 +191,14 @@ void Document::closeUndoGroup(TextCursor *cursor) {
     }
 }
 
+void Document::registerLineMarker(LineMarker *marker) {
+    lineMarkerList.appendOrMoveToLast(marker);
+}
+
+void Document::unregisterLineMarker(LineMarker *marker) {
+    lineMarkerList.remove(marker);
+}
+
 Document::UndoGroup::~UndoGroup() {
     if (!_closed) {
         closeGroup();
@@ -240,6 +248,14 @@ void Document::saveUndoStep(TextCursor *cursor, bool collapsable) {
     }
 }
 
+void Document::registerTextCursor(TextCursor *cursor) {
+    cursorList.appendOrMoveToLast(cursor);
+}
+
+void Document::unregisterTextCursor(TextCursor *cursor) {
+    cursorList.remove(cursor);
+}
+
 void Document::removeFromLine(TextCursor *cursor, int line, int codeUnitStart, int codeUnits) {
     _lines[line].remove(codeUnitStart, codeUnits);
 }
@@ -287,6 +303,11 @@ bool operator==(const TextCursor::Position &a, const TextCursor::Position &b) {
 
 TextCursor::TextCursor(Document *doc, Tui::ZWidget *widget, std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> createTextLayout)
     : _doc(doc), _widget(widget), _createTextLayout(createTextLayout) {
+    _doc->registerTextCursor(this);
+}
+
+TextCursor::~TextCursor() {
+    _doc->unregisterTextCursor(this);
 }
 
 void TextCursor::insertText(const QString &text) {
@@ -661,13 +682,15 @@ void TextCursor::tmp_ensureInRange() {
     }
 }
 
-LineMarker::LineMarker(Document *doc) : _doc(doc) {
+LineMarker::LineMarker(Document *doc) : LineMarker(doc, 0) {
 }
 
 LineMarker::LineMarker(Document *doc, int line) : _line(line), _doc(doc) {
+    _doc->registerLineMarker(this);
 }
 
 LineMarker::~LineMarker() {
+    _doc->unregisterLineMarker(this);
 }
 
 int LineMarker::line() {
