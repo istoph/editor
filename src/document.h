@@ -195,12 +195,12 @@ public:
     };
 
 private: // TextCursor interface
-    void removeFromLine(int line, int codeUnitStart, int codeUnits);
-    void insertIntoLine(int line, int codeUnitStart, const QString &data);
-    void appendToLine(int line, const QString &data);
-    void removeLines(int start, int count);
-    void insertLine(int before, const QString &data);
-    void splitLine(TextCursor::Position pos);
+    void removeFromLine(TextCursor *cursor, int line, int codeUnitStart, int codeUnits);
+    void insertIntoLine(TextCursor *cursor, int line, int codeUnitStart, const QString &data);
+    void appendToLine(TextCursor *cursor, int line, const QString &data);
+    void removeLines(TextCursor *cursor, int start, int count);
+    void insertLine(TextCursor *cursor, int before, const QString &data);
+    void splitLine(TextCursor *cursor, TextCursor::Position pos);
     void saveUndoStep(TextCursor *cursor, bool collapsable=false);
 
 private: // UndoGroup interface

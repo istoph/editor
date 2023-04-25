@@ -240,27 +240,27 @@ void Document::saveUndoStep(TextCursor *cursor, bool collapsable) {
     }
 }
 
-void Document::removeFromLine(int line, int codeUnitStart, int codeUnits) {
+void Document::removeFromLine(TextCursor *cursor, int line, int codeUnitStart, int codeUnits) {
     _lines[line].remove(codeUnitStart, codeUnits);
 }
 
-void Document::insertIntoLine(int line, int codeUnitStart, const QString &data) {
+void Document::insertIntoLine(TextCursor *cursor, int line, int codeUnitStart, const QString &data) {
     _lines[line].insert(codeUnitStart, data);
 }
 
-void Document::appendToLine(int line, const QString &data) {
+void Document::appendToLine(TextCursor *cursor, int line, const QString &data) {
     _lines[line].append(data);
 }
 
-void Document::removeLines(int start, int count) {
+void Document::removeLines(TextCursor *cursor, int start, int count) {
     _lines.remove(start, count);
 }
 
-void Document::insertLine(int before, const QString &data) {
+void Document::insertLine(TextCursor *cursor, int before, const QString &data) {
     _lines.insert(before, data);
 }
 
-void Document::splitLine(TextCursor::Position pos) {
+void Document::splitLine(TextCursor *cursor, TextCursor::Position pos) {
     _lines.insert(pos.line + 1, _lines[pos.line].mid(pos.codeUnit));
     _lines[pos.line].resize(pos.codeUnit);
 }
@@ -297,13 +297,13 @@ void TextCursor::insertText(const QString &text) {
         lines.removeLast();
         _doc->_nonewline = false;
     }
-    _doc->insertIntoLine(_cursorLine, _cursorCodeUnit, lines.front());
+    _doc->insertIntoLine(this, _cursorLine, _cursorCodeUnit, lines.front());
     _cursorCodeUnit += lines.front().size();
     for (int i = 1; i < lines.size(); i++) {
-        _doc->splitLine({_cursorCodeUnit, _cursorLine});
+        _doc->splitLine(this, {_cursorCodeUnit, _cursorLine});
         _cursorLine++;
         _cursorCodeUnit = 0;
-        _doc->insertIntoLine(_cursorLine, _cursorCodeUnit, lines.at(i));
+        _doc->insertIntoLine(this, _cursorLine, _cursorCodeUnit, lines.at(i));
         _cursorCodeUnit = lines.at(i).size();
     }
     _anchorCodeUnit = _cursorCodeUnit;
@@ -324,21 +324,21 @@ void TextCursor::removeSelectedText() {
 
     if (start.line == end.line) {
         // selection only on one line
-        _doc->removeFromLine(start.line, start.codeUnit, end.codeUnit - start.codeUnit);
+        _doc->removeFromLine(this, start.line, start.codeUnit, end.codeUnit - start.codeUnit);
     } else {
-        _doc->removeFromLine(start.line, start.codeUnit, _doc->_lines[start.line].size() - start.codeUnit);
+        _doc->removeFromLine(this, start.line, start.codeUnit, _doc->_lines[start.line].size() - start.codeUnit);
         const auto orignalTextLines = _doc->_lines.size();
         if (start.line + 1 < end.line) {
-            _doc->removeLines(start.line + 1, end.line - start.line - 1);
+            _doc->removeLines(this, start.line + 1, end.line - start.line - 1);
         }
         if (end.line == orignalTextLines) {
             // selected until the end of buffer, no last selection line to edit
         } else {
-            _doc->appendToLine(start.line, _doc->_lines[start.line + 1].mid(end.codeUnit));
+            _doc->appendToLine(this, start.line, _doc->_lines[start.line + 1].mid(end.codeUnit));
             if (start.line + 1 < _doc->_lines.size()) {
-                _doc->removeLines(start.line + 1, 1);
+                _doc->removeLines(this, start.line + 1, 1);
             } else {
-                _doc->removeFromLine(start.line + 1, 0, _doc->_lines[start.line + 1].size());
+                _doc->removeFromLine(this, start.line + 1, 0, _doc->_lines[start.line + 1].size());
             }
         }
     }
