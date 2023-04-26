@@ -1242,7 +1242,7 @@ bool File::highlightBracket() {
                             }
                         }
                         if(--line >= 0) {
-                            startX = _doc.lineCodeUnits(line);
+                            startX = _doc.lineCodeUnits(line) - 1;
                         }
                     }
                 }
