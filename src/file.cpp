@@ -1200,48 +1200,50 @@ bool File::highlightBracket() {
     if(getHighlightBracket()) {
         const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
-        for(int i=0; i<openBracket.size(); i++) {
-            if (_doc.line(cursorLine)[cursorCodeUnit] == openBracket[i]) {
-                int y = 0;
-                int counter = 0;
-                int startX = cursorCodeUnit + 1;
-                for (int line = cursorLine; y++ < rect().height() && line < _doc.lineCount(); line++) {
-                    for(; startX < _doc.lineCodeUnits(line); startX++) {
-                        if (_doc.line(line)[startX] == openBracket[i]) {
-                            counter++;
-                        } else if (_doc.line(line)[startX] == closeBracket[i]) {
-                            if(counter>0) {
-                                counter--;
-                            } else {
-                                _bracketY=line;
-                                _bracketX=startX;
-                                return true;
+        if (cursorCodeUnit < _doc.lineCodeUnits(cursorLine)) {
+            for(int i=0; i<openBracket.size(); i++) {
+                if (_doc.line(cursorLine)[cursorCodeUnit] == openBracket[i]) {
+                    int y = 0;
+                    int counter = 0;
+                    int startX = cursorCodeUnit + 1;
+                    for (int line = cursorLine; y++ < rect().height() && line < _doc.lineCount(); line++) {
+                        for(; startX < _doc.lineCodeUnits(line); startX++) {
+                            if (_doc.line(line)[startX] == openBracket[i]) {
+                                counter++;
+                            } else if (_doc.line(line)[startX] == closeBracket[i]) {
+                                if(counter>0) {
+                                    counter--;
+                                } else {
+                                    _bracketY=line;
+                                    _bracketX=startX;
+                                    return true;
+                                }
                             }
                         }
+                        startX=0;
                     }
-                    startX=0;
                 }
-            }
 
-            if (_doc.line(cursorLine)[cursorCodeUnit] == closeBracket[i]) {
-                int counter = 0;
-                int startX = cursorCodeUnit - 1;
-                for (int line = cursorLine; line >= 0;) {
-                    for(; startX >= 0; startX--) {
-                        if (_doc.line(line)[startX] == closeBracket[i]) {
-                            counter++;
-                        } else if (_doc.line(line)[startX] == openBracket[i]) {
-                            if(counter>0) {
-                                counter--;
-                            } else {
-                                _bracketY=line;
-                                _bracketX=startX;
-                                return true;
+                if (_doc.line(cursorLine)[cursorCodeUnit] == closeBracket[i]) {
+                    int counter = 0;
+                    int startX = cursorCodeUnit - 1;
+                    for (int line = cursorLine; line >= 0;) {
+                        for(; startX >= 0; startX--) {
+                            if (_doc.line(line)[startX] == closeBracket[i]) {
+                                counter++;
+                            } else if (_doc.line(line)[startX] == openBracket[i]) {
+                                if(counter>0) {
+                                    counter--;
+                                } else {
+                                    _bracketY=line;
+                                    _bracketX=startX;
+                                    return true;
+                                }
                             }
                         }
-                    }
-                    if(--line >= 0) {
-                        startX = _doc.lineCodeUnits(line);
+                        if(--line >= 0) {
+                            startX = _doc.lineCodeUnits(line);
+                        }
                     }
                 }
             }
