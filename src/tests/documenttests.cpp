@@ -671,3 +671,173 @@ TEST_CASE("Document") {
 
     }
 }
+
+TEST_CASE("Cursor") {
+    Tui::ZTerminal terminal{Tui::ZTerminal::OffScreen{1, 1}};
+    Tui::ZRoot root;
+    terminal.setMainWidget(&root);
+
+    Document doc;
+
+    TextCursor cursor1{&doc, nullptr, [&terminal,&doc](int line, bool wrappingAllowed) {
+            Tui::ZTextLayout lay(terminal.textMetrics(), doc.getLines()[line]);
+            lay.doLayout(65000);
+            return lay;
+        }
+    };
+    cursor1.insertText(" \n \n \n \n");
+
+    TextCursor cursor2{&doc, nullptr, [&terminal,&doc](int line, bool wrappingAllowed) {
+            Tui::ZTextLayout lay(terminal.textMetrics(), doc.getLines()[line]);
+            lay.doLayout(65000);
+            return lay;
+        }
+    };
+
+    CHECK(cursor1.position() == TextCursor::Position{0,4});
+    CHECK(cursor2.position() == TextCursor::Position{0,0});
+
+    SECTION("delete-previous-line") {
+        cursor2.setPosition({0,3});
+        CHECK(cursor2.position() == TextCursor::Position{0,3});
+        CHECK(doc.getLines().size() == 5);
+        cursor2.deleteCharacter();
+        cursor2.deleteCharacter();
+        CHECK(cursor2.position() == TextCursor::Position{0,3});
+        CHECK(cursor1.position() == TextCursor::Position{0,3});
+        CHECK(doc.getLines().size() == 4);
+    }
+    SECTION("delete-on-cursor") {
+        cursor1.setPosition({0,2});
+        cursor2.setPosition({0,2});
+        cursor1.deleteCharacter();
+        CHECK(cursor1.position() == TextCursor::Position{0,2});
+        CHECK(cursor2.position() == TextCursor::Position{0,2});
+        cursor1.deletePreviousCharacter();
+        CHECK(cursor1.position() == TextCursor::Position{1,1});
+        CHECK(cursor2.position() == TextCursor::Position{1,1});
+    }
+    SECTION("select") {
+        cursor1.setPosition({0,2});
+        cursor1.insertText("hallo welt");
+
+        bool selectionDirection = GENERATE(false, true);
+        CAPTURE(selectionDirection);
+
+        if (selectionDirection) {
+            cursor1.moveToStartOfLine(true);
+        } else {
+            auto pos = cursor1.position();
+            cursor1.moveToStartOfLine();
+            cursor1.setPosition(pos, true);
+        }
+
+        CHECK(cursor1.selectedText() == "hallo welt");
+
+        SECTION("hasSelection") {
+            CHECK(cursor2.selectedText() == "");
+            CHECK(cursor2.hasSelection() == false);
+        }
+
+        SECTION("in-selection") {
+            cursor2.setPosition({5,2});
+
+            SECTION("insert") {
+                cursor2.insertText("a");
+                CHECK(cursor1.selectedText() == "halloa welt");
+            }
+            SECTION("insert-newline") {
+                cursor2.insertText("\n");
+                CHECK(cursor1.selectedText() == "hallo\n welt");
+            }
+            SECTION("tab") {
+                cursor2.insertText("\t");
+                CHECK(cursor1.selectedText() == "hallo\t welt");
+            }
+            SECTION("del") {
+                cursor2.deleteCharacter();
+                CHECK(cursor1.selectedText() == "hallowelt");
+            }
+            SECTION("del-word") {
+                cursor2.deleteWord();
+                CHECK(cursor1.selectedText() == "hallo");
+            }
+            SECTION("del-line") {
+                cursor2.deleteLine();
+                CHECK(cursor1.selectedText() == "");
+                CHECK(cursor1.hasSelection() == false);
+            }
+            SECTION("del-previous") {
+                cursor2.deletePreviousCharacter();
+                CHECK(cursor1.selectedText() == "hall welt");
+            }
+            SECTION("del-previous-word") {
+                cursor2.deletePreviousWord();
+                CHECK(cursor1.selectedText() == " welt");
+            }
+            SECTION("del-previous-line") {
+                cursor2.setPosition({0,2});
+                cursor2.deletePreviousCharacter();
+                CHECK(cursor1.selectedText() == "hallo welt");
+            }
+            SECTION("del-all") {
+                cursor2.selectAll();
+                cursor2.deletePreviousCharacter();
+                CHECK(cursor1.selectedText() == "");
+                CHECK(cursor1.hasSelection() == false);
+                CHECK(cursor1.position() == TextCursor::Position{0,0});
+                CHECK(cursor2.position() == TextCursor::Position{0,0});
+            }
+        }
+
+        SECTION("before-selection") {
+            cursor2.setPosition({0,2});
+
+            SECTION("insert") {
+                cursor2.insertText("a");
+                CHECK(cursor1.selectedText() == "hallo welt");
+            }
+            SECTION("insert-newline") {
+                cursor2.insertText("\n");
+                CHECK(cursor1.selectedText() == "hallo welt");
+            }
+            SECTION("tab") {
+                cursor2.insertText("\t");
+                CHECK(cursor1.selectedText() == "hallo welt");
+            }
+            SECTION("del") {
+                cursor2.deleteCharacter();
+                CHECK(cursor1.selectedText() == "allo welt");
+            }
+            SECTION("del-word") {
+                cursor2.deleteWord();
+                CHECK(cursor1.selectedText() == " welt");
+            }
+        }
+
+        SECTION("after-selection") {
+            cursor2.setPosition({10,2});
+
+            SECTION("insert") {
+                cursor2.insertText("a");
+                CHECK(cursor1.selectedText() == "hallo welt");
+            }
+            SECTION("insert-newline") {
+                cursor2.insertText("\n");
+                CHECK(cursor1.selectedText() == "hallo welt");
+            }
+            SECTION("tab") {
+                cursor2.insertText("\t");
+                CHECK(cursor1.selectedText() == "hallo welt");
+            }
+            SECTION("del") {
+                cursor2.deletePreviousCharacter();
+                CHECK(cursor1.selectedText() == "hallo wel");
+            }
+            SECTION("del-word") {
+                cursor2.deletePreviousWord();
+                CHECK(cursor1.selectedText() == "hallo ");
+            }
+        }
+    }
+}
