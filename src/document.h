@@ -177,6 +177,7 @@ public:
 
 public: // temporary hacks
     void tmp_ensureInRange();
+    void debugConsistencyCheck();
 
 private:
     //TextLayout createTextLayout(int line, bool wrappingAllowed);
@@ -268,6 +269,7 @@ public:
 
     void tmp_sortLines(int first, int last, TextCursor *cursorForUndoStep);
     void tmp_moveLine(int from, int to, TextCursor *cursorForUndoStep);
+    void debugConsistencyCheck(const TextCursor *exclude);
 
     void undo(TextCursor *cursor);
     void redo(TextCursor *cursor);

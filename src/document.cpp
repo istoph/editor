@@ -24,6 +24,8 @@ void Document::reset() {
     }
 
     initalUndoStep(nullptr);
+
+    debugConsistencyCheck(nullptr);
 }
 
 void Document::writeTo(QIODevice *file, bool crLfMode) {
@@ -101,6 +103,8 @@ bool Document::readFrom(QIODevice *file) {
         }
     }
 
+    debugConsistencyCheck(nullptr);
+
     return allLinesCrLf;
 }
 
@@ -161,6 +165,8 @@ void Document::tmp_sortLines(int first, int last, TextCursor *cursorForUndoStep)
             c->setPosition({cursorCodeUnit, cursorLine}, true);
         }
     }
+
+    debugConsistencyCheck(nullptr);
 
     saveUndoStep(cursorForUndoStep);
 }
@@ -224,7 +230,25 @@ void Document::tmp_moveLine(int from, int to, TextCursor *cursorForUndoStep) {
         });
     }
 
+    debugConsistencyCheck(nullptr);
+
     saveUndoStep(cursorForUndoStep);
+}
+
+void Document::debugConsistencyCheck(const TextCursor *exclude) {
+    for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
+        if (m->line() < 0) {
+            qFatal("Document::debugConsistencyCheck: A line marker has a negative position");
+            abort();
+        } else if (m->line() >= _lines.size()) {
+            qFatal("Document::debugConsistencyCheck: A line marker is beyond the maximum line");
+            abort();
+        }
+    }
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        if (c == exclude) continue;
+        c->debugConsistencyCheck();
+    }
 }
 
 void Document::undo(TextCursor *cursor) {
@@ -257,6 +281,8 @@ void Document::undo(TextCursor *cursor) {
             m->setLine(_lines.size() - 1);
         }
     }
+
+    debugConsistencyCheck(nullptr);
 
     emitModifedSignals();
 }
@@ -291,6 +317,8 @@ void Document::redo(TextCursor *cursor) {
             m->setLine(_lines.size() - 1);
         }
     }
+
+    debugConsistencyCheck(nullptr);
 
     emitModifedSignals();
 }
@@ -413,6 +441,8 @@ void Document::removeFromLine(TextCursor *cursor, int line, int codeUnitStart, i
             c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine}, true);
         }
     }
+
+    debugConsistencyCheck(cursor);
 }
 
 void Document::insertIntoLine(TextCursor *cursor, int line, int codeUnitStart, const QString &data) {
@@ -457,10 +487,14 @@ void Document::insertIntoLine(TextCursor *cursor, int line, int codeUnitStart, c
         }
 
     }
+
+    debugConsistencyCheck(cursor);
 }
 
 void Document::appendToLine(TextCursor *cursor, int line, const QString &data) {
     _lines[line].append(data);
+
+    debugConsistencyCheck(cursor);
 }
 
 void Document::removeLines(TextCursor *cursor, int start, int count) {
@@ -508,6 +542,8 @@ void Document::removeLines(TextCursor *cursor, int start, int count) {
             c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine}, true);
         }
     }
+
+    debugConsistencyCheck(cursor);
 }
 
 void Document::insertLine(TextCursor *cursor, int before, const QString &data) {
@@ -541,6 +577,8 @@ void Document::insertLine(TextCursor *cursor, int before, const QString &data) {
             c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine}, true);
         }
     }
+
+    debugConsistencyCheck(cursor);
 }
 
 void Document::splitLine(TextCursor *cursor, TextCursor::Position pos) {
@@ -599,6 +637,8 @@ void Document::splitLine(TextCursor *cursor, TextCursor::Position pos) {
             }
         }
     }
+
+    debugConsistencyCheck(cursor);
 }
 
 void Document::mergeLines(TextCursor *cursor, int line) {
@@ -644,6 +684,8 @@ void Document::mergeLines(TextCursor *cursor, int line) {
             c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine}, true);
         }
     }
+
+    debugConsistencyCheck(cursor);
 }
 
 void Document::emitModifedSignals() {
@@ -698,6 +740,8 @@ void TextCursor::insertText(const QString &text) {
     Tui::ZTextLayout lay = _createTextLayout(_cursorLine, true);
     updateVerticalMovementColumn(lay);
     _doc->saveUndoStep(this);
+
+    _doc->debugConsistencyCheck(nullptr);
 }
 
 void TextCursor::removeSelectedText() {
@@ -728,6 +772,7 @@ void TextCursor::removeSelectedText() {
     setPosition(start);
 
     _doc->saveUndoStep(this);
+    _doc->debugConsistencyCheck(nullptr);
 }
 
 void TextCursor::clearSelection() {
@@ -1037,9 +1082,44 @@ void TextCursor::updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForC
 }
 
 void TextCursor::tmp_ensureInRange() {
+    debugConsistencyCheck();
     // FIXME: Remove when everything uses TextCursor and TextCursor can ensure it does not point outside of the line.
     if (_doc->_lines[_cursorLine].size() < _cursorCodeUnit) {
         _cursorCodeUnit = _doc->_lines[_cursorLine].size();
+    }
+}
+
+void TextCursor::debugConsistencyCheck() {
+    if (_anchorLine >= _doc->_lines.size()) {
+        qFatal("TextCursor::debugConsistencyCheck: _anchorLine beyond max");
+        abort();
+    } else if (_anchorLine < 0) {
+        qFatal("TextCursor::debugConsistencyCheck: _anchorLine negative");
+        abort();
+    }
+
+    if (_anchorCodeUnit < 0) {
+        qFatal("TextCursor::debugConsistencyCheck: _anchorCodeUnit negative");
+        abort();
+    } else if (_anchorCodeUnit > _doc->_lines[_anchorLine].size()) {
+        qFatal("TextCursor::debugConsistencyCheck: _anchorCodeUnit beyond max");
+        abort();
+    }
+
+    if (_cursorLine >= _doc->_lines.size()) {
+        qFatal("TextCursor::debugConsistencyCheck: _cursorLine beyond max");
+        abort();
+    } else if (_cursorLine < 0) {
+        qFatal("TextCursor::debugConsistencyCheck: _cursorLine negative");
+        abort();
+    }
+
+    if (_cursorCodeUnit < 0) {
+        qFatal("TextCursor::debugConsistencyCheck: _cursorCodeUnit negative");
+        abort();
+    } else if (_cursorCodeUnit > _doc->_lines[_cursorLine].size()) {
+        qFatal("TextCursor::debugConsistencyCheck: _cursorCodeUnit beyond max");
+        abort();
     }
 }
 
