@@ -601,6 +601,51 @@ void Document::splitLine(TextCursor *cursor, TextCursor::Position pos) {
     }
 }
 
+void Document::mergeLines(TextCursor *cursor, int line) {
+    const int originalLineCodeUnits = _lines[line].size();
+    _lines[line].append(_lines[line + 1]);
+    if (line + 1 < _lines.size()) {
+        _lines.remove(line + 1, 1);
+    } else {
+        _lines[line + 1].clear();
+    }
+
+    for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
+        if (m->line() > line) {
+            m->setLine(m->line() - 1);
+        }
+    }
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        if (cursor == c) continue;
+
+        bool positionMustBeSet = false;
+
+        // anchor
+        const auto [anchorCodeUnit, anchorLine] = c->anchor();
+        if (anchorLine > line + 1) {
+            c->setAnchorPosition({anchorCodeUnit, anchorLine - 1});
+            positionMustBeSet = true;
+        } else if (anchorLine == line + 1) {
+            c->setAnchorPosition({originalLineCodeUnits + anchorCodeUnit, line});
+            positionMustBeSet = true;
+        }
+
+        // position
+        const auto [cursorCodeUnit, cursorLine] = c->position();
+        if (cursorLine > line + 1) {
+            c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine - 1}, true);
+            positionMustBeSet = false;
+        } else if (cursorLine == line + 1) {
+            c->setPosition({originalLineCodeUnits + cursorCodeUnit, line}, true);
+            positionMustBeSet = false;
+        }
+
+        if (positionMustBeSet) {
+            c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine}, true);
+        }
+    }
+}
+
 void Document::emitModifedSignals() {
     // TODO: Ideally emit these only when changed
     undoAvailable(_undoSteps.size() && _currentUndoStep != 0);
@@ -675,12 +720,8 @@ void TextCursor::removeSelectedText() {
         if (end.line == orignalTextLines) {
             // selected until the end of buffer, no last selection line to edit
         } else {
-            _doc->appendToLine(this, start.line, _doc->_lines[start.line + 1].mid(end.codeUnit));
-            if (start.line + 1 < _doc->_lines.size()) {
-                _doc->removeLines(this, start.line + 1, 1);
-            } else {
-                _doc->removeFromLine(this, start.line + 1, 0, _doc->_lines[start.line + 1].size());
-            }
+            _doc->removeFromLine(this, start.line + 1, 0, end.codeUnit);
+            _doc->mergeLines(this, start.line);
         }
     }
     clearSelection();

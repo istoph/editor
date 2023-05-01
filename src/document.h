@@ -307,6 +307,7 @@ private: // TextCursor interface
     void removeLines(TextCursor *cursor, int start, int count);
     void insertLine(TextCursor *cursor, int before, const QString &data);
     void splitLine(TextCursor *cursor, TextCursor::Position pos);
+    void mergeLines(TextCursor *cursor, int line);
     void saveUndoStep(TextCursor *cursor, bool collapsable=false);
     void registerTextCursor(TextCursor *marker);
     void unregisterTextCursor(TextCursor *marker);
