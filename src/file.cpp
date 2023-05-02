@@ -1631,8 +1631,10 @@ void File::insertAtCursorPosition(const QString &str) {
 
 void File::sortSelecedLines() {
     if (hasBlockSelection() || hasMultiInsert() || _cursor.hasSelection()) {
+        const auto [startLine, endLine] = getSelectLines();
         auto lines = getSelectLinesSort();
         _doc->tmp_sortLines(lines.first, lines.second + 1, &_cursor);
+        selectLines(startLine, endLine);
     }
     adjustScrollPosition();
 }

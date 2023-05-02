@@ -149,20 +149,62 @@ void Document::clearCollapseUndoStep() {
 }
 
 void Document::tmp_sortLines(int first, int last, TextCursor *cursorForUndoStep) {
-    std::sort(_lines.begin() + first, _lines.begin() + last);
 
-    // ensure all cursors have valid positions.
-    // The sort currently does not have information on how lines moved to properly
-    // adjust the cursors, but at least all cursors should be on valid positions after this
+    // We need to capture how lines got reordered to also adjust the cursor and line markers in the same pattern.
+    // Basically this is std::stable_sort(_lines.begin() + first, _lines.begin() + last) but also capturing the reordering
+
+    std::vector<int> reorderBuffer;
+    reorderBuffer.resize(last - first);
+    for (int i = 0; i < last - first; i++) {
+        reorderBuffer[i] = first + i;
+    }
+
+    std::stable_sort(reorderBuffer.begin(), reorderBuffer.end(), [&](int lhs, int rhs) {
+        return _lines[lhs] < _lines[rhs];
+    });
+
+    std::vector<QString> tmp;
+    tmp.resize(last - first);
+    for (int i = 0; i < last - first; i++) {
+        tmp[i] = _lines[first + i];
+    }
+
+    // Apply reorderBuffer to _lines
+    for (int i = 0; i < last - first; i++) {
+        _lines[first + i] = tmp[reorderBuffer[i] - first];
+    }
+
+    std::vector<int> reorderBufferInverted;
+    reorderBufferInverted.resize(last - first);
+    for (int i = 0; i < last - first; i++) {
+        reorderBufferInverted[reorderBuffer[i] - first] = first + i;
+    }
+
+    // And apply reorderBuffer to cursors
     for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
         const auto [anchorCodeUnit, anchorLine] = c->anchor();
         const auto [cursorCodeUnit, cursorLine] = c->position();
 
-        if ((first <= anchorLine && anchorLine < last)
-                || (first <= cursorLine && cursorLine < last)) {
+        bool positionMustBeSet = false;
 
-            c->setAnchorPosition({anchorCodeUnit, anchorLine});
-            c->setPosition({cursorCodeUnit, cursorLine}, true);
+        if (first <= anchorLine && anchorLine < last) {
+            c->setAnchorPosition({anchorCodeUnit, reorderBufferInverted[anchorLine - first]});
+            positionMustBeSet = true;
+        }
+
+        if (first <= cursorLine && cursorLine < last) {
+            c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, reorderBufferInverted[cursorLine - first]}, true);
+            positionMustBeSet = false;
+        }
+
+        if (positionMustBeSet) {
+            c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine}, true);
+        }
+    }
+    // Also line markers
+    for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
+        if (first <= m->line() && m->line() < last) {
+            m->setLine(reorderBufferInverted[m->line() - first]);
         }
     }
 
