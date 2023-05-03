@@ -2016,6 +2016,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 disableBlockSelection();
             }
 
+            // Shift+PageUp/Down does not work with xterm's default settings.
             const bool extendSelection = event->modifiers() == Qt::ShiftModifier || _selectMode;
             const int amount = getVisibleLines();
             for (int i = 0; i < amount; i++) {
@@ -2037,6 +2038,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 disableBlockSelection();
             }
 
+            // Shift+PageUp/Down does not work with xterm's default settings.
             const bool extendSelection = event->modifiers() == Qt::ShiftModifier || _selectMode;
             const int amount = getVisibleLines();
             for (int i = 0; i < amount; i++) {
