@@ -652,6 +652,7 @@ bool File::delSelect() {
     } else {
         _cursor.removeSelectedText();
     }
+    adjustScrollPosition();
     updateCommands();
     return true;
 }
@@ -1621,10 +1622,10 @@ void File::insertAtCursorPosition(const QString &str) {
                 }
             }
         }
-        adjustScrollPosition();
     } else {
         _cursor.insertText(str);
     }
+    adjustScrollPosition();
 }
 
 void File::sortSelecedLines() {
@@ -1632,6 +1633,7 @@ void File::sortSelecedLines() {
         auto lines = getSelectLinesSort();
         _doc.tmp_sortLines(lines.first, lines.second + 1, &_cursor);
     }
+    adjustScrollPosition();
 }
 
 bool File::event(QEvent *event) {
@@ -1820,6 +1822,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if (event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == Qt::AltModifier | Qt::ShiftModifier)  && isSelect()) {
         // Alt + Shift + s sort selected lines
         sortSelecedLines();
+        adjustScrollPosition();
         update();
     } else if (event->key() == Qt::Key_Left) {
         if (isAltShift || isAltCtrlShift) {
@@ -2102,6 +2105,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
             selectLines(startLine, endLine);
             setSelectMode(savedSelectMode);
+            adjustScrollPosition();
         } else {
             if (_eatSpaceBeforeTabs && !_tabOption) {
                 // If spaces in front of a tab
@@ -2161,6 +2165,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             selectLines(startLine, endLine);
         }
         setSelectMode(savedSelectMode);
+        adjustScrollPosition();
     } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {
         //STRG + C // Strg+Einfg
@@ -2247,6 +2252,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 selectLines(startLine - 1, endLine - 1);
             }
             setSelectMode(savedSelectMode);
+            adjustScrollPosition();
         }
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Down) {
         // returns current line if no selection is active
@@ -2270,12 +2276,14 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 selectLines(startLine + 1, endLine + 1);
             }
             setSelectMode(savedSelectMode);
+            adjustScrollPosition();
         }
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
         setSearchText("");
         if (_blockSelect) {
             disableBlockSelection();
         }
+        adjustScrollPosition();
     } else if (event->key() == Qt::Key_Insert && event->modifiers() == 0) {
         toggleOverwrite();
     } else if (event->key() == Qt::Key_F4 && event->modifiers() == 0) {
