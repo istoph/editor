@@ -717,6 +717,32 @@ TEST_CASE("Cursor") {
         CHECK(cursor1.position() == TextCursor::Position{1,1});
         CHECK(cursor2.position() == TextCursor::Position{1,1});
     }
+    SECTION("sort") {
+        cursor1.selectAll();
+        cursor1.insertText("3\n4\n2\n1");
+        cursor1.setPosition({0,1});
+        cursor1.moveCharacterRight(true);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectedText() == "4");
+
+        cursor2.selectAll();
+        CHECK(cursor1.position() == TextCursor::Position{1,1});
+        CHECK(cursor2.position() == TextCursor::Position{1,3});
+
+        doc.tmp_sortLines(0,4, &cursor2);
+        CHECK(doc.getLines().size() == 4);
+        REQUIRE(doc.getLines()[0] == "1");
+        REQUIRE(doc.getLines()[1] == "2");
+        REQUIRE(doc.getLines()[2] == "3");
+        REQUIRE(doc.getLines()[3] == "4");
+
+        CHECK(cursor1.position() == TextCursor::Position{1,3});
+        CHECK(cursor2.position() == TextCursor::Position{1,0});
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectedText() == "4");
+        CHECK(cursor2.hasSelection() == true);
+        //CHECK(cursor2.selectedText() == "1\n2\n3\n4"); TODO: ich würde erwarten das die Start und end Position noch selectiert ist.
+    }
     SECTION("select") {
         cursor1.setPosition({0,2});
         cursor1.insertText("hallo welt");
