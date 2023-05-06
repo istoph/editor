@@ -157,6 +157,7 @@ private:
     int shiftLinenumber();
     Tui::ZTextLayout getTextLayoutForLineWithoutWrapping(int line);
     TextCursor createCursor();
+    std::tuple<int, int, int> cursorPositionOrBlockSelectionEnd();
 
     // block selection
     void activateBlockSelection();

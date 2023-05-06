@@ -2300,27 +2300,29 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     }
 }
 
+std::tuple<int, int, int> File::cursorPositionOrBlockSelectionEnd() {
+    if (_blockSelect) {
+        const int cursorLine = _blockSelectEndLine->line();
+        const int cursorColumn = _blockSelectEndColumn;
+        Tui::ZTextLayout layNoWrap = getTextLayoutForLineWithoutWrapping(cursorLine);
+        const int cursorCodeUnit = layNoWrap.lineAt(0).xToCursor(cursorColumn);
+        return std::make_tuple(cursorCodeUnit, cursorLine, cursorColumn);
+    } else {
+        const auto [cursorCodeUnit, cursorLine] = _cursor.position();
+        Tui::ZTextLayout layNoWrap = getTextLayoutForLineWithoutWrapping(cursorLine);
+        int cursorColumn = layNoWrap.lineAt(0).cursorToX(cursorCodeUnit, Tui::ZTextLayout::Leading);
+
+        return std::make_tuple(cursorCodeUnit, cursorLine, cursorColumn);
+    }
+}
+
 void File::adjustScrollPosition() {
 
     if(geometry().width() <= 0 && geometry().height() <= 0) {
         return;
     }
 
-    const auto [cursorCodeUnit, cursorLine, cursorColumn] = [&]{
-        if (_blockSelect) {
-            const int cursorLine = _blockSelectEndLine->line();
-            const int cursorColumn = _blockSelectEndColumn;
-            Tui::ZTextLayout layNoWrap = getTextLayoutForLineWithoutWrapping(cursorLine);
-            const int cursorCodeUnit = layNoWrap.lineAt(0).xToCursor(cursorColumn);
-            return std::make_tuple(cursorCodeUnit, cursorLine, cursorColumn);
-        } else {
-            const auto [cursorCodeUnit, cursorLine] = _cursor.position();
-            Tui::ZTextLayout layNoWrap = getTextLayoutForLineWithoutWrapping(cursorLine);
-            int cursorColumn = layNoWrap.lineAt(0).cursorToX(cursorCodeUnit, Tui::ZTextLayout::Leading);
-
-            return std::make_tuple(cursorCodeUnit, cursorLine, cursorColumn);
-        }
-    }();
+    const auto [cursorCodeUnit, cursorLine, cursorColumn] = cursorPositionOrBlockSelectionEnd();
 
     int viewWidth = geometry().width() - shiftLinenumber();
     // horizontal scroll position
