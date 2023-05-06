@@ -1060,8 +1060,6 @@ TextCursor::Position TextCursor::anchor() {
 }
 
 void TextCursor::setAnchorPosition(TextCursor::Position pos) {
-    clearSelection();
-
     _anchorLine = std::max(std::min(pos.line, _doc->_lines.size() - 1), 0);
     _anchorCodeUnit = std::max(std::min(pos.codeUnit, _doc->_lines[_anchorLine].size()), 0);
 
