@@ -181,6 +181,7 @@ public:
 private:
     //TextLayout createTextLayout(int line, bool wrappingAllowed);
     void updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForCursorLine);
+    void scheduleChangeSignal();
 
 private:
     int _cursorCodeUnit = 0;
@@ -195,6 +196,7 @@ private:
 
 private: // For use by Document
     ListNode<TextCursor> markersList;
+    bool _changed = false;
 
     friend struct ListTrait<TextCursorToDocumentTag>;
     friend class Document;
@@ -224,6 +226,7 @@ private:
 
 private: // For use by Document
     ListNode<LineMarker> markersList;
+    bool _changed = false;
 
     friend struct ListTrait<LineMarkerToDocumentTag>;
     friend class Document;
@@ -281,6 +284,9 @@ signals:
     void redoAvailable(bool available);
     void undoAvailable(bool available);
 
+    void cursorChanged(const TextCursor *cursor);
+    void lineMarkerChanged(const LineMarker *marker);
+
 public:
     class UndoGroup {
     public:
@@ -320,6 +326,9 @@ private: // LineMarker interface
     void registerLineMarker(LineMarker *marker);
     void unregisterLineMarker(LineMarker *marker);
 
+private: // TextCursor + LineMarker interface
+    void scheduleChangeSignals();
+
 private:
     void emitModifedSignals();
 
@@ -345,6 +354,7 @@ private:
 
     ListHead<LineMarker, LineMarkerToDocumentTag> lineMarkerList;
     ListHead<TextCursor, TextCursorToDocumentTag> cursorList;
+    bool _changeScheduled = false;
 };
 
 #endif // DOCUMENT_H

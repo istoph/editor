@@ -2,6 +2,8 @@
 
 #include "document.h"
 
+#include <QTimer>
+
 #include <Tui/Misc/SurrogateEscape.h>
 
 #include "file.h"
@@ -390,6 +392,29 @@ void Document::unregisterLineMarker(LineMarker *marker) {
     lineMarkerList.remove(marker);
 }
 
+void Document::scheduleChangeSignals() {
+    if (_changeScheduled) return;
+
+    _changeScheduled = true;
+
+    QTimer::singleShot(0, this, [this] {
+        _changeScheduled = false;
+
+        for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+            if (c->_changed) {
+                c->_changed = false;
+                cursorChanged(c);
+            }
+        }
+        for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
+            if (m->_changed) {
+                m->_changed = false;
+                lineMarkerChanged(m);
+            }
+        }
+    });
+}
+
 Document::UndoGroup::~UndoGroup() {
     if (!_closed) {
         closeGroup();
@@ -763,25 +788,32 @@ void TextCursor::insertText(const QString &text) {
     auto lines = text.split("\n");
 
     removeSelectedText();
-    if (_doc->_nonewline && atEnd() && lines.size() > 1 && lines.last().size() == 0) {
-        lines.removeLast();
-        _doc->_nonewline = false;
+
+    if (text.size()) {
+        if (_doc->_nonewline && atEnd() && lines.size() > 1 && lines.last().size() == 0) {
+            lines.removeLast();
+            _doc->_nonewline = false;
+        }
+        _doc->insertIntoLine(this, _cursorLine, _cursorCodeUnit, lines.front());
+        _cursorCodeUnit += lines.front().size();
+        for (int i = 1; i < lines.size(); i++) {
+            _doc->splitLine(this, {_cursorCodeUnit, _cursorLine});
+            _cursorLine++;
+            _cursorCodeUnit = 0;
+            _doc->insertIntoLine(this, _cursorLine, _cursorCodeUnit, lines.at(i));
+            _cursorCodeUnit = lines.at(i).size();
+        }
+        _anchorCodeUnit = _cursorCodeUnit;
+        _anchorLine = _cursorLine;
+        scheduleChangeSignal();
     }
-    _doc->insertIntoLine(this, _cursorLine, _cursorCodeUnit, lines.front());
-    _cursorCodeUnit += lines.front().size();
-    for (int i = 1; i < lines.size(); i++) {
-        _doc->splitLine(this, {_cursorCodeUnit, _cursorLine});
-        _cursorLine++;
-        _cursorCodeUnit = 0;
-        _doc->insertIntoLine(this, _cursorLine, _cursorCodeUnit, lines.at(i));
-        _cursorCodeUnit = lines.at(i).size();
-    }
-    _anchorCodeUnit = _cursorCodeUnit;
-    _anchorLine = _cursorLine;
 
     Tui::ZTextLayout lay = _createTextLayout(_cursorLine, true);
     updateVerticalMovementColumn(lay);
-    _doc->saveUndoStep(this);
+
+    if (text.size()) {
+        _doc->saveUndoStep(this);
+    }
 
     _doc->debugConsistencyCheck(nullptr);
 }
@@ -818,8 +850,11 @@ void TextCursor::removeSelectedText() {
 }
 
 void TextCursor::clearSelection() {
-    _anchorCodeUnit = _cursorCodeUnit;
-    _anchorLine = _cursorLine;
+    if (_anchorCodeUnit != _cursorCodeUnit || _anchorLine != _cursorLine) {
+        _anchorCodeUnit = _cursorCodeUnit;
+        _anchorLine = _cursorLine;
+        scheduleChangeSignal();
+    }
 }
 
 QString TextCursor::selectedText() const {
@@ -1037,21 +1072,29 @@ void TextCursor::setPosition(TextCursor::Position pos, bool extendSelection) {
 }
 
 void TextCursor::setPositionPreservingVerticalMovementColumn(TextCursor::Position pos, bool extendSelection) {
-    _cursorLine = std::max(std::min(pos.line, _doc->_lines.size() - 1), 0);
-    _cursorCodeUnit = std::max(std::min(pos.codeUnit, _doc->_lines[_cursorLine].size()), 0);
+    auto cursorLine = std::max(std::min(pos.line, _doc->_lines.size() - 1), 0);
+    auto cursorCodeUnit = std::max(std::min(pos.codeUnit, _doc->_lines[cursorLine].size()), 0);
 
     // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
-    if (_cursorCodeUnit > 0) {
+    if (cursorCodeUnit > 0) {
         if (!_widget || _widget->terminal()) { // TODO rethink this hack to allow using setPosition before terminal is connected
-            Tui::ZTextLayout lay = _createTextLayout(_cursorLine, false);
-            _cursorCodeUnit = lay.previousCursorPosition(_cursorCodeUnit, Tui::ZTextLayout::SkipCharacters);
-            _cursorCodeUnit = lay.nextCursorPosition(_cursorCodeUnit, Tui::ZTextLayout::SkipCharacters);
+            Tui::ZTextLayout lay = _createTextLayout(cursorLine, false);
+            cursorCodeUnit = lay.previousCursorPosition(cursorCodeUnit, Tui::ZTextLayout::SkipCharacters);
+            cursorCodeUnit = lay.nextCursorPosition(cursorCodeUnit, Tui::ZTextLayout::SkipCharacters);
         }
     }
 
-    if (!extendSelection) {
-        _anchorCodeUnit = _cursorCodeUnit;
-        _anchorLine = _cursorLine;
+    if (!extendSelection
+            && (_anchorCodeUnit != cursorCodeUnit || _anchorLine != cursorLine)) {
+        _anchorCodeUnit = cursorCodeUnit;
+        _anchorLine = cursorLine;
+        scheduleChangeSignal();
+    }
+
+    if (_cursorLine != cursorLine || _cursorCodeUnit != cursorCodeUnit) {
+        _cursorLine = cursorLine;
+        _cursorCodeUnit = cursorCodeUnit;
+        scheduleChangeSignal();
     }
 }
 
@@ -1060,14 +1103,20 @@ TextCursor::Position TextCursor::anchor() {
 }
 
 void TextCursor::setAnchorPosition(TextCursor::Position pos) {
-    _anchorLine = std::max(std::min(pos.line, _doc->_lines.size() - 1), 0);
-    _anchorCodeUnit = std::max(std::min(pos.codeUnit, _doc->_lines[_anchorLine].size()), 0);
+    auto anchorLine = std::max(std::min(pos.line, _doc->_lines.size() - 1), 0);
+    auto anchorCodeUnit = std::max(std::min(pos.codeUnit, _doc->_lines[anchorLine].size()), 0);
 
     // We are not allowed to jump between characters. Therefore, we go once to the left and again to the right.
-    if (_anchorCodeUnit > 0) {
-        Tui::ZTextLayout lay = _createTextLayout(_anchorLine, false);
-        _anchorCodeUnit = lay.previousCursorPosition(_anchorCodeUnit, Tui::ZTextLayout::SkipCharacters);
-        _anchorCodeUnit = lay.nextCursorPosition(_anchorCodeUnit, Tui::ZTextLayout::SkipCharacters);
+    if (anchorCodeUnit > 0) {
+        Tui::ZTextLayout lay = _createTextLayout(anchorLine, false);
+        anchorCodeUnit = lay.previousCursorPosition(anchorCodeUnit, Tui::ZTextLayout::SkipCharacters);
+        anchorCodeUnit = lay.nextCursorPosition(anchorCodeUnit, Tui::ZTextLayout::SkipCharacters);
+    }
+
+    if (_anchorLine != anchorLine || _anchorCodeUnit != anchorCodeUnit) {
+        _anchorLine = anchorLine;
+        _anchorCodeUnit = anchorCodeUnit;
+        scheduleChangeSignal();
     }
 }
 
@@ -1121,6 +1170,10 @@ void TextCursor::updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForC
     _VerticalMovementColumn = tlr.cursorToX(_cursorCodeUnit, Tui::ZTextLayout::Leading);
 }
 
+void TextCursor::scheduleChangeSignal() {
+    _changed = true;
+    _doc->scheduleChangeSignals();
+}
 
 void TextCursor::debugConsistencyCheck() {
     if (_anchorLine >= _doc->_lines.size()) {
@@ -1172,5 +1225,11 @@ int LineMarker::line() {
 }
 
 void LineMarker::setLine(int line) {
-    _line = std::max(std::min(line, _doc->lineCount() - 1), 0);
+    line = std::max(std::min(line, _doc->lineCount() - 1), 0);
+
+    if (_line != line) {
+        _line = line;
+        _changed = true;
+        _doc->scheduleChangeSignals();
+    }
 }
