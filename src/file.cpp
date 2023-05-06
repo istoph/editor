@@ -66,6 +66,40 @@ File::File(Tui::ZWidget *parent)
           });
 
     QObject::connect(_doc.get(), &Document::modificationChanged, this, &File::modifiedChanged);
+
+    QObject::connect(_doc.get(), &Document::lineMarkerChanged, this, [this](const LineMarker *marker) {
+        if (marker == &_scrollPositionY || (_blockSelectEndLine && marker == &*_blockSelectEndLine)) {
+            // Recalculate the scroll position:
+            //  * In case any editing from outside of this class moved our scroll position line marker to ensure
+            //    that the line marker still keeps the cursor visible
+            //  * In case any editing from outside of this class moved our block selection cursor
+            // Internal changes trigger these signals as well, that should be safe, as long as adjustScrollPosition
+            // does not change the scroll position when called again as long as neither document nor the cursor or
+            // block selection cursor is changed inbetween.
+            adjustScrollPosition();
+        }
+        if (_blockSelectEndLine && marker == &*_blockSelectEndLine) {
+            // When in block selection mode, the block selection end line marker is what we expose as cursor position
+            // line, so send an update out.
+            const auto [cursorCodeUnit, cursorLine, cursorColumn] = cursorPositionOrBlockSelectionEnd();
+            int utf8PositionX = _doc->line(cursorLine).left(cursorCodeUnit).toUtf8().size();
+            cursorPositionChanged(cursorColumn, utf8PositionX, cursorLine);
+        }
+    });
+
+    QObject::connect(_doc.get(), &Document::cursorChanged, this, [this](const TextCursor *marker) {
+        if (marker == &_cursor) {
+            // Ensure that even if editing from outside of this class moved the cursor position it is still in the
+            // visible portion of the widget.
+            adjustScrollPosition();
+
+            // this is our main way to notify other components of cursor position changes.
+            const auto [cursorCodeUnit, cursorLine, cursorColumn] = cursorPositionOrBlockSelectionEnd();
+            int utf8PositionX = _doc->line(cursorLine).left(cursorCodeUnit).toUtf8().size();
+            cursorPositionChanged(cursorColumn, utf8PositionX, cursorLine);
+        }
+    });
+
 }
 
 bool File::readAttributes() {
@@ -2430,8 +2464,6 @@ void File::adjustScrollPosition() {
         }
     }
 
-    int _utf8PositionX = _doc->line(cursorLine).left(cursorCodeUnit).toUtf8().size();
-    cursorPositionChanged(cursorColumn, _utf8PositionX, cursorLine);
     scrollPositionChanged(_scrollPositionX, _scrollPositionY.line());
 
     int max=0;

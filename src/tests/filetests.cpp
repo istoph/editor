@@ -802,6 +802,8 @@ TEST_CASE("actions") {
         CHECK(f->getCursorPosition() == QPoint{8,1});
         f->setSearchText("t");
 
+        recorder.waitForEvent(cursorSignal);
+        recorder.clearEvents();
         t.f3(false, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{5,0});
@@ -837,6 +839,8 @@ TEST_CASE("actions") {
 
         f->setSearchText("t");
 
+        recorder.waitForEvent(cursorSignal);
+        recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{1,0});
@@ -868,6 +872,9 @@ TEST_CASE("actions") {
         recorder.clearEvents();
 
         f->setSearchText("t");
+
+        recorder.waitForEvent(cursorSignal);
+        recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{1,0});
@@ -903,6 +910,8 @@ TEST_CASE("actions") {
 
         f->setSearchText("t");
 
+        recorder.waitForEvent(cursorSignal);
+        recorder.clearEvents();
         t.f3(false, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{2,0});
@@ -938,6 +947,8 @@ TEST_CASE("actions") {
 
         f->setSearchText("t");
 
+        recorder.waitForEvent(cursorSignal);
+        recorder.clearEvents();
         t.f3(true, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{4,0});
@@ -976,6 +987,8 @@ TEST_CASE("actions") {
 
         f->setSearchText("t");
 
+        recorder.waitForEvent(cursorSignal);
+        recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{1,0});
@@ -1014,6 +1027,8 @@ TEST_CASE("actions") {
 
         f->setSearchText("t");
 
+        recorder.waitForEvent(cursorSignal);
+        recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{2,0});
@@ -1053,6 +1068,8 @@ TEST_CASE("actions") {
 
         f->setSearchText("aa");
 
+        recorder.waitForEvent(cursorSignal);
+        recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{3,0});
@@ -1094,6 +1111,8 @@ TEST_CASE("actions") {
             qpoints << QPoint{3,0} << QPoint{6,0} << QPoint{2,1};
         }
 
+        recorder.waitForEvent(cursorSignal);
+        recorder.clearEvents();
         for (QPoint point : qpoints) {
             t.f3(backward, &terminal, f);
             recorder.waitForEvent(cursorSignal);
@@ -1120,6 +1139,8 @@ TEST_CASE("actions") {
 
         f->setSearchText("asd");
 
+        recorder.waitForEvent(cursorSignal);
+        recorder.clearEvents();
         t.f3(true, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{3,0});
@@ -1145,6 +1166,9 @@ TEST_CASE("actions") {
         recorder.clearEvents();
 
         f->setSearchText("bb");
+
+        recorder.waitForEvent(cursorSignal);
+        recorder.clearEvents();
 
         SECTION("toggel-wraparound") {
             for(int i = 0; i < 3; i++) {
@@ -1199,6 +1223,8 @@ TEST_CASE("actions") {
 
         f->setSearchText("😎");
 
+        recorder.waitForEvent(cursorSignal);
+        recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{2,0});
@@ -1231,6 +1257,8 @@ TEST_CASE("actions") {
 
         f->setSearchText("😎");
 
+        recorder.waitForEvent(cursorSignal);
+        recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->getCursorPosition() == QPoint{2,0});
