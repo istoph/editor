@@ -2302,9 +2302,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
 void File::adjustScrollPosition() {
 
-    // FIXME: Remove when everything uses TextCursor and TextCursor can ensure it does not point outside of the line.
-    _cursor.tmp_ensureInRange();
-
     if(geometry().width() <= 0 && geometry().height() <= 0) {
         return;
     }

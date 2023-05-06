@@ -1123,13 +1123,6 @@ void TextCursor::updateVerticalMovementColumn(const Tui::ZTextLayout &layoutForC
     _VerticalMovementColumn = tlr.cursorToX(_cursorCodeUnit, Tui::ZTextLayout::Leading);
 }
 
-void TextCursor::tmp_ensureInRange() {
-    debugConsistencyCheck();
-    // FIXME: Remove when everything uses TextCursor and TextCursor can ensure it does not point outside of the line.
-    if (_doc->_lines[_cursorLine].size() < _cursorCodeUnit) {
-        _cursorCodeUnit = _doc->_lines[_cursorLine].size();
-    }
-}
 
 void TextCursor::debugConsistencyCheck() {
     if (_anchorLine >= _doc->_lines.size()) {

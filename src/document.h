@@ -175,8 +175,7 @@ public:
     bool atLineStart() const;
     bool atLineEnd() const;
 
-public: // temporary hacks
-    void tmp_ensureInRange();
+public:
     void debugConsistencyCheck();
 
 private:
