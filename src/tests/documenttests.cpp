@@ -865,5 +865,72 @@ TEST_CASE("Cursor") {
                 CHECK(cursor1.selectedText() == "hallo ");
             }
         }
+
+        SECTION("marker") {
+            LineMarker marker(&doc);
+            CHECK(marker.line() == 0);
+
+            // will move after generating, not active
+            LineMarker marker2(&doc);
+            CHECK(marker2.line() == 0);
+
+            // wrong marker
+            marker.setLine(45);
+            CHECK(marker.line() == 4);
+            cursor1.setPosition({0,0});
+            cursor1.insertText("\n");
+            CHECK(marker.line() == 5);
+            CHECK(marker2.line() == 1);
+
+            // cursor1 add lines
+            marker.setLine(5);
+            CHECK(marker.line() == 5);
+            cursor1.setPosition({0,5});
+            cursor1.insertText(" ");
+            CHECK(cursor1.position() == TextCursor::Position{1,5});
+            cursor1.insertText("\n");
+            CHECK(marker.line() == 5);
+            CHECK(marker2.line() == 1);
+
+            // wrong marker
+            marker.setLine(-1);
+            CHECK(marker.line() == 0);
+            cursor1.setPosition({0,0});
+            cursor1.insertText("\n");
+            CHECK(marker.line() == 1);
+            CHECK(marker2.line() == 2);
+
+            // cursor1 add and remove line
+            marker.setLine(1);
+            CHECK(marker.line() == 1);
+            cursor1.setPosition({0,0});
+            cursor1.insertText("\n");
+            CHECK(marker.line() == 2);
+            CHECK(marker2.line() == 3);
+
+            // cursor2 add and remove line
+            cursor2.setPosition({0,0});
+            cursor2.insertText("\n");
+            CHECK(marker.line() == 3);
+            cursor2.deleteLine();
+            CHECK(marker.line() == 2);
+
+            // delete the line with marker
+            cursor1.setPosition({0,2});
+            cursor1.deleteLine();
+            CHECK(marker.line() == 2);
+
+            // delete the lines with marker
+            cursor2.setPosition({0,1});
+            cursor2.setPosition({0,3},true);
+            cursor2.insertText(" ");
+            CHECK(marker.line() == 1);
+
+            // selectAll and delete
+            cursor2.selectAll();
+            cursor2.insertText(" ");
+            CHECK(marker.line() == 0);
+            CHECK(marker2.line() == 0);
+        }
     }
 }
