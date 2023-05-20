@@ -152,7 +152,7 @@ void Document::clearCollapseUndoStep() {
     _collapseUndoStep = false;
 }
 
-void Document::tmp_sortLines(int first, int last, TextCursor *cursorForUndoStep) {
+void Document::sortLines(int first, int last, TextCursor *cursorForUndoStep) {
 
     // We need to capture how lines got reordered to also adjust the cursor and line markers in the same pattern.
     // Basically this is std::stable_sort(_lines.begin() + first, _lines.begin() + last) but also capturing the reordering

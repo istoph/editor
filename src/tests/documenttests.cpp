@@ -739,7 +739,7 @@ TEST_CASE("Cursor") {
         CHECK(cursor1.position() == TextCursor::Position{1,1});
         CHECK(cursor2.position() == TextCursor::Position{1,3});
 
-        doc.tmp_sortLines(0,4, &cursor2);
+        doc.sortLines(0,4, &cursor2);
         CHECK(doc.lineCount() == 4);
         REQUIRE(doc.line(0) == "1");
         REQUIRE(doc.line(1) == "2");

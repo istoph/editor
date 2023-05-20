@@ -292,7 +292,7 @@ public:
 
     void clearCollapseUndoStep();
 
-    void tmp_sortLines(int first, int last, TextCursor *cursorForUndoStep);
+    void sortLines(int first, int last, TextCursor *cursorForUndoStep);
     void tmp_moveLine(int from, int to, TextCursor *cursorForUndoStep);
     void debugConsistencyCheck(const TextCursor *exclude);
 
