@@ -238,6 +238,29 @@ struct ListTrait<LineMarkerToDocumentTag> {
 };
 
 
+class DocumentSnapshotPrivate {
+public:
+    QVector<QString> _lines;
+};
+
+class DocumentSnapshot {
+public:
+    DocumentSnapshot();
+    DocumentSnapshot(const DocumentSnapshot &other);
+    ~DocumentSnapshot();
+
+    DocumentSnapshot &operator=(const DocumentSnapshot &other);
+
+public:
+    int lineCount() const;
+    QString line(int line) const;
+    int lineCodeUnits(int line) const;
+
+private:
+    std::shared_ptr<DocumentSnapshotPrivate> pimpl;
+    friend class Document;
+};
+
 class Document : public QObject {
     Q_OBJECT
     friend class TextCursor;
@@ -257,7 +280,7 @@ public:
     int lineCount() const;
     QString line(int line) const;
     int lineCodeUnits(int line) const;
-    QVector<QString> getLines() const;
+    DocumentSnapshot snapshot() const;
 
     bool isModified() const;
 

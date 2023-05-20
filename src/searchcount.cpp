@@ -7,13 +7,13 @@ SearchCount::SearchCount() {
 
 }
 
-void SearchCount::run(QVector<QString> text, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
+void SearchCount::run(DocumentSnapshot snap, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
     int found = 0;
-    for (int line = 0; line < text.size(); line++) {
+    for (int line = 0; line < snap.lineCount(); line++) {
         if (gen != *searchGen) {
             return;
         }
-        found += text[line].count(searchText, caseSensitivity);
+        found += snap.line(line).count(searchText, caseSensitivity);
         searchCount(found);
     }
 }

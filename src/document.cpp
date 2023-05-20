@@ -122,8 +122,10 @@ int Document::lineCodeUnits(int line) const {
     return _lines[line].size();
 }
 
-QVector<QString> Document::getLines() const {
-    return _lines;
+DocumentSnapshot Document::snapshot() const {
+    DocumentSnapshot ret;
+    ret.pimpl->_lines = _lines;
+    return ret;
 }
 
 bool Document::isModified() const {
@@ -1232,4 +1234,31 @@ void LineMarker::setLine(int line) {
         _changed = true;
         _doc->scheduleChangeSignals();
     }
+}
+
+
+DocumentSnapshot::DocumentSnapshot() : pimpl(std::make_shared<DocumentSnapshotPrivate>()) {
+}
+
+DocumentSnapshot::DocumentSnapshot(const DocumentSnapshot &other) : pimpl(other.pimpl) {
+}
+
+DocumentSnapshot::~DocumentSnapshot() {
+}
+
+DocumentSnapshot &DocumentSnapshot::operator=(const DocumentSnapshot &other) {
+    pimpl = other.pimpl;
+    return *this;
+}
+
+int DocumentSnapshot::lineCount() const {
+    return pimpl->_lines.size();
+}
+
+QString DocumentSnapshot::line(int line) const {
+    return pimpl->_lines[line];
+}
+
+int DocumentSnapshot::lineCodeUnits(int line) const {
+    return pimpl->_lines[line].size();
 }

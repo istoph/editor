@@ -150,7 +150,7 @@ private:
     Tui::ZTextLayout getTextLayoutForLine(const Tui::ZTextOption &option, int line);
     bool highlightBracket();
     void searchSelect(int line, int found, int length, bool direction);
-    SearchLine searchNext(QVector<QString> text, SearchParameter search);
+    SearchLine searchNext(DocumentSnapshot snap, SearchParameter search);
     //void searchSelectPrevious(int line, int found);
     void setSelectMode(bool f4);
     bool getSelectMode();

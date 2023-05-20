@@ -884,12 +884,12 @@ void File::setSearchText(QString searchText) {
     SearchCountSignalForwarder *searchCountSignalForwarder = new SearchCountSignalForwarder();
     QObject::connect(searchCountSignalForwarder, &SearchCountSignalForwarder::searchCount, this, &File::emitSearchCount);
 
-    QtConcurrent::run([searchCountSignalForwarder](QVector<QString> text, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
+    QtConcurrent::run([searchCountSignalForwarder](DocumentSnapshot snap, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
         SearchCount sc;
         QObject::connect(&sc, &SearchCount::searchCount, searchCountSignalForwarder, &SearchCountSignalForwarder::searchCount);
-        sc.run(text, searchText, caseSensitivity, gen, searchGen);
+        sc.run(snap, searchText, caseSensitivity, gen, searchGen);
         searchCountSignalForwarder->deleteLater();
-    }, _doc->getLines(), _searchText, _searchCaseSensitivity, gen, searchGeneration);
+    }, _doc->snapshot(), _searchText, _searchCaseSensitivity, gen, searchGeneration);
 }
 
 void File::setSearchCaseSensitivity(Qt::CaseSensitivity searchCaseSensitivity) {
@@ -986,11 +986,11 @@ struct SearchParameter {
     bool reg;
 };
 
-static SearchLine conSearchNext(QVector<QString> text, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
+static SearchLine conSearchNext(DocumentSnapshot snap, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
     int line = search.startAtLine;
     int found = search.startPosition -1;
     bool reg = search.reg;
-    int end = text.size();
+    int end = snap.lineCount();
     QRegularExpression rx(search.searchText);
     int length = 0;
 
@@ -998,7 +998,7 @@ static SearchLine conSearchNext(QVector<QString> text, SearchParameter search, i
     while (true) {
         for(;line < end; line++) {
             if(reg) {
-                QRegularExpressionMatchIterator remi = rx.globalMatch(text[line]);
+                QRegularExpressionMatchIterator remi = rx.globalMatch(snap.line(line));
                 while (remi.hasNext()) {
                     QRegularExpressionMatch match = remi.next();
                     if(nextGeneration != nullptr && gen != *nextGeneration) return {-1, -1, -1};
@@ -1010,7 +1010,7 @@ static SearchLine conSearchNext(QVector<QString> text, SearchParameter search, i
                 }
                 found = -1;
             } else {
-                found = text[line].indexOf(search.searchText, found + 1, search.caseSensitivity);
+                found = snap.line(line).indexOf(search.searchText, found + 1, search.caseSensitivity);
                 length = search.searchText.size();
             }
             if(nextGeneration != nullptr && gen != *nextGeneration) return {-1, -1, -1};
@@ -1019,18 +1019,18 @@ static SearchLine conSearchNext(QVector<QString> text, SearchParameter search, i
         if(!search.searchWrap || haswrapped) {
             return {-1, -1, -1};
         }
-        end = std::min(search.startAtLine +1, text.size());
+        end = std::min(search.startAtLine +1, snap.lineCount());
         line = 0;
         haswrapped = true;
     }
     return {-1, -1, -1};
 }
 
-SearchLine File::searchNext(QVector<QString> text, SearchParameter search) {
-    return conSearchNext(text, search, 0, nullptr);
+SearchLine File::searchNext(DocumentSnapshot snap, SearchParameter search) {
+    return conSearchNext(snap, search, 0, nullptr);
 }
 
-static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
+static SearchLine conSearchPrevious(DocumentSnapshot snap, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
     int line = search.startAtLine;
     bool reg = search.reg;
     int searchAt = search.startPosition;
@@ -1042,7 +1042,7 @@ static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter searc
         for (; line >= end;) {
             if (reg) {
                 SearchLine t = {-1,-1,-1};
-                QRegularExpressionMatchIterator remi = rx.globalMatch(text[line]);
+                QRegularExpressionMatchIterator remi = rx.globalMatch(snap.line(line));
                 while (remi.hasNext()) {
                     QRegularExpressionMatch match = remi.next();
                     if(gen != *nextGeneration) return {-1, -1, -1};
@@ -1058,19 +1058,19 @@ static SearchLine conSearchPrevious(QVector<QString> text, SearchParameter searc
                 found = -1;
             } else {
                 if (searchAt >= search.searchText.size()) {
-                    found = text[line].lastIndexOf(search.searchText, searchAt - search.searchText.size(), search.caseSensitivity);
+                    found = snap.line(line).lastIndexOf(search.searchText, searchAt - search.searchText.size(), search.caseSensitivity);
                 }
             }
             if (gen != *nextGeneration) return {-1, -1, -1};
             if (found != -1) return {line, found, search.searchText.size()};
-            if (--line >= 0) searchAt = text[line].size();
+            if (--line >= 0) searchAt = snap.line(line).size();
         }
         if(!search.searchWrap || haswrapped) {
             return {-1, -1, -1};
         }
         end = search.startAtLine;
-        line = text.size() -1;
-        searchAt = text[line].size();
+        line = snap.lineCount() - 1;
+        searchAt = snap.lineCodeUnits(line);
         haswrapped = true;
     }
 }
@@ -1093,7 +1093,7 @@ void File::runSearch(bool direction) {
         QFuture<SearchLine> future;
         if(efectivDirection) {
             SearchParameter search = { _searchText, _searchWrap, _searchCaseSensitivity, startLine, startCodeUnit, _searchReg};
-            future = QtConcurrent::run(conSearchNext, _doc->getLines(), search, gen, searchNextGeneration);
+            future = QtConcurrent::run(conSearchNext, _doc->snapshot(), search, gen, searchNextGeneration);
         } else {
             if (_cursor.hasSelection()) {
                 startCodeUnit = startCodeUnit - 1;
@@ -1106,7 +1106,7 @@ void File::runSearch(bool direction) {
             }
             SearchParameter search = { _searchText, _searchWrap, _searchCaseSensitivity, startLine, startCodeUnit, _searchReg};
 
-            future = QtConcurrent::run(conSearchPrevious, _doc->getLines(), search, gen, searchNextGeneration);
+            future = QtConcurrent::run(conSearchPrevious, _doc->snapshot(), search, gen, searchNextGeneration);
         }
         watcher->setFuture(future);
     }
@@ -1142,7 +1142,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
     while (true) {
         const auto [cursorCodeUnit, cursorLine] = _cursor.position();
         SearchParameter search = { _searchText, false, _searchCaseSensitivity, cursorLine, cursorCodeUnit, _searchReg};
-        SearchLine sl = searchNext(_doc->getLines(), search);
+        SearchLine sl = searchNext(_doc->snapshot(), search);
         if(sl.length == -1) {
             break;
         }
