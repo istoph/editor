@@ -12,6 +12,16 @@
 #include <Tui/ZTerminal.h>
 #include <Tui/ZTextMetrics.h>
 
+static QVector<QString> docToVec(const Document &doc) {
+    QVector<QString> ret;
+
+    for (int i = 0; i < doc.lineCount(); i++) {
+        ret.append(doc.line(i));
+    }
+
+    return ret;
+}
+
 
 TEST_CASE("Document") {
     Tui::ZTerminal terminal{Tui::ZTerminal::OffScreen{1, 1}};
@@ -21,7 +31,7 @@ TEST_CASE("Document") {
     Document doc;
 
     TextCursor cursor{&doc, nullptr, [&terminal,&doc](int line, bool wrappingAllowed) {
-            Tui::ZTextLayout lay(terminal.textMetrics(), doc.getLines()[line]);
+            Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line));
             lay.doLayout(65000);
             return lay;
         }
@@ -32,55 +42,55 @@ TEST_CASE("Document") {
 
         cursor.insertText("test\ntest");
 
-        REQUIRE(doc.getLines().size() == 2);
-        CHECK(doc.getLines()[0] == "test");
-        CHECK(doc.getLines()[1] == "test");
+        REQUIRE(doc.lineCount() == 2);
+        CHECK(doc.line(0) == "test");
+        CHECK(doc.line(1) == "test");
     }
     SECTION("insert and remove nonewline") {
         doc.setNoNewline(true);
         cursor.insertText("\n");
-        REQUIRE(doc.getLines().size() == 1);
+        REQUIRE(doc.lineCount() == 1);
         CHECK(doc.noNewLine() == false);
     }
 
     SECTION("inser-empty") {
         cursor.insertText("");
-        REQUIRE(doc.getLines().size() == 1);
+        REQUIRE(doc.lineCount() == 1);
         CHECK(cursor.position() == TextCursor::Position{0,0});
     }
 
     SECTION("inser-empty-line-and-text") {
         cursor.insertText("\ntest test");
-        REQUIRE(doc.getLines().size() == 2);
+        REQUIRE(doc.lineCount() == 2);
         CHECK(cursor.position() == TextCursor::Position{9,1});
     }
 
     SECTION("inser-lines") {
         cursor.insertText("test test");
-        REQUIRE(doc.getLines().size() == 1);
+        REQUIRE(doc.lineCount() == 1);
         CHECK(cursor.position() == TextCursor::Position{9,0});
         cursor.selectAll();
 
         cursor.insertText("test test\ntest test");
-        REQUIRE(doc.getLines().size() == 2);
+        REQUIRE(doc.lineCount() == 2);
         CHECK(cursor.position() == TextCursor::Position{9,1});
         cursor.selectAll();
 
         cursor.insertText("test test\ntest test\ntest test\n");
-        REQUIRE(doc.getLines().size() == 4);
+        REQUIRE(doc.lineCount() == 4);
         CHECK(cursor.position() == TextCursor::Position{0,3});
         cursor.selectAll();
 
         cursor.insertText("test test\ntest test\n");
         cursor.insertText("test test\ntest test");
-        REQUIRE(doc.getLines().size() == 4);
+        REQUIRE(doc.lineCount() == 4);
         CHECK(cursor.position() == TextCursor::Position{9,3});
         cursor.selectAll();
     }
 
     SECTION("inser-and-selection") {
         cursor.insertText("test test");
-        REQUIRE(doc.getLines().size() == 1);
+        REQUIRE(doc.lineCount() == 1);
         CHECK(cursor.position() == TextCursor::Position{9,0});
         cursor.moveWordLeft(true);
         CHECK(cursor.position() == TextCursor::Position{5,0});
@@ -89,7 +99,7 @@ TEST_CASE("Document") {
         QVector<QString> test;
         test.append("test new new");
         CHECK(cursor.position() == TextCursor::Position{12,0});
-        CHECK(doc.getLines() == test);
+        CHECK(docToVec(doc) == test);
 
         cursor.moveWordLeft(true);
         cursor.moveWordLeft(true);
@@ -110,10 +120,10 @@ TEST_CASE("Document") {
         CAPTURE(afterDeletetText);
         if (afterDeletetText) {
             cursor.insertText("test test\ntest test\ntest test\n");
-            REQUIRE(doc.getLines().size() == 4);
+            REQUIRE(doc.lineCount() == 4);
             cursor.selectAll();
             cursor.removeSelectedText();
-            REQUIRE(doc.getLines().size() == 1);
+            REQUIRE(doc.lineCount() == 1);
         }
 
         cursor.moveCharacterLeft(selection);
@@ -152,7 +162,7 @@ TEST_CASE("Document") {
         CAPTURE(selection);
 
         cursor.insertText("test test\ntest test\ntest test");
-        REQUIRE(doc.getLines().size() == 3);
+        REQUIRE(doc.lineCount() == 3);
         CHECK(cursor.position() == TextCursor::Position{9,2});
 
 
@@ -226,40 +236,40 @@ TEST_CASE("Document") {
 
     SECTION("delete") {
         cursor.insertText("test test\ntest test\ntest test");
-        REQUIRE(doc.getLines().size() == 3);
-        REQUIRE(doc.getLines()[0].size() == 9);
-        REQUIRE(doc.getLines()[1].size() == 9);
-        REQUIRE(doc.getLines()[2].size() == 9);
+        REQUIRE(doc.lineCount() == 3);
+        REQUIRE(doc.lineCodeUnits(0) == 9);
+        REQUIRE(doc.lineCodeUnits(1) == 9);
+        REQUIRE(doc.lineCodeUnits(2) == 9);
         CHECK(cursor.position() == TextCursor::Position{9,2});
 
         cursor.deletePreviousCharacter();
-        REQUIRE(doc.getLines().size() == 3);
-        REQUIRE(doc.getLines()[0].size() == 9);
-        REQUIRE(doc.getLines()[1].size() == 9);
-        REQUIRE(doc.getLines()[2].size() == 8);
+        REQUIRE(doc.lineCount() == 3);
+        REQUIRE(doc.lineCodeUnits(0) == 9);
+        REQUIRE(doc.lineCodeUnits(1) == 9);
+        REQUIRE(doc.lineCodeUnits(2) == 8);
         CHECK(cursor.position() == TextCursor::Position{8,2});
         cursor.deletePreviousWord();
-        REQUIRE(doc.getLines().size() == 3);
-        REQUIRE(doc.getLines()[0].size() == 9);
-        REQUIRE(doc.getLines()[1].size() == 9);
-        REQUIRE(doc.getLines()[2].size() == 5);
+        REQUIRE(doc.lineCount() == 3);
+        REQUIRE(doc.lineCodeUnits(0) == 9);
+        REQUIRE(doc.lineCodeUnits(1) == 9);
+        REQUIRE(doc.lineCodeUnits(2) == 5);
         CHECK(cursor.position() == TextCursor::Position{5,2});
 
         cursor.setPosition({0,1});
 
         cursor.deleteCharacter();
         CHECK(cursor.position() == TextCursor::Position{0,1});
-        CHECK(doc.getLines().size() == 3);
-        CHECK(doc.getLines()[0].size() == 9);
-        CHECK(doc.getLines()[1].size() == 8);
-        CHECK(doc.getLines()[2].size() == 5);
+        CHECK(doc.lineCount() == 3);
+        CHECK(doc.lineCodeUnits(0) == 9);
+        CHECK(doc.lineCodeUnits(1) == 8);
+        CHECK(doc.lineCodeUnits(2) == 5);
 
         cursor.deleteWord();
         CHECK(cursor.position() == TextCursor::Position{0,1});
-        CHECK(doc.getLines().size() == 3);
-        CHECK(doc.getLines()[0].size() == 9);
-        CHECK(doc.getLines()[1].size() == 5);
-        CHECK(doc.getLines()[2].size() == 5);
+        CHECK(doc.lineCount() == 3);
+        CHECK(doc.lineCodeUnits(0) == 9);
+        CHECK(doc.lineCodeUnits(1) == 5);
+        CHECK(doc.lineCodeUnits(2) == 5);
     }
 
     SECTION("delete-newline") {
@@ -272,25 +282,25 @@ TEST_CASE("Document") {
 
         cursor.insertText("\n\n\n\n\n\n");
         CHECK(cursor.position() == TextCursor::Position{0,6});
-        CHECK(doc.getLines().size() == 7);
+        CHECK(doc.lineCount() == 7);
 
         cursor.deletePreviousCharacter();
         CHECK(cursor.position() == TextCursor::Position{0,5});
-        CHECK(doc.getLines().size() == 6);
+        CHECK(doc.lineCount() == 6);
 
         cursor.deletePreviousWord();
         CHECK(cursor.position() == TextCursor::Position{0,4});
-        CHECK(doc.getLines().size() == 5);
+        CHECK(doc.lineCount() == 5);
 
         cursor.setPosition({0,2});
 
         cursor.deleteCharacter();
         CHECK(cursor.position() == TextCursor::Position{0,2});
-        CHECK(doc.getLines().size() == 4);
+        CHECK(doc.lineCount() == 4);
 
         cursor.deleteWord();
         CHECK(cursor.position() == TextCursor::Position{0,2});
-        CHECK(doc.getLines().size() == 3);
+        CHECK(doc.lineCount() == 3);
     }
 
     SECTION("delete-word") {
@@ -320,17 +330,17 @@ TEST_CASE("Document") {
         cursor.selectAll();
         cursor.insertText("a bb  ccc   dddd     eeeee");
         cursor.setPosition({0,0});
-        CHECK(doc.getLines()[0].size() == 26);
+        CHECK(doc.lineCodeUnits(0) == 26);
         cursor.deleteWord();
-        CHECK(doc.getLines()[0].size() == 25);
+        CHECK(doc.lineCodeUnits(0) == 25);
         cursor.deleteWord();
-        CHECK(doc.getLines()[0].size() == 22);
+        CHECK(doc.lineCodeUnits(0) == 22);
         cursor.deleteWord();
-        CHECK(doc.getLines()[0].size() == 17);
+        CHECK(doc.lineCodeUnits(0) == 17);
         cursor.deleteWord();
-        CHECK(doc.getLines()[0].size() == 10);
+        CHECK(doc.lineCodeUnits(0) == 10);
         cursor.deleteWord();
-        CHECK(doc.getLines()[0].size() == 0);
+        CHECK(doc.lineCodeUnits(0) == 0);
     }
 
     SECTION("delete-line") {
@@ -346,18 +356,18 @@ TEST_CASE("Document") {
             cursor.moveWordRight(true);
             CHECK(cursor.position() == TextCursor::Position{6,1});
         }
-        REQUIRE(doc.getLines().size() == 3);
+        REQUIRE(doc.lineCount() == 3);
 
         cursor.deleteLine();
-        CAPTURE(doc.getLines());
+        CAPTURE(docToVec(doc));
         CHECK(cursor.position() == TextCursor::Position{0,1});
-        CHECK(doc.getLines().size() == 2);
+        CHECK(doc.lineCount() == 2);
 
         QVector<QString> text;
         text.append("test test");
         text.append("test test");
 
-        CHECK(doc.getLines() == text);
+        CHECK(docToVec(doc) == text);
     }
 
     SECTION("delete-fist-line") {
@@ -373,18 +383,18 @@ TEST_CASE("Document") {
             cursor.moveUp(true);
             CHECK(cursor.position() == TextCursor::Position{0,0});
         }
-        REQUIRE(doc.getLines().size() == 3);
+        REQUIRE(doc.lineCount() == 3);
         cursor.deleteLine();
-        CAPTURE(doc.getLines());
+        CAPTURE(docToVec(doc));
         CHECK(cursor.position() == TextCursor::Position{0,0});
-        CHECK(doc.getLines().size() == 2);
+        CHECK(doc.lineCount() == 2);
         CHECK(cursor.hasSelection() == false);
 
         QVector<QString> text;
         text.append("test test");
         text.append("test test");
 
-        CHECK(doc.getLines() == text);
+        CHECK(docToVec(doc) == text);
     }
 
     SECTION("delete-last-line") {
@@ -399,18 +409,18 @@ TEST_CASE("Document") {
             cursor.setPosition({0,2});
             CHECK(cursor.position() == TextCursor::Position{0,2});
         }
-        REQUIRE(doc.getLines().size() == 3);
+        REQUIRE(doc.lineCount() == 3);
         cursor.deleteLine();
-        CAPTURE(doc.getLines());
+        CAPTURE(docToVec(doc));
         CHECK(cursor.position() == TextCursor::Position{9,1});
-        CHECK(doc.getLines().size() == 2);
+        CHECK(doc.lineCount() == 2);
         CHECK(cursor.hasSelection() == false);
 
         QVector<QString> text;
         text.append("test test");
         text.append("test test");
 
-        CHECK(doc.getLines() == text);
+        CHECK(docToVec(doc) == text);
     }
 
     SECTION("hasSelection-and-pos") {
@@ -469,7 +479,7 @@ TEST_CASE("Document") {
         cursor.moveCharacterRight(true);
         CHECK(cursor.hasSelection() == false);
         cursor.deletePreviousCharacter();
-        CHECK(doc.getLines()[0] == "ac");
+        CHECK(doc.line(0) == "ac");
     }
 
     SECTION("selectAll") {
@@ -516,27 +526,27 @@ TEST_CASE("Document") {
     SECTION("removeSelectedText") {
         CHECK(cursor.hasSelection() == false);
         cursor.removeSelectedText();
-        CHECK(doc.getLines().size() == 1);
-        CHECK(doc.getLines()[0].size() == 0);
+        CHECK(doc.lineCount() == 1);
+        CHECK(doc.lineCodeUnits(0) == 0);
 
         cursor.selectAll();
         CHECK(cursor.hasSelection() == false);
         cursor.removeSelectedText();
-        CHECK(doc.getLines().size() == 1);
-        CHECK(doc.getLines()[0].size() == 0);
+        CHECK(doc.lineCount() == 1);
+        CHECK(doc.lineCodeUnits(0) == 0);
 
         cursor.insertText(" ");
         cursor.selectAll();
         cursor.removeSelectedText();
-        CHECK(doc.getLines().size() == 1);
-        CHECK(doc.getLines()[0].size() == 0);
+        CHECK(doc.lineCount() == 1);
+        CHECK(doc.lineCodeUnits(0) == 0);
 
         cursor.insertText("\n");
-        CHECK(doc.getLines().size() == 2);
+        CHECK(doc.lineCount() == 2);
         cursor.selectAll();
         cursor.removeSelectedText();
-        CHECK(doc.getLines().size() == 1);
-        CHECK(doc.getLines()[0].size() == 0);
+        CHECK(doc.lineCount() == 1);
+        CHECK(doc.lineCodeUnits(0) == 0);
 
         cursor.insertText("aRemovEb");
         cursor.moveCharacterLeft();
@@ -545,8 +555,8 @@ TEST_CASE("Document") {
         }
         CHECK(cursor.selectedText() == "RemovE");
         cursor.removeSelectedText();
-        CHECK(doc.getLines().size() == 1);
-        CHECK(doc.getLines()[0].size() == 2);
+        CHECK(doc.lineCount() == 1);
+        CHECK(doc.lineCodeUnits(0) == 2);
 
         //clear
         cursor.selectAll();
@@ -559,8 +569,8 @@ TEST_CASE("Document") {
         }
         CHECK(cursor.selectedText() == "RemovE");
         cursor.removeSelectedText();
-        CHECK(doc.getLines().size() == 1);
-        CHECK(doc.getLines()[0].size() == 1);
+        CHECK(doc.lineCount() == 1);
+        CHECK(doc.lineCodeUnits(0) == 1);
 
         //clear
         cursor.selectAll();
@@ -572,8 +582,8 @@ TEST_CASE("Document") {
         }
         CHECK(cursor.selectedText() == "RemovE");
         cursor.removeSelectedText();
-        CHECK(doc.getLines().size() == 1);
-        CHECK(doc.getLines()[0].size() == 1);
+        CHECK(doc.lineCount() == 1);
+        CHECK(doc.lineCodeUnits(0) == 1);
 
         //clear
         cursor.selectAll();
@@ -586,8 +596,8 @@ TEST_CASE("Document") {
         }
         CHECK(cursor.selectedText() == "Rem\novE");
         cursor.removeSelectedText();
-        CHECK(doc.getLines().size() == 1);
-        CHECK(doc.getLines()[0].size() == 2);
+        CHECK(doc.lineCount() == 1);
+        CHECK(doc.lineCodeUnits(0) == 2);
 
         //clear
         cursor.selectAll();
@@ -599,9 +609,9 @@ TEST_CASE("Document") {
         }
         CHECK(cursor.selectedText() == "Rem\novE\n");
         cursor.removeSelectedText();
-        CHECK(doc.getLines().size() == 1);
-        CHECK(doc.getLines()[0].size() == 1);
-        CHECK(doc.getLines()[0] == "a");
+        CHECK(doc.lineCount() == 1);
+        CHECK(doc.lineCodeUnits(0) == 1);
+        CHECK(doc.line(0) == "a");
 
         //clear
         cursor.selectAll();
@@ -614,9 +624,9 @@ TEST_CASE("Document") {
         }
         CHECK(cursor.selectedText() == "\nRem\novE");
         cursor.removeSelectedText();
-        CHECK(doc.getLines().size() == 1);
-        CHECK(doc.getLines()[0].size() == 1);
-        CHECK(doc.getLines()[0] == "b");
+        CHECK(doc.lineCount() == 1);
+        CHECK(doc.lineCodeUnits(0) == 1);
+        CHECK(doc.line(0) == "b");
     }
 
     SECTION("at") {
@@ -680,7 +690,7 @@ TEST_CASE("Cursor") {
     Document doc;
 
     TextCursor cursor1{&doc, nullptr, [&terminal,&doc](int line, bool wrappingAllowed) {
-            Tui::ZTextLayout lay(terminal.textMetrics(), doc.getLines()[line]);
+            Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line));
             lay.doLayout(65000);
             return lay;
         }
@@ -688,7 +698,7 @@ TEST_CASE("Cursor") {
     cursor1.insertText(" \n \n \n \n");
 
     TextCursor cursor2{&doc, nullptr, [&terminal,&doc](int line, bool wrappingAllowed) {
-            Tui::ZTextLayout lay(terminal.textMetrics(), doc.getLines()[line]);
+            Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line));
             lay.doLayout(65000);
             return lay;
         }
@@ -700,12 +710,12 @@ TEST_CASE("Cursor") {
     SECTION("delete-previous-line") {
         cursor2.setPosition({0,3});
         CHECK(cursor2.position() == TextCursor::Position{0,3});
-        CHECK(doc.getLines().size() == 5);
+        CHECK(doc.lineCount() == 5);
         cursor2.deleteCharacter();
         cursor2.deleteCharacter();
         CHECK(cursor2.position() == TextCursor::Position{0,3});
         CHECK(cursor1.position() == TextCursor::Position{0,3});
-        CHECK(doc.getLines().size() == 4);
+        CHECK(doc.lineCount() == 4);
     }
     SECTION("delete-on-cursor") {
         cursor1.setPosition({0,2});
@@ -730,11 +740,11 @@ TEST_CASE("Cursor") {
         CHECK(cursor2.position() == TextCursor::Position{1,3});
 
         doc.tmp_sortLines(0,4, &cursor2);
-        CHECK(doc.getLines().size() == 4);
-        REQUIRE(doc.getLines()[0] == "1");
-        REQUIRE(doc.getLines()[1] == "2");
-        REQUIRE(doc.getLines()[2] == "3");
-        REQUIRE(doc.getLines()[3] == "4");
+        CHECK(doc.lineCount() == 4);
+        REQUIRE(doc.line(0) == "1");
+        REQUIRE(doc.line(1) == "2");
+        REQUIRE(doc.line(2) == "3");
+        REQUIRE(doc.line(3) == "4");
 
         CHECK(cursor1.position() == TextCursor::Position{1,3});
         CHECK(cursor2.position() == TextCursor::Position{1,0});
