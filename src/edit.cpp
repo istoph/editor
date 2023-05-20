@@ -11,6 +11,7 @@
 #include <Tui/ZMenubar.h>
 #include <Tui/ZPalette.h>
 #include <Tui/ZTerminal.h>
+#include <Tui/ZTerminalDiagnosticsDialog.h>
 #include <Tui/ZTextLine.h>
 #include <Tui/ZVBoxLayout.h>
 
@@ -87,6 +88,7 @@ void Editor::setupUi() {
                       },
                       {"<m>W</m>indow", this, [this] { return createWindowMenu(); }},
                       { "Hel<m>p</m>", "", {}, {
+                            { "Terminal diagnostics", "", "TerminalDiagnostics", {}},
                             { "<m>A</m>bout", "", "About", {}}
                         }
                       }
@@ -302,6 +304,12 @@ void Editor::setupUi() {
     QObject::connect(new Tui::ZCommandNotifier("About", this), &Tui::ZCommandNotifier::activated,
         [this] {
             new AboutDialog(this);
+        }
+    );
+
+    QObject::connect(new Tui::ZCommandNotifier("TerminalDiagnostics", this), &Tui::ZCommandNotifier::activated, this,
+        [this] {
+            new Tui::ZTerminalDiagnosticsDialog(this);
         }
     );
 
