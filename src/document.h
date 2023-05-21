@@ -119,6 +119,7 @@ public:
         friend bool operator<(const Position& a, const Position& b);
         friend bool operator>(const Position& a, const Position& b);
         friend bool operator==(const Position& a, const Position& b);
+        friend bool operator!=(const Position& a, const Position& b);
     };
 
 

@@ -776,6 +776,10 @@ bool operator==(const TextCursor::Position &a, const TextCursor::Position &b) {
     return std::tie(a.codeUnit, a.line) == std::tie(b.codeUnit, b.line);
 }
 
+bool operator!=(const TextCursor::Position &a, const TextCursor::Position &b) {
+    return !(a == b);
+}
+
 
 TextCursor::TextCursor(Document *doc, Tui::ZWidget *widget, std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> createTextLayout)
     : _doc(doc), _widget(widget), _createTextLayout(createTextLayout) {
