@@ -1788,6 +1788,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     };
 
     if (event->key() == Qt::Key_Backspace && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier)) {
+        _detachedScrolling = false;
         setSelectMode(false);
         if (hasBlockSelection()) {
             delAndClearSelection();
@@ -1807,6 +1808,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         updateCommands();
         adjustScrollPosition();
     } else if(event->key() == Qt::Key_Delete && (event->modifiers() == 0 || event->modifiers() == Qt::ControlModifier)) {
+        _detachedScrolling = false;
         setSelectMode(false);
         if (hasBlockSelection()) {
             delAndClearSelection();
@@ -1829,6 +1831,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         updateCommands();
         adjustScrollPosition();
     } else if(text.size() && event->modifiers() == 0) {
+        _detachedScrolling = false;
         if (_formattingCharacters) {
             if (text == "·" || text == "→") {
                 text = " ";
@@ -1866,11 +1869,13 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         updateCommands();
     } else if (event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == Qt::AltModifier | Qt::ShiftModifier)  && isSelect()) {
+        _detachedScrolling = false;
         // Alt + Shift + s sort selected lines
         sortSelecedLines();
         adjustScrollPosition();
         update();
     } else if (event->key() == Qt::Key_Left) {
+        _detachedScrolling = false;
         if (isAltShift || isAltCtrlShift) {
             if (!_blockSelect) {
                 activateBlockSelection();
@@ -1905,6 +1910,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc->clearCollapseUndoStep();
     } else if(event->key() == Qt::Key_Right) {
+        _detachedScrolling = false;
         if (isAltShift || isAltCtrlShift) {
             if (!_blockSelect) {
                 activateBlockSelection();
@@ -1939,6 +1945,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc->clearCollapseUndoStep();
     } else if (event->key() == Qt::Key_Down && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier || isAltShift)) {
+        _detachedScrolling = false;
         if (isAltShift) {
             if (!_blockSelect) {
                 activateBlockSelection();
@@ -1959,6 +1966,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc->clearCollapseUndoStep();
     } else if (event->key() == Qt::Key_Up && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier || isAltShift)) {
+        _detachedScrolling = false;
         if (isAltShift) {
             if (!_blockSelect) {
                 activateBlockSelection();
@@ -1979,6 +1987,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc->clearCollapseUndoStep();
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier || isAltShift)) {
+        _detachedScrolling = false;
         if (isAltShift) {
             if (!_blockSelect) {
                 activateBlockSelection();
@@ -2016,6 +2025,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc->clearCollapseUndoStep();
     } else if(event->key() == Qt::Key_Home && (event->modifiers() == Qt::ControlModifier || event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier) )) {
+        _detachedScrolling = false;
         if (_blockSelect) {
             disableBlockSelection();
         }
@@ -2030,6 +2040,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc->clearCollapseUndoStep();
     } else if(event->key() == Qt::Key_End && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier || isAltShift)) {
+        _detachedScrolling = false;
         if (isAltShift) {
             if (!_blockSelect) {
                 activateBlockSelection();
@@ -2055,6 +2066,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc->clearCollapseUndoStep();
     } else if(event->key() == Qt::Key_End && (event->modifiers() == Qt::ControlModifier || (event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)))) {
+        _detachedScrolling = false;
         if (_blockSelect) {
             disableBlockSelection();
         }
@@ -2069,6 +2081,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc->clearCollapseUndoStep();
     } else if (event->key() == Qt::Key_PageDown && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
+        _detachedScrolling = false;
         if (_blockSelect && event->modifiers() == Qt::ShiftModifier) {
             if (_doc->lineCount() > _blockSelectEndLine->line() + getVisibleLines()) {
                 _blockSelectEndLine->setLine(_blockSelectEndLine->line() + getVisibleLines());
@@ -2089,6 +2102,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc->clearCollapseUndoStep();
     } else if (event->key() == Qt::Key_PageUp && (event->modifiers() == 0 || event->modifiers() == Qt::ShiftModifier)) {
+        _detachedScrolling = false;
         if (_blockSelect && event->modifiers() == Qt::ShiftModifier) {
             if (_blockSelectEndLine->line() > getVisibleLines()) {
                 _blockSelectEndLine->setLine(_blockSelectEndLine->line() - getVisibleLines());
@@ -2109,6 +2123,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
         _doc->clearCollapseUndoStep();
     } else if(event->key() == Qt::Key_Enter && (event->modifiers() & ~Qt::KeypadModifier) == 0) {
+        _detachedScrolling = false;
         setSelectMode(false);
         if (_blockSelect) {
             delAndClearSelection();
@@ -2120,6 +2135,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         updateCommands();
         adjustScrollPosition();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
+        _detachedScrolling = false;
         if (_blockSelect) {
             if (hasBlockSelection()) {
                 blockSelectRemoveSelectedAndConvertToMultiInsert();
@@ -2171,6 +2187,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             update();
         }
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == Qt::ShiftModifier) {
+        _detachedScrolling = false;
         // returns current line if no selection is active
         const auto [firstLine, lastLine] = getSelectLinesSort();
         const auto [startLine, endLine] = getSelectLines();
@@ -2216,20 +2233,25 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
     } else if ((event->text() == "c" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ControlModifier) ) {
+        _detachedScrolling = false;
         //STRG + C // Strg+Einfg
         copy();
     } else if ((event->text() == "v" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Insert && event->modifiers() == Qt::ShiftModifier)) {
+        _detachedScrolling = false;
         //STRG + V // Umschalt+Einfg
         paste();
     } else if ((event->text() == "x" && event->modifiers() == Qt::ControlModifier) ||
                (event->key() == Qt::Key_Delete && event->modifiers() == Qt::ShiftModifier)) {
+        _detachedScrolling = false;
         //STRG + X // Umschalt+Entf
         cut();
     } else if (event->text() == "z" && event->modifiers() == Qt::ControlModifier) {
+        _detachedScrolling = false;
         undoGroup.closeGroup();
         undo();
     } else if (event->text() == "y" && event->modifiers() == Qt::ControlModifier) {
+        _detachedScrolling = false;
         undoGroup.closeGroup();
         redo();
     } else if (event->text() == "a" && event->modifiers() == Qt::ControlModifier) {
@@ -2237,48 +2259,28 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         selectAll();
         _doc->clearCollapseUndoStep();
     } else if (event->text() == "k" && event->modifiers() == Qt::ControlModifier) {
+        _detachedScrolling = false;
         //STRG + k //cut and copy line
         setSelectMode(false);
         cutline();
     } else if (event->text() == "d" && event->modifiers() == Qt::ControlModifier) {
+        _detachedScrolling = false;
         //STRG + d //delete single line
         deleteLine();
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Up) {
         // Fenster hoch Scrolen
         if (_scrollPositionY.line() > 0) {
+            _detachedScrolling = true;
             _scrollPositionY.setLine(_scrollPositionY.line() - 1);
-
-            const auto [cursorCodeUnit, cursorLine] = _cursor.position();
-
-            if (_scrollPositionY.line() + geometry().height() < cursorLine + 2) {
-                // This should scroll without moving the cursor. But that is currently impossible,
-                // for now just move the cursor.
-                // Also clear the selection as the moved cursor previously detached from the selection
-                // and movement without shift clears the selection anyway and movement with shift doesn't
-                // seem to have a very useful result.
-                setCursorPosition({cursorCodeUnit, cursorLine - 1});
-            }
         }
-        //TODO: #193 scrollup with Crl+Up and wraped lines.
-        adjustScrollPosition();
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Down) {
         // Fenster runter Scrolen
         if (_doc->lineCount() -1 > _scrollPositionY.line()) {
+            _detachedScrolling = true;
             _scrollPositionY.setLine(_scrollPositionY.line() + 1);
-
-            const auto [cursorCodeUnit, cursorLine] = _cursor.position();
-
-            if (_scrollPositionY.line() > cursorLine - 1) {
-                // This should scroll without moving the cursor. But that is currently impossible,
-                // for now just move the cursor.
-                // Also clear the selection as the moved cursor previously detached from the selection
-                // and movement without shift clears the selection anyway and movement with shift doesn't
-                // seem to have a very useful result.
-                setCursorPosition({cursorCodeUnit, cursorLine + 1});
-            }
         }
-        adjustScrollPosition();
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Up) {
+        _detachedScrolling = false;
         // returns current line if no selection is active
         const auto [firstLine, lastLine] = getSelectLinesSort();
 
@@ -2305,6 +2307,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             adjustScrollPosition();
         }
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Down) {
+        _detachedScrolling = false;
         // returns current line if no selection is active
         const auto [firstLine, lastLine] = getSelectLinesSort();
 
@@ -2331,14 +2334,17 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             adjustScrollPosition();
         }
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
+        _detachedScrolling = false;
         setSearchText("");
         if (_blockSelect) {
             disableBlockSelection();
         }
         adjustScrollPosition();
     } else if (event->key() == Qt::Key_Insert && event->modifiers() == 0) {
+        _detachedScrolling = false;
         toggleOverwrite();
     } else if (event->key() == Qt::Key_F4 && event->modifiers() == 0) {
+        _detachedScrolling = false;
         toggleSelectMode();
     } else {
         undoGroup.closeGroup();
@@ -2365,6 +2371,15 @@ std::tuple<int, int, int> File::cursorPositionOrBlockSelectionEnd() {
 void File::adjustScrollPosition() {
 
     if(geometry().width() <= 0 && geometry().height() <= 0) {
+        return;
+    }
+
+    if (_detachedScrolling) {
+        if (_scrollPositionY.line() >= _doc->lineCount()) {
+            _scrollPositionY.setLine(_doc->lineCount() - 1);
+        }
+
+        update();
         return;
     }
 

@@ -582,7 +582,6 @@ TEST_CASE("actions") {
         for (int i = 0; i <= 26; i++) {
             Tui::ZTest::sendKey(&terminal, Qt::Key_Up, Qt::KeyboardModifier::ControlModifier);
             CHECK(f->getScrollPosition() == QPoint{0,26 - i});
-            CHECK(f->getCursorPosition() == QPoint{0,48 - i});
         }
     }
 

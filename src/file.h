@@ -187,6 +187,7 @@ private:
     int _scrollPositionX = 0;
     LineMarker _scrollPositionY;
     int _scrollFineLine = 0;
+    bool _detachedScrolling = false;
     int _tabsize = 8;
     bool _tabOption = false;
     bool _eatSpaceBeforeTabs = true;
