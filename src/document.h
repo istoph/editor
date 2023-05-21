@@ -5,8 +5,10 @@
 
 #include <functional>
 
+#include <QFuture>
 #include <QIODevice>
 #include <QObject>
+#include <QRegularExpression>
 #include <QString>
 #include <QVector>
 
@@ -262,6 +264,13 @@ private:
     friend class Document;
 };
 
+// TODO think about ABI treatment
+class DocumentFindAsyncResult {
+public:
+    TextCursor::Position anchor;
+    TextCursor::Position cursor;
+};
+
 class Document : public QObject {
     Q_OBJECT
     friend class TextCursor;
@@ -269,6 +278,14 @@ class Document : public QObject {
 
 public:
     class UndoGroup;
+
+    enum FindFlag {
+        FindBackward = 1 << 0,
+        FindCaseSensitively = 1 << 1,
+        FindWrap = 1 << 2,
+    };
+
+    using FindFlags = QFlags<FindFlag>;
 
 public:
     Document(QObject *parent=nullptr);
@@ -302,6 +319,21 @@ public:
     UndoGroup startUndoGroup(TextCursor *cursor);
 
     void initalUndoStep(TextCursor *cursor);
+
+    TextCursor findSync(const QString &subString, const TextCursor &start,
+                        FindFlags options = FindFlags{}) const;
+    TextCursor findSync(const QRegularExpression &subString, const TextCursor &start,
+                        FindFlags options = FindFlags{}) const;
+    QFuture<DocumentFindAsyncResult> findAsync(const QString &subString, const TextCursor &start,
+                                               FindFlags options = FindFlags{}) const;
+    QFuture<DocumentFindAsyncResult> findAsync(const QRegularExpression &expr, const TextCursor &start,
+                                               FindFlags options = FindFlags{}) const;
+    QFuture<DocumentFindAsyncResult> findAsyncWithPool(QThreadPool *pool, int priority,
+                                                       const QString &subString, const TextCursor &start,
+                                                       FindFlags options = FindFlags{}) const;
+    QFuture<DocumentFindAsyncResult> findAsyncWithPool(QThreadPool *pool, int priority,
+                                                       const QRegularExpression &expr, const TextCursor &start,
+                                                       FindFlags options = FindFlags{}) const;
 
 signals:
     void modificationChanged(bool changed);
@@ -380,5 +412,7 @@ private:
     ListHead<TextCursor, TextCursorToDocumentTag> cursorList;
     bool _changeScheduled = false;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(Document::FindFlags)
 
 #endif // DOCUMENT_H

@@ -16,10 +16,6 @@
 
 #include "document.h"
 
-
-struct SearchLine;
-struct SearchParameter;
-
 class File : public Tui::ZWidget {
     Q_OBJECT
 
@@ -29,6 +25,7 @@ public:
 
 public:
     explicit File(Tui::ZWidget *parent);
+    ~File();
     bool setFilename(QString _filename);
     QString getFilename();
     //QString emptyFilename();
@@ -150,8 +147,6 @@ private:
     Tui::ZTextLayout getTextLayoutForLine(const Tui::ZTextOption &option, int line);
     bool highlightBracket();
     void searchSelect(int line, int found, int length, bool direction);
-    SearchLine searchNext(DocumentSnapshot snap, SearchParameter search);
-    //void searchSelectPrevious(int line, int found);
     void setSelectMode(bool f4);
     bool getSelectMode();
     int shiftLinenumber();
@@ -200,7 +195,7 @@ private:
     bool _searchReg = false;
     bool _searchDirection = true;
     std::shared_ptr<std::atomic<int>> searchGeneration = std::make_shared<std::atomic<int>>();
-    std::shared_ptr<std::atomic<int>> searchNextGeneration = std::make_shared<std::atomic<int>>();
+    std::optional<QFuture<DocumentFindAsyncResult>> _searchNextFuture;
     bool _follow = false;
     int _bracketX = -1;
     int _bracketY = -1;

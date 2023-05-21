@@ -3,6 +3,7 @@
 #include "document.h"
 
 #include <QTimer>
+#include <QThreadPool>
 
 #include <Tui/Misc/SurrogateEscape.h>
 
@@ -447,6 +448,318 @@ void Document::initalUndoStep(TextCursor *cursor) {
     _currentUndoStep = 0;
     _savedUndoStep = _currentUndoStep;
     emitModifedSignals();
+}
+
+namespace {
+    struct SearchLine {
+        int line;
+        int found;
+        int length;
+    };
+
+    struct SearchParameter {
+        bool searchWrap;
+        Qt::CaseSensitivity caseSensitivity;
+        int startAtLine;
+        int startPosition;
+        std::variant<QString, QRegularExpression> needle;
+    };
+
+    struct NoCanceler {
+        bool isCanceled() {
+            return false;
+        }
+    };
+
+    template <typename CANCEL>
+    static SearchLine snapshotSearchForward(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
+        int line = search.startAtLine;
+        int found = search.startPosition - 1;
+        bool reg = std::holds_alternative<QRegularExpression>(search.needle);
+        int end = snap.lineCount();
+        int length = 0;
+
+        bool haswrapped = false;
+        while (true) {
+            for (; line < end; line++) {
+                if (reg) {
+                    QRegularExpressionMatchIterator remi = std::get<QRegularExpression>(search.needle).globalMatch(snap.line(line));
+                    while (remi.hasNext()) {
+                        QRegularExpressionMatch match = remi.next();
+                        if (canceler.isCanceled()) {
+                            return {-1, -1, -1};
+                        }
+                        if (match.capturedLength() <= 0) continue;
+                        if (match.capturedStart() < found + 1) continue;
+                        found = match.capturedStart();
+                        length = match.capturedLength();
+                        return {line, found, length};
+                    }
+                    found = -1;
+                } else {
+                    found = snap.line(line).indexOf(std::get<QString>(search.needle), found + 1, search.caseSensitivity);
+                    length = std::get<QString>(search.needle).size();
+                }
+                if (canceler.isCanceled()) {
+                    return {-1, -1, -1};
+                }
+                if (found != -1) return {line, found, length};
+            }
+            if (!search.searchWrap || haswrapped) {
+                return {-1, -1, -1};
+            }
+            end = std::min(search.startAtLine + 1, snap.lineCount());
+            line = 0;
+            haswrapped = true;
+        }
+        return {-1, -1, -1};
+    }
+
+    template <typename CANCEL>
+    static SearchLine snapshotSearchBackwards(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
+        int line = search.startAtLine;
+        bool reg = std::holds_alternative<QRegularExpression>(search.needle);
+        int searchAt = search.startPosition;
+        int found = -1;
+        int end = 0;
+        bool haswrapped = false;
+        while (true) {
+            for (; line >= end;) {
+                if (reg) {
+                    SearchLine t = {-1,-1,-1};
+                    QRegularExpressionMatchIterator remi = std::get<QRegularExpression>(search.needle).globalMatch(snap.line(line));
+                    while (remi.hasNext()) {
+                        QRegularExpressionMatch match = remi.next();
+                        if (canceler.isCanceled()) {
+                            return {-1, -1, -1};
+                        }
+                        if (match.capturedLength() <= 0) continue;
+                        if (match.capturedStart() <= searchAt - match.capturedLength()) {
+                            t = {line, match.capturedStart(), match.capturedLength()};
+                            continue;
+                        }
+                        break;
+                    }
+                    if (t.length > 0) {
+                        return t;
+                    }
+                    found = -1;
+                } else {
+                    if (searchAt >= std::get<QString>(search.needle).size()) {
+                        found = snap.line(line).lastIndexOf(std::get<QString>(search.needle),
+                                                            searchAt - std::get<QString>(search.needle).size(),
+                                                            search.caseSensitivity);
+                    }
+                }
+                if (canceler.isCanceled()) {
+                    return {-1, -1, -1};
+                }
+                if (found != -1) return {line, found, std::get<QString>(search.needle).size()};
+                if (--line >= 0) searchAt = snap.line(line).size();
+            }
+            if (!search.searchWrap || haswrapped) {
+                return {-1, -1, -1};
+            }
+            end = search.startAtLine;
+            line = snap.lineCount() - 1;
+            searchAt = snap.lineCodeUnits(line);
+            haswrapped = true;
+        }
+    }
+
+    SearchParameter prepareSearchParameter(const Document *doc, const TextCursor &start, Document::FindFlags options) {
+        SearchParameter res;
+
+        res.searchWrap = options & Document::FindFlag::FindWrap;
+        res.caseSensitivity = (options & Document::FindFlag::FindCaseSensitively) ? Qt::CaseSensitive : Qt::CaseInsensitive;
+
+        auto [startCodeUnit, startLine] = start.selectionEndPos();
+        if (options & Document::FindFlag::FindBackward) {
+            if (start.hasSelection()) {
+                startCodeUnit = startCodeUnit - 1;
+                if (startCodeUnit <= 0) {
+                    if (--startLine < 0) {
+                        startLine = doc->lineCount() - 1;
+                    }
+                    startCodeUnit = doc->lineCodeUnits(startLine);
+                }
+            }
+        }
+
+        res.startAtLine = startLine;
+        res.startPosition = startCodeUnit;
+        return res;
+    }
+
+    void searchResultToTextCursor(TextCursor &cur, SearchLine result) {
+        if (result.line == -1) {
+            cur.clearSelection();
+            return;
+        }
+
+        cur.setPosition({result.found, result.line});
+        cur.setPosition({result.found + result.length, result.line}, true);
+    }
+
+    class SearchOnThread : public QRunnable {
+    public:
+        void run() override {
+            promise.reportStarted();
+
+            if (promise.isCanceled()) {
+                promise.reportFinished();
+                return;
+            }
+
+            SearchLine resTmp;
+            if (backwards) {
+                resTmp = snapshotSearchBackwards(snap, param, promise);
+            } else {
+                resTmp = snapshotSearchForward(snap, param, promise);
+            }
+
+            if (resTmp.line != -1) {
+                DocumentFindAsyncResult res{TextCursor::Position(resTmp.found, resTmp.line),
+                                            TextCursor::Position(resTmp.found + resTmp.length, resTmp.line)};
+
+                promise.reportResult(res);
+            } else {
+                DocumentFindAsyncResult res{TextCursor::Position(0, 0),
+                                            TextCursor::Position(0, 0)};
+
+                promise.reportResult(res);
+            }
+            promise.reportFinished();
+        }
+
+    public:
+        QFutureInterface<DocumentFindAsyncResult> promise;
+        DocumentSnapshot snap;
+        SearchParameter param;
+        bool backwards = false;
+    };
+}
+
+TextCursor Document::findSync(const QString &subString, const TextCursor &start,
+                              Document::FindFlags options) const {
+    TextCursor res = start;
+
+    if (subString.isEmpty()) {
+        res.clearSelection();
+        return res;
+    }
+
+    SearchParameter param = prepareSearchParameter(this, start, options);
+    param.needle = subString;
+
+    SearchLine resTmp;
+    NoCanceler noCancler;
+    if (options & Document::FindFlag::FindBackward) {
+        resTmp = snapshotSearchBackwards(snapshot(), param, noCancler);
+    } else {
+        resTmp = snapshotSearchForward(snapshot(), param, noCancler);
+    }
+
+    searchResultToTextCursor(res, resTmp);
+
+    return res;
+}
+
+TextCursor Document::findSync(const QRegularExpression &expr, const TextCursor &start,
+                              Document::FindFlags options) const {
+    TextCursor res = start;
+
+    if (!expr.isValid()) {
+        res.clearSelection();
+        return res;
+    }
+
+    SearchParameter param = prepareSearchParameter(this, start, options);
+    param.needle = expr;
+
+    SearchLine resTmp;
+    NoCanceler noCancler;
+    if (options & Document::FindFlag::FindBackward) {
+        resTmp = snapshotSearchBackwards(snapshot(), param, noCancler);
+    } else {
+        resTmp = snapshotSearchForward(snapshot(), param, noCancler);
+    }
+
+    searchResultToTextCursor(res, resTmp);
+
+    return res;
+}
+
+QFuture<DocumentFindAsyncResult> Document::findAsync(const QString &subString, const TextCursor &start,
+                                                     Document::FindFlags options) const {
+    return findAsyncWithPool(QThreadPool::globalInstance(), 0, subString, start, options);
+}
+
+QFuture<DocumentFindAsyncResult> Document::findAsync(const QRegularExpression &expr, const TextCursor &start,
+                                                     Document::FindFlags options) const {
+    return findAsyncWithPool(QThreadPool::globalInstance(), 0, expr, start, options);
+}
+
+QFuture<DocumentFindAsyncResult> Document::findAsyncWithPool(QThreadPool *pool, int priority,
+                                                             const QString &subString, const TextCursor &start,
+                                                             Document::FindFlags options) const {
+
+    QFutureInterface<DocumentFindAsyncResult> promise;
+
+    QFuture<DocumentFindAsyncResult> future = promise.future();
+
+    if (subString.isEmpty()) {
+        DocumentFindAsyncResult res{TextCursor::Position(0, 0), TextCursor::Position(0, 0)};
+
+        promise.reportStarted();
+        promise.reportResult(res);
+        promise.reportFinished();
+        return future;
+    }
+
+    SearchParameter param = prepareSearchParameter(this, start, options);
+    param.needle = subString;
+
+    SearchOnThread *runnable = new SearchOnThread();
+    runnable->param = param;
+    runnable->backwards = options & Document::FindFlag::FindBackward;
+    runnable->snap = snapshot();
+    runnable->promise = std::move(promise);
+
+    pool->start(runnable, priority);
+
+    return future;
+}
+
+QFuture<DocumentFindAsyncResult> Document::findAsyncWithPool(QThreadPool *pool, int priority,
+                                                             const QRegularExpression &expr, const TextCursor &start,
+                                                             Document::FindFlags options) const {
+
+    QFutureInterface<DocumentFindAsyncResult> promise;
+
+    QFuture<DocumentFindAsyncResult> future = promise.future();
+
+    if (!expr.isValid()) {
+        DocumentFindAsyncResult res{TextCursor::Position(0, 0), TextCursor::Position(0, 0)};
+
+        promise.reportStarted();
+        promise.reportResult(res);
+        promise.reportFinished();
+        return future;
+    }
+
+    SearchParameter param = prepareSearchParameter(this, start, options);
+    param.needle = expr;
+
+    SearchOnThread *runnable = new SearchOnThread();
+    runnable->param = param;
+    runnable->backwards = options & Document::FindFlag::FindBackward;
+    runnable->snap = snapshot();
+    runnable->promise = std::move(promise);
+
+    pool->start(runnable, priority);
+
+    return future;
 }
 
 void Document::saveUndoStep(TextCursor *cursor, bool collapsable) {

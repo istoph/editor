@@ -102,6 +102,13 @@ File::File(Tui::ZWidget *parent)
 
 }
 
+File::~File() {
+    if (_searchNextFuture) {
+        _searchNextFuture->cancel();
+        _searchNextFuture.reset();
+    }
+}
+
 bool File::readAttributes() {
     if(_attributesfile.isEmpty()) {
         return false;
@@ -970,187 +977,103 @@ void File::setReplaceSelected() {
     }
 }
 
-struct SearchLine {
-    int line;
-    int found;
-    int length;
-};
-
-//This struct is for fucking QtConcurrent::run which only has five parameters
-struct SearchParameter {
-    QString searchText;
-    bool searchWrap;
-    Qt::CaseSensitivity caseSensitivity;
-    int startAtLine;
-    int startPosition;
-    bool reg;
-};
-
-static SearchLine conSearchNext(DocumentSnapshot snap, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
-    int line = search.startAtLine;
-    int found = search.startPosition -1;
-    bool reg = search.reg;
-    int end = snap.lineCount();
-    QRegularExpression rx(search.searchText);
-    int length = 0;
-
-    bool haswrapped = false;
-    while (true) {
-        for(;line < end; line++) {
-            if(reg) {
-                QRegularExpressionMatchIterator remi = rx.globalMatch(snap.line(line));
-                while (remi.hasNext()) {
-                    QRegularExpressionMatch match = remi.next();
-                    if(nextGeneration != nullptr && gen != *nextGeneration) return {-1, -1, -1};
-                    if(match.capturedLength() <= 0) continue;
-                    if(match.capturedStart() < found +1) continue;
-                    found = match.capturedStart();
-                    length = match.capturedLength();
-                    return {line, found, length};
-                }
-                found = -1;
-            } else {
-                found = snap.line(line).indexOf(search.searchText, found + 1, search.caseSensitivity);
-                length = search.searchText.size();
-            }
-            if(nextGeneration != nullptr && gen != *nextGeneration) return {-1, -1, -1};
-            if(found != -1) return {line, found, length};
-        }
-        if(!search.searchWrap || haswrapped) {
-            return {-1, -1, -1};
-        }
-        end = std::min(search.startAtLine +1, snap.lineCount());
-        line = 0;
-        haswrapped = true;
-    }
-    return {-1, -1, -1};
-}
-
-SearchLine File::searchNext(DocumentSnapshot snap, SearchParameter search) {
-    return conSearchNext(snap, search, 0, nullptr);
-}
-
-static SearchLine conSearchPrevious(DocumentSnapshot snap, SearchParameter search, int gen, std::shared_ptr<std::atomic<int>> nextGeneration) {
-    int line = search.startAtLine;
-    bool reg = search.reg;
-    int searchAt = search.startPosition;
-    int found = -1;
-    int end = 0;
-    QRegularExpression rx(search.searchText);
-    bool haswrapped = false;
-    while (true) {
-        for (; line >= end;) {
-            if (reg) {
-                SearchLine t = {-1,-1,-1};
-                QRegularExpressionMatchIterator remi = rx.globalMatch(snap.line(line));
-                while (remi.hasNext()) {
-                    QRegularExpressionMatch match = remi.next();
-                    if(gen != *nextGeneration) return {-1, -1, -1};
-                    if(match.capturedLength() <= 0) continue;
-                    if(match.capturedStart() <= searchAt - match.capturedLength()) {
-                        t = {line, match.capturedStart(), match.capturedLength()};
-                        continue;
-                    }
-                    break;
-                }
-                if(t.length > 0)
-                    return t;
-                found = -1;
-            } else {
-                if (searchAt >= search.searchText.size()) {
-                    found = snap.line(line).lastIndexOf(search.searchText, searchAt - search.searchText.size(), search.caseSensitivity);
-                }
-            }
-            if (gen != *nextGeneration) return {-1, -1, -1};
-            if (found != -1) return {line, found, search.searchText.size()};
-            if (--line >= 0) searchAt = snap.line(line).size();
-        }
-        if(!search.searchWrap || haswrapped) {
-            return {-1, -1, -1};
-        }
-        end = search.startAtLine;
-        line = snap.lineCount() - 1;
-        searchAt = snap.lineCodeUnits(line);
-        haswrapped = true;
-    }
-}
-
 void File::runSearch(bool direction) {
-    if(_searchText != "") {
-        const int gen = ++(*searchNextGeneration);
-        const bool efectivDirection = direction ^ _searchDirection;
+    if (_searchText != "") {
+        if (_searchNextFuture) {
+            _searchNextFuture->cancel();
+            _searchNextFuture.reset();
+        }
 
-        auto watcher = new QFutureWatcher<SearchLine>();
-        QObject::connect(watcher, &QFutureWatcher<SearchLine>::finished, this, [this, watcher, gen, efectivDirection]{
-            auto n = watcher->future().result();
-            if(gen == *searchNextGeneration && n.line > -1) {
-               searchSelect(n.line, n.found, n.length, efectivDirection);
+        const bool effectiveDirection = direction ^ _searchDirection;
+
+        Document::FindFlags flags;
+        if (_searchCaseSensitivity == Qt::CaseSensitive) {
+            flags |= Document::FindFlag::FindCaseSensitively;
+        }
+        if (_searchWrap) {
+            flags |= Document::FindFlag::FindWrap;
+        }
+        if (!effectiveDirection) {
+            flags |= Document::FindFlag::FindBackward;
+        }
+
+        auto watcher = new QFutureWatcher<DocumentFindAsyncResult>();
+
+        QObject::connect(watcher, &QFutureWatcher<DocumentFindAsyncResult>::finished, this, [this, watcher] {
+            if (!watcher->isCanceled()) {
+                DocumentFindAsyncResult res = watcher->future().result();
+                if (res.anchor != res.cursor) { // has a match?
+                    // Get rid of block selections and multi insert.
+                    resetSelect();
+
+                    _cursor.setPosition(res.anchor);
+                    _cursor.setPosition(res.cursor, true);
+
+                    updateCommands();
+
+                    const auto [currentCodeUnit, currentLine] = _cursor.position();
+
+                    if (currentLine - 1 > 0) {
+                        _scrollPositionY.setLine(currentLine - 1);
+                    }
+                    adjustScrollPosition();
+                }
             }
             watcher->deleteLater();
         });
 
-        auto [startCodeUnit, startLine] = _cursor.selectionEndPos();
-        QFuture<SearchLine> future;
-        if(efectivDirection) {
-            SearchParameter search = { _searchText, _searchWrap, _searchCaseSensitivity, startLine, startCodeUnit, _searchReg};
-            future = QtConcurrent::run(conSearchNext, _doc->snapshot(), search, gen, searchNextGeneration);
+        if (_searchReg) {
+            _searchNextFuture.emplace(_doc->findAsync(QRegularExpression(_searchText), _cursor, flags));
         } else {
-            if (_cursor.hasSelection()) {
-                startCodeUnit = startCodeUnit - 1;
-                if (startCodeUnit <= 0) {
-                    if(--startLine < 0) {
-                        startLine = _doc->lineCount() - 1;
-                    }
-                    startCodeUnit = _doc->lineCodeUnits(startLine);
-                }
-            }
-            SearchParameter search = { _searchText, _searchWrap, _searchCaseSensitivity, startLine, startCodeUnit, _searchReg};
-
-            future = QtConcurrent::run(conSearchPrevious, _doc->snapshot(), search, gen, searchNextGeneration);
+            _searchNextFuture.emplace(_doc->findAsync(_searchText, _cursor, flags));
         }
-        watcher->setFuture(future);
-    }
-}
-
-void File::searchSelect(int line, int found, int length, bool direction) {
-    if (found != -1) {
-        adjustScrollPosition();
-        resetSelect();
-
-        const TextCursor::Position positionStart = {found, line};
-        const TextCursor::Position positionEnd = {found + length, line};
-
-        _cursor.setPosition(positionStart);
-        _cursor.setPosition(positionEnd, true);
-
-        const auto [currentCodeUnit, currentLine] = _cursor.position();
-
-        if (currentLine - 1 > 0) {
-            _scrollPositionY.setLine(currentLine - 1);
-        }
-        adjustScrollPosition();
+        watcher->setFuture(*_searchNextFuture);
     }
 }
 
 int File::replaceAll(QString searchText, QString replaceText) {
-    int counter = 0;
     setSearchText(searchText);
     setReplaceText(replaceText);
+
+    // Get rid of block selections and multi insert.
+    resetSelect();
+
+    if (searchText.isEmpty()) {
+        return 0;
+    }
+
     auto undoGroup = _doc->startUndoGroup(&_cursor);
+    int counter = 0;
+
+    Document::FindFlags flags;
+    if (_searchCaseSensitivity == Qt::CaseSensitive) {
+        flags |= Document::FindFlag::FindCaseSensitively;
+    }
 
     _cursor.setPosition({0, 0});
     while (true) {
-        const auto [cursorCodeUnit, cursorLine] = _cursor.position();
-        SearchParameter search = { _searchText, false, _searchCaseSensitivity, cursorLine, cursorCodeUnit, _searchReg};
-        SearchLine sl = searchNext(_doc->snapshot(), search);
-        if(sl.length == -1) {
+        TextCursor found = _cursor;
+        if (_searchReg) {
+            found = _doc->findSync(QRegularExpression(_searchText), _cursor, flags);
+        } else {
+            found = _doc->findSync(_searchText, _cursor, flags);
+        }
+        if (!found.hasSelection()) {  // has no match?
             break;
         }
-        searchSelect(sl.line,sl.found, sl.length, true);
+        _cursor.setPosition(found.anchor());
+        _cursor.setPosition(found.position(), true);
+
         setReplaceSelected();
         counter++;
     }
 
+    const auto [currentCodeUnit, currentLine] = _cursor.position();
+    if (currentLine - 1 > 0) {
+        _scrollPositionY.setLine(currentLine - 1);
+    }
+
+    adjustScrollPosition();
     return counter;
 }
 
