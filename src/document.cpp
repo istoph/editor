@@ -451,12 +451,6 @@ void Document::initalUndoStep(TextCursor *cursor) {
 }
 
 namespace {
-    struct SearchLine {
-        int line;
-        int found;
-        int length;
-    };
-
     struct SearchParameter {
         bool searchWrap;
         Qt::CaseSensitivity caseSensitivity;
@@ -471,8 +465,12 @@ namespace {
         }
     };
 
+    DocumentFindAsyncResult noMatch() {
+        return DocumentFindAsyncResult{{0, 0}, {0, 0}};
+    }
+
     template <typename CANCEL>
-    static SearchLine snapshotSearchForward(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
+    static DocumentFindAsyncResult snapshotSearchForward(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
         int line = search.startAtLine;
         int found = search.startPosition - 1;
         bool reg = std::holds_alternative<QRegularExpression>(search.needle);
@@ -487,13 +485,14 @@ namespace {
                     while (remi.hasNext()) {
                         QRegularExpressionMatch match = remi.next();
                         if (canceler.isCanceled()) {
-                            return {-1, -1, -1};
+                            return noMatch();
                         }
                         if (match.capturedLength() <= 0) continue;
                         if (match.capturedStart() < found + 1) continue;
                         found = match.capturedStart();
                         length = match.capturedLength();
-                        return {line, found, length};
+                        return DocumentFindAsyncResult{{found, line},
+                                                       {found + length, line}};
                     }
                     found = -1;
                 } else {
@@ -501,22 +500,25 @@ namespace {
                     length = std::get<QString>(search.needle).size();
                 }
                 if (canceler.isCanceled()) {
-                    return {-1, -1, -1};
+                    return noMatch();
                 }
-                if (found != -1) return {line, found, length};
+                if (found != -1) {
+                    return DocumentFindAsyncResult{{found, line},
+                                                   {found + length, line}};
+                }
             }
             if (!search.searchWrap || haswrapped) {
-                return {-1, -1, -1};
+                return noMatch();
             }
             end = std::min(search.startAtLine + 1, snap.lineCount());
             line = 0;
             haswrapped = true;
         }
-        return {-1, -1, -1};
+        return noMatch();
     }
 
     template <typename CANCEL>
-    static SearchLine snapshotSearchBackwards(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
+    static DocumentFindAsyncResult snapshotSearchBackwards(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
         int line = search.startAtLine;
         bool reg = std::holds_alternative<QRegularExpression>(search.needle);
         int searchAt = search.startPosition;
@@ -526,21 +528,22 @@ namespace {
         while (true) {
             for (; line >= end;) {
                 if (reg) {
-                    SearchLine t = {-1,-1,-1};
+                    DocumentFindAsyncResult t = noMatch();
                     QRegularExpressionMatchIterator remi = std::get<QRegularExpression>(search.needle).globalMatch(snap.line(line));
                     while (remi.hasNext()) {
                         QRegularExpressionMatch match = remi.next();
                         if (canceler.isCanceled()) {
-                            return {-1, -1, -1};
+                            return noMatch();
                         }
                         if (match.capturedLength() <= 0) continue;
                         if (match.capturedStart() <= searchAt - match.capturedLength()) {
-                            t = {line, match.capturedStart(), match.capturedLength()};
+                            t = DocumentFindAsyncResult{{match.capturedStart(), line},
+                                                        {match.capturedStart() + match.capturedLength(), line}};
                             continue;
                         }
                         break;
                     }
-                    if (t.length > 0) {
+                    if (t.anchor != t.cursor) {
                         return t;
                     }
                     found = -1;
@@ -552,13 +555,16 @@ namespace {
                     }
                 }
                 if (canceler.isCanceled()) {
-                    return {-1, -1, -1};
+                    return noMatch();
                 }
-                if (found != -1) return {line, found, std::get<QString>(search.needle).size()};
+                if (found != -1) {
+                    return DocumentFindAsyncResult{{found, line},
+                                                   {found + std::get<QString>(search.needle).size(), line}};
+                }
                 if (--line >= 0) searchAt = snap.line(line).size();
             }
             if (!search.searchWrap || haswrapped) {
-                return {-1, -1, -1};
+                return noMatch();
             }
             end = search.startAtLine;
             line = snap.lineCount() - 1;
@@ -591,14 +597,14 @@ namespace {
         return res;
     }
 
-    void searchResultToTextCursor(TextCursor &cur, SearchLine result) {
-        if (result.line == -1) {
+    void searchResultToTextCursor(TextCursor &cur, DocumentFindAsyncResult result) {
+        if (result.anchor == result.cursor) {
             cur.clearSelection();
             return;
         }
 
-        cur.setPosition({result.found, result.line});
-        cur.setPosition({result.found + result.length, result.line}, true);
+        cur.setPosition(result.anchor);
+        cur.setPosition(result.cursor, true);
     }
 
     class SearchOnThread : public QRunnable {
@@ -611,24 +617,15 @@ namespace {
                 return;
             }
 
-            SearchLine resTmp;
+            DocumentFindAsyncResult res = noMatch();
             if (backwards) {
-                resTmp = snapshotSearchBackwards(snap, param, promise);
+                res = snapshotSearchBackwards(snap, param, promise);
             } else {
-                resTmp = snapshotSearchForward(snap, param, promise);
+                res = snapshotSearchForward(snap, param, promise);
             }
 
-            if (resTmp.line != -1) {
-                DocumentFindAsyncResult res{TextCursor::Position(resTmp.found, resTmp.line),
-                                            TextCursor::Position(resTmp.found + resTmp.length, resTmp.line)};
+            promise.reportResult(res);
 
-                promise.reportResult(res);
-            } else {
-                DocumentFindAsyncResult res{TextCursor::Position(0, 0),
-                                            TextCursor::Position(0, 0)};
-
-                promise.reportResult(res);
-            }
             promise.reportFinished();
         }
 
@@ -652,7 +649,7 @@ TextCursor Document::findSync(const QString &subString, const TextCursor &start,
     SearchParameter param = prepareSearchParameter(this, start, options);
     param.needle = subString;
 
-    SearchLine resTmp;
+    DocumentFindAsyncResult resTmp = noMatch();
     NoCanceler noCancler;
     if (options & Document::FindFlag::FindBackward) {
         resTmp = snapshotSearchBackwards(snapshot(), param, noCancler);
@@ -677,7 +674,7 @@ TextCursor Document::findSync(const QRegularExpression &expr, const TextCursor &
     SearchParameter param = prepareSearchParameter(this, start, options);
     param.needle = expr;
 
-    SearchLine resTmp;
+    DocumentFindAsyncResult resTmp = noMatch();
     NoCanceler noCancler;
     if (options & Document::FindFlag::FindBackward) {
         resTmp = snapshotSearchBackwards(snapshot(), param, noCancler);
