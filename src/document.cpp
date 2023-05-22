@@ -452,10 +452,10 @@ void Document::initalUndoStep(TextCursor *cursor) {
 
 namespace {
     struct SearchParameter {
-        bool searchWrap;
-        Qt::CaseSensitivity caseSensitivity;
-        int startAtLine;
-        int startPosition;
+        bool searchWrap = false;
+        Qt::CaseSensitivity caseSensitivity = Qt::CaseSensitive;
+        int startAtLine = 0;
+        int startCodeUnit = 0;
         std::variant<QString, QRegularExpression> needle;
     };
 
@@ -472,15 +472,14 @@ namespace {
     template <typename CANCEL>
     static DocumentFindAsyncResult snapshotSearchForward(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
         int line = search.startAtLine;
-        int found = search.startPosition - 1;
-        bool reg = std::holds_alternative<QRegularExpression>(search.needle);
+        int found = search.startCodeUnit - 1;
+        const bool regularExpressionMode = std::holds_alternative<QRegularExpression>(search.needle);
         int end = snap.lineCount();
-        int length = 0;
 
-        bool haswrapped = false;
+        bool hasWrapped = false;
         while (true) {
             for (; line < end; line++) {
-                if (reg) {
+                if (regularExpressionMode) {
                     QRegularExpressionMatchIterator remi = std::get<QRegularExpression>(search.needle).globalMatch(snap.line(line));
                     while (remi.hasNext()) {
                         QRegularExpressionMatch match = remi.next();
@@ -490,29 +489,29 @@ namespace {
                         if (match.capturedLength() <= 0) continue;
                         if (match.capturedStart() < found + 1) continue;
                         found = match.capturedStart();
-                        length = match.capturedLength();
                         return DocumentFindAsyncResult{{found, line},
-                                                       {found + length, line}};
+                                                       {found + match.capturedLength(), line}};
                     }
                     found = -1;
                 } else {
                     found = snap.line(line).indexOf(std::get<QString>(search.needle), found + 1, search.caseSensitivity);
-                    length = std::get<QString>(search.needle).size();
+
+                    if (found != -1) {
+                        const int length = std::get<QString>(search.needle).size();
+                        return DocumentFindAsyncResult{{found, line},
+                                                       {found + length, line}};
+                    }
                 }
                 if (canceler.isCanceled()) {
                     return noMatch();
                 }
-                if (found != -1) {
-                    return DocumentFindAsyncResult{{found, line},
-                                                   {found + length, line}};
-                }
             }
-            if (!search.searchWrap || haswrapped) {
+            if (!search.searchWrap || hasWrapped) {
                 return noMatch();
             }
+            hasWrapped = true;
             end = std::min(search.startAtLine + 1, snap.lineCount());
             line = 0;
-            haswrapped = true;
         }
         return noMatch();
     }
@@ -520,15 +519,14 @@ namespace {
     template <typename CANCEL>
     static DocumentFindAsyncResult snapshotSearchBackwards(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
         int line = search.startAtLine;
-        bool reg = std::holds_alternative<QRegularExpression>(search.needle);
-        int searchAt = search.startPosition;
-        int found = -1;
+        bool regularExpressionMode = std::holds_alternative<QRegularExpression>(search.needle);
+        int searchAt = search.startCodeUnit;
         int end = 0;
-        bool haswrapped = false;
+        bool hasWrapped = false;
         while (true) {
             for (; line >= end;) {
-                if (reg) {
-                    DocumentFindAsyncResult t = noMatch();
+                if (regularExpressionMode) {
+                    DocumentFindAsyncResult res = noMatch();
                     QRegularExpressionMatchIterator remi = std::get<QRegularExpression>(search.needle).globalMatch(snap.line(line));
                     while (remi.hasNext()) {
                         QRegularExpressionMatch match = remi.next();
@@ -537,39 +535,40 @@ namespace {
                         }
                         if (match.capturedLength() <= 0) continue;
                         if (match.capturedStart() <= searchAt - match.capturedLength()) {
-                            t = DocumentFindAsyncResult{{match.capturedStart(), line},
-                                                        {match.capturedStart() + match.capturedLength(), line}};
+                            res = DocumentFindAsyncResult{{match.capturedStart(), line},
+                                                          {match.capturedStart() + match.capturedLength(), line}};
                             continue;
                         }
                         break;
                     }
-                    if (t.anchor != t.cursor) {
-                        return t;
+                    if (res.anchor != res.cursor) {
+                        return res;
                     }
-                    found = -1;
                 } else {
                     if (searchAt >= std::get<QString>(search.needle).size()) {
-                        found = snap.line(line).lastIndexOf(std::get<QString>(search.needle),
-                                                            searchAt - std::get<QString>(search.needle).size(),
-                                                            search.caseSensitivity);
+                        const int length = std::get<QString>(search.needle).size();
+                        const int found = snap.line(line).lastIndexOf(std::get<QString>(search.needle),
+                                                                      searchAt - length,
+                                                                      search.caseSensitivity);
+                        if (found != -1) {
+                            return DocumentFindAsyncResult{{found, line},
+                                                           {found + length, line}};
+                        }
                     }
                 }
                 if (canceler.isCanceled()) {
                     return noMatch();
                 }
-                if (found != -1) {
-                    return DocumentFindAsyncResult{{found, line},
-                                                   {found + std::get<QString>(search.needle).size(), line}};
-                }
-                if (--line >= 0) searchAt = snap.line(line).size();
+                line -= 1;
+                if (line >= 0) searchAt = snap.line(line).size();
             }
-            if (!search.searchWrap || haswrapped) {
+            if (!search.searchWrap || hasWrapped) {
                 return noMatch();
             }
+            hasWrapped = true;
             end = search.startAtLine;
             line = snap.lineCount() - 1;
             searchAt = snap.lineCodeUnits(line);
-            haswrapped = true;
         }
     }
 
@@ -593,7 +592,7 @@ namespace {
         }
 
         res.startAtLine = startLine;
-        res.startPosition = startCodeUnit;
+        res.startCodeUnit = startCodeUnit;
         return res;
     }
 
