@@ -478,7 +478,10 @@ bool File::isInsertable() {
 }
 
 void File::insertLinebreak() {
+    // Inserting might adjust the scroll position, so save it here and restore it later.
+    const int line = _scrollPositionY.line();
     _cursor.insertText("\n");
+    _scrollPositionY.setLine(line);
 }
 
 void File::gotoline(QString pos) {
@@ -1658,7 +1661,10 @@ void File::insertAtCursorPosition(const QString &str) {
             }
         }
     } else {
+        // Inserting might adjust the scroll position, so save it here and restore it later.
+        const int line = _scrollPositionY.line();
         _cursor.insertText(str);
+        _scrollPositionY.setLine(line);
     }
     adjustScrollPosition();
 }
@@ -1851,7 +1857,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
                     _cursor.deleteCharacter();
                 }
+                // Inserting might adjust the scroll position, so save it here and restore it later.
+                const int line = _scrollPositionY.line();
                 _cursor.insertText(text);
+                _scrollPositionY.setLine(line);
             }
             adjustScrollPosition();
         }
@@ -2104,7 +2113,10 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         if (_blockSelect) {
             delAndClearSelection();
         }
+        // Inserting might adjust the scroll position, so save it here and restore it later.
+        const int line = _scrollPositionY.line();
         _cursor.insertText("\n");
+        _scrollPositionY.setLine(line);
         updateCommands();
         adjustScrollPosition();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
