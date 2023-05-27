@@ -241,9 +241,13 @@ struct ListTrait<LineMarkerToDocumentTag> {
 };
 
 
+struct LineData {
+    QString chars;
+};
+
 class DocumentSnapshotPrivate {
 public:
-    QVector<QString> _lines;
+    QVector<LineData> _lines;
 };
 
 class DocumentSnapshot {
@@ -390,14 +394,14 @@ private:
 
 private:
     struct UndoStep {
-        QVector<QString> text;
+        QVector<LineData> text;
         int cursorPositionX;
         int cursorPositionY;
     };
 
 private:
     QString _filename;
-    QVector<QString> _lines;
+    QVector<LineData> _lines;
     bool _nonewline = false;
 
     QVector<UndoStep> _undoSteps;
