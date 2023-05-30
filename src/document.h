@@ -240,10 +240,15 @@ struct ListTrait<LineMarkerToDocumentTag> {
     static constexpr auto offset = &LineMarker::markersList;
 };
 
+class UserData {
+public:
+    virtual ~UserData();
+};
 
 struct LineData {
     QString chars;
     unsigned revision = 0;
+    std::shared_ptr<UserData> userData;
 };
 
 class DocumentSnapshotPrivate {
@@ -264,6 +269,7 @@ public:
     QString line(int line) const;
     int lineCodeUnits(int line) const;
     unsigned lineRevision(int line) const;
+    std::shared_ptr<UserData> lineUserData(int line) const;
 
 private:
     std::shared_ptr<DocumentSnapshotPrivate> pimpl;
@@ -305,6 +311,8 @@ public:
     QString line(int line) const;
     int lineCodeUnits(int line) const;
     unsigned lineRevision(int line) const;
+    void setLineUserData(int line, std::shared_ptr<UserData> userData);
+    std::shared_ptr<UserData> lineUserData(int line);
     DocumentSnapshot snapshot() const;
 
     bool isModified() const;

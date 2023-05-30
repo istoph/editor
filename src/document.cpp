@@ -127,6 +127,14 @@ unsigned Document::lineRevision(int line) const {
     return _lines[line].revision;
 }
 
+void Document::setLineUserData(int line, std::shared_ptr<UserData> userData) {
+    _lines[line].userData = userData;
+}
+
+std::shared_ptr<UserData> Document::lineUserData(int line) {
+    return _lines[line].userData;
+}
+
 DocumentSnapshot Document::snapshot() const {
     DocumentSnapshot ret;
     ret.pimpl->_lines = _lines;
@@ -1588,4 +1596,11 @@ int DocumentSnapshot::lineCodeUnits(int line) const {
 
 unsigned DocumentSnapshot::lineRevision(int line) const {
     return pimpl->_lines[line].revision;
+}
+
+std::shared_ptr<UserData> DocumentSnapshot::lineUserData(int line) const {
+    return pimpl->_lines[line].userData;
+}
+
+UserData::~UserData() {
 }
