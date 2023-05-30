@@ -437,6 +437,11 @@ void Document::scheduleChangeSignals() {
     QTimer::singleShot(0, this, [this] {
         _changeScheduled = false;
 
+        if (_contentsChangedSignalToBeEmitted) {
+            _contentsChangedSignalToBeEmitted = false;
+            contentsChanged();
+        }
+
         for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
             if (c->_changed) {
                 c->_changed = false;
@@ -453,7 +458,9 @@ void Document::scheduleChangeSignals() {
 }
 
 void Document::noteContentsChange() {
+    _contentsChangedSignalToBeEmitted = true;
     _revision->store(_revision->load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
+    scheduleChangeSignals();
 }
 
 Document::UndoGroup::~UndoGroup() {

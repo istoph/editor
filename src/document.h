@@ -363,6 +363,8 @@ signals:
     void redoAvailable(bool available);
     void undoAvailable(bool available);
 
+    void contentsChanged();
+
     void cursorChanged(const TextCursor *cursor);
     void lineMarkerChanged(const LineMarker *marker);
 
@@ -435,6 +437,7 @@ private:
     ListHead<LineMarker, LineMarkerToDocumentTag> lineMarkerList;
     ListHead<TextCursor, TextCursorToDocumentTag> cursorList;
     bool _changeScheduled = false;
+    bool _contentsChangedSignalToBeEmitted = false;
     std::shared_ptr<std::atomic<unsigned>> _revision = std::make_shared<std::atomic<unsigned>>(0);
 };
 
