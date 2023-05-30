@@ -243,6 +243,7 @@ struct ListTrait<LineMarkerToDocumentTag> {
 
 struct LineData {
     QString chars;
+    unsigned revision = 0;
 };
 
 class DocumentSnapshotPrivate {
@@ -262,6 +263,7 @@ public:
     int lineCount() const;
     QString line(int line) const;
     int lineCodeUnits(int line) const;
+    unsigned lineRevision(int line) const;
 
 private:
     std::shared_ptr<DocumentSnapshotPrivate> pimpl;
@@ -302,6 +304,7 @@ public:
     int lineCount() const;
     QString line(int line) const;
     int lineCodeUnits(int line) const;
+    unsigned lineRevision(int line) const;
     DocumentSnapshot snapshot() const;
 
     bool isModified() const;

@@ -123,6 +123,10 @@ int Document::lineCodeUnits(int line) const {
     return _lines[line].chars.size();
 }
 
+unsigned Document::lineRevision(int line) const {
+    return _lines[line].revision;
+}
+
 DocumentSnapshot Document::snapshot() const {
     DocumentSnapshot ret;
     ret.pimpl->_lines = _lines;
@@ -784,6 +788,7 @@ void Document::unregisterTextCursor(TextCursor *cursor) {
 }
 
 void Document::removeFromLine(TextCursor *cursor, int line, int codeUnitStart, int codeUnits) {
+    _lines[line].revision++;
     _lines[line].chars.remove(codeUnitStart, codeUnits);
 
     for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
@@ -824,6 +829,7 @@ void Document::removeFromLine(TextCursor *cursor, int line, int codeUnitStart, i
 }
 
 void Document::insertIntoLine(TextCursor *cursor, int line, int codeUnitStart, const QString &data) {
+    _lines[line].revision++;
     _lines[line].chars.insert(codeUnitStart, data);
 
     for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
@@ -870,6 +876,7 @@ void Document::insertIntoLine(TextCursor *cursor, int line, int codeUnitStart, c
 }
 
 void Document::appendToLine(TextCursor *cursor, int line, const QString &data) {
+    _lines[line].revision++;
     _lines[line].chars.append(data);
 
     debugConsistencyCheck(cursor);
@@ -960,6 +967,7 @@ void Document::insertLine(TextCursor *cursor, int before, const QString &data) {
 }
 
 void Document::splitLine(TextCursor *cursor, TextCursor::Position pos) {
+    _lines[pos.line].revision++;
     _lines.insert(pos.line + 1, {_lines[pos.line].chars.mid(pos.codeUnit)});
     _lines[pos.line].chars.resize(pos.codeUnit);
 
@@ -1021,11 +1029,13 @@ void Document::splitLine(TextCursor *cursor, TextCursor::Position pos) {
 
 void Document::mergeLines(TextCursor *cursor, int line) {
     const int originalLineCodeUnits = _lines[line].chars.size();
+    _lines[line].revision++;
     _lines[line].chars.append(_lines[line + 1].chars);
     if (line + 1 < _lines.size()) {
         _lines.remove(line + 1, 1);
     } else {
         _lines[line + 1].chars.clear();
+        _lines[line + 1].revision++;
     }
 
     for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
@@ -1574,4 +1584,8 @@ QString DocumentSnapshot::line(int line) const {
 
 int DocumentSnapshot::lineCodeUnits(int line) const {
     return pimpl->_lines[line].chars.size();
+}
+
+unsigned DocumentSnapshot::lineRevision(int line) const {
+    return pimpl->_lines[line].revision;
 }
