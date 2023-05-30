@@ -286,6 +286,7 @@ class DocumentFindAsyncResult {
 public:
     TextCursor::Position anchor;
     TextCursor::Position cursor;
+    unsigned revision = -1;
 };
 
 class Document : public QObject {

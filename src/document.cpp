@@ -503,8 +503,12 @@ namespace {
         }
     };
 
-    DocumentFindAsyncResult noMatch() {
-        return DocumentFindAsyncResult{{0, 0}, {0, 0}};
+    DocumentFindAsyncResult noMatch(const DocumentSnapshot &snap) {
+        return DocumentFindAsyncResult{{0, 0}, {0, 0}, snap.revision()};
+    }
+
+    DocumentFindAsyncResult noMatch(unsigned revision) {
+        return DocumentFindAsyncResult{{0, 0}, {0, 0}, revision};
     }
 
     template <typename CANCEL>
@@ -522,13 +526,14 @@ namespace {
                     while (remi.hasNext()) {
                         QRegularExpressionMatch match = remi.next();
                         if (canceler.isCanceled()) {
-                            return noMatch();
+                            return noMatch(snap);
                         }
                         if (match.capturedLength() <= 0) continue;
                         if (match.capturedStart() < found + 1) continue;
                         found = match.capturedStart();
                         return DocumentFindAsyncResult{{found, line},
-                                                       {found + match.capturedLength(), line}};
+                                                       {found + match.capturedLength(), line},
+                                                       snap.revision()};
                     }
                     found = -1;
                 } else {
@@ -537,21 +542,22 @@ namespace {
                     if (found != -1) {
                         const int length = std::get<QString>(search.needle).size();
                         return DocumentFindAsyncResult{{found, line},
-                                                       {found + length, line}};
+                                                       {found + length, line},
+                                                       snap.revision()};
                     }
                 }
                 if (canceler.isCanceled()) {
-                    return noMatch();
+                    return noMatch(snap);
                 }
             }
             if (!search.searchWrap || hasWrapped) {
-                return noMatch();
+                return noMatch(snap);
             }
             hasWrapped = true;
             end = std::min(search.startAtLine + 1, snap.lineCount());
             line = 0;
         }
-        return noMatch();
+        return noMatch(snap);
     }
 
     template <typename CANCEL>
@@ -564,17 +570,18 @@ namespace {
         while (true) {
             for (; line >= end;) {
                 if (regularExpressionMode) {
-                    DocumentFindAsyncResult res = noMatch();
+                    DocumentFindAsyncResult res = noMatch(snap);
                     QRegularExpressionMatchIterator remi = std::get<QRegularExpression>(search.needle).globalMatch(snap.line(line));
                     while (remi.hasNext()) {
                         QRegularExpressionMatch match = remi.next();
                         if (canceler.isCanceled()) {
-                            return noMatch();
+                            return noMatch(snap);
                         }
                         if (match.capturedLength() <= 0) continue;
                         if (match.capturedStart() <= searchAt - match.capturedLength()) {
                             res = DocumentFindAsyncResult{{match.capturedStart(), line},
-                                                          {match.capturedStart() + match.capturedLength(), line}};
+                                                          {match.capturedStart() + match.capturedLength(), line},
+                                                          snap.revision()};
                             continue;
                         }
                         break;
@@ -590,18 +597,19 @@ namespace {
                                                                       search.caseSensitivity);
                         if (found != -1) {
                             return DocumentFindAsyncResult{{found, line},
-                                                           {found + length, line}};
+                                                           {found + length, line},
+                                                           snap.revision()};
                         }
                     }
                 }
                 if (canceler.isCanceled()) {
-                    return noMatch();
+                    return noMatch(snap);
                 }
                 line -= 1;
                 if (line >= 0) searchAt = snap.line(line).size();
             }
             if (!search.searchWrap || hasWrapped) {
-                return noMatch();
+                return noMatch(snap);
             }
             hasWrapped = true;
             end = search.startAtLine;
@@ -654,7 +662,7 @@ namespace {
                 return;
             }
 
-            DocumentFindAsyncResult res = noMatch();
+            DocumentFindAsyncResult res = noMatch(snap);
             if (backwards) {
                 res = snapshotSearchBackwards(snap, param, promise);
             } else {
@@ -686,7 +694,7 @@ TextCursor Document::findSync(const QString &subString, const TextCursor &start,
     SearchParameter param = prepareSearchParameter(this, start, options);
     param.needle = subString;
 
-    DocumentFindAsyncResult resTmp = noMatch();
+    DocumentFindAsyncResult resTmp = noMatch(revision());
     NoCanceler noCancler;
     if (options & Document::FindFlag::FindBackward) {
         resTmp = snapshotSearchBackwards(snapshot(), param, noCancler);
@@ -711,7 +719,7 @@ TextCursor Document::findSync(const QRegularExpression &expr, const TextCursor &
     SearchParameter param = prepareSearchParameter(this, start, options);
     param.needle = expr;
 
-    DocumentFindAsyncResult resTmp = noMatch();
+    DocumentFindAsyncResult resTmp = noMatch(revision());
     NoCanceler noCancler;
     if (options & Document::FindFlag::FindBackward) {
         resTmp = snapshotSearchBackwards(snapshot(), param, noCancler);
@@ -743,7 +751,8 @@ QFuture<DocumentFindAsyncResult> Document::findAsyncWithPool(QThreadPool *pool, 
     QFuture<DocumentFindAsyncResult> future = promise.future();
 
     if (subString.isEmpty()) {
-        DocumentFindAsyncResult res{TextCursor::Position(0, 0), TextCursor::Position(0, 0)};
+        DocumentFindAsyncResult res{TextCursor::Position(0, 0), TextCursor::Position(0, 0),
+                                    revision()};
 
         promise.reportStarted();
         promise.reportResult(res);
@@ -774,7 +783,8 @@ QFuture<DocumentFindAsyncResult> Document::findAsyncWithPool(QThreadPool *pool, 
     QFuture<DocumentFindAsyncResult> future = promise.future();
 
     if (!expr.isValid()) {
-        DocumentFindAsyncResult res{TextCursor::Position(0, 0), TextCursor::Position(0, 0)};
+        DocumentFindAsyncResult res{TextCursor::Position(0, 0), TextCursor::Position(0, 0),
+                                    revision()};
 
         promise.reportStarted();
         promise.reportResult(res);
