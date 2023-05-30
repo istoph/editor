@@ -253,7 +253,9 @@ struct LineData {
 
 class DocumentSnapshotPrivate {
 public:
+    unsigned _revision = -1;
     QVector<LineData> _lines;
+    std::shared_ptr<std::atomic<unsigned>> _revisionShared;
 };
 
 class DocumentSnapshot {
@@ -270,6 +272,9 @@ public:
     int lineCodeUnits(int line) const;
     unsigned lineRevision(int line) const;
     std::shared_ptr<UserData> lineUserData(int line) const;
+
+    unsigned revision() const;
+    bool isUpToDate() const;
 
 private:
     std::shared_ptr<DocumentSnapshotPrivate> pimpl;
@@ -301,6 +306,7 @@ public:
 
 public:
     Document(QObject *parent=nullptr);
+    ~Document();
 
 public:
     void reset();
@@ -315,6 +321,7 @@ public:
     std::shared_ptr<UserData> lineUserData(int line);
     DocumentSnapshot snapshot() const;
 
+    unsigned revision() const;
     bool isModified() const;
 
     void setNoNewline(bool value);
@@ -401,6 +408,7 @@ private: // TextCursor + LineMarker interface
     void scheduleChangeSignals();
 
 private:
+    void noteContentsChange();
     void emitModifedSignals();
 
 private:
@@ -426,6 +434,7 @@ private:
     ListHead<LineMarker, LineMarkerToDocumentTag> lineMarkerList;
     ListHead<TextCursor, TextCursorToDocumentTag> cursorList;
     bool _changeScheduled = false;
+    std::shared_ptr<std::atomic<unsigned>> _revision = std::make_shared<std::atomic<unsigned>>(0);
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Document::FindFlags)

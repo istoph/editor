@@ -15,6 +15,11 @@ Document::Document(QObject *parent) : QObject (parent) {
     initalUndoStep(nullptr);
 }
 
+Document::~Document() {
+    // Invalidate all snapshots out there, if snapshots are used in threads that should signal them to stop their work
+    _revision->store(_revision->load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
+}
+
 void Document::reset() {
     _lines.clear();
     _lines.append(LineData());
@@ -29,6 +34,7 @@ void Document::reset() {
     initalUndoStep(nullptr);
 
     debugConsistencyCheck(nullptr);
+    noteContentsChange();
 }
 
 void Document::writeTo(QIODevice *file, bool crLfMode) {
@@ -108,6 +114,8 @@ bool Document::readFrom(QIODevice *file) {
 
     debugConsistencyCheck(nullptr);
 
+    noteContentsChange();
+
     return allLinesCrLf;
 }
 
@@ -138,7 +146,13 @@ std::shared_ptr<UserData> Document::lineUserData(int line) {
 DocumentSnapshot Document::snapshot() const {
     DocumentSnapshot ret;
     ret.pimpl->_lines = _lines;
+    ret.pimpl->_revision = *_revision;
+    ret.pimpl->_revisionShared = _revision;
     return ret;
+}
+
+unsigned Document::revision() const {
+    return *_revision;
 }
 
 bool Document::isModified() const {
@@ -227,6 +241,8 @@ void Document::sortLines(int first, int last, TextCursor *cursorForUndoStep) {
 
     debugConsistencyCheck(nullptr);
 
+    noteContentsChange();
+
     saveUndoStep(cursorForUndoStep);
 }
 
@@ -291,6 +307,8 @@ void Document::tmp_moveLine(int from, int to, TextCursor *cursorForUndoStep) {
 
     debugConsistencyCheck(nullptr);
 
+    noteContentsChange();
+
     saveUndoStep(cursorForUndoStep);
 }
 
@@ -343,6 +361,8 @@ void Document::undo(TextCursor *cursor) {
 
     debugConsistencyCheck(nullptr);
 
+    noteContentsChange();
+
     emitModifedSignals();
 }
 
@@ -378,6 +398,8 @@ void Document::redo(TextCursor *cursor) {
     }
 
     debugConsistencyCheck(nullptr);
+
+    noteContentsChange();
 
     emitModifedSignals();
 }
@@ -428,6 +450,10 @@ void Document::scheduleChangeSignals() {
             }
         }
     });
+}
+
+void Document::noteContentsChange() {
+    _revision->store(_revision->load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
 }
 
 Document::UndoGroup::~UndoGroup() {
@@ -834,6 +860,7 @@ void Document::removeFromLine(TextCursor *cursor, int line, int codeUnitStart, i
     }
 
     debugConsistencyCheck(cursor);
+    noteContentsChange();
 }
 
 void Document::insertIntoLine(TextCursor *cursor, int line, int codeUnitStart, const QString &data) {
@@ -881,6 +908,7 @@ void Document::insertIntoLine(TextCursor *cursor, int line, int codeUnitStart, c
     }
 
     debugConsistencyCheck(cursor);
+    noteContentsChange();
 }
 
 void Document::appendToLine(TextCursor *cursor, int line, const QString &data) {
@@ -888,6 +916,7 @@ void Document::appendToLine(TextCursor *cursor, int line, const QString &data) {
     _lines[line].chars.append(data);
 
     debugConsistencyCheck(cursor);
+    noteContentsChange();
 }
 
 void Document::removeLines(TextCursor *cursor, int start, int count) {
@@ -937,6 +966,7 @@ void Document::removeLines(TextCursor *cursor, int start, int count) {
     }
 
     debugConsistencyCheck(cursor);
+    noteContentsChange();
 }
 
 void Document::insertLine(TextCursor *cursor, int before, const QString &data) {
@@ -972,6 +1002,7 @@ void Document::insertLine(TextCursor *cursor, int before, const QString &data) {
     }
 
     debugConsistencyCheck(cursor);
+    noteContentsChange();
 }
 
 void Document::splitLine(TextCursor *cursor, TextCursor::Position pos) {
@@ -1033,6 +1064,7 @@ void Document::splitLine(TextCursor *cursor, TextCursor::Position pos) {
     }
 
     debugConsistencyCheck(cursor);
+    noteContentsChange();
 }
 
 void Document::mergeLines(TextCursor *cursor, int line) {
@@ -1082,6 +1114,7 @@ void Document::mergeLines(TextCursor *cursor, int line) {
     }
 
     debugConsistencyCheck(cursor);
+    noteContentsChange();
 }
 
 void Document::emitModifedSignals() {
@@ -1600,6 +1633,14 @@ unsigned DocumentSnapshot::lineRevision(int line) const {
 
 std::shared_ptr<UserData> DocumentSnapshot::lineUserData(int line) const {
     return pimpl->_lines[line].userData;
+}
+
+unsigned DocumentSnapshot::revision() const {
+    return pimpl->_revision;
+}
+
+bool DocumentSnapshot::isUpToDate() const {
+    return pimpl->_revision == pimpl->_revisionShared->load(std::memory_order_relaxed);
 }
 
 UserData::~UserData() {
