@@ -1278,8 +1278,8 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 
     Tui::ZTextOption option = getTextOption(false);
 
-    const int firstSelectBlockLine = std::min(_blockSelectStartLine->line(), _blockSelectEndLine->line());
-    const int lastSelectBlockLine = std::max(_blockSelectStartLine->line(), _blockSelectEndLine->line());
+    const int firstSelectBlockLine = _blockSelect ? std::min(_blockSelectStartLine->line(), _blockSelectEndLine->line()) : 0;
+    const int lastSelectBlockLine = _blockSelect ? std::max(_blockSelectStartLine->line(), _blockSelectEndLine->line()) : 0;
     const int firstSelectBlockColumn = std::min(_blockSelectStartColumn, _blockSelectEndColumn);
     const int lastSelectBlockColumn = std::max(_blockSelectStartColumn, _blockSelectEndColumn);
 
