@@ -4,6 +4,7 @@
 #define DOCUMENT_H
 
 #include <functional>
+#include <variant>
 
 #include <QFuture>
 #include <QIODevice>
