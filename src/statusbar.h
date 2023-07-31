@@ -3,6 +3,7 @@
 #ifndef STATUSBAR_H
 #define STATUSBAR_H
 
+#include <Tui/ZColor.h>
 #include <Tui/ZWidget.h>
 
 
@@ -10,6 +11,14 @@ class StatusBar : public Tui::ZWidget {
     Q_OBJECT
 public:
     StatusBar(Tui::ZWidget *parent);
+    QString viewCursorPosition();
+    QString viewFileChanged();
+    QString viewMsdosMode();
+    QString viewModifiedFile();
+    QString viewOverwrite();
+    QString viewReadWriete();
+    QString viewSelectMode();
+    QString viewStandardInput();
 
 public:
     QSize sizeHint() const override;
@@ -47,6 +56,7 @@ private:
     bool _selectMode = false;
     bool _fileChanged = false;
     bool _overwrite = false;
+    Tui::ZColor _bg;
 };
 
 #endif // STATUSBAR_H
