@@ -185,7 +185,7 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     text += slash(viewCursorPosition());
 
     painter->clear({0, 0, 0}, _bg);
-    painter->writeWithColors(80 - text.size() -2, 0, text.toUtf8(), {0, 0, 0}, _bg);
+    painter->writeWithColors(terminal()->width() - text.size() -2, 0, text.toUtf8(), {0, 0, 0}, _bg);
     if(_searchText != "") {
         painter->writeWithColors(0, 0, search.toUtf8(), {0, 0, 0}, {0xff,0xdd,00});
     }
