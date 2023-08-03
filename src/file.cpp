@@ -1568,9 +1568,6 @@ void File::insertAtCursorPosition(const QString &str) {
                 if (source.size() > 1) {
                     sourceLine += 1;
                     if (line == lastSelectBlockLine) {
-                        Tui::ZTextLayout layNew = getTextLayoutForLineWithoutWrapping(line);
-                        Tui::ZTextLineRef tlrNew = layNew.lineAt(0);
-                        _blockSelectStartColumn = _blockSelectEndColumn = tlrNew.cursorToX(cur.position().codeUnit, Tui::ZTextLayout::Leading);
                         if (sourceLine < source.size()) {
                             // Now sure what do do with the overflowing lines, for now just dump them in the last line
                             for (; sourceLine < source.size(); sourceLine++) {
@@ -1580,6 +1577,11 @@ void File::insertAtCursorPosition(const QString &str) {
                     }
                 } else {
                     // keep repeating the one line for all selected lines
+                }
+                if (line == lastSelectBlockLine) {
+                    Tui::ZTextLayout layNew = getTextLayoutForLineWithoutWrapping(line);
+                    Tui::ZTextLineRef tlrNew = layNew.lineAt(0);
+                    _blockSelectStartColumn = _blockSelectEndColumn = tlrNew.cursorToX(cur.position().codeUnit, Tui::ZTextLayout::Leading);
                 }
             }
         }
