@@ -544,13 +544,38 @@ namespace {
                     }
                     found = -1;
                 } else {
-                    found = snap.line(line).indexOf(std::get<QString>(search.needle), found + 1, search.caseSensitivity);
+                    QStringList parts = std::get<QString>(search.needle).split('\n');
+                    if (parts.size() > 1) {
+                        const int numberLinesToCome = snap.lineCount() - line;
+                        if (parts.size() > numberLinesToCome) {
+                            found = -1;
+                            continue;
+                        }
+                        const int markStart = snap.line(line).size() - parts.first().size();
+                        if (found < markStart && snap.line(line).endsWith(parts.first(), search.caseSensitivity)) {
+                            found = markStart;
+                            if (snap.line(line + parts.size() - 1).startsWith(parts.last(), search.caseSensitivity)) {
+                                for (int i = parts.size() - 2; i > 0; i--) {
+                                    if (snap.line(line + i).compare(parts.at(i), search.caseSensitivity)) {
+                                        i = found = -1;
+                                    }
+                                }
+                                if (found != -1)
+                                    return DocumentFindAsyncResult{{found, line},
+                                                                   {parts.last().size(), line + parts.size() - 1},
+                                                                   snap.revision()};
+                           }
+                        }
+                        found = -1;
+                    } else {
+                        found = snap.line(line).indexOf(std::get<QString>(search.needle), found + 1, search.caseSensitivity);
 
-                    if (found != -1) {
-                        const int length = std::get<QString>(search.needle).size();
-                        return DocumentFindAsyncResult{{found, line},
-                                                       {found + length, line},
-                                                       snap.revision()};
+                        if (found != -1) {
+                            const int length = std::get<QString>(search.needle).size();
+                            return DocumentFindAsyncResult{{found, line},
+                                                           {found + length, line},
+                                                           snap.revision()};
+                        }
                     }
                 }
                 if (canceler.isCanceled()) {

@@ -944,3 +944,216 @@ TEST_CASE("Cursor") {
         }
     }
 }
+
+TEST_CASE("Search") {
+    Tui::ZTerminal terminal{Tui::ZTerminal::OffScreen{1, 1}};
+    Tui::ZRoot root;
+    terminal.setMainWidget(&root);
+    Document doc;
+
+    TextCursor cursor1{&doc, nullptr, [&terminal,&doc](int line, bool wrappingAllowed) {
+            Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line));
+            lay.doLayout(65000);
+            return lay;
+        }
+    };
+
+    SECTION("no char") {
+        cursor1.insertText("");
+        cursor1 = doc.findSync(" ", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == false);
+        CHECK(cursor1.selectionStartPos().codeUnit == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 0);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 0);
+    }
+    SECTION("one char") {
+        cursor1.insertText("m");
+        cursor1 = doc.findSync("m", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 0);
+    }
+    SECTION("one char t") {
+        cursor1.insertText("test");
+        cursor1 = doc.findSync("t", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 0);
+
+        cursor1 = doc.findSync("t", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 3);
+        CHECK(cursor1.selectionEndPos().codeUnit == 4);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 0);
+    }
+    SECTION("one char repeated") {
+        cursor1.insertText("tt");
+        cursor1 = doc.findSync("t", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 0);
+
+        cursor1 = doc.findSync("t", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 1);
+        CHECK(cursor1.selectionEndPos().codeUnit == 2);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 0);
+    }
+    SECTION("two char") {
+        cursor1.insertText("tt");
+        cursor1 = doc.findSync("tt", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 2);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 0);
+
+        cursor1 = doc.findSync("tt", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 2);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 0);
+    }
+    SECTION("two char, to lines") {
+        cursor1.insertText("tt\ntt");
+        cursor1 = doc.findSync("tt", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 0);
+        CHECK(cursor1.selectionStartPos().codeUnit == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 2);
+
+        cursor1 = doc.findSync("tt", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 1);
+        CHECK(cursor1.selectionEndPos().line == 1);
+        CHECK(cursor1.selectionStartPos().codeUnit == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 2);
+    }
+    SECTION("two char multiline") {
+        cursor1.insertText("at\nba");
+        cursor1 = doc.findSync("t\nb", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 1);
+        CHECK(cursor1.selectionStartPos().codeUnit == 1);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+    }
+    SECTION("two char multiline2") {
+        cursor1.insertText("at\nt\nta");
+        cursor1 = doc.findSync("t\nt", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 1);
+        CHECK(cursor1.selectionStartPos().codeUnit == 1);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+
+        cursor1.setPosition({0, 1});
+        cursor1 = doc.findSync("t\nt", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 1);
+        CHECK(cursor1.selectionEndPos().line == 2);
+        CHECK(cursor1.selectionStartPos().codeUnit == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+    }
+    SECTION("three multiline") {
+        cursor1.insertText("bat\nzy\nga");
+        cursor1 = doc.findSync("t\nzy\ng", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 2);
+        CHECK(cursor1.selectionStartPos().codeUnit == 2);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+
+    }
+    SECTION("four multiline") {
+        cursor1.insertText("bae\nrt\nzu\nia");
+        cursor1 = doc.findSync("e\nrt\nzu\ni", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 3);
+        CHECK(cursor1.selectionStartPos().codeUnit == 2);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+    }
+    SECTION("four multiline double") {
+        cursor1.insertText("ab\nab\nab\n ab\nab\nab");
+        cursor1 = doc.findSync("ab\nab\nab", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 2);
+        CHECK(cursor1.selectionStartPos().codeUnit == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 2);
+
+        cursor1 = doc.findSync("ab\nab\nab", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 3);
+        CHECK(cursor1.selectionEndPos().line == 5);
+        CHECK(cursor1.selectionStartPos().codeUnit == 1);
+        CHECK(cursor1.selectionEndPos().codeUnit == 2);
+    }
+    SECTION("first not match") {
+        cursor1.insertText("tt\naa\ntt\ntt");
+        cursor1 = doc.findSync("tt\ntt", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 2);
+        CHECK(cursor1.selectionEndPos().line == 3);
+        CHECK(cursor1.selectionStartPos().codeUnit == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 2);
+    }
+    SECTION("first not match of three") {
+        cursor1.insertText("tt\naa\ntt\ntt\nbb\ntt\ntt");
+        cursor1 = doc.findSync("tt\nbb\ntt", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 3);
+        CHECK(cursor1.selectionEndPos().line == 5);
+        CHECK(cursor1.selectionStartPos().codeUnit == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 2);
+    }
+    SECTION("line break") {
+        cursor1.insertText("tt\naa\nttt\ntt\nbb\ntt\ntt");
+        cursor1 = doc.findSync("\n", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 1);
+        CHECK(cursor1.selectionStartPos().codeUnit == 2);
+        CHECK(cursor1.selectionEndPos().codeUnit == 0);
+
+        cursor1 = doc.findSync("\n", cursor1, Document::FindFlag::FindWrap);
+        cursor1 = doc.findSync("\n", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 2);
+        CHECK(cursor1.selectionEndPos().line == 3);
+        CHECK(cursor1.selectionStartPos().codeUnit == 3);
+        CHECK(cursor1.selectionEndPos().codeUnit == 0);
+    }
+    SECTION("cursor in search string") {
+        cursor1.insertText("blah\nblub\nblah\nblub");
+        cursor1.setPosition({2,0});
+        cursor1 = doc.findSync("lah\nblub", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 2);
+        CHECK(cursor1.selectionEndPos().line == 3);
+        CHECK(cursor1.selectionStartPos().codeUnit == 1);
+        CHECK(cursor1.selectionEndPos().codeUnit == 4);
+    }
+    SECTION("cursor in search string with wraparound") {
+        cursor1.insertText("blah\nblub");
+        cursor1.setPosition({2,0});
+        cursor1 = doc.findSync("lah\nblub", cursor1, Document::FindFlag::FindWrap);
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().line == 1);
+        CHECK(cursor1.selectionStartPos().codeUnit == 1);
+        CHECK(cursor1.selectionEndPos().codeUnit == 4);
+    }
+}
