@@ -171,7 +171,7 @@ void Editor::setupUi() {
             if (_tabDialog) {
                 _tabDialog->raise();
                 _tabDialog->setVisible(true);
-                _tabDialog->setFocus();
+                _tabDialog->placeFocus()->setFocus();
             } else {
                 _tabDialog = new TabDialog(this);
                 if (_file) {
