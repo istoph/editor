@@ -31,6 +31,8 @@ public:
     bool showLineNumber = false;
     QString attributesFile;
     int rightMarginHint = 0;
+    QString syntaxHighlightingTheme;
+    bool disableSyntaxHighlighting = true;
 };
 
 class Editor : public Tui::ZRoot {

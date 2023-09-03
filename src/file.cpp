@@ -9,6 +9,10 @@
 #include <QSaveFile>
 #include <QtConcurrent>
 
+#ifdef SYNTAX_HIGHLIGHTING
+#include <KSyntaxHighlighting/Format>
+#endif
+
 #include <Tui/Misc/SurrogateEscape.h>
 #include <Tui/ZCommandNotifier.h>
 #include <Tui/ZImage.h>
@@ -100,6 +104,175 @@ File::File(Tui::ZWidget *parent)
         }
     });
 
+#ifdef SYNTAX_HIGHLIGHTING
+    qRegisterMetaType<Updates>();
+
+    QObject::connect(_doc.get(), &Document::contentsChanged, this, [this] {
+        updateSyntaxHighlighting(false);
+    });
+#endif
+
+}
+
+#ifdef SYNTAX_HIGHLIGHTING
+
+void File::updateSyntaxHighlighting(bool force = false) {
+    if (force) {
+        _doc->setLineUserData(0, nullptr);
+    }
+    if (!syntaxHighlightingActive() || !_syntaxHighlightDefinition.isValid()
+            || !_syntaxHighlightingTheme.isValid()) {
+        return;
+    }
+
+    DocumentSnapshot snapshot = _doc->snapshot();
+    SyntaxHighlightingSignalForwarder *forwarder = new SyntaxHighlightingSignalForwarder();
+    forwarder->moveToThread(nullptr); // enable later pull to worker thread
+    QObject::connect(forwarder, &SyntaxHighlightingSignalForwarder::updates, this, &File::ingestSyntaxHighlightingUpdates);
+
+    QtConcurrent::run([forwarder, snapshot, &highlighter=_syntaxHighlightExporter] {
+        forwarder->moveToThread(QThread::currentThread());
+
+        Updates updates;
+        updates.documentRevision = snapshot.revision();
+
+        auto sendData = [&] {
+            forwarder->updates(updates);
+        };
+
+        auto update = [&](int line, std::shared_ptr<ExtraData> &newData) {
+            updates.data.append(newData);
+            updates.lines.append(line);
+
+            if (updates.data.size() > 100) {
+                sendData();
+                updates.data.clear();
+                updates.lines.clear();
+            }
+        };
+
+        KSyntaxHighlighting::State state;
+        for (int line = 0; line < snapshot.lineCount(); line++) {
+            if (!snapshot.isUpToDate()) {
+                // Abandon work, the document has changed
+                delete forwarder;
+                return;
+            }
+            auto userData = std::static_pointer_cast<const ExtraData>(snapshot.lineUserData(line));
+            if (!userData || userData->stateBegin != state || userData->lineRevision != snapshot.lineRevision(line)) {
+                auto newData = std::make_shared<ExtraData>();
+                newData->stateBegin = state;
+                auto res = highlighter.highlightLineWrap(snapshot.line(line), state);
+                newData->stateEnd = state = std::get<0>(res);
+                newData->highlights = std::get<1>(res);
+                newData->lineRevision = snapshot.lineRevision(line);
+
+                update(line, newData);
+            } else {
+                state = userData->stateEnd;
+            }
+        }
+
+        if (updates.data.size()) {
+            sendData();
+        }
+        delete forwarder;
+    });
+}
+
+void File::syntaxHighlightDefinition() {
+    if (_syntaxHighlightDefinition.isValid()) {
+        _syntaxHighlightExporter.setTheme(_syntaxHighlightingTheme);
+        _syntaxHighlightExporter.setDefinition(_syntaxHighlightDefinition);
+        _syntaxHighlightExporter.defBg = getColor("chr.editBg");
+        _syntaxHighlightExporter.defFg = getColor("chr.editFg");
+        _syntaxHighlightingLanguage = _syntaxHighlightDefinition.name();
+    }
+}
+
+void File::ingestSyntaxHighlightingUpdates(Updates updates) {
+    if (updates.documentRevision != _doc->revision()) {
+        // Lines numbers might have changed (by insertion or deletion of lines), we can't use this update
+        return;
+    }
+
+    const int visibleLinesStart = _scrollPositionY.line();
+    const int visibleLinesEnd = visibleLinesStart + geometry().height();
+
+    bool needRepaint = false;
+
+    for (int i = 0; i < updates.lines.size(); i++) {
+        const int line = updates.lines[i];
+
+        if (line < _doc->lineCount() && _doc->lineRevision(line) == updates.data[i]->lineRevision) {
+            _doc->setLineUserData(line, updates.data[i]);
+
+            if (visibleLinesStart <= line && line <= visibleLinesEnd) {
+                needRepaint = true;
+            }
+        }
+    }
+
+    if (needRepaint) {
+        update();
+    }
+}
+
+std::tuple<KSyntaxHighlighting::State, QVector<Tui::ZFormatRange>> HighlightExporter::highlightLineWrap(const QString &text, const KSyntaxHighlighting::State &state) {
+    std::lock_guard lock{mutex};
+    highlights.clear();
+    auto newState = highlightLine(text, state);
+    return {newState, this->highlights};
+}
+
+void HighlightExporter::applyFormat(int offset, int length, const KSyntaxHighlighting::Format &format) {
+    Tui::ZTextAttributes attr;
+    if (format.isBold(theme())) {
+        attr |= Tui::ZTextAttribute::Bold;
+    }
+    if (format.isItalic(theme())) {
+        attr |= Tui::ZTextAttribute::Italic;
+    }
+    if (format.isUnderline(theme())) {
+        attr |= Tui::ZTextAttribute::Underline;
+    }
+    if (format.isStrikeThrough(theme())) {
+        attr |= Tui::ZTextAttribute::Strike;
+    }
+    auto convert = [](QColor q) {
+        return Tui::ZColor::fromRgb(q.red(), q.green(), q.blue());
+    };
+    Tui::ZColor fg = format.hasTextColor(theme()) ? convert(format.textColor(theme())) : defFg;
+    Tui::ZColor bg = format.hasBackgroundColor(theme()) ? convert(format.backgroundColor(theme())) : defBg;
+    Tui::ZTextStyle style(fg, bg, attr);
+    highlights.append(Tui::ZFormatRange(offset, length, style, style));
+}
+#endif
+
+void File::setSyntaxHighlightingTheme(QString themeName) {
+    _syntaxHighlightingThemeName = themeName;
+    _syntaxHighlightingTheme = _syntaxHighlightRepo.theme(_syntaxHighlightingThemeName);
+    _syntaxHighlightExporter.setTheme(_syntaxHighlightingTheme);
+    _syntaxHighlightExporter.defBg = getColor("chr.editBg");
+    _syntaxHighlightExporter.defFg = getColor("chr.editFg");
+    for (int line = 0; line < _doc->lineCount(); line++) {
+        _doc->setLineUserData(line, nullptr);
+    }
+    updateSyntaxHighlighting(true);
+}
+
+
+bool File::syntaxHighlightingActive() {
+    return _syntaxHighlightingActive;
+}
+
+void File::setSyntaxHighlightingActive(bool active) {
+    _syntaxHighlightingActive = active;
+    if (active) {
+        // rehighlight, highlight have not been updated while syntax highlighting was disabled
+        updateSyntaxHighlighting(true);
+    }
+    update();
 }
 
 File::~File() {
@@ -402,6 +575,11 @@ bool File::openText(QString filename) {
         checkWritable();
 
         modifiedChanged(false);
+
+#ifdef SYNTAX_HIGHLIGHTING
+        _syntaxHighlightDefinition = _syntaxHighlightRepo.definitionForFileName(getFilename());
+        syntaxHighlightDefinition();
+#endif
 
         return true;
     }
@@ -1247,13 +1425,9 @@ TextCursor File::createCursor() {
 }
 
 void File::paintEvent(Tui::ZPaintEvent *event) {
-    Tui::ZColor bg;
-    Tui::ZColor fg;
+    Tui::ZColor fg = getColor("chr.editFg");
+    Tui::ZColor bg = getColor("chr.editBg");
     highlightBracket();
-
-    bg = getColor("control.bg");
-    //fg = getColor("control.fg");
-    fg = {0xff, 0xff, 0xff};
 
     Tui::ZColor marginMarkBg = [](Tui::ZColorHSV base)
         {
@@ -1326,6 +1500,23 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 
         // highlights
         highlights.clear();
+
+#ifdef SYNTAX_HIGHLIGHTING
+        if (syntaxHighlightingActive()) {
+            if (_doc->lineUserData(line)) {
+                auto extraData = std::static_pointer_cast<const ExtraData>(_doc->lineUserData(line));
+                if (line == cursorLine && extraData->lineRevision != _doc->lineRevision(line)) {
+                    // avoid glitches when using the cursor to edit lines
+                    // the state can still be stale, but much more edits can be done without visible glitches
+                    // with stale state.
+                    highlights += std::get<1>(_syntaxHighlightExporter.highlightLineWrap(_doc->line(line), extraData->stateBegin));
+                } else {
+                    highlights += extraData->highlights;
+                }
+            }
+        }
+#endif
+
         // search matches
         if(_searchText != "") {
             int found = -1;

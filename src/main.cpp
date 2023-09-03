@@ -66,6 +66,18 @@ int main(int argc, char **argv) {
                     QCoreApplication::translate("main", "config"));
     parser.addOption(configOption);
 
+    // syntax
+#ifdef SYNTAX_HIGHLIGHTING
+    QCommandLineOption syntaxHighlightingTheme("syntax-highlighting-theme",
+                    QCoreApplication::translate("main", "Name of syntax-highlighting-theme, you can list installed themes with: kate-syntax-highlighter --list-themes"),
+                    QCoreApplication::translate("main", "name"));
+    parser.addOption(syntaxHighlightingTheme);
+
+    QCommandLineOption disableSyntaxHighlighting("disable-syntax",
+                    QCoreApplication::translate("main", "disable syntax highlighting"));
+    parser.addOption(disableSyntaxHighlighting);
+#endif
+
     // goto line
     parser.addPositionalArgument("[[+line[,char]] file …]",
                     QCoreApplication::translate("main", "Optional is the line number, several files can be opened in multiple windows."));
@@ -119,6 +131,11 @@ int main(int argc, char **argv) {
     settings.colorSpaceEnd = qsettings->value("color_space_end", "0").toBool();
 
     bool bigfile = qsettings->value("bigfile", "false").toBool();
+
+#ifdef SYNTAX_HIGHLIGHTING
+    settings.syntaxHighlightingTheme = qsettings->value("syntax_highlighting_theme", "").toString();
+    settings.disableSyntaxHighlighting = qsettings->value("disable_syntax", "false").toBool();
+#endif
 
     QString attributesfileDefault = qsettings->value("attributesfile", QDir::homePath() + "/.cache/chr.json").toString();
     if (attributesfile.isEmpty()) {

@@ -4,10 +4,19 @@
 #define FILE_H
 
 #include <memory>
+#include <mutex>
 #include <optional>
 
 #include <QJsonObject>
 #include <QPair>
+
+#ifdef SYNTAX_HIGHLIGHTING
+#include <KSyntaxHighlighting/AbstractHighlighter>
+#include <KSyntaxHighlighting/Definition>
+#include <KSyntaxHighlighting/Repository>
+#include <KSyntaxHighlighting/State>
+#include <KSyntaxHighlighting/Theme>
+#endif
 
 #include <Tui/ZCommandNotifier.h>
 #include <Tui/ZTextLayout.h>
@@ -15,6 +24,50 @@
 #include <Tui/ZWidget.h>
 
 #include "document.h"
+
+struct ExtraData : public UserData {
+#ifdef SYNTAX_HIGHLIGHTING
+    KSyntaxHighlighting::State stateBegin;
+    KSyntaxHighlighting::State stateEnd;
+#endif
+    QVector<Tui::ZFormatRange> highlights;
+    int lineRevision = -1;
+};
+struct Updates {
+    QList<std::shared_ptr<ExtraData>> data;
+    QList<int> lines;
+    int documentRevision = 0;
+};
+
+Q_DECLARE_METATYPE(Updates);
+
+class SyntaxHighlightingSignalForwarder : public QObject {
+    Q_OBJECT
+signals:
+    void updates(Updates);
+};
+
+#ifdef SYNTAX_HIGHLIGHTING
+
+class HighlightExporter : public KSyntaxHighlighting::AbstractHighlighter {
+public:
+    std::tuple<KSyntaxHighlighting::State, QVector<Tui::ZFormatRange>> highlightLineWrap(const QString &text, const KSyntaxHighlighting::State &state);
+
+    Tui::ZColor defBg;
+    Tui::ZColor defFg;
+
+protected:
+    void applyFormat(int offset, int length, const KSyntaxHighlighting::Format &format) override;
+
+protected:
+    // The whole object graph of the syntax highlighter is not safe to share across threads...
+    // so we need to use a fine grained lock to avoid blocking the UI thread for too long.
+    std::mutex mutex;
+
+    QVector<Tui::ZFormatRange> highlights;
+};
+
+#endif
 
 class File : public Tui::ZWidget {
     Q_OBJECT
@@ -92,6 +145,9 @@ public:
     bool isNewFile();
     void undo();
     void redo();
+    void setSyntaxHighlightingTheme(QString themeName);
+    bool syntaxHighlightingActive();
+    void setSyntaxHighlightingActive(bool active);
 
 public:
     void setSearchWrap(bool wrap);
@@ -167,6 +223,11 @@ private:
     void multiInsertDeleteCharacter();
     void multiInsertDeleteWord();
     void multiInsertInsert(const QString &text);
+#ifdef SYNTAX_HIGHLIGHTING
+    void ingestSyntaxHighlightingUpdates(Updates);
+    void updateSyntaxHighlighting(bool force);
+    void syntaxHighlightDefinition();
+#endif
 
 private:
     std::shared_ptr<Document> _doc;
@@ -219,6 +280,17 @@ private:
     Tui::ZCommandNotifier *_cmdSearchNext = nullptr;
     Tui::ZCommandNotifier *_cmdSearchPrevious = nullptr;
     bool _selectMode = false;
+
+    // Syntax highlighting
+    QString _syntaxHighlightingThemeName;
+    QString _syntaxHighlightingLanguage = "None";
+    bool _syntaxHighlightingActive = false;
+#ifdef SYNTAX_HIGHLIGHTING
+    KSyntaxHighlighting::Repository _syntaxHighlightRepo;
+    KSyntaxHighlighting::Theme _syntaxHighlightingTheme;
+    KSyntaxHighlighting::Definition _syntaxHighlightDefinition;
+    HighlightExporter _syntaxHighlightExporter;
+#endif
 };
 
 #endif // FILE_H

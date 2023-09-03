@@ -450,6 +450,8 @@ FileWindow *Editor::createFileWindow() {
         file->setRightMarginHint(_file->rightMarginHint());
         file->setHighlightBracket(_file->getHighlightBracket());
         file->setAttributesfile(_file->getAttributesfile());
+        file->setSyntaxHighlightingTheme(initialFileSettings.syntaxHighlightingTheme);
+        file->setSyntaxHighlightingActive(_file->syntaxHighlightingActive());
     } else {
         file->setTabsize(initialFileSettings.tabSize);
         file->setLineNumber(initialFileSettings.showLineNumber);
@@ -462,6 +464,8 @@ FileWindow *Editor::createFileWindow() {
         file->setRightMarginHint(initialFileSettings.rightMarginHint);
         file->setHighlightBracket(initialFileSettings.highlightBracket);
         file->setAttributesfile(initialFileSettings.attributesFile);
+        file->setSyntaxHighlightingTheme(initialFileSettings.syntaxHighlightingTheme);
+        file->setSyntaxHighlightingActive(!initialFileSettings.disableSyntaxHighlighting);
     }
 
     return win;
@@ -689,6 +693,10 @@ QObject * Editor::facet(const QMetaObject &metaObject) const {
 
 void Editor::quitImpl(int i) {
     if (i >= _allWindows.size()) {
+        // delete all windows so they can signal work in QtConcurrent to quit also.
+        for (auto* win: _allWindows) {
+            win->deleteLater();
+        }
         QCoreApplication::instance()->quit();
         return;
     }
@@ -747,6 +755,8 @@ void Editor::setTheme(Theme theme) {
                                  {"chr.linenumberFg", { 0xdd, 0xdd, 0xdd}},
                                  {"chr.linenumberBg", { 0x80, 0x80, 0x80}},
                                  {"chr.statusbarBg", Tui::Colors::darkGray},
+                                 {"chr.editFg", {0xff, 0xff, 0xff}},
+                                 {"chr.editBg", {0x0, 0x0, 0x0}},
                              });
         setPalette(tmpPalette);
     } else if (theme == Theme::classic) {
@@ -759,6 +769,8 @@ void Editor::setTheme(Theme theme) {
                                  {"chr.linenumberFg", { 0xdd, 0xdd, 0xdd}},
                                  {"chr.linenumberBg", { 0,    0,    0x80}},
                                  {"chr.statusbarBg", {0, 0xaa, 0xaa}},
+                                 {"chr.editFg", {0xff, 0xff, 0xff}},
+                                 {"chr.editBg", {0, 0, 0xaa}},
                                  {"root.fg", {0xaa,0xaa,0xaa}},
                                  {"root.bg", {0x0,0x0,0xaa}}
                              });

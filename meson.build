@@ -21,4 +21,10 @@ qt5_dep = dependency('qt5', modules: ['Core', 'Concurrent'])
 tuiwidgets_dep = dependency('TuiWidgets')
 posixsignalmanager_dep = dependency('PosixSignalManager')
 
+if get_option('syntax_highlighting')
+    syntax_dep = declare_dependency(dependencies:dependency('KF5SyntaxHighlighting'), compile_args: ['-DSYNTAX_HIGHLIGHTING'])
+else
+    syntax_dep = []
+endif
+
 subdir('src')

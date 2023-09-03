@@ -90,16 +90,16 @@ editor_lib = static_library('editor', editor_sources,
   qt5.preprocess(moc_headers: editor_headers, moc_sources: editor_sources,
   include_directories: include_directories('.')),
   include_directories: include_directories('.'),
-  dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep])
+  dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep, syntax_dep])
 
 executable('editor', main,
   vcs_dep,
   include_directories: include_directories('.'),
   link_with: editor_lib,
-  dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep])
+  dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep, syntax_dep])
 
 executable('tests', tests,
   qt5.preprocess(moc_headers: tests_headers, moc_sources: tests,
   include_directories: include_directories('.')),
   link_with: editor_lib,
-  dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep])
+  dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep, syntax_dep])
