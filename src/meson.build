@@ -5,12 +5,12 @@ main = ['main.cpp']
 #ide:editable-filelist
 tests = [
   'tests/documenttests.cpp',
+  'tests/eventrecorder.cpp',
   'tests/filelistparsertests.cpp',
   'tests/fileopentests.cpp',
   'tests/filesavetests.cpp',
   'tests/filetests.cpp',
   'tests/tests.cpp',
-  'tests/eventrecorder.cpp',
 ]
 
 tests_headers = [
@@ -45,6 +45,7 @@ editor_sources = [
   'searchdialog.cpp',
   'statemux.cpp',
   'statusbar.cpp',
+  'syntaxhighlightdialog.cpp',
   'tabdialog.cpp',
   'themedialog.cpp',
   'wrapdialog.cpp',
@@ -75,6 +76,7 @@ editor_headers = [
   'searchcount.h',
   'searchdialog.h',
   'statusbar.h',
+  'syntaxhighlightdialog.h',
   'tabdialog.h',
   'themedialog.h',
   'wrapdialog.h',
@@ -86,7 +88,7 @@ vcs_dep = vcs_tag(command : ['git', 'rev-parse', '--short', 'HEAD'],
         output:'git_version.h',
         replace_string:'%GIT_VERSION%')
 
-editor_lib = static_library('editor', editor_sources,
+editor_lib = static_library('editor', [editor_sources, syntax_qrc],
   qt5.preprocess(moc_headers: editor_headers, moc_sources: editor_sources,
   include_directories: include_directories('.')),
   include_directories: include_directories('.'),

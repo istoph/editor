@@ -187,6 +187,7 @@ void File::syntaxHighlightDefinition() {
         _syntaxHighlightExporter.defBg = getColor("chr.editBg");
         _syntaxHighlightExporter.defFg = getColor("chr.editFg");
         _syntaxHighlightingLanguage = _syntaxHighlightDefinition.name();
+        emitSyntaxHighlightingLanguage(_syntaxHighlightingLanguage);
     }
 }
 
@@ -250,6 +251,7 @@ void HighlightExporter::applyFormat(int offset, int length, const KSyntaxHighlig
 #endif
 
 void File::setSyntaxHighlightingTheme(QString themeName) {
+#ifdef SYNTAX_HIGHLIGHTING
     _syntaxHighlightingThemeName = themeName;
     _syntaxHighlightingTheme = _syntaxHighlightRepo.theme(_syntaxHighlightingThemeName);
     _syntaxHighlightExporter.setTheme(_syntaxHighlightingTheme);
@@ -259,20 +261,36 @@ void File::setSyntaxHighlightingTheme(QString themeName) {
         _doc->setLineUserData(line, nullptr);
     }
     updateSyntaxHighlighting(true);
+#endif
 }
 
+void File::setSyntaxHighlightingLanguage(QString language) {
+#ifdef SYNTAX_HIGHLIGHTING
+    _syntaxHighlightDefinition = _syntaxHighlightRepo.definitionForName(language);
+    syntaxHighlightDefinition();
+    // rehighlight
+    updateSyntaxHighlighting(true);
+#endif
+}
+
+QString File::syntaxHighlightingLanguage() {
+    return _syntaxHighlightingLanguage;
+}
 
 bool File::syntaxHighlightingActive() {
     return _syntaxHighlightingActive;
 }
 
 void File::setSyntaxHighlightingActive(bool active) {
+#ifdef SYNTAX_HIGHLIGHTING
     _syntaxHighlightingActive = active;
+    emitSyntaxHighlightingEnable(_syntaxHighlightingActive);
     if (active) {
         // rehighlight, highlight have not been updated while syntax highlighting was disabled
         updateSyntaxHighlighting(true);
     }
     update();
+#endif
 }
 
 File::~File() {

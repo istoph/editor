@@ -18,6 +18,10 @@
 
 int main(int argc, char **argv) {
 
+#ifdef SYNTAX_HIGHLIGHTING
+    Q_INIT_RESOURCE(syntax);
+#endif
+
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName("chr");
     const QString version = "%VERSION% "+ QString(GIT_VERSION_ID);
@@ -132,9 +136,25 @@ int main(int argc, char **argv) {
 
     bool bigfile = qsettings->value("bigfile", "false").toBool();
 
+    QString defaultSyntaxHighlightingTheme;
+    QString theme = qsettings->value("theme", "classic").toString();
+    if (theme.toLower() == "dark" || theme.toLower() == "black") {
+        root->setTheme(Editor::Theme::dark);
+        defaultSyntaxHighlightingTheme = "chr-blackbg";
+    } else {
+        root->setTheme(Editor::Theme::classic);
+        defaultSyntaxHighlightingTheme = "chr-bluebg";
+    }
+
 #ifdef SYNTAX_HIGHLIGHTING
-    settings.syntaxHighlightingTheme = qsettings->value("syntax_highlighting_theme", "").toString();
+    settings.syntaxHighlightingTheme = qsettings->value("syntax_highlighting_theme", defaultSyntaxHighlightingTheme).toString();
+    if (parser.isSet(syntaxHighlightingTheme)) {
+        settings.syntaxHighlightingTheme = parser.value(syntaxHighlightingTheme);
+    }
     settings.disableSyntaxHighlighting = qsettings->value("disable_syntax", "false").toBool();
+    if (parser.isSet(disableSyntaxHighlighting)) {
+        settings.disableSyntaxHighlighting = true;
+    }
 #endif
 
     QString attributesfileDefault = qsettings->value("attributesfile", QDir::homePath() + "/.cache/chr.json").toString();
@@ -156,13 +176,6 @@ int main(int argc, char **argv) {
     settings.highlightBracket = hb;
 
     root->setInitialFileSettings(settings);
-
-    QString theme = qsettings->value("theme", "classic").toString();
-    if (theme.toLower() == "dark" || theme.toLower() == "black") {
-        root->setTheme(Editor::Theme::dark);
-    } else {
-        root->setTheme(Editor::Theme::classic);
-    }
 
     QString logfile = qsettings->value("logfile", "").toString();
     if (logfile.isEmpty()) {

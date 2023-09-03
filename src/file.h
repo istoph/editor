@@ -146,6 +146,8 @@ public:
     void undo();
     void redo();
     void setSyntaxHighlightingTheme(QString themeName);
+    QString syntaxHighlightingLanguage();
+    void setSyntaxHighlightingLanguage(QString language);
     bool syntaxHighlightingActive();
     void setSyntaxHighlightingActive(bool active);
 
@@ -183,6 +185,8 @@ signals:
     void emitSearchCount(int sc);
     void emitSearchText(QString searchText);
     void emitOverwrite(bool overwrite);
+    void emitSyntaxHighlightingLanguage(QString language);
+    void emitSyntaxHighlightingEnable(bool enable);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event) override;

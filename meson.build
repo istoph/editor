@@ -23,8 +23,10 @@ posixsignalmanager_dep = dependency('PosixSignalManager')
 
 if get_option('syntax_highlighting')
     syntax_dep = declare_dependency(dependencies:dependency('KF5SyntaxHighlighting'), compile_args: ['-DSYNTAX_HIGHLIGHTING'])
+    syntax_qrc = qt5.compile_resources(sources: 'syntax.qrc')
 else
     syntax_dep = []
+    syntax_qrc = []
 endif
 
 subdir('src')

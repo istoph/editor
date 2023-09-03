@@ -154,6 +154,26 @@ QString StatusBar::viewOverwrite() {
     return text;
 }
 
+
+QString StatusBar::viewLanguage() {
+    if (!_syntaxHighlightingEnabled || _language == "None") {
+        return "";
+    } else {
+        return _language;
+    }
+}
+
+void StatusBar::language(QString language) {
+    _language = language;
+    update();
+}
+
+void StatusBar::syntaxHighlightingEnabled(bool enable) {
+    _syntaxHighlightingEnabled = enable;
+    update();
+}
+
+
 QString slash(QString text) {
     if (text != "") {
         return " | "+ text;
@@ -170,6 +190,7 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     search = _searchText.left(cutColums) +": "+ QString::number(_searchCount);
 
     QString text;
+    text += slash(viewLanguage());
     text += slash(viewFileChanged());
     text += slash(viewSelectMode());
     text += slash(viewModifiedFile());

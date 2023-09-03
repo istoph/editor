@@ -19,6 +19,7 @@ public:
     QString viewReadWriete();
     QString viewSelectMode();
     QString viewStandardInput();
+    QString viewLanguage();
 
 public:
     QSize sizeHint() const override;
@@ -36,6 +37,8 @@ public slots:
     void modifiedSelectMode(bool f4);
     void fileHasBeenChangedExternally(bool fileChanged = true);
     void overwrite(bool overwrite);
+    void syntaxHighlightingEnabled(bool enable);
+    void language(QString language);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event);
@@ -56,6 +59,8 @@ private:
     bool _selectMode = false;
     bool _fileChanged = false;
     bool _overwrite = false;
+    QString _language = "None";
+    bool _syntaxHighlightingEnabled = false;
     Tui::ZColor _bg;
 };
 

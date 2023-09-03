@@ -14,6 +14,7 @@
 #include "searchdialog.h"
 #include "statemux.h"
 #include "statusbar.h"
+#include "syntaxhighlightdialog.h"
 #include "tabdialog.h"
 #include "themedialog.h"
 
@@ -32,7 +33,7 @@ public:
     QString attributesFile;
     int rightMarginHint = 0;
     QString syntaxHighlightingTheme;
-    bool disableSyntaxHighlighting = true;
+    bool disableSyntaxHighlighting = false;
 };
 
 class Editor : public Tui::ZRoot {
@@ -98,6 +99,7 @@ private:
     SearchDialog *_replaceDialog = nullptr;
     ThemeDialog *_themeDialog = nullptr;
     QPointer<TabDialog> _tabDialog = nullptr;
+    QPointer<SyntaxHighlightDialog> _syntaxHighlightDialog = nullptr;
     StatusBar *_statusBar = nullptr;
     CommandLineWidget *_commandLineWidget = nullptr;
     mutable Clipboard _clipboard;

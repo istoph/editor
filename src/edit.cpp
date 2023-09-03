@@ -83,6 +83,7 @@ void Editor::setupUi() {
                                  { "Following standard input", "", "Following", {}},
                                  { "Stop Input Pipe", "", "InputPipe", {}},
                                  { "<m>H</m>ighlight Brackets", "", "Brackets", {}},
+                                 { "<m>S</m>yntax Highlighting", "", "SyntaxHighlighting", {}},
                                  { "<m>T</m>heme", "", "Theme", {}}
                              }
                       },
@@ -232,6 +233,29 @@ void Editor::setupUi() {
         }
     );
 
+#ifdef SYNTAX_HIGHLIGHTING
+    QObject::connect(new Tui::ZCommandNotifier("SyntaxHighlighting", this), &Tui::ZCommandNotifier::activated,
+         [&] {
+            if (_syntaxHighlightDialog) {
+                _syntaxHighlightDialog->raise();
+                _syntaxHighlightDialog->setVisible(true);
+                _syntaxHighlightDialog->placeFocus()->setFocus();
+            } else {
+                _syntaxHighlightDialog = new SyntaxHighlightDialog(this);
+                QObject::connect(_syntaxHighlightDialog, &SyntaxHighlightDialog::settingsChanged, this, [this] (bool enable, QString lang) {
+                    if (_file) {
+                        _file->setSyntaxHighlightingActive(enable);
+                        _file->setSyntaxHighlightingLanguage(lang);
+                    }
+                });
+            }
+            if (_file) {
+                _syntaxHighlightDialog->updateSettings(_file->syntaxHighlightingActive(), _file->syntaxHighlightingLanguage());
+            }
+        }
+    );
+#endif
+
     QObject::connect(new Tui::ZCommandNotifier("Theme", this), &Tui::ZCommandNotifier::activated,
          [&] {
             new ThemeDialog(this);
@@ -347,6 +371,9 @@ void Editor::terminalChanged() {
                 if (_tabDialog) {
                     _tabDialog->updateSettings(!_file->getTabOption(), _file->getTabsize(), _file->eatSpaceBeforeTabs());
                 }
+                if (_syntaxHighlightDialog) {
+                    _syntaxHighlightDialog->updateSettings(_file->syntaxHighlightingActive(), _file->syntaxHighlightingLanguage());
+                }
             }
             _mux.selectInput(_win);
         }
@@ -398,6 +425,8 @@ FileWindow *Editor::createFileWindow() {
     _mux.connect(win, file, &File::emitSearchText, _statusBar, &StatusBar::searchText, QString());
     _mux.connect(win, file, &File::emitOverwrite, _statusBar, &StatusBar::overwrite, false);
     _mux.connect(win, win, &FileWindow::fileChangedExternally, _statusBar, &StatusBar::fileHasBeenChangedExternally, false);
+    _mux.connect(win, file, &File::emitSyntaxHighlightingEnable, _statusBar, &StatusBar::syntaxHighlightingEnabled, false);
+    _mux.connect(win, file, &File::emitSyntaxHighlightingLanguage, _statusBar, &StatusBar::language, QString());
 
     _allWindows.append(win);
 
@@ -759,6 +788,10 @@ void Editor::setTheme(Theme theme) {
                                  {"chr.editBg", {0x0, 0x0, 0x0}},
                              });
         setPalette(tmpPalette);
+        if (initialFileSettings.syntaxHighlightingTheme == "chr-blackbg"
+                || initialFileSettings.syntaxHighlightingTheme == "chr-bluebg") {
+            initialFileSettings.syntaxHighlightingTheme = "chr-blackbg";
+        }
     } else if (theme == Theme::classic) {
         Tui::ZPalette tmpPalette = Tui::ZPalette::classic();
         tmpPalette.setColors({
@@ -775,6 +808,13 @@ void Editor::setTheme(Theme theme) {
                                  {"root.bg", {0x0,0x0,0xaa}}
                              });
         setPalette(tmpPalette);
+        if (initialFileSettings.syntaxHighlightingTheme == "chr-blackbg"
+                || initialFileSettings.syntaxHighlightingTheme == "chr-bluebg") {
+            initialFileSettings.syntaxHighlightingTheme = "chr-bluebg";
+        }
+    }
+    for (auto window: _allWindows) {
+        window->getFileWidget()->setSyntaxHighlightingTheme(initialFileSettings.syntaxHighlightingTheme);
     }
 }
 

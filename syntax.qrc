@@ -1,0 +1,13 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+<qresource prefix="/org.kde.syntax-highlighting/themes-addons">
+<file alias="chr-bluebg.theme">third-party/chr-bluebg.theme</file>
+<file alias="chr-blackbg.theme">third-party/chr-blackbg.theme</file>
+</qresource>
+<!-- versions of KF5SyntaxHighlighting 5.86 don't support 'themes-addons'. For now just place
+     it in the path used by older versions as well -->
+<qresource prefix="/org.kde.syntax-highlighting/themes">
+<file alias="chr-bluebg.theme">third-party/chr-bluebg.theme</file>
+<file alias="chr-blackbg.theme">third-party/chr-blackbg.theme</file>
+</qresource>
+</RCC>
