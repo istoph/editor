@@ -804,8 +804,8 @@ void Editor::setTheme(Theme theme) {
                                  {"chr.statusbarBg", {0, 0xaa, 0xaa}},
                                  {"chr.editFg", {0xff, 0xff, 0xff}},
                                  {"chr.editBg", {0, 0, 0xaa}},
-                                 {"root.fg", {0xaa,0xaa,0xaa}},
-                                 {"root.bg", {0x0,0x0,0xaa}}
+                                 {"root.fg", {0xaa, 0xaa, 0xaa}},
+                                 {"root.bg", {0, 0, 0xaa}}
                              });
         setPalette(tmpPalette);
         if (initialFileSettings.syntaxHighlightingTheme == "chr-blackbg"
