@@ -782,7 +782,7 @@ void Editor::setTheme(Theme theme) {
                                  {"chr.thumbBgColor", { 0x69, 0x69, 0x69}},
                                  {"chr.trackFgColor", Tui::Colors::brightWhite},
                                  {"chr.linenumberFg", { 0xdd, 0xdd, 0xdd}},
-                                 {"chr.linenumberBg", { 0x80, 0x80, 0x80}},
+                                 {"chr.linenumberBg", { 0x22, 0x22, 0x22}},
                                  {"chr.statusbarBg", Tui::Colors::darkGray},
                                  {"chr.editFg", {0xff, 0xff, 0xff}},
                                  {"chr.editBg", {0x0, 0x0, 0x0}},
