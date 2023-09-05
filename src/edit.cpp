@@ -76,7 +76,7 @@ void Editor::setupUi() {
                         }
                       },
                       { "<m>O</m>ptions", "", {}, {
-                                 { "Formatting <m>T</m>ab", "", "Tab", {}},
+                                 { "Formatting Ta<m>b</m>", "", "Tab", {}},
                                  { "<m>L</m>ine Number", "", "LineNumber", {}},
                                  { "<m>F</m>ormatting", "", "Formatting", {}},
                                  { "<m>W</m>rap long lines", "", "Wrap", {}},
