@@ -1156,4 +1156,75 @@ TEST_CASE("Search") {
         CHECK(cursor1.selectionStartPos().codeUnit == 1);
         CHECK(cursor1.selectionEndPos().codeUnit == 4);
     }
+
+    SECTION("backward hb") {
+        cursor1.insertText("blah\nblub");
+        cursor1 = doc.findSync("h\nb", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 3);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        CHECK(cursor1.selectionEndPos().line == 1);
+    }
+
+    SECTION("backward hbl") {
+        cursor1.insertText("blah\nblub");
+        cursor1 = doc.findSync("h\nbl", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 3);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 2);
+        CHECK(cursor1.selectionEndPos().line == 1);
+    }
+
+    SECTION("backward ahb") {
+        cursor1.insertText("blah\nblub");
+        cursor1 = doc.findSync("ah\nb", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 2);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        CHECK(cursor1.selectionEndPos().line == 1);
+    }
+
+    SECTION("backward 123") {
+
+        cursor1.insertText("123\n123\n123\n123");
+        cursor1 = doc.findSync("3\n1", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 2);
+        CHECK(cursor1.selectionStartPos().line == 2);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        CHECK(cursor1.selectionEndPos().line == 3);
+
+        cursor1 = doc.findSync("3\n1", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 2);
+        CHECK(cursor1.selectionStartPos().line == 1);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        CHECK(cursor1.selectionEndPos().line == 2);
+
+        cursor1 = doc.findSync("3\n1", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 2);
+        CHECK(cursor1.selectionStartPos().line == 0);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        CHECK(cursor1.selectionEndPos().line == 1);
+
+        cursor1 = doc.findSync("3\n1", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
+        CHECK(cursor1.selectionStartPos().codeUnit == 2);
+        CHECK(cursor1.selectionStartPos().line == 2);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        CHECK(cursor1.selectionEndPos().line == 3);
+    }
+
+    SECTION("backward one char in line") {
+        cursor1.insertText("t\nt\nt");
+        cursor1 = doc.findSync("t\nt", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
+        CHECK(cursor1.hasSelection() == true);
+        CHECK(cursor1.selectionStartPos().codeUnit == 0);
+        CHECK(cursor1.selectionStartPos().line == 1);
+        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        CHECK(cursor1.selectionEndPos().line == 2);
+    }
 }

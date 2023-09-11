@@ -544,7 +544,7 @@ namespace {
                     }
                     found = -1;
                 } else {
-                    QStringList parts = std::get<QString>(search.needle).split('\n');
+                    const QStringList parts = std::get<QString>(search.needle).split('\n');
                     if (parts.size() > 1) {
                         const int numberLinesToCome = snap.lineCount() - line;
                         if (parts.size() > numberLinesToCome) {
@@ -595,7 +595,7 @@ namespace {
     template <typename CANCEL>
     static DocumentFindAsyncResult snapshotSearchBackwards(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
         int line = search.startAtLine;
-        bool regularExpressionMode = std::holds_alternative<QRegularExpression>(search.needle);
+        const bool regularExpressionMode = std::holds_alternative<QRegularExpression>(search.needle);
         int searchAt = search.startCodeUnit;
         int end = 0;
         bool hasWrapped = false;
@@ -622,15 +622,42 @@ namespace {
                         return res;
                     }
                 } else {
-                    if (searchAt >= std::get<QString>(search.needle).size()) {
-                        const int length = std::get<QString>(search.needle).size();
-                        const int found = snap.line(line).lastIndexOf(std::get<QString>(search.needle),
-                                                                      searchAt - length,
-                                                                      search.caseSensitivity);
-                        if (found != -1) {
-                            return DocumentFindAsyncResult{{found, line},
-                                                           {found + length, line},
-                                                           snap.revision()};
+                    const QStringList parts = std::get<QString>(search.needle).split('\n');
+                    if (parts.size() > 1) {
+                        int endLine = line - parts.size() + 1;
+                        if (endLine < 0) {
+                            line = -1; //because the for loop does not do this for us.
+                            searchAt = -1;
+                            continue;
+                        }
+                        if (searchAt >= parts.last().size() && snap.line(line).startsWith(parts.last(), search.caseSensitivity)) {
+                            searchAt = parts.last().size();
+                            if (snap.line(endLine).endsWith(parts.first(), search.caseSensitivity)) {
+                                for (int i = parts.size() - 2; i > 0; i--) {
+                                    if (snap.line(line - i).compare(parts.at(i), search.caseSensitivity)) {
+                                        i = searchAt = -1;
+                                    }
+                                }
+                                if (searchAt != -1) {
+                                    int endAt = snap.line(endLine).size() - parts.first().size();
+                                    return DocumentFindAsyncResult{{searchAt, line},
+                                                                   {endAt, endLine},
+                                                                   snap.revision()};
+                                }
+                            }
+                        }
+                        searchAt = -1;
+                    } else {
+                        if (searchAt >= std::get<QString>(search.needle).size()) {
+                            const int length = std::get<QString>(search.needle).size();
+                            const int found = snap.line(line).lastIndexOf(std::get<QString>(search.needle),
+                                                                          searchAt - length,
+                                                                          search.caseSensitivity);
+                            if (found != -1) {
+                                return DocumentFindAsyncResult{{found, line},
+                                                               {found + length, line},
+                                                               snap.revision()};
+                            }
                         }
                     }
                 }
