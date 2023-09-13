@@ -945,6 +945,107 @@ TEST_CASE("Cursor") {
     }
 }
 
+
+namespace {
+
+    struct SearchTestCase {
+        QString documentContents;
+        bool hasMatch;
+        TextCursor::Position start;
+        TextCursor::Position end;
+        TextCursor::Position foundStart;
+        TextCursor::Position foundEnd;
+    };
+
+}
+
+
+static std::vector<SearchTestCase> generateTestCases(const QString &input) {
+    QStringList lines;
+
+    int line = -1;
+    int lineCodeUnits = -1;
+
+    struct MatchPosition {
+        TextCursor::Position foundStart{0, 0};
+        TextCursor::Position foundEnd{0, 0};
+    };
+
+    QMap<QChar, MatchPosition> matchesMap;
+
+    auto extendOrCreateMatch = [&] (int codeUnit, QChar id) {
+        if (!matchesMap.contains(id)) {
+            if (codeUnit == lines.back().size()) {
+                matchesMap[id] = MatchPosition{{codeUnit, line}, {0, line + 1}};
+            } else {
+                matchesMap[id] = MatchPosition{{codeUnit, line}, {codeUnit + 1, line}};
+            }
+        } else {
+            if (matchesMap[id].foundEnd.line == line) {
+                REQUIRE(matchesMap[id].foundEnd.codeUnit == codeUnit);
+                matchesMap[id].foundEnd.codeUnit = codeUnit + 1;
+            } else {
+                REQUIRE(matchesMap[id].foundEnd.line + 1 == line);
+                REQUIRE(codeUnit == 0);
+                matchesMap[id].foundEnd.codeUnit = 1;
+                matchesMap[id].foundEnd.line = line;
+            }
+        }
+    };
+
+    for (QString inputLine: input.split("\n")) {
+        if (inputLine.contains('|')) {
+            line += 1;
+            lineCodeUnits = inputLine.section('|', 1).size();
+            lines.append(inputLine.section('|', 1));
+        } else if (inputLine.contains('>')) {
+            QString part = inputLine.section('>', 1);
+            for (int i = 0; i < part.size(); i++) {
+                if (part[i] != ' ') {
+                    extendOrCreateMatch(i, part[i]);
+                }
+            }
+        }
+    }
+
+    QString documentContents = lines.join("\n");
+
+    if (matchesMap.isEmpty()) {
+        return { {documentContents, false, {0,0}, {lines.last().size(), lines.size() - 1}, {0, 0}, {0, 0}} };
+    }
+
+    QList<MatchPosition> matches = matchesMap.values();
+    std::sort(matches.begin(), matches.end(), [](auto &a, auto &b) {
+        return a.foundStart < b.foundStart;
+    });
+
+    std::vector<SearchTestCase> ret;
+
+    ret.push_back(SearchTestCase{documentContents, true, {0, 0}, matches[0].foundStart, matches[0].foundStart, matches[0].foundEnd});
+    TextCursor::Position nextStart = matches[0].foundStart;
+
+    auto advanceNextStart = [&] {
+        if (nextStart.codeUnit == lines[nextStart.line].size()) {
+            nextStart.codeUnit = 0;
+            nextStart.line += 1;
+        } else {
+            nextStart.codeUnit += 1;
+        }
+    };
+
+    advanceNextStart();
+
+    for (int i = 1; i < matches.size(); i++) {
+        ret.push_back(SearchTestCase{documentContents, true, nextStart, matches[i].foundStart, matches[i].foundStart, matches[i].foundEnd});
+        nextStart = matches[i].foundStart;
+        advanceNextStart();
+    }
+    ret.push_back(SearchTestCase{documentContents, true, nextStart, {lines.last().size(), lines.size() - 1}, matches[0].foundStart, matches[0].foundEnd});
+
+    return ret;
+}
+
+
 TEST_CASE("Search") {
     Tui::ZTerminal terminal{Tui::ZTerminal::OffScreen{1, 1}};
     Tui::ZRoot root;
@@ -955,6 +1056,67 @@ TEST_CASE("Search") {
             Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line));
             lay.doLayout(65000);
             return lay;
+        }
+    };
+
+    auto runChecks = [&](const SearchTestCase &testCase, const QString &needle) {
+        cursor1.insertText(testCase.documentContents);
+
+        const bool wrapAround = GENERATE(false, true);
+
+        CAPTURE(testCase.start);
+        CAPTURE(testCase.end);
+        CAPTURE(testCase.foundStart);
+        CAPTURE(testCase.foundEnd);
+        CAPTURE(wrapAround);
+        Document::FindFlags options = wrapAround ? Document::FindFlag::FindWrap : Document::FindFlags{};
+
+        cursor1.setPosition(testCase.start, true);
+        cursor1.setAnchorPosition({0, 0});
+
+        if (testCase.hasMatch) {
+            auto result = doc.findSync(needle, cursor1, options);
+            if (!wrapAround && testCase.start > testCase.foundStart) {
+                CAPTURE(result.anchor());
+                CAPTURE(result.position());
+                CHECK(!result.hasSelection());
+            } else {
+                CHECK(result.hasSelection());
+                CHECK(result.anchor() == testCase.foundStart);
+                CHECK(result.position() == testCase.foundEnd);
+            }
+
+            while (cursor1.position() < testCase.end) {
+                CAPTURE(cursor1.position());
+                REQUIRE(!cursor1.atEnd());
+                cursor1.moveCharacterRight();
+                // check if we overstepped
+                if (cursor1.position() > testCase.end) break;
+
+                cursor1.setAnchorPosition({0, 0});
+                auto result = doc.findSync(needle, cursor1, options);
+                if (!wrapAround && testCase.start > testCase.foundStart) {
+                    CAPTURE(result.anchor());
+                    CAPTURE(result.position());
+                    CHECK(!result.hasSelection());
+                } else {
+                    CHECK(result.hasSelection());
+                    CHECK(result.anchor() == testCase.foundStart);
+                    CHECK(result.position() == testCase.foundEnd);
+                }
+            }
+        } else {
+            auto result = doc.findSync(needle, cursor1, options);
+            CHECK(!result.hasSelection());
+
+            while (!cursor1.atEnd()) {
+                CAPTURE(cursor1.position());
+                cursor1.moveCharacterRight();
+
+                cursor1.setAnchorPosition({0, 0});
+                auto result = doc.findSync(needle, cursor1, options);
+                CHECK(!result.hasSelection());
+            }
         }
     };
 
@@ -976,186 +1138,207 @@ TEST_CASE("Search") {
         CHECK(cursor1.selectionStartPos().line == 0);
         CHECK(cursor1.selectionEndPos().line == 0);
     }
+
     SECTION("one char t") {
-        cursor1.insertText("test");
-        cursor1 = doc.findSync("t", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().codeUnit == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 0);
+        static auto testCases = generateTestCases(R"(
+                                                  0|test
+                                                   >1  2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
 
-        cursor1 = doc.findSync("t", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().codeUnit == 3);
-        CHECK(cursor1.selectionEndPos().codeUnit == 4);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 0);
+        runChecks(testCase, "t");
     }
+
     SECTION("one char repeated") {
-        cursor1.insertText("tt");
-        cursor1 = doc.findSync("t", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().codeUnit == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 0);
+        static auto testCases = generateTestCases(R"(
+                                                  0|tt
+                                                   >12
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
 
-        cursor1 = doc.findSync("t", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().codeUnit == 1);
-        CHECK(cursor1.selectionEndPos().codeUnit == 2);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 0);
+        runChecks(testCase, "t");
     }
+
     SECTION("two char") {
-        cursor1.insertText("tt");
-        cursor1 = doc.findSync("tt", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().codeUnit == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 2);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 0);
+        static auto testCases = generateTestCases(R"(
+                                                  0|tt
+                                                   >11
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
 
-        cursor1 = doc.findSync("tt", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().codeUnit == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 2);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 0);
+        runChecks(testCase, "tt");
     }
-    SECTION("two char, to lines") {
-        cursor1.insertText("tt\ntt");
-        cursor1 = doc.findSync("tt", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 0);
-        CHECK(cursor1.selectionStartPos().codeUnit == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 2);
 
-        cursor1 = doc.findSync("tt", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 1);
-        CHECK(cursor1.selectionEndPos().line == 1);
-        CHECK(cursor1.selectionStartPos().codeUnit == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 2);
+    SECTION("two char, two lines") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|tt
+                                                   >11
+                                                  1|tt
+                                                   >22
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "tt");
     }
+
     SECTION("two char multiline") {
-        cursor1.insertText("at\nba");
-        cursor1 = doc.findSync("t\nb", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 1);
-        CHECK(cursor1.selectionStartPos().codeUnit == 1);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        static auto testCases = generateTestCases(R"(
+                                                  0|at
+                                                   > 1
+                                                  1|ba
+                                                   >1
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "t\nb");
     }
+
     SECTION("two char multiline2") {
-        cursor1.insertText("at\nt\nta");
-        cursor1 = doc.findSync("t\nt", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 1);
-        CHECK(cursor1.selectionStartPos().codeUnit == 1);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        static auto testCases = generateTestCases(R"(
+                                                  0|at
+                                                   > 1
+                                                  1|t
+                                                   >1
+                                                   >2
+                                                  2|ta
+                                                   >2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
 
-        cursor1.setPosition({0, 1});
-        cursor1 = doc.findSync("t\nt", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 1);
-        CHECK(cursor1.selectionEndPos().line == 2);
-        CHECK(cursor1.selectionStartPos().codeUnit == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        runChecks(testCase, "t\nt");
     }
+
     SECTION("three multiline") {
-        cursor1.insertText("bat\nzy\nga");
-        cursor1 = doc.findSync("t\nzy\ng", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 2);
-        CHECK(cursor1.selectionStartPos().codeUnit == 2);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        static auto testCases = generateTestCases(R"(
+                                                  0|bat
+                                                   >  1
+                                                  1|zy
+                                                   >11
+                                                  2|ga
+                                                   >1
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
 
+        runChecks(testCase, "t\nzy\ng");
     }
+
     SECTION("four multiline") {
-        cursor1.insertText("bae\nrt\nzu\nia");
-        cursor1 = doc.findSync("e\nrt\nzu\ni", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 3);
-        CHECK(cursor1.selectionStartPos().codeUnit == 2);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
+        static auto testCases = generateTestCases(R"(
+                                                  0|bae
+                                                   >  1
+                                                  1|rt
+                                                   >11
+                                                  2|zu
+                                                   >11
+                                                  3|ia
+                                                   >1
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "e\nrt\nzu\ni");
     }
+
     SECTION("four multiline double") {
-        cursor1.insertText("ab\nab\nab\n ab\nab\nab");
-        cursor1 = doc.findSync("ab\nab\nab", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 2);
-        CHECK(cursor1.selectionStartPos().codeUnit == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 2);
+        static auto testCases = generateTestCases(R"(
+                                                  0|ab
+                                                   >11
+                                                  1|ab
+                                                   >11
+                                                  2|ab
+                                                   >11
+                                                  3| ab
+                                                   > 22
+                                                  4|ab
+                                                   >22
+                                                  5|ab
+                                                   >22
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
 
-        cursor1 = doc.findSync("ab\nab\nab", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 3);
-        CHECK(cursor1.selectionEndPos().line == 5);
-        CHECK(cursor1.selectionStartPos().codeUnit == 1);
-        CHECK(cursor1.selectionEndPos().codeUnit == 2);
+        runChecks(testCase, "ab\nab\nab");
     }
+
     SECTION("first not match") {
-        cursor1.insertText("tt\naa\ntt\ntt");
-        cursor1 = doc.findSync("tt\ntt", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 2);
-        CHECK(cursor1.selectionEndPos().line == 3);
-        CHECK(cursor1.selectionStartPos().codeUnit == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 2);
-    }
-    SECTION("first not match of three") {
-        cursor1.insertText("tt\naa\ntt\ntt\nbb\ntt\ntt");
-        cursor1 = doc.findSync("tt\nbb\ntt", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 3);
-        CHECK(cursor1.selectionEndPos().line == 5);
-        CHECK(cursor1.selectionStartPos().codeUnit == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 2);
-    }
-    SECTION("line break") {
-        cursor1.insertText("tt\naa\nttt\ntt\nbb\ntt\ntt");
-        cursor1 = doc.findSync("\n", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 1);
-        CHECK(cursor1.selectionStartPos().codeUnit == 2);
-        CHECK(cursor1.selectionEndPos().codeUnit == 0);
+        static auto testCases = generateTestCases(R"(
+                                                  0|tt
+                                                  1|aa
+                                                  2|tt
+                                                   >11
+                                                  3|tt
+                                                   >11
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
 
-        cursor1 = doc.findSync("\n", cursor1, Document::FindFlag::FindWrap);
-        cursor1 = doc.findSync("\n", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 2);
-        CHECK(cursor1.selectionEndPos().line == 3);
-        CHECK(cursor1.selectionStartPos().codeUnit == 3);
-        CHECK(cursor1.selectionEndPos().codeUnit == 0);
+        runChecks(testCase, "tt\ntt");
     }
+
+    SECTION("first not match of three") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|tt
+                                                  1|aa
+                                                  2|tt
+                                                  3|tt
+                                                   >11
+                                                  4|bb
+                                                   >11
+                                                  5|tt
+                                                   >11
+                                                  6|tt
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "tt\nbb\ntt");
+    }
+
+    SECTION("line break") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|tt
+                                                   >  1
+                                                  1|aa
+                                                   >  2
+                                                  2|ttt
+                                                   >   3
+                                                  3|tt
+                                                   >  4
+                                                  4|bb
+                                                   >  5
+                                                  5|tt
+                                                   >  6
+                                                  6|tt
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "\n");
+    }
+
     SECTION("cursor in search string") {
-        cursor1.insertText("blah\nblub\nblah\nblub");
-        cursor1.setPosition({2,0});
-        cursor1 = doc.findSync("lah\nblub", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 2);
-        CHECK(cursor1.selectionEndPos().line == 3);
-        CHECK(cursor1.selectionStartPos().codeUnit == 1);
-        CHECK(cursor1.selectionEndPos().codeUnit == 4);
+        static auto testCases = generateTestCases(R"(
+                                                  0|blah
+                                                   > 111
+                                                  1|blub
+                                                   >1111
+                                                  2|blah
+                                                   > 222
+                                                  3|blub
+                                                   >2222
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "lah\nblub");
     }
+
     SECTION("cursor in search string with wraparound") {
-        cursor1.insertText("blah\nblub");
-        cursor1.setPosition({2,0});
-        cursor1 = doc.findSync("lah\nblub", cursor1, Document::FindFlag::FindWrap);
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().line == 1);
-        CHECK(cursor1.selectionStartPos().codeUnit == 1);
-        CHECK(cursor1.selectionEndPos().codeUnit == 4);
+        static auto testCases = generateTestCases(R"(
+                                                  0|blah
+                                                   > 111
+                                                  1|blub
+                                                   >1111
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "lah\nblub");
     }
+
 
     SECTION("backward hb") {
         cursor1.insertText("blah\nblub");
