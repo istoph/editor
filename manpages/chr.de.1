@@ -9,25 +9,29 @@ Usage: chr [options] [[+line[,char]] file …] [/directory]
 chr.edit
 
 Options:
-  -h, --help                      Displays this help.
-  -v, --version                   Displays version information.
-  -l, --linenumber                The line numbers are displayed
-  -a, --append <file>             Only with read from standard input, then
-                                  append to a file
-  -f, --follow                    Only with read from standard input, then
-                                  follow the input stream
-  -b                              Open bigger files then 1MB
-  -w                              Wrap log lines
-  --attributesfile <config file>  Safe file for attributes, default
-                                  ~/.cache/chr.json
-  -c, --config <config>           Load customized config file. The default if
-                                  it exist is ~/.config/chr
+  -h, --help                          Displays this help.
+  -v, --version                       Displays version information.
+  -l, --linenumber                    The line numbers are displayed
+  -a, --append <file>                 Only with read from standard input, then
+                                      append to a file
+  -f, --follow                        Only with read from standard input, then
+                                      follow the input stream
+  -b                                  Open bigger file then 1MB
+  -w                                  Wrap log lines
+  --attributesfile <config>           Safe file for attributes, default
+                                      ~/.cache/chr.json
+  -c, --config <config>               Load customized config file. The default
+                                      if it exist is ~/.config/chr
+  --syntax-highlighting-theme <name>  Name of syntax-highlighting-theme, you
+                                      can list installed themes with:
+                                      kate-syntax-highlighter --list-themes
+  --disable-syntax                    disable syntax highlighting
 
 Arguments:
-  [[+line[,char]] file …]         Optional is the line number, several files
-                                  can be opened in multiple windows.
-  [/directory]                    Or a directory can be specified to search in
-                                  the open dialog.
+  [[+line[,char]] file …]             Optional is the line number, several
+                                      files can be opened in multiple windows.
+  [/directory]                        Or a directory can be specified to search
+                                      in the open dialog.
 
 .SH FILES
 ~/.config/chr
@@ -214,6 +218,13 @@ Der Standard-Eingabedatei-Deskriptor wird geschlossen.
 Es kann jeweils die folgende öffnende und schließende Klammer hervorgehoben werden, wenn der Cursor darüber fährt. Mit der Option "highlight_bracket=true" kann dieses Verhalten in der ~/.config/chr beeinflusst werden.
   [{(<>)}]
 
+.SH Syntax Highlighting
+Wenn zur Compilezeit die Option: "-Dsyntax_highlighting=true" gesetzt wurde, steht das Syntax Highlighting generell zur verfügung. Die Sprache wird beim Öffnen einer Datei automatisch erkannt und in der Statusbar angezeigt. Bei Bedarf kann diese aber auch über das Syntax Highlighting Dialog ein uns aus bzw. angepasst werden.
+
+Über die command line kann "--syntax-highlighting-theme" kann der theme angepasst werden. Der Editor bringt bereits die themes "chr-blugbg" und "chr-blackbg" mit. Bei Bedarf kann ein theme der von "kate-syntax-highlighter --list-themes" mitgebracht wird, benutzt werden.
+
+Über die command line kann mittels "--disable-syntax=true" das Syntax Highlighting beim Starten des Editors ausgeschaltet werden.
+
 .SH Theam
 Es öffnet den Dialog zum Auswählen eines Theme. Es steht der Classic (Blau) oder der Dark (schwarz weiß) Modus zur Verfügung. Mit der Option "theme=classic" oder "theme=dark", kann dies in der ~/.config/chr beeinflusst werden.
 
@@ -241,12 +252,15 @@ Es gibt eine Default Config (~/.config/chr) in der folgenden Optionen gesetzt we
   theme=classic
   wrap_lines=true
   right_margin_hint=80
+  syntax_highlighter_themes="chr-bluebg"
+  disable_syntax=false
+
 
 .SH DESCRIPTION
 Der chr Konsoleneditor ist angelehnt an den in Turbo Pascal geschriebenen Editor Tubo Vison aus dem Jahr 1997. Die Tastenkombinationen sollen denen von gedit ähneln, um den Umstieg von Desktop- zu Konsoleneditor zu vereinfachen.
 
 .SH BUGS
-Alle Fehler in dieser Software können über den Bugtracker auf https://gitlab.ws.chr.istoph.de/ verwaltet werden.
+Alle Fehler in dieser Software können über den Bugtracker auf https://github.com/istoph/editor verwaltet werden.
 
 .SH AUTHOR
 Christoph Hüffelmann <chr@istoph.de>

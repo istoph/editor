@@ -9,25 +9,29 @@ Usage: chr [options] [[+line[,char]] file …] [/directory]
 chr.edit
 
 Options:
-  -h, --help                      Displays this help.
-  -v, --version                   Displays version information.
-  -l, --linenumber                The line numbers are displayed
-  -a, --append <file>             Only with read from standard input, then
-                                  append to a file
-  -f, --follow                    Only with read from standard input, then
-                                  follow the input stream
-  -b                              Open bigger files then 1MB
-  -w                              Wrap log lines
-  --attributesfile <config file>  Safe file for attributes, default
-                                  ~/.cache/chr.json
-  -c, --config <config>           Load customized config file. The default if
-                                  it exist is ~/.config/chr
+  -h, --help                          Displays this help.
+  -v, --version                       Displays version information.
+  -l, --linenumber                    The line numbers are displayed
+  -a, --append <file>                 Only with read from standard input, then
+                                      append to a file
+  -f, --follow                        Only with read from standard input, then
+                                      follow the input stream
+  -b                                  Open bigger file then 1MB
+  -w                                  Wrap log lines
+  --attributesfile <config>           Safe file for attributes, default
+                                      ~/.cache/chr.json
+  -c, --config <config>               Load customized config file. The default
+                                      if it exist is ~/.config/chr
+  --syntax-highlighting-theme <name>  Name of syntax-highlighting-theme, you
+                                      can list installed themes with:
+                                      kate-syntax-highlighter --list-themes
+  --disable-syntax                    disable syntax highlighting
 
 Arguments:
-  [[+line[,char]] file …]         Optional is the line number, several files
-                                  can be opened in multiple windows.
-  [/directory]                    Or a directory can be specified to search in
-                                  the open dialog.
+  [[+line[,char]] file …]             Optional is the line number, several
+                                      files can be opened in multiple windows.
+  [/directory]                        Or a directory can be specified to search
+                                      in the open dialog.
 
 .SH FILES
 ~/.config/chr
@@ -208,6 +212,13 @@ If data is transferred to the editor via standard input, the following mode can 
 .SH Stop Input Pipe
 The standard input file descriptor will be closed.
 
+.SH Syntax Highlighting
+If the option: "-Dsyntax_highlighting=true" was set at compile time, syntax highlighting is generally available. The language is automatically detected when opening a file and displayed in the status bar. If required, this can also be switched on and off or adjusted via the Syntax Highlighting dialog.
+
+With the command line "--syntax-highlighting-theme" the theme can be customized. The editor already brings the themes "chr-blugbg" and "chr-blackbg". If needed, a theme brought by "kate-syntax-highlighter --list-themes" can be used.
+
+Syntax highlighting can be switched off via the command line with "--disable-syntax=true" when starting the editor.
+
 .SH Highlight Brackets
 The following opening and closing brackets can be highlighted when the cursor moves over them. With the option "highlight_bracket=true" this behavior can be influenced in the ~/.config/chr.
   [{(<>)}]
@@ -239,6 +250,8 @@ There is a default config (~/.config/chr) where the following options can be set
   theme=classic
   wrap_lines=true
   right_margin_hint=80
+  syntax_highlighter_themes="chr-bluebg"
+  disable_syntax=false
 
 .SH DESCRIPTION
 The chr terminal editor is inspired by the turbo pascal editor using Turbo Vision from the year 1997. For the keyboard shortcut he should be similar gedit, to facilitate the transition from desktop to console editor.
