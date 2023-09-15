@@ -1199,8 +1199,16 @@ bool operator<(const TextCursor::Position &a, const TextCursor::Position &b) {
     return std::tie(a.line, a.codeUnit) < std::tie(b.line, b.codeUnit);
 }
 
+bool operator<=(const TextCursor::Position &a, const TextCursor::Position &b) {
+    return std::tie(a.line, a.codeUnit) <= std::tie(b.line, b.codeUnit);
+}
+
 bool operator>(const TextCursor::Position &a, const TextCursor::Position &b) {
     return std::tie(a.line, a.codeUnit) > std::tie(b.line, b.codeUnit);
+}
+
+bool operator>=(const TextCursor::Position &a, const TextCursor::Position &b) {
+    return std::tie(a.line, a.codeUnit) >= std::tie(b.line, b.codeUnit);
 }
 
 bool operator==(const TextCursor::Position &a, const TextCursor::Position &b) {

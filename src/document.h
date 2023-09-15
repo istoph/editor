@@ -120,7 +120,9 @@ public:
 
         Position(int codeUnit, int line) : codeUnit(codeUnit), line(line) {}
         friend bool operator<(const Position& a, const Position& b);
+        friend bool operator<=(const Position& a, const Position& b);
         friend bool operator>(const Position& a, const Position& b);
+        friend bool operator>=(const Position& a, const Position& b);
         friend bool operator==(const Position& a, const Position& b);
         friend bool operator!=(const Position& a, const Position& b);
     };
