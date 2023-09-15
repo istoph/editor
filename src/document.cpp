@@ -686,12 +686,14 @@ namespace {
         auto [startCodeUnit, startLine] = start.selectionEndPos();
         if (options & Document::FindFlag::FindBackward) {
             if (start.hasSelection()) {
-                startCodeUnit = startCodeUnit - 1;
-                if (startCodeUnit <= 0) {
-                    if (--startLine < 0) {
-                        startLine = doc->lineCount() - 1;
+                if (options & Document::FindFlag::FindWrap || startLine > 0 || startCodeUnit > 1) {
+                    startCodeUnit = startCodeUnit - 1;
+                    if (startCodeUnit <= 0) {
+                        if (--startLine < 0) {
+                            startLine = doc->lineCount() - 1;
+                        }
+                        startCodeUnit = doc->lineCodeUnits(startLine);
                     }
-                    startCodeUnit = doc->lineCodeUnits(startLine);
                 }
             }
         }
