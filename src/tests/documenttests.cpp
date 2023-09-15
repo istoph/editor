@@ -1124,7 +1124,7 @@ TEST_CASE("Search") {
         }
     };
 
-    auto runChecks = [&](const SearchTestCase &testCase, const QString &needle) {
+    auto runChecks = [&](const SearchTestCase &testCase, const QString &needle, Qt::CaseSensitivity caseMatching) {
         cursor1.insertText(testCase.documentContents);
 
         const bool wrapAround = GENERATE(false, true);
@@ -1135,6 +1135,9 @@ TEST_CASE("Search") {
         CAPTURE(testCase.foundEnd);
         CAPTURE(wrapAround);
         Document::FindFlags options = wrapAround ? Document::FindFlag::FindWrap : Document::FindFlags{};
+        if (caseMatching == Qt::CaseSensitive) {
+            options |= Document::FindFlag::FindCaseSensitively;
+        }
 
         cursor1.setPosition(testCase.start, true);
         cursor1.setAnchorPosition({0, 0});
@@ -1211,7 +1214,27 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "t");
+        runChecks(testCase, "t", Qt::CaseSensitive);
+    }
+
+    SECTION("one char t - mismatched case") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|Test
+                                                   >   2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "t", Qt::CaseSensitive);
+    }
+
+    SECTION("one char t - case insensitive") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|Test
+                                                   >1  2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "t", Qt::CaseInsensitive);
     }
 
     SECTION("one char repeated") {
@@ -1221,7 +1244,7 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "t");
+        runChecks(testCase, "t", Qt::CaseSensitive);
     }
 
     SECTION("two char") {
@@ -1231,7 +1254,7 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "tt");
+        runChecks(testCase, "tt", Qt::CaseSensitive);
     }
 
     SECTION("two char, two lines") {
@@ -1243,7 +1266,7 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "tt");
+        runChecks(testCase, "tt", Qt::CaseSensitive);
     }
 
     SECTION("two char multiline") {
@@ -1255,7 +1278,39 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "t\nb");
+        runChecks(testCase, "t\nb", Qt::CaseSensitive);
+    }
+
+    SECTION("multiline case mismatch first line") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|heLlo
+                                                  1|world
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "hello\nworld", Qt::CaseSensitive);
+    }
+
+    SECTION("multiline case mismatch second line") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|hello
+                                                  1|woRld
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "hello\nworld", Qt::CaseSensitive);
+    }
+
+    SECTION("multiline case insensitive") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|helLo
+                                                   >11111
+                                                  1|woRld
+                                                   >11111
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "hello\nworld", Qt::CaseInsensitive);
     }
 
     SECTION("two char multiline2") {
@@ -1270,7 +1325,7 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "t\nt");
+        runChecks(testCase, "t\nt", Qt::CaseSensitive);
     }
 
     SECTION("three multiline") {
@@ -1284,7 +1339,54 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "t\nzy\ng");
+        runChecks(testCase, "t\nzy\ng", Qt::CaseSensitive);
+    }
+
+    SECTION("three multiline case mismatch first line") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|hEllo
+                                                  1|whole
+                                                  2|world
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "hello\nwhole\nworld", Qt::CaseSensitive);
+    }
+
+    SECTION("three multiline case mismatch middle line") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|hello
+                                                  1|whOle
+                                                  2|world
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "hello\nwhole\nworld", Qt::CaseSensitive);
+    }
+
+    SECTION("three multiline case mismatch last line") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|hello
+                                                  1|whole
+                                                  2|worlD
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "hello\nwhole\nworld", Qt::CaseSensitive);
+    }
+
+    SECTION("three multiline case insensitive") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|heLlo
+                                                   >11111
+                                                  1|wHole
+                                                   >11111
+                                                  2|worlD
+                                                   >11111
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, "hello\nwhole\nworld", Qt::CaseInsensitive);
     }
 
     SECTION("four multiline") {
@@ -1300,7 +1402,7 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "e\nrt\nzu\ni");
+        runChecks(testCase, "e\nrt\nzu\ni", Qt::CaseSensitive);
     }
 
     SECTION("four multiline double") {
@@ -1320,7 +1422,7 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "ab\nab\nab");
+        runChecks(testCase, "ab\nab\nab", Qt::CaseSensitive);
     }
 
     SECTION("first not match") {
@@ -1334,7 +1436,7 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "tt\ntt");
+        runChecks(testCase, "tt\ntt", Qt::CaseSensitive);
     }
 
     SECTION("first not match of three") {
@@ -1352,7 +1454,7 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "tt\nbb\ntt");
+        runChecks(testCase, "tt\nbb\ntt", Qt::CaseSensitive);
     }
 
     SECTION("line break") {
@@ -1373,7 +1475,7 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "\n");
+        runChecks(testCase, "\n", Qt::CaseSensitive);
     }
 
     SECTION("cursor in search string") {
@@ -1389,7 +1491,7 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "lah\nblub");
+        runChecks(testCase, "lah\nblub", Qt::CaseSensitive);
     }
 
     SECTION("cursor in search string with wraparound") {
@@ -1401,11 +1503,11 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, "lah\nblub");
+        runChecks(testCase, "lah\nblub", Qt::CaseSensitive);
     }
 
 
-    auto runChecksBackward = [&](const SearchTestCase &testCase, const QString &needle) {
+    auto runChecksBackward = [&](const SearchTestCase &testCase, const QString &needle, Qt::CaseSensitivity caseMatching) {
         cursor1.insertText(testCase.documentContents);
 
         const bool wrapAround = GENERATE(false, true);
@@ -1419,6 +1521,9 @@ TEST_CASE("Search") {
         CAPTURE(useSelection);
         Document::FindFlags options = wrapAround ? Document::FindFlag::FindWrap : Document::FindFlags{};
         options |= Document::FindFlag::FindBackward;
+        if (caseMatching == Qt::CaseSensitive) {
+            options |= Document::FindFlag::FindCaseSensitively;
+        }
 
         cursor1.setPosition(testCase.start);
 
@@ -1473,6 +1578,36 @@ TEST_CASE("Search") {
         }
     };
 
+    SECTION("backward one char t") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|test
+                                                   >1  2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "t", Qt::CaseSensitive);
+    }
+
+    SECTION("backward one char t - mismatched case") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|Test
+                                                   >   2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "t", Qt::CaseSensitive);
+    }
+
+    SECTION("backward one char t - case insensitive") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|Test
+                                                   >1  2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "t", Qt::CaseInsensitive);
+    }
+
 
     SECTION("backward hb") {
         static auto testCases = generateTestCasesBackward(R"(
@@ -1483,7 +1618,7 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, "h\nb");
+        runChecksBackward(testCase, "h\nb", Qt::CaseSensitive);
     }
 
     SECTION("backward hbl") {
@@ -1495,7 +1630,7 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, "h\nbl");
+        runChecksBackward(testCase, "h\nbl", Qt::CaseSensitive);
     }
 
     SECTION("backward ahb") {
@@ -1507,7 +1642,86 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, "ah\nb");
+        runChecksBackward(testCase, "ah\nb", Qt::CaseSensitive);
+    }
+
+    SECTION("backward multiline case mismatch first line") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|heLlo
+                                                  1|world
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "hello\nworld", Qt::CaseSensitive);
+    }
+
+    SECTION("backward multiline case mismatch second line") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|hello
+                                                  1|woRld
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "hello\nworld", Qt::CaseSensitive);
+    }
+
+    SECTION("backward multiline case insensitive") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|heLlo
+                                                   >11111
+                                                  1|woRld
+                                                   >11111
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "hello\nworld", Qt::CaseInsensitive);
+    }
+
+    SECTION("backward three multiline case mismatch first line") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|hEllo
+                                                  1|whole
+                                                  2|world
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "hello\nwhole\nworld", Qt::CaseSensitive);
+    }
+
+    SECTION("backward three multiline case mismatch middle line") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|hello
+                                                  1|whOle
+                                                  2|world
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "hello\nwhole\nworld", Qt::CaseSensitive);
+    }
+
+    SECTION("backward three multiline case mismatch last line") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|hello
+                                                  1|whole
+                                                  2|worlD
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "hello\nwhole\nworld", Qt::CaseSensitive);
+    }
+
+    SECTION("backward three multiline case insensitive") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|heLlo
+                                                   >11111
+                                                  1|wHole
+                                                   >11111
+                                                  2|worlD
+                                                   >11111
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "hello\nwhole\nworld", Qt::CaseInsensitive);
     }
 
     SECTION("backward 123") {
@@ -1525,7 +1739,7 @@ TEST_CASE("Search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, "3\n1");
+        runChecksBackward(testCase, "3\n1", Qt::CaseSensitive);
     }
 
     SECTION("backward one char in line") {
@@ -1540,6 +1754,6 @@ TEST_CASE("Search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, "t\nt");
+        runChecksBackward(testCase, "t\nt", Qt::CaseSensitive);
     }
 }
