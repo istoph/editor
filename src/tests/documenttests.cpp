@@ -965,6 +965,20 @@ namespace {
 }
 
 
+// Generate a document contents and a list of expected matches from a specially formatted string.
+// Lines that don't contain a '|' or '>' character are ignored.
+// Lines should be visibly aligned on their '|' and '>' characters.
+// Lines with a '|' character denote a line in the document to be used in the search test.
+//     Although is it not checked the text before the '|' should be the line index (starting with 0).
+//     Everything after the '|' is the line contents. Don't end lines with spaces or tabs are IDEs are commonly
+//     configured to remove them at the end of the line.
+// Line with a '>' character denote a search pattern matches in the preceeding '|' line.
+//     Each search result uses a unique (for the whole input) character.
+//     Single-character matches are marked with a character below the match in the '|' line.
+//     Multi-character matches are marked with a run of characters covering the whole match blow the match in the '|' line.
+//     Matches may span multiple document lines. If a match only consists of the line break in the document align the
+//     match character one position right of the line end in the '|' line.
+//     If overlapping matches exist multiple '>' lines per '|' line can be use.
 static auto parseSearchInfo(const QString &input) {
     QStringList lines;
 
@@ -1013,6 +1027,7 @@ static auto parseSearchInfo(const QString &input) {
     return std::make_tuple(matchesMap, documentContents, lines);
 }
 
+// See parseSearchInfo for description of input format
 static std::vector<SearchTestCase> generateTestCases(const QString &input) {
 
     auto [matchesMap, documentContents, lines] = parseSearchInfo(input);
@@ -1052,6 +1067,7 @@ static std::vector<SearchTestCase> generateTestCases(const QString &input) {
     return ret;
 }
 
+// See parseSearchInfo for description of input format
 static std::vector<SearchTestCase> generateTestCasesBackward(const QString &input) {
 
     auto [matchesMap, documentContents, lines] = parseSearchInfo(input);
