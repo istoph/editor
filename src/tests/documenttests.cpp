@@ -957,19 +957,19 @@ namespace {
         TextCursor::Position foundEnd;
     };
 
-}
-
-
-static std::vector<SearchTestCase> generateTestCases(const QString &input) {
-    QStringList lines;
-
-    int line = -1;
-    int lineCodeUnits = -1;
-
     struct MatchPosition {
         TextCursor::Position foundStart{0, 0};
         TextCursor::Position foundEnd{0, 0};
     };
+
+}
+
+
+static auto parseSearchInfo(const QString &input) {
+    QStringList lines;
+
+    int line = -1;
+    int lineCodeUnits = -1;
 
     QMap<QChar, MatchPosition> matchesMap;
 
@@ -1010,6 +1010,13 @@ static std::vector<SearchTestCase> generateTestCases(const QString &input) {
 
     QString documentContents = lines.join("\n");
 
+    return std::make_tuple(matchesMap, documentContents, lines);
+}
+
+static std::vector<SearchTestCase> generateTestCases(const QString &input) {
+
+    auto [matchesMap, documentContents, lines] = parseSearchInfo(input);
+
     if (matchesMap.isEmpty()) {
         return { {documentContents, false, {0,0}, {lines.last().size(), lines.size() - 1}, {0, 0}, {0, 0}} };
     }
@@ -1024,7 +1031,7 @@ static std::vector<SearchTestCase> generateTestCases(const QString &input) {
     ret.push_back(SearchTestCase{documentContents, true, {0, 0}, matches[0].foundStart, matches[0].foundStart, matches[0].foundEnd});
     TextCursor::Position nextStart = matches[0].foundStart;
 
-    auto advanceNextStart = [&] {
+    auto advanceNextStart = [&, lines=lines] {
         if (nextStart.codeUnit == lines[nextStart.line].size()) {
             nextStart.codeUnit = 0;
             nextStart.line += 1;
@@ -1041,6 +1048,48 @@ static std::vector<SearchTestCase> generateTestCases(const QString &input) {
         advanceNextStart();
     }
     ret.push_back(SearchTestCase{documentContents, true, nextStart, {lines.last().size(), lines.size() - 1}, matches[0].foundStart, matches[0].foundEnd});
+
+    return ret;
+}
+
+static std::vector<SearchTestCase> generateTestCasesBackward(const QString &input) {
+
+    auto [matchesMap, documentContents, lines] = parseSearchInfo(input);
+
+    if (matchesMap.isEmpty()) {
+        return { {documentContents, false, {0,0}, {lines.last().size(), lines.size() - 1}, {0, 0}, {0, 0}} };
+    }
+
+    QList<MatchPosition> matches = matchesMap.values();
+    std::sort(matches.begin(), matches.end(), [](auto &a, auto &b) {
+        return a.foundStart < b.foundStart;
+    });
+
+    std::vector<SearchTestCase> ret;
+
+    ret.push_back(SearchTestCase{documentContents, true, matches.last().foundEnd, {lines.last().size(), lines.size() - 1},
+                                 matches.last().foundStart, matches.last().foundEnd});
+
+    TextCursor::Position nextEnd = matches.last().foundEnd;
+
+    auto moveBackNextEnd = [&, lines=lines] {
+        if (nextEnd.codeUnit == 0) {
+            nextEnd.line -= 1;
+            nextEnd.codeUnit = lines[nextEnd.line].size();
+        } else {
+            nextEnd.codeUnit--;
+        }
+    };
+
+    moveBackNextEnd();
+
+    for (int i = matches.size() - 2; i >= 0; i--) {
+        ret.push_back(SearchTestCase{documentContents, true, matches[i].foundEnd, nextEnd, matches[i].foundStart, matches[i].foundEnd});
+        nextEnd = matches[i].foundEnd;
+        moveBackNextEnd();
+    }
+
+    ret.push_back(SearchTestCase{documentContents, true, {0, 0}, nextEnd, matches.last().foundStart, matches.last().foundEnd});
 
     return ret;
 }
@@ -1340,74 +1389,141 @@ TEST_CASE("Search") {
     }
 
 
+    auto runChecksBackward = [&](const SearchTestCase &testCase, const QString &needle) {
+        cursor1.insertText(testCase.documentContents);
+
+        const bool wrapAround = GENERATE(false, true);
+        const bool useSelection = GENERATE(false, true);
+
+        CAPTURE(testCase.start);
+        CAPTURE(testCase.end);
+        CAPTURE(testCase.foundStart);
+        CAPTURE(testCase.foundEnd);
+        CAPTURE(wrapAround);
+        CAPTURE(useSelection);
+        Document::FindFlags options = wrapAround ? Document::FindFlag::FindWrap : Document::FindFlags{};
+        options |= Document::FindFlag::FindBackward;
+
+        cursor1.setPosition(testCase.start);
+
+        if (useSelection && !cursor1.atEnd() && !cursor1.atStart()) {
+            cursor1.moveCharacterRight();
+            cursor1.setAnchorPosition({0, 0});
+        }
+
+        if (testCase.hasMatch) {
+            auto result = doc.findSync(needle, cursor1, options);
+            if (!wrapAround && testCase.start <= testCase.foundStart) {
+                CAPTURE(result.anchor());
+                CAPTURE(result.position());
+                CHECK_FALSE(result.hasSelection());
+            } else {
+                CHECK(result.hasSelection());
+                CHECK(result.anchor() == testCase.foundStart);
+                CHECK(result.position() == testCase.foundEnd);
+            }
+
+            while (cursor1.position() < testCase.end) {
+                REQUIRE(!cursor1.atEnd());
+                cursor1.moveCharacterRight();
+                // check if we overstepped
+                if (cursor1.position() > testCase.end) break;
+                CAPTURE(cursor1.position());
+
+                //cursor1.setAnchorPosition({0, 0});
+                auto result = doc.findSync(needle, cursor1, options);
+                if (!wrapAround && testCase.start <= testCase.foundStart) {
+                    CAPTURE(result.anchor());
+                    CAPTURE(result.position());
+                    CHECK_FALSE(result.hasSelection());
+                } else {
+                    CHECK(result.hasSelection());
+                    CHECK(result.anchor() == testCase.foundStart);
+                    CHECK(result.position() == testCase.foundEnd);
+                }
+            }
+        } else {
+            auto result = doc.findSync(needle, cursor1, options);
+            CHECK(!result.hasSelection());
+
+            while (!cursor1.atEnd()) {
+                CAPTURE(cursor1.position());
+                cursor1.moveCharacterRight();
+
+                cursor1.setAnchorPosition({0, 0});
+                auto result = doc.findSync(needle, cursor1, options);
+                CHECK(!result.hasSelection());
+            }
+        }
+    };
+
+
     SECTION("backward hb") {
-        cursor1.insertText("blah\nblub");
-        cursor1 = doc.findSync("h\nb", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().codeUnit == 3);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
-        CHECK(cursor1.selectionEndPos().line == 1);
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|blah
+                                                   >   1
+                                                  1|blub
+                                                   >1
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "h\nb");
     }
 
     SECTION("backward hbl") {
-        cursor1.insertText("blah\nblub");
-        cursor1 = doc.findSync("h\nbl", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().codeUnit == 3);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 2);
-        CHECK(cursor1.selectionEndPos().line == 1);
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|blah
+                                                   >   1
+                                                  1|blub
+                                                   >11
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "h\nbl");
     }
 
     SECTION("backward ahb") {
-        cursor1.insertText("blah\nblub");
-        cursor1 = doc.findSync("ah\nb", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().codeUnit == 2);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
-        CHECK(cursor1.selectionEndPos().line == 1);
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|blah
+                                                   >  11
+                                                  1|blub
+                                                   >1
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "ah\nb");
     }
 
     SECTION("backward 123") {
 
-        cursor1.insertText("123\n123\n123\n123");
-        cursor1 = doc.findSync("3\n1", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().codeUnit == 2);
-        CHECK(cursor1.selectionStartPos().line == 2);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
-        CHECK(cursor1.selectionEndPos().line == 3);
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|123
+                                                   >  a
+                                                  1|123
+                                                   >a b
+                                                  2|123
+                                                   >b c
+                                                  3|123
+                                                   >c
+                                              )");
 
-        cursor1 = doc.findSync("3\n1", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().codeUnit == 2);
-        CHECK(cursor1.selectionStartPos().line == 1);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
-        CHECK(cursor1.selectionEndPos().line == 2);
+        auto testCase = GENERATE(from_range(testCases));
 
-        cursor1 = doc.findSync("3\n1", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().codeUnit == 2);
-        CHECK(cursor1.selectionStartPos().line == 0);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
-        CHECK(cursor1.selectionEndPos().line == 1);
-
-        cursor1 = doc.findSync("3\n1", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
-        CHECK(cursor1.selectionStartPos().codeUnit == 2);
-        CHECK(cursor1.selectionStartPos().line == 2);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
-        CHECK(cursor1.selectionEndPos().line == 3);
+        runChecksBackward(testCase, "3\n1");
     }
 
     SECTION("backward one char in line") {
-        cursor1.insertText("t\nt\nt");
-        cursor1 = doc.findSync("t\nt", cursor1, {Document::FindFlag::FindWrap, Document::FindFlag::FindBackward});
-        CHECK(cursor1.hasSelection() == true);
-        CHECK(cursor1.selectionStartPos().codeUnit == 0);
-        CHECK(cursor1.selectionStartPos().line == 1);
-        CHECK(cursor1.selectionEndPos().codeUnit == 1);
-        CHECK(cursor1.selectionEndPos().line == 2);
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|t
+                                                   >1
+                                                  1|t
+                                                   >1
+                                                   >2
+                                                  2|t
+                                                   >2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, "t\nt");
     }
 }
