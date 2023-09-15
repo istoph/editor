@@ -640,8 +640,8 @@ namespace {
                                 }
                                 if (searchAt != -1) {
                                     int endAt = snap.line(endLine).size() - parts.first().size();
-                                    return DocumentFindAsyncResult{{searchAt, line},
-                                                                   {endAt, endLine},
+                                    return DocumentFindAsyncResult{{endAt, endLine},
+                                                                   {searchAt, line},
                                                                    snap.revision()};
                                 }
                             }
