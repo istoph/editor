@@ -672,6 +672,8 @@ namespace {
                     }
 
                     QString lineBuffer = snap.line(line);
+                    replaceInvalidUtf16ForRegexSearch(lineBuffer, 0);
+
                     DocumentFindAsyncResult res = noMatch(snap);
                     QRegularExpressionMatchIterator remi = regex.globalMatch(lineBuffer);
                     while (remi.hasNext()) {

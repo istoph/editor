@@ -2127,4 +2127,32 @@ TEST_CASE("regex search") {
         runChecksBackward(testCase, QRegularExpression("abc"), Qt::CaseSensitive);
     }
 
+    SECTION("backward literal-abc-nonutf16-in-line") {
+        static auto testCases = generateTestCasesBackward(QString(R"(
+                                  0|some Test
+                                  1|abc Xhing
+                                   >111
+                                  2|xabcabc bbbb
+                                   > 222333
+                              )").replace('X', QChar(0xdc00)));
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression{"abc"}, Qt::CaseSensitive);
+    }
+
+    SECTION("backward literal-abc-nonutf16-at-end") {
+        static auto testCases = generateTestCasesBackward(QString(R"(
+                                  0|some Test
+                                  1|abc thingX
+                                   >111
+                                  2|xabcabc bbbb
+                                   > 222333
+                              )").replace('X', QChar(0xd800)));
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression{"abc"}, Qt::CaseSensitive);
+    }
+
 }
