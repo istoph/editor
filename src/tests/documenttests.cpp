@@ -2155,4 +2155,74 @@ TEST_CASE("regex search") {
         runChecksBackward(testCase, QRegularExpression{"abc"}, Qt::CaseSensitive);
     }
 
+    SECTION("backward multiline line literal") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                  0|some Test
+                                   >        1
+                                  1|abc Thing
+                                   >1
+                                  2|xabcabc bbbb
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("t\na"), Qt::CaseSensitive);
+    }
+
+    SECTION("backward three multiline line literal") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                  0|some Test
+                                   >        1
+                                  1|abc Thing
+                                   >111111111
+                                  2|xabcabc bbbb
+                                   >1111
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("t\n.*\nxabc"), Qt::CaseSensitive);
+    }
+
+    SECTION("backward multiline line dotdefault") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                  0|some Test
+                                  1|abc Thing
+                                  2|xabcabc bbbb
+                              )");
+        REQUIRE(testCases[0].hasMatch == false);
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("t.*xabc"), Qt::CaseSensitive);
+    }
+
+    SECTION("backward multiline dotall") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                  0|some Test
+                                   >        1
+                                  1|abc Thing
+                                   >111111111
+                                  2|xabcabc bbbb
+                                   >1111
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression{"t.*xabc", QRegularExpression::PatternOption::DotMatchesEverythingOption},
+                  Qt::CaseSensitive);
+    }
+
+
+    SECTION("backward anchors") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                  0|some Test
+                                  1|abc Thing
+                                   >111111111
+                                  2|xabcabc bbbb
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("^abc Thing$"), Qt::CaseSensitive);
+    }
 }

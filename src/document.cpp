@@ -538,6 +538,24 @@ namespace {
         }
     }
 
+    bool isPotententialMultiLineMatch(const QRegularExpression &regex) {
+        // This is mostly at placeholder at the moment, should parse the regex quite a bit more.
+
+        // Currently everything that contains characters that would be quoted is considered potentially
+        // multi line. This of course has lots of false positives but is very easy and does not have false negatives.
+        for (QChar ch: regex.pattern()) {
+            if ((ch >= QLatin1Char('a') && ch <= QLatin1Char('z'))
+                    || (ch >= QLatin1Char('A') && ch <= QLatin1Char('Z'))
+                    || (ch >= QLatin1Char('0') && ch <= QLatin1Char('9'))
+                    || ch == QLatin1Char('_')) {
+                // if not preceeded by any non literal characters this is a liternal match
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
+
     template <typename CANCEL>
     static DocumentFindAsyncResult snapshotSearchForward(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
         int line = search.startAtLine;
@@ -671,28 +689,112 @@ namespace {
                         regex.setPatternOptions(regex.patternOptions() ^ QRegularExpression::PatternOption::CaseInsensitiveOption);
                     }
 
-                    QString lineBuffer = snap.line(line);
-                    replaceInvalidUtf16ForRegexSearch(lineBuffer, 0);
+                    if (isPotententialMultiLineMatch(regex)) {
+                        if ((regex.patternOptions() & QRegularExpression::PatternOption::MultilineOption) == 0) {
+                            regex.setPatternOptions(regex.patternOptions() | QRegularExpression::PatternOption::MultilineOption);
+                        }
 
-                    DocumentFindAsyncResult res = noMatch(snap);
-                    QRegularExpressionMatchIterator remi = regex.globalMatch(lineBuffer);
-                    while (remi.hasNext()) {
-                        QRegularExpressionMatch match = remi.next();
-                        if (canceler.isCanceled()) {
+                        // Matching in reverse is quite hard to get right and performant. For now just get it right.
+                        // If this ever is a bottleneck in actual use, we need to think how to improve performance.
+                        // For some cases a simple cache of all match positions might be enough.
+
+                        QString buffer;
+                        int startIndex = -1;
+                        for (int i = 0; i < snap.lineCount(); i++) {
+                            if (i == search.startAtLine) {
+                                startIndex = buffer.size() + search.startCodeUnit;
+                            }
+
+                            buffer += snap.line(i);
+                            buffer += "\n";
+                        }
+
+                        if (startIndex == -1) {
+                            startIndex = buffer.size();
+                        }
+
+                        replaceInvalidUtf16ForRegexSearch(buffer, 0);
+
+                        std::optional<QRegularExpressionMatch> noWrapMatch;
+                        std::optional<QRegularExpressionMatch> wrapMatch;
+                        QRegularExpressionMatchIterator remi = regex.globalMatch(buffer);
+                        while (remi.hasNext()) {
+                            QRegularExpressionMatch match = remi.next();
+                            if (canceler.isCanceled()) {
+                                return noMatch(snap);
+                            }
+                            if (match.capturedLength() <= 0) continue;
+
+                            if (match.capturedStart() <= startIndex - match.capturedLength()) {
+                                noWrapMatch = match;
+                                continue;
+                            }
+
+                            if (!search.searchWrap) {
+                                // No wrapping requested, we have all we need.
+                                break;
+                            }
+
+                            if (noWrapMatch) {
+                                // No wrapping needed, we have the match.
+                                break;
+                            }
+
+                            wrapMatch = match;
+                        }
+
+                        if (noWrapMatch || wrapMatch) {
+                            QRegularExpressionMatch match = noWrapMatch ? *noWrapMatch : *wrapMatch;
+                            int found = match.capturedStart();
+                            int foundLine = 0;
+                            while (found > snap.lineCodeUnits(foundLine)) {
+                                found -= snap.lineCodeUnits(foundLine);
+                                found -= 1; // the "\n" itself
+                                foundLine += 1;
+                            }
+                            int endLine = 0;
+                            int endCodeUnit = match.capturedStart() + match.capturedLength();
+                            while (endCodeUnit > snap.lineCodeUnits(endLine)) {
+                                endCodeUnit -= snap.lineCodeUnits(endLine);
+                                endCodeUnit -= 1; // the "\n" itself
+                                endLine += 1;
+                            }
+                            return DocumentFindAsyncResult{{found, foundLine},
+                                                           {endCodeUnit, endLine},
+                                                           snap.revision()};
+
+                        } else {
                             return noMatch(snap);
                         }
-                        if (match.capturedLength() <= 0) continue;
-                        if (match.capturedStart() <= searchAt - match.capturedLength()) {
-                            res = DocumentFindAsyncResult{{match.capturedStart(), line},
-                                                          {match.capturedStart() + match.capturedLength(), line},
-                                                          snap.revision()};
-                            continue;
+                    } else {
+                        if ((regex.patternOptions() & QRegularExpression::PatternOption::MultilineOption)) {
+                            regex.setPatternOptions(regex.patternOptions() ^ QRegularExpression::PatternOption::MultilineOption);
                         }
-                        break;
+
+                        QString lineBuffer = snap.line(line);
+                        replaceInvalidUtf16ForRegexSearch(lineBuffer, 0);
+
+                        DocumentFindAsyncResult res = noMatch(snap);
+                        QRegularExpressionMatchIterator remi = regex.globalMatch(lineBuffer);
+                        while (remi.hasNext()) {
+                            QRegularExpressionMatch match = remi.next();
+                            if (canceler.isCanceled()) {
+                                return noMatch(snap);
+                            }
+                            if (match.capturedLength() <= 0) continue;
+                            if (match.capturedStart() <= searchAt - match.capturedLength()) {
+                                res = DocumentFindAsyncResult{{match.capturedStart(), line},
+                                                              {match.capturedStart() + match.capturedLength(), line},
+                                                              snap.revision()};
+                                continue;
+                            }
+                            break;
+                        }
+                        if (res.anchor != res.cursor) {
+                            return res;
+                        }
                     }
-                    if (res.anchor != res.cursor) {
-                        return res;
-                    }
+
                 } else {
                     const QStringList parts = std::get<QString>(search.needle).split('\n');
                     if (parts.size() > 1) {
