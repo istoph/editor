@@ -1981,7 +1981,6 @@ TEST_CASE("regex search") {
                   Qt::CaseSensitive);
     }
 
-
     SECTION("anchors") {
         static auto testCases = generateTestCases(R"(
                                   0|some Test
@@ -1993,6 +1992,40 @@ TEST_CASE("regex search") {
         auto testCase = GENERATE(from_range(testCases));
 
         runChecks(testCase, QRegularExpression("^abc Thing$"), Qt::CaseSensitive);
+    }
+
+    SECTION("numbers") {
+        static auto testCases = generateTestCases(R"(
+                                  0|This is 1 test
+                                   >        1
+                                  1|2 test
+                                   >2
+                                  2|and the last 3
+                                   >             3
+                                  3|or 123 456tests
+                                   >   456 789
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("[0-9]"), Qt::CaseSensitive);
+    }
+
+    SECTION("numbers+") {
+        static auto testCases = generateTestCases(R"(
+                                  0|This is 1 test
+                                   >        1
+                                  1|2 test
+                                   >2
+                                  2|and the last 3
+                                   >             3
+                                  3|or 123 456tests
+                                   >   444 555
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("[0-9]+"), Qt::CaseSensitive);
     }
 
     auto runChecksBackward = [&](const SearchTestCase &testCase, const QRegularExpression &needle, Qt::CaseSensitivity caseMatching) {
@@ -2224,5 +2257,39 @@ TEST_CASE("regex search") {
         auto testCase = GENERATE(from_range(testCases));
 
         runChecksBackward(testCase, QRegularExpression("^abc Thing$"), Qt::CaseSensitive);
+    }
+
+    SECTION("backward numbers") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                  0|This is 1 test
+                                   >        1
+                                  1|2 test
+                                   >2
+                                  2|and the last 3
+                                   >             3
+                                  3|or 123 456tests
+                                   >   456 789
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("[0-9]"), Qt::CaseSensitive);
+    }
+
+    SECTION("backward numbers+") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                  0|This is 1 test
+                                   >        1
+                                  1|2 test
+                                   >2
+                                  2|and the last 3
+                                   >             3
+                                  3|or 123 456tests
+                                   >   444 555
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("[0-9]+"), Qt::CaseSensitive);
     }
 }
