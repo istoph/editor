@@ -1848,6 +1848,38 @@ TEST_CASE("regex search") {
         auto testCase = GENERATE(from_range(testCases));
 
         runChecks(testCase, QRegularExpression("a"), Qt::CaseSensitive);
+
+    }
+
+    SECTION("one char t - mismatched case") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|Test
+                                                   >   2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("t"), Qt::CaseSensitive);
+    }
+
+    SECTION("one char t - case insensitive") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|Test
+                                                   >1  2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("t"), Qt::CaseInsensitive);
+    }
+
+    SECTION("one char t - mismatched case with pattern option") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|Test
+                                                   >   2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("t", QRegularExpression::PatternOption::CaseInsensitiveOption),
+                  Qt::CaseSensitive);
     }
 
     SECTION("literal-abc") {

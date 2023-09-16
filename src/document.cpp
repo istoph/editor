@@ -556,6 +556,10 @@ namespace {
                     if ((regex.patternOptions() & QRegularExpression::PatternOption::MultilineOption) == 0) {
                         regex.setPatternOptions(regex.patternOptions() | QRegularExpression::PatternOption::MultilineOption);
                     }
+                    if (regex.patternOptions().testFlag(QRegularExpression::PatternOption::CaseInsensitiveOption) !=
+                            (search.caseSensitivity == Qt::CaseInsensitive)) {
+                        regex.setPatternOptions(regex.patternOptions() ^ QRegularExpression::PatternOption::CaseInsensitiveOption);
+                    }
                     int foldedLine = line;
                     QRegularExpressionMatchIterator remi
                             = regex.globalMatch(buffer, 0,
