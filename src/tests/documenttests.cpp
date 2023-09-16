@@ -1994,4 +1994,137 @@ TEST_CASE("regex search") {
 
         runChecks(testCase, QRegularExpression("^abc Thing$"), Qt::CaseSensitive);
     }
+
+    auto runChecksBackward = [&](const SearchTestCase &testCase, const QRegularExpression &needle, Qt::CaseSensitivity caseMatching) {
+        cursor1.insertText(testCase.documentContents);
+
+        const bool wrapAround = GENERATE(false, true);
+        const bool useSelection = GENERATE(false, true);
+
+        CAPTURE(testCase.start);
+        CAPTURE(testCase.end);
+        CAPTURE(testCase.foundStart);
+        CAPTURE(testCase.foundEnd);
+        CAPTURE(wrapAround);
+        CAPTURE(useSelection);
+        Document::FindFlags options = wrapAround ? Document::FindFlag::FindWrap : Document::FindFlags{};
+        options |= Document::FindFlag::FindBackward;
+        if (caseMatching == Qt::CaseSensitive) {
+            options |= Document::FindFlag::FindCaseSensitively;
+        }
+
+        cursor1.setPosition(testCase.start);
+
+        if (useSelection && !cursor1.atEnd() && !cursor1.atStart()) {
+            cursor1.moveCharacterRight();
+            cursor1.setAnchorPosition({0, 0});
+        }
+
+        if (testCase.hasMatch) {
+            auto result = doc.findSync(needle, cursor1, options);
+            if (!wrapAround && testCase.start <= testCase.foundStart) {
+                CAPTURE(result.anchor());
+                CAPTURE(result.position());
+                CHECK_FALSE(result.hasSelection());
+            } else {
+                CHECK(result.hasSelection());
+                CHECK(result.anchor() == testCase.foundStart);
+                CHECK(result.position() == testCase.foundEnd);
+            }
+
+            while (cursor1.position() < testCase.end) {
+                REQUIRE(!cursor1.atEnd());
+                cursor1.moveCharacterRight();
+                // check if we overstepped
+                if (cursor1.position() > testCase.end) break;
+                CAPTURE(cursor1.position());
+
+                //cursor1.setAnchorPosition({0, 0});
+                auto result = doc.findSync(needle, cursor1, options);
+                if (!wrapAround && testCase.start <= testCase.foundStart) {
+                    CAPTURE(result.anchor());
+                    CAPTURE(result.position());
+                    CHECK_FALSE(result.hasSelection());
+                } else {
+                    CHECK(result.hasSelection());
+                    CHECK(result.anchor() == testCase.foundStart);
+                    CHECK(result.position() == testCase.foundEnd);
+                }
+            }
+        } else {
+            auto result = doc.findSync(needle, cursor1, options);
+            CHECK(!result.hasSelection());
+
+            while (!cursor1.atEnd()) {
+                CAPTURE(cursor1.position());
+                cursor1.moveCharacterRight();
+
+                cursor1.setAnchorPosition({0, 0});
+                auto result = doc.findSync(needle, cursor1, options);
+                CHECK(!result.hasSelection());
+            }
+        }
+    };
+
+
+    SECTION("backward literal-a") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|some Text
+                                                  1|same Thing
+                                                   > 1
+                                                  2|aaaa bbbb
+                                                   >2345
+                                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("a"), Qt::CaseSensitive);
+
+    }
+
+    SECTION("backward one char t - mismatched case") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|Test
+                                                   >   2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("t"), Qt::CaseSensitive);
+    }
+
+    SECTION("backward one char t - case insensitive") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|Test
+                                                   >1  2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("t"), Qt::CaseInsensitive);
+    }
+
+    SECTION("backward one char t - mismatched case with pattern option") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                                  0|Test
+                                                   >   2
+                                              )");
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("t", QRegularExpression::PatternOption::CaseInsensitiveOption),
+                  Qt::CaseSensitive);
+    }
+
+    SECTION("backward literal-abc") {
+        static auto testCases = generateTestCasesBackward(R"(
+            0|some Test
+            1|abc Thing
+             >111
+            2|xabcabc bbbb
+             > 222333
+        )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("abc"), Qt::CaseSensitive);
+    }
+
 }

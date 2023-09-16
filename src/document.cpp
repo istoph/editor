@@ -665,8 +665,15 @@ namespace {
         while (true) {
             for (; line >= end;) {
                 if (regularExpressionMode) {
+                    auto regex = std::get<QRegularExpression>(search.needle);
+                    if (regex.patternOptions().testFlag(QRegularExpression::PatternOption::CaseInsensitiveOption) !=
+                            (search.caseSensitivity == Qt::CaseInsensitive)) {
+                        regex.setPatternOptions(regex.patternOptions() ^ QRegularExpression::PatternOption::CaseInsensitiveOption);
+                    }
+
+                    QString lineBuffer = snap.line(line);
                     DocumentFindAsyncResult res = noMatch(snap);
-                    QRegularExpressionMatchIterator remi = std::get<QRegularExpression>(search.needle).globalMatch(snap.line(line));
+                    QRegularExpressionMatchIterator remi = regex.globalMatch(lineBuffer);
                     while (remi.hasNext()) {
                         QRegularExpressionMatch match = remi.next();
                         if (canceler.isCanceled()) {
