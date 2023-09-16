@@ -558,24 +558,27 @@ namespace {
 
     template <typename CANCEL>
     static DocumentFindAsyncResult snapshotSearchForwardRegex(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
+
+        auto regex = std::get<QRegularExpression>(search.needle);
+        if ((regex.patternOptions() & QRegularExpression::PatternOption::MultilineOption) == 0) {
+            regex.setPatternOptions(regex.patternOptions() | QRegularExpression::PatternOption::MultilineOption);
+        }
+        if (regex.patternOptions().testFlag(QRegularExpression::PatternOption::CaseInsensitiveOption) !=
+                (search.caseSensitivity == Qt::CaseInsensitive)) {
+            regex.setPatternOptions(regex.patternOptions() ^ QRegularExpression::PatternOption::CaseInsensitiveOption);
+        }
+
         int line = search.startAtLine;
         int found = search.startCodeUnit - 1;
         int end = snap.lineCount();
 
         bool hasWrapped = false;
+
         while (true) {
             for (; line < end; line++) {
                 QString buffer = snap.line(line);
                 replaceInvalidUtf16ForRegexSearch(buffer, 0);
                 buffer += "\n";
-                auto regex = std::get<QRegularExpression>(search.needle);
-                if ((regex.patternOptions() & QRegularExpression::PatternOption::MultilineOption) == 0) {
-                    regex.setPatternOptions(regex.patternOptions() | QRegularExpression::PatternOption::MultilineOption);
-                }
-                if (regex.patternOptions().testFlag(QRegularExpression::PatternOption::CaseInsensitiveOption) !=
-                        (search.caseSensitivity == Qt::CaseInsensitive)) {
-                    regex.setPatternOptions(regex.patternOptions() ^ QRegularExpression::PatternOption::CaseInsensitiveOption);
-                }
                 int foldedLine = line;
                 QRegularExpressionMatchIterator remi
                         = regex.globalMatch(buffer, 0,
@@ -639,6 +642,10 @@ namespace {
 
     template <typename CANCEL>
     static DocumentFindAsyncResult snapshotSearchForwardLiteral(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
+
+        const QString needle = std::get<QString>(search.needle);
+        const QStringList parts = needle.split('\n');
+
         int line = search.startAtLine;
         int found = search.startCodeUnit - 1;
         int end = snap.lineCount();
@@ -646,7 +653,6 @@ namespace {
         bool hasWrapped = false;
         while (true) {
             for (; line < end; line++) {
-                const QStringList parts = std::get<QString>(search.needle).split('\n');
                 if (parts.size() > 1) {
                     const int numberLinesToCome = snap.lineCount() - line;
                     if (parts.size() > numberLinesToCome) {
@@ -670,10 +676,10 @@ namespace {
                     }
                     found = -1;
                 } else {
-                    found = snap.line(line).indexOf(std::get<QString>(search.needle), found + 1, search.caseSensitivity);
+                    found = snap.line(line).indexOf(needle, found + 1, search.caseSensitivity);
 
                     if (found != -1) {
-                        const int length = std::get<QString>(search.needle).size();
+                        const int length = needle.size();
                         return DocumentFindAsyncResult{{found, line},
                                                        {found + length, line},
                                                        snap.revision()};
@@ -706,122 +712,124 @@ namespace {
 
     template <typename CANCEL>
     static DocumentFindAsyncResult snapshotSearchBackwardsRegex(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
+
+        auto regex = std::get<QRegularExpression>(search.needle);
+        if (regex.patternOptions().testFlag(QRegularExpression::PatternOption::CaseInsensitiveOption) !=
+                (search.caseSensitivity == Qt::CaseInsensitive)) {
+            regex.setPatternOptions(regex.patternOptions() ^ QRegularExpression::PatternOption::CaseInsensitiveOption);
+        }
+
+        if (isPotententialMultiLineMatch(regex)) {
+            if ((regex.patternOptions() & QRegularExpression::PatternOption::MultilineOption) == 0) {
+                regex.setPatternOptions(regex.patternOptions() | QRegularExpression::PatternOption::MultilineOption);
+            }
+
+            // Matching in reverse is quite hard to get right and performant. For now just get it right.
+            // If this ever is a bottleneck in actual use, we need to think how to improve performance.
+            // For some cases a simple cache of all match positions might be enough.
+
+            QString buffer;
+            int startIndex = -1;
+            for (int i = 0; i < snap.lineCount(); i++) {
+                if (i == search.startAtLine) {
+                    startIndex = buffer.size() + search.startCodeUnit;
+                }
+
+                buffer += snap.line(i);
+                buffer += "\n";
+            }
+
+            if (startIndex == -1) {
+                startIndex = buffer.size();
+            }
+
+            replaceInvalidUtf16ForRegexSearch(buffer, 0);
+
+            std::optional<QRegularExpressionMatch> noWrapMatch;
+            std::optional<QRegularExpressionMatch> wrapMatch;
+            QRegularExpressionMatchIterator remi = regex.globalMatch(buffer);
+            while (remi.hasNext()) {
+                QRegularExpressionMatch match = remi.next();
+                if (canceler.isCanceled()) {
+                    return noMatch(snap);
+                }
+                if (match.capturedLength() <= 0) continue;
+
+                if (match.capturedStart() <= startIndex - match.capturedLength()) {
+                    noWrapMatch = match;
+                    continue;
+                }
+
+                if (!search.searchWrap) {
+                    // No wrapping requested, we have all we need.
+                    break;
+                }
+
+                if (noWrapMatch) {
+                    // No wrapping needed, we have the match.
+                    break;
+                }
+
+                wrapMatch = match;
+            }
+
+            if (noWrapMatch || wrapMatch) {
+                QRegularExpressionMatch match = noWrapMatch ? *noWrapMatch : *wrapMatch;
+                int found = match.capturedStart();
+                int foundLine = 0;
+                while (found > snap.lineCodeUnits(foundLine)) {
+                    found -= snap.lineCodeUnits(foundLine);
+                    found -= 1; // the "\n" itself
+                    foundLine += 1;
+                }
+                int endLine = 0;
+                int endCodeUnit = match.capturedStart() + match.capturedLength();
+                while (endCodeUnit > snap.lineCodeUnits(endLine)) {
+                    endCodeUnit -= snap.lineCodeUnits(endLine);
+                    endCodeUnit -= 1; // the "\n" itself
+                    endLine += 1;
+                }
+                return DocumentFindAsyncResult{{found, foundLine},
+                                               {endCodeUnit, endLine},
+                                               snap.revision()};
+
+            } else {
+                return noMatch(snap);
+            }
+            // never reached
+        }
+
+        if ((regex.patternOptions() & QRegularExpression::PatternOption::MultilineOption)) {
+            regex.setPatternOptions(regex.patternOptions() ^ QRegularExpression::PatternOption::MultilineOption);
+        }
+
         int line = search.startAtLine;
         int searchAt = search.startCodeUnit;
         int end = 0;
         bool hasWrapped = false;
         while (true) {
             for (; line >= end;) {
-                auto regex = std::get<QRegularExpression>(search.needle);
-                if (regex.patternOptions().testFlag(QRegularExpression::PatternOption::CaseInsensitiveOption) !=
-                        (search.caseSensitivity == Qt::CaseInsensitive)) {
-                    regex.setPatternOptions(regex.patternOptions() ^ QRegularExpression::PatternOption::CaseInsensitiveOption);
-                }
+                QString lineBuffer = snap.line(line);
+                replaceInvalidUtf16ForRegexSearch(lineBuffer, 0);
 
-                if (isPotententialMultiLineMatch(regex)) {
-                    if ((regex.patternOptions() & QRegularExpression::PatternOption::MultilineOption) == 0) {
-                        regex.setPatternOptions(regex.patternOptions() | QRegularExpression::PatternOption::MultilineOption);
-                    }
-
-                    // Matching in reverse is quite hard to get right and performant. For now just get it right.
-                    // If this ever is a bottleneck in actual use, we need to think how to improve performance.
-                    // For some cases a simple cache of all match positions might be enough.
-
-                    QString buffer;
-                    int startIndex = -1;
-                    for (int i = 0; i < snap.lineCount(); i++) {
-                        if (i == search.startAtLine) {
-                            startIndex = buffer.size() + search.startCodeUnit;
-                        }
-
-                        buffer += snap.line(i);
-                        buffer += "\n";
-                    }
-
-                    if (startIndex == -1) {
-                        startIndex = buffer.size();
-                    }
-
-                    replaceInvalidUtf16ForRegexSearch(buffer, 0);
-
-                    std::optional<QRegularExpressionMatch> noWrapMatch;
-                    std::optional<QRegularExpressionMatch> wrapMatch;
-                    QRegularExpressionMatchIterator remi = regex.globalMatch(buffer);
-                    while (remi.hasNext()) {
-                        QRegularExpressionMatch match = remi.next();
-                        if (canceler.isCanceled()) {
-                            return noMatch(snap);
-                        }
-                        if (match.capturedLength() <= 0) continue;
-
-                        if (match.capturedStart() <= startIndex - match.capturedLength()) {
-                            noWrapMatch = match;
-                            continue;
-                        }
-
-                        if (!search.searchWrap) {
-                            // No wrapping requested, we have all we need.
-                            break;
-                        }
-
-                        if (noWrapMatch) {
-                            // No wrapping needed, we have the match.
-                            break;
-                        }
-
-                        wrapMatch = match;
-                    }
-
-                    if (noWrapMatch || wrapMatch) {
-                        QRegularExpressionMatch match = noWrapMatch ? *noWrapMatch : *wrapMatch;
-                        int found = match.capturedStart();
-                        int foundLine = 0;
-                        while (found > snap.lineCodeUnits(foundLine)) {
-                            found -= snap.lineCodeUnits(foundLine);
-                            found -= 1; // the "\n" itself
-                            foundLine += 1;
-                        }
-                        int endLine = 0;
-                        int endCodeUnit = match.capturedStart() + match.capturedLength();
-                        while (endCodeUnit > snap.lineCodeUnits(endLine)) {
-                            endCodeUnit -= snap.lineCodeUnits(endLine);
-                            endCodeUnit -= 1; // the "\n" itself
-                            endLine += 1;
-                        }
-                        return DocumentFindAsyncResult{{found, foundLine},
-                                                       {endCodeUnit, endLine},
-                                                       snap.revision()};
-
-                    } else {
+                DocumentFindAsyncResult res = noMatch(snap);
+                QRegularExpressionMatchIterator remi = regex.globalMatch(lineBuffer);
+                while (remi.hasNext()) {
+                    QRegularExpressionMatch match = remi.next();
+                    if (canceler.isCanceled()) {
                         return noMatch(snap);
                     }
-                } else {
-                    if ((regex.patternOptions() & QRegularExpression::PatternOption::MultilineOption)) {
-                        regex.setPatternOptions(regex.patternOptions() ^ QRegularExpression::PatternOption::MultilineOption);
+                    if (match.capturedLength() <= 0) continue;
+                    if (match.capturedStart() <= searchAt - match.capturedLength()) {
+                        res = DocumentFindAsyncResult{{match.capturedStart(), line},
+                                                      {match.capturedStart() + match.capturedLength(), line},
+                                                      snap.revision()};
+                        continue;
                     }
-
-                    QString lineBuffer = snap.line(line);
-                    replaceInvalidUtf16ForRegexSearch(lineBuffer, 0);
-
-                    DocumentFindAsyncResult res = noMatch(snap);
-                    QRegularExpressionMatchIterator remi = regex.globalMatch(lineBuffer);
-                    while (remi.hasNext()) {
-                        QRegularExpressionMatch match = remi.next();
-                        if (canceler.isCanceled()) {
-                            return noMatch(snap);
-                        }
-                        if (match.capturedLength() <= 0) continue;
-                        if (match.capturedStart() <= searchAt - match.capturedLength()) {
-                            res = DocumentFindAsyncResult{{match.capturedStart(), line},
-                                                          {match.capturedStart() + match.capturedLength(), line},
-                                                          snap.revision()};
-                            continue;
-                        }
-                        break;
-                    }
-                    if (res.anchor != res.cursor) {
-                        return res;
-                    }
+                    break;
+                }
+                if (res.anchor != res.cursor) {
+                    return res;
                 }
 
                 if (canceler.isCanceled()) {
@@ -843,13 +851,17 @@ namespace {
 
     template <typename CANCEL>
     static DocumentFindAsyncResult snapshotSearchBackwardsLiteral(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
+
+        const QString needle = std::get<QString>(search.needle);
+        const QStringList parts = needle.split('\n');
+
         int line = search.startAtLine;
         int searchAt = search.startCodeUnit;
         int end = 0;
+
         bool hasWrapped = false;
         while (true) {
             for (; line >= end;) {
-                const QStringList parts = std::get<QString>(search.needle).split('\n');
                 if (parts.size() > 1) {
                     int endLine = line - parts.size() + 1;
                     if (endLine < 0) {
@@ -875,9 +887,9 @@ namespace {
                     }
                     searchAt = -1;
                 } else {
-                    if (searchAt >= std::get<QString>(search.needle).size()) {
-                        const int length = std::get<QString>(search.needle).size();
-                        const int found = snap.line(line).lastIndexOf(std::get<QString>(search.needle),
+                    const int length = needle.size();
+                    if (searchAt >= length) {
+                        const int found = snap.line(line).lastIndexOf(needle,
                                                                       searchAt - length,
                                                                       search.caseSensitivity);
                         if (found != -1) {
