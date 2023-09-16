@@ -1757,3 +1757,209 @@ TEST_CASE("Search") {
         runChecksBackward(testCase, "t\nt", Qt::CaseSensitive);
     }
 }
+
+
+TEST_CASE("regex search") {
+    Tui::ZTerminal terminal{Tui::ZTerminal::OffScreen{1, 1}};
+    Tui::ZRoot root;
+    terminal.setMainWidget(&root);
+    Document doc;
+
+    TextCursor cursor1{&doc, nullptr, [&terminal,&doc](int line, bool wrappingAllowed) {
+            Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line));
+            lay.doLayout(65000);
+            return lay;
+        }
+    };
+
+    auto runChecks = [&](const SearchTestCase &testCase, const QRegularExpression &needle, Qt::CaseSensitivity caseMatching) {
+        cursor1.insertText(testCase.documentContents);
+
+        const bool wrapAround = GENERATE(false, true);
+
+        CAPTURE(testCase.start);
+        CAPTURE(testCase.end);
+        CAPTURE(testCase.foundStart);
+        CAPTURE(testCase.foundEnd);
+        CAPTURE(wrapAround);
+        Document::FindFlags options = wrapAround ? Document::FindFlag::FindWrap : Document::FindFlags{};
+        if (caseMatching == Qt::CaseSensitive) {
+            options |= Document::FindFlag::FindCaseSensitively;
+        }
+
+        cursor1.setPosition(testCase.start, true);
+        cursor1.setAnchorPosition({0, 0});
+
+        if (testCase.hasMatch) {
+            auto result = doc.findSync(needle, cursor1, options);
+            if (!wrapAround && testCase.start > testCase.foundStart) {
+                CAPTURE(result.anchor());
+                CAPTURE(result.position());
+                CHECK(!result.hasSelection());
+            } else {
+                CHECK(result.hasSelection());
+                CHECK(result.anchor() == testCase.foundStart);
+                CHECK(result.position() == testCase.foundEnd);
+            }
+
+            while (cursor1.position() < testCase.end) {
+                CAPTURE(cursor1.position());
+                REQUIRE(!cursor1.atEnd());
+                cursor1.moveCharacterRight();
+                // check if we overstepped
+                if (cursor1.position() > testCase.end) break;
+
+                cursor1.setAnchorPosition({0, 0});
+                auto result = doc.findSync(needle, cursor1, options);
+                if (!wrapAround && testCase.start > testCase.foundStart) {
+                    CAPTURE(result.anchor());
+                    CAPTURE(result.position());
+                    CHECK(!result.hasSelection());
+                } else {
+                    CHECK(result.hasSelection());
+                    CHECK(result.anchor() == testCase.foundStart);
+                    CHECK(result.position() == testCase.foundEnd);
+                }
+            }
+        } else {
+            auto result = doc.findSync(needle, cursor1, options);
+            CHECK(!result.hasSelection());
+
+            while (!cursor1.atEnd()) {
+                CAPTURE(cursor1.position());
+                cursor1.moveCharacterRight();
+
+                cursor1.setAnchorPosition({0, 0});
+                auto result = doc.findSync(needle, cursor1, options);
+                CHECK(!result.hasSelection());
+            }
+        }
+    };
+
+    SECTION("literal-a") {
+        static auto testCases = generateTestCases(R"(
+                                                  0|some Text
+                                                  1|same Thing
+                                                   > 1
+                                                  2|aaaa bbbb
+                                                   >2345
+                                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("a"), Qt::CaseSensitive);
+    }
+
+    SECTION("literal-abc") {
+        static auto testCases = generateTestCases(R"(
+            0|some Test
+            1|abc Thing
+             >111
+            2|xabcabc bbbb
+             > 222333
+        )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("abc"), Qt::CaseSensitive);
+    }
+
+    SECTION("literal-abc-nonutf16-in-line") {
+        static auto testCases = generateTestCases(QString(R"(
+                                  0|some Test
+                                  1|abc Xhing
+                                   >111
+                                  2|xabcabc bbbb
+                                   > 222333
+                              )").replace('X', QChar(0xdc00)));
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression{"abc"}, Qt::CaseSensitive);
+    }
+
+    SECTION("literal-abc-nonutf16-at-end") {
+        static auto testCases = generateTestCases(QString(R"(
+                                  0|some Test
+                                  1|abc thingX
+                                   >111
+                                  2|xabcabc bbbb
+                                   > 222333
+                              )").replace('X', QChar(0xd800)));
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression{"abc"}, Qt::CaseSensitive);
+    }
+
+    SECTION("multiline line literal") {
+        static auto testCases = generateTestCases(R"(
+                                  0|some Test
+                                   >        1
+                                  1|abc Thing
+                                   >1
+                                  2|xabcabc bbbb
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("t\na"), Qt::CaseSensitive);
+    }
+
+    SECTION("three multiline line literal") {
+        static auto testCases = generateTestCases(R"(
+                                  0|some Test
+                                   >        1
+                                  1|abc Thing
+                                   >111111111
+                                  2|xabcabc bbbb
+                                   >1111
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("t\n.*\nxabc"), Qt::CaseSensitive);
+    }
+
+    SECTION("multiline line dotdefault") {
+        static auto testCases = generateTestCases(R"(
+                                  0|some Test
+                                  1|abc Thing
+                                  2|xabcabc bbbb
+                              )");
+        REQUIRE(testCases[0].hasMatch == false);
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("t.*xabc"), Qt::CaseSensitive);
+    }
+
+    SECTION("multiline dotall") {
+        static auto testCases = generateTestCases(R"(
+                                  0|some Test
+                                   >        1
+                                  1|abc Thing
+                                   >111111111
+                                  2|xabcabc bbbb
+                                   >1111
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression{"t.*xabc", QRegularExpression::PatternOption::DotMatchesEverythingOption},
+                  Qt::CaseSensitive);
+    }
+
+
+    SECTION("anchors") {
+        static auto testCases = generateTestCases(R"(
+                                  0|some Test
+                                  1|abc Thing
+                                   >111111111
+                                  2|xabcabc bbbb
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("^abc Thing$"), Qt::CaseSensitive);
+    }
+}

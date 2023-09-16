@@ -518,6 +518,26 @@ namespace {
         return DocumentFindAsyncResult{{0, 0}, {0, 0}, revision};
     }
 
+    void replaceInvalidUtf16ForRegexSearch(QString &buffer, int start) {
+        for (int i = start; i < buffer.size(); i++) {
+            QChar ch = buffer[i];
+            if (ch.isHighSurrogate()) {
+                if (i + 1 < buffer.size() && QChar(buffer[i + 1]).isLowSurrogate()) {
+                    // ok, skip low surrogate
+                    i++;
+                } else {
+                    // not valid utf16, replace so it doesn't break regex search
+                    buffer[i] = 0xFFFD;
+                }
+            } else if (ch.isLowSurrogate()) {
+                // not valid utf16, replace so it doesn't break regex search
+                // this might be a surrogate escape but libpcre (used by QRegularExpression) can't work
+                // with surrogate escapes
+                buffer[i] = 0xFFFD;
+            }
+        }
+    }
+
     template <typename CANCEL>
     static DocumentFindAsyncResult snapshotSearchForward(DocumentSnapshot snap, SearchParameter search, CANCEL &canceler) {
         int line = search.startAtLine;
@@ -529,19 +549,58 @@ namespace {
         while (true) {
             for (; line < end; line++) {
                 if (regularExpressionMode) {
-                    QRegularExpressionMatchIterator remi = std::get<QRegularExpression>(search.needle).globalMatch(snap.line(line));
+                    QString buffer = snap.line(line);
+                    replaceInvalidUtf16ForRegexSearch(buffer, 0);
+                    buffer += "\n";
+                    auto regex = std::get<QRegularExpression>(search.needle);
+                    if ((regex.patternOptions() & QRegularExpression::PatternOption::MultilineOption) == 0) {
+                        regex.setPatternOptions(regex.patternOptions() | QRegularExpression::PatternOption::MultilineOption);
+                    }
+                    int foldedLine = line;
+                    QRegularExpressionMatchIterator remi
+                            = regex.globalMatch(buffer, 0,
+                                                foldedLine + 1 < snap.lineCount() ? QRegularExpression::MatchType::PartialPreferFirstMatch
+                                                                                  : QRegularExpression::MatchType::NormalMatch,
+                                                QRegularExpression::MatchOption::DontCheckSubjectStringMatchOption);
                     while (remi.hasNext()) {
                         QRegularExpressionMatch match = remi.next();
+                        if (match.hasPartialMatch()) {
+                            const int cont = buffer.size();
+                            foldedLine += 1;
+                            buffer += snap.line(foldedLine);
+                            replaceInvalidUtf16ForRegexSearch(buffer, cont);
+                            buffer += "\n";
+                            remi = regex.globalMatch(buffer, 0,
+                                                     foldedLine + 1 < snap.lineCount() ? QRegularExpression::MatchType::PartialPreferFirstMatch
+                                                                                       : QRegularExpression::MatchType::NormalMatch,
+                                                     QRegularExpression::MatchOption::DontCheckSubjectStringMatchOption);
+                            continue;
+                        }
                         if (canceler.isCanceled()) {
                             return noMatch(snap);
                         }
                         if (match.capturedLength() <= 0) continue;
                         if (match.capturedStart() < found + 1) continue;
                         found = match.capturedStart();
-                        return DocumentFindAsyncResult{{found, line},
-                                                       {found + match.capturedLength(), line},
+                        int foundLine = line;
+                        while (found > snap.lineCodeUnits(foundLine)) {
+                            found -= snap.lineCodeUnits(foundLine);
+                            found -= 1; // the "\n" itself
+                            foundLine += 1;
+                        }
+                        int endLine = line;
+                        int endCodeUnit = match.capturedStart() + match.capturedLength();
+                        while (endCodeUnit > snap.lineCodeUnits(endLine)) {
+                            endCodeUnit -= snap.lineCodeUnits(endLine);
+                            endCodeUnit -= 1; // the "\n" itself
+                            endLine += 1;
+                        }
+                        return DocumentFindAsyncResult{{found, foundLine},
+                                                       {endCodeUnit, endLine},
                                                        snap.revision()};
                     }
+                    // we searched everything until including folded line, so no need to try those lines again.
+                    line = foldedLine;
                     found = -1;
                 } else {
                     const QStringList parts = std::get<QString>(search.needle).split('\n');
