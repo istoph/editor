@@ -587,6 +587,9 @@ namespace {
                                             QRegularExpression::MatchOption::DontCheckSubjectStringMatchOption);
                 while (remi.hasNext()) {
                     QRegularExpressionMatch match = remi.next();
+                    if (canceler.isCanceled()) {
+                        return noMatch(snap);
+                    }
                     if (match.hasPartialMatch()) {
                         const int cont = buffer.size();
                         foldedLine += 1;
@@ -598,9 +601,6 @@ namespace {
                                                                                    : QRegularExpression::MatchType::NormalMatch,
                                                  QRegularExpression::MatchOption::DontCheckSubjectStringMatchOption);
                         continue;
-                    }
-                    if (canceler.isCanceled()) {
-                        return noMatch(snap);
                     }
                     if (match.capturedLength() <= 0) continue;
                     if (match.capturedStart() < found + 1) continue;
@@ -737,6 +737,10 @@ namespace {
 
                 buffer += snap.line(i);
                 buffer += "\n";
+
+                if (canceler.isCanceled()) {
+                    return noMatch(snap);
+                }
             }
 
             if (startIndex == -1) {
