@@ -287,10 +287,42 @@ private:
 // TODO think about ABI treatment
 class DocumentFindAsyncResult {
 public:
+    DocumentFindAsyncResult() = default;
+
     TextCursor::Position anchor;
     TextCursor::Position cursor;
     unsigned revision = -1;
+
+    int regexLastCapturedIndex() const;
+    QString regexCapture(int index) const;
+    QString regexCapture(const QString &name) const;
+
+    // internal
+    DocumentFindAsyncResult(TextCursor::Position anchor, TextCursor::Position cursor, unsigned revision, QRegularExpressionMatch match);
+
+private:
+    QRegularExpressionMatch _match;
+    friend class Document;
 };
+
+// TODO think about ABI treatment
+class DocumentFindResult {
+public:
+    DocumentFindResult() = default;
+
+    TextCursor cursor;
+
+    int regexLastCapturedIndex() const;
+    QString regexCapture(int index) const;
+    QString regexCapture(const QString &name) const;
+
+    // internal
+    DocumentFindResult(TextCursor cursor, QRegularExpressionMatch match);
+
+private:
+    QRegularExpressionMatch _match;
+};
+
 
 class Document : public QObject {
     Q_OBJECT
@@ -348,8 +380,10 @@ public:
 
     TextCursor findSync(const QString &subString, const TextCursor &start,
                         FindFlags options = FindFlags{}) const;
-    TextCursor findSync(const QRegularExpression &subString, const TextCursor &start,
+    TextCursor findSync(const QRegularExpression &regex, const TextCursor &start,
                         FindFlags options = FindFlags{}) const;
+    DocumentFindResult findSyncWithDetails(const QRegularExpression &regex, const TextCursor &start,
+                                 FindFlags options = FindFlags{}) const;
     QFuture<DocumentFindAsyncResult> findAsync(const QString &subString, const TextCursor &start,
                                                FindFlags options = FindFlags{}) const;
     QFuture<DocumentFindAsyncResult> findAsync(const QRegularExpression &expr, const TextCursor &start,

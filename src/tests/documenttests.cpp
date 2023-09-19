@@ -955,11 +955,13 @@ namespace {
         TextCursor::Position end;
         TextCursor::Position foundStart;
         TextCursor::Position foundEnd;
+        QString marker;
     };
 
     struct MatchPosition {
         TextCursor::Position foundStart{0, 0};
         TextCursor::Position foundEnd{0, 0};
+        QString marker;
     };
 
 }
@@ -990,9 +992,9 @@ static auto parseSearchInfo(const QString &input) {
     auto extendOrCreateMatch = [&] (int codeUnit, QChar id) {
         if (!matchesMap.contains(id)) {
             if (codeUnit == lines.back().size()) {
-                matchesMap[id] = MatchPosition{{codeUnit, line}, {0, line + 1}};
+                matchesMap[id] = MatchPosition{{codeUnit, line}, {0, line + 1}, id};
             } else {
-                matchesMap[id] = MatchPosition{{codeUnit, line}, {codeUnit + 1, line}};
+                matchesMap[id] = MatchPosition{{codeUnit, line}, {codeUnit + 1, line}, id};
             }
         } else {
             if (matchesMap[id].foundEnd.line == line) {
@@ -1033,7 +1035,7 @@ static std::vector<SearchTestCase> generateTestCases(const QString &input) {
     auto [matchesMap, documentContents, lines] = parseSearchInfo(input);
 
     if (matchesMap.isEmpty()) {
-        return { {documentContents, false, {0,0}, {lines.last().size(), lines.size() - 1}, {0, 0}, {0, 0}} };
+        return { {documentContents, false, {0,0}, {lines.last().size(), lines.size() - 1}, {0, 0}, {0, 0}, {}} };
     }
 
     QList<MatchPosition> matches = matchesMap.values();
@@ -1043,7 +1045,7 @@ static std::vector<SearchTestCase> generateTestCases(const QString &input) {
 
     std::vector<SearchTestCase> ret;
 
-    ret.push_back(SearchTestCase{documentContents, true, {0, 0}, matches[0].foundStart, matches[0].foundStart, matches[0].foundEnd});
+    ret.push_back(SearchTestCase{documentContents, true, {0, 0}, matches[0].foundStart, matches[0].foundStart, matches[0].foundEnd, matches[0].marker});
     TextCursor::Position nextStart = matches[0].foundStart;
 
     auto advanceNextStart = [&, lines=lines] {
@@ -1058,11 +1060,11 @@ static std::vector<SearchTestCase> generateTestCases(const QString &input) {
     advanceNextStart();
 
     for (int i = 1; i < matches.size(); i++) {
-        ret.push_back(SearchTestCase{documentContents, true, nextStart, matches[i].foundStart, matches[i].foundStart, matches[i].foundEnd});
+        ret.push_back(SearchTestCase{documentContents, true, nextStart, matches[i].foundStart, matches[i].foundStart, matches[i].foundEnd, matches[i].marker});
         nextStart = matches[i].foundStart;
         advanceNextStart();
     }
-    ret.push_back(SearchTestCase{documentContents, true, nextStart, {lines.last().size(), lines.size() - 1}, matches[0].foundStart, matches[0].foundEnd});
+    ret.push_back(SearchTestCase{documentContents, true, nextStart, {lines.last().size(), lines.size() - 1}, matches[0].foundStart, matches[0].foundEnd, matches[0].marker});
 
     return ret;
 }
@@ -1073,7 +1075,7 @@ static std::vector<SearchTestCase> generateTestCasesBackward(const QString &inpu
     auto [matchesMap, documentContents, lines] = parseSearchInfo(input);
 
     if (matchesMap.isEmpty()) {
-        return { {documentContents, false, {0,0}, {lines.last().size(), lines.size() - 1}, {0, 0}, {0, 0}} };
+        return { {documentContents, false, {0,0}, {lines.last().size(), lines.size() - 1}, {0, 0}, {0, 0}, {}} };
     }
 
     QList<MatchPosition> matches = matchesMap.values();
@@ -1084,7 +1086,7 @@ static std::vector<SearchTestCase> generateTestCasesBackward(const QString &inpu
     std::vector<SearchTestCase> ret;
 
     ret.push_back(SearchTestCase{documentContents, true, matches.last().foundEnd, {lines.last().size(), lines.size() - 1},
-                                 matches.last().foundStart, matches.last().foundEnd});
+                                 matches.last().foundStart, matches.last().foundEnd, matches.last().marker});
 
     TextCursor::Position nextEnd = matches.last().foundEnd;
 
@@ -1100,12 +1102,12 @@ static std::vector<SearchTestCase> generateTestCasesBackward(const QString &inpu
     moveBackNextEnd();
 
     for (int i = matches.size() - 2; i >= 0; i--) {
-        ret.push_back(SearchTestCase{documentContents, true, matches[i].foundEnd, nextEnd, matches[i].foundStart, matches[i].foundEnd});
+        ret.push_back(SearchTestCase{documentContents, true, matches[i].foundEnd, nextEnd, matches[i].foundStart, matches[i].foundEnd, matches[i].marker});
         nextEnd = matches[i].foundEnd;
         moveBackNextEnd();
     }
 
-    ret.push_back(SearchTestCase{documentContents, true, {0, 0}, nextEnd, matches.last().foundStart, matches.last().foundEnd});
+    ret.push_back(SearchTestCase{documentContents, true, {0, 0}, nextEnd, matches.last().foundStart, matches.last().foundEnd, matches.last().marker});
 
     return ret;
 }
@@ -1772,11 +1774,32 @@ TEST_CASE("regex search") {
         }
     };
 
-    auto runChecks = [&](const SearchTestCase &testCase, const QRegularExpression &needle, Qt::CaseSensitivity caseMatching) {
+    struct MatchCaptures {
+        QStringList captures;
+        QMap<QString, QString> named;
+    };
+
+    auto runChecks = [&](const SearchTestCase &testCase, const QRegularExpression &needle, Qt::CaseSensitivity caseMatching,
+            const QMap<QString, MatchCaptures> expectedCapturesMap) {
         cursor1.insertText(testCase.documentContents);
 
         const bool wrapAround = GENERATE(false, true);
 
+        auto checkCaptures = [&] (const DocumentFindResult &res) {
+            REQUIRE(expectedCapturesMap.contains(testCase.marker));
+            auto &expectedCaptures = expectedCapturesMap[testCase.marker];
+            CHECK(res.regexLastCapturedIndex() == expectedCaptures.captures.size() - 1);
+            if (res.regexLastCapturedIndex() == expectedCaptures.captures.size() - 1) {
+                for (int i = 0; i < expectedCaptures.captures.size(); i++) {
+                    CHECK(res.regexCapture(i) == expectedCaptures.captures[i]);
+                }
+            }
+            for (QString key: expectedCaptures.named.keys()) {
+                CHECK(res.regexCapture(key) == expectedCaptures.named.value(key));
+            }
+        };
+
+        CAPTURE(testCase.marker);
         CAPTURE(testCase.start);
         CAPTURE(testCase.end);
         CAPTURE(testCase.foundStart);
@@ -1791,15 +1814,16 @@ TEST_CASE("regex search") {
         cursor1.setAnchorPosition({0, 0});
 
         if (testCase.hasMatch) {
-            auto result = doc.findSync(needle, cursor1, options);
+            DocumentFindResult result = doc.findSyncWithDetails(needle, cursor1, options);
             if (!wrapAround && testCase.start > testCase.foundStart) {
-                CAPTURE(result.anchor());
-                CAPTURE(result.position());
-                CHECK(!result.hasSelection());
+                CAPTURE(result.cursor.anchor());
+                CAPTURE(result.cursor.position());
+                CHECK(!result.cursor.hasSelection());
             } else {
-                CHECK(result.hasSelection());
-                CHECK(result.anchor() == testCase.foundStart);
-                CHECK(result.position() == testCase.foundEnd);
+                CHECK(result.cursor.hasSelection());
+                CHECK(result.cursor.anchor() == testCase.foundStart);
+                CHECK(result.cursor.position() == testCase.foundEnd);
+                checkCaptures(result);
             }
 
             while (cursor1.position() < testCase.end) {
@@ -1810,15 +1834,16 @@ TEST_CASE("regex search") {
                 if (cursor1.position() > testCase.end) break;
 
                 cursor1.setAnchorPosition({0, 0});
-                auto result = doc.findSync(needle, cursor1, options);
+                DocumentFindResult result = doc.findSyncWithDetails(needle, cursor1, options);
                 if (!wrapAround && testCase.start > testCase.foundStart) {
-                    CAPTURE(result.anchor());
-                    CAPTURE(result.position());
-                    CHECK(!result.hasSelection());
+                    CAPTURE(result.cursor.anchor());
+                    CAPTURE(result.cursor.position());
+                    CHECK(!result.cursor.hasSelection());
                 } else {
-                    CHECK(result.hasSelection());
-                    CHECK(result.anchor() == testCase.foundStart);
-                    CHECK(result.position() == testCase.foundEnd);
+                    CHECK(result.cursor.hasSelection());
+                    CHECK(result.cursor.anchor() == testCase.foundStart);
+                    CHECK(result.cursor.position() == testCase.foundEnd);
+                    checkCaptures(result);
                 }
             }
         } else {
@@ -1847,7 +1872,14 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, QRegularExpression("a"), Qt::CaseSensitive);
+        runChecks(testCase, QRegularExpression("a"), Qt::CaseSensitive,
+                {
+                      {"1", MatchCaptures{ {"a"}, {}}},
+                      {"2", MatchCaptures{ {"a"}, {}}},
+                      {"3", MatchCaptures{ {"a"}, {}}},
+                      {"4", MatchCaptures{ {"a"}, {}}},
+                      {"5", MatchCaptures{ {"a"}, {}}}
+                });
 
     }
 
@@ -1858,7 +1890,9 @@ TEST_CASE("regex search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, QRegularExpression("t"), Qt::CaseSensitive);
+        runChecks(testCase, QRegularExpression("t"), Qt::CaseSensitive, {
+              {"2", MatchCaptures{ {"t"}, {}}},
+        });
     }
 
     SECTION("one char t - case insensitive") {
@@ -1868,7 +1902,10 @@ TEST_CASE("regex search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, QRegularExpression("t"), Qt::CaseInsensitive);
+        runChecks(testCase, QRegularExpression("t"), Qt::CaseInsensitive, {
+              {"1", MatchCaptures{ {"T"}, {}}},
+              {"2", MatchCaptures{ {"t"}, {}}},
+        });
     }
 
     SECTION("one char t - mismatched case with pattern option") {
@@ -1879,7 +1916,9 @@ TEST_CASE("regex search") {
         auto testCase = GENERATE(from_range(testCases));
 
         runChecks(testCase, QRegularExpression("t", QRegularExpression::PatternOption::CaseInsensitiveOption),
-                  Qt::CaseSensitive);
+                  Qt::CaseSensitive, {
+              {"2", MatchCaptures{ {"t"}, {}}},
+        });
     }
 
     SECTION("literal-abc") {
@@ -1893,7 +1932,11 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, QRegularExpression("abc"), Qt::CaseSensitive);
+        runChecks(testCase, QRegularExpression("abc"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"abc"}, {}}},
+              {"2", MatchCaptures{ {"abc"}, {}}},
+              {"3", MatchCaptures{ {"abc"}, {}}},
+        });
     }
 
     SECTION("literal-abc-nonutf16-in-line") {
@@ -1907,7 +1950,11 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, QRegularExpression{"abc"}, Qt::CaseSensitive);
+        runChecks(testCase, QRegularExpression{"abc"}, Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"abc"}, {}}},
+              {"2", MatchCaptures{ {"abc"}, {}}},
+              {"3", MatchCaptures{ {"abc"}, {}}},
+        });
     }
 
     SECTION("literal-abc-nonutf16-at-end") {
@@ -1921,7 +1968,11 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, QRegularExpression{"abc"}, Qt::CaseSensitive);
+        runChecks(testCase, QRegularExpression{"abc"}, Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"abc"}, {}}},
+              {"2", MatchCaptures{ {"abc"}, {}}},
+              {"3", MatchCaptures{ {"abc"}, {}}},
+        });
     }
 
     SECTION("multiline line literal") {
@@ -1935,7 +1986,9 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, QRegularExpression("t\na"), Qt::CaseSensitive);
+        runChecks(testCase, QRegularExpression("t\na"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"t\na"}, {}}},
+        });
     }
 
     SECTION("three multiline line literal") {
@@ -1950,7 +2003,9 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, QRegularExpression("t\n.*\nxabc"), Qt::CaseSensitive);
+        runChecks(testCase, QRegularExpression("t\n.*\nxabc"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"t\nabc Thing\nxabc"}, {}}},
+        });
     }
 
     SECTION("multiline line dotdefault") {
@@ -1962,7 +2017,7 @@ TEST_CASE("regex search") {
         REQUIRE(testCases[0].hasMatch == false);
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, QRegularExpression("t.*xabc"), Qt::CaseSensitive);
+        runChecks(testCase, QRegularExpression("t.*xabc"), Qt::CaseSensitive, {});
     }
 
     SECTION("multiline dotall") {
@@ -1978,7 +2033,9 @@ TEST_CASE("regex search") {
         auto testCase = GENERATE(from_range(testCases));
 
         runChecks(testCase, QRegularExpression{"t.*xabc", QRegularExpression::PatternOption::DotMatchesEverythingOption},
-                  Qt::CaseSensitive);
+                  Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"t\nabc Thing\nxabc"}, {}}},
+        });
     }
 
     SECTION("anchors") {
@@ -1991,7 +2048,9 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, QRegularExpression("^abc Thing$"), Qt::CaseSensitive);
+        runChecks(testCase, QRegularExpression("^abc Thing$"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"abc Thing"}, {}}},
+        });
     }
 
     SECTION("numbers") {
@@ -2008,7 +2067,17 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, QRegularExpression("[0-9]"), Qt::CaseSensitive);
+        runChecks(testCase, QRegularExpression("[0-9]"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"1"}, {}}},
+              {"2", MatchCaptures{ {"2"}, {}}},
+              {"3", MatchCaptures{ {"3"}, {}}},
+              {"4", MatchCaptures{ {"1"}, {}}},
+              {"5", MatchCaptures{ {"2"}, {}}},
+              {"6", MatchCaptures{ {"3"}, {}}},
+              {"7", MatchCaptures{ {"4"}, {}}},
+              {"8", MatchCaptures{ {"5"}, {}}},
+              {"9", MatchCaptures{ {"6"}, {}}},
+        });
     }
 
     SECTION("numbers+") {
@@ -2025,15 +2094,129 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecks(testCase, QRegularExpression("[0-9]+"), Qt::CaseSensitive);
+        runChecks(testCase, QRegularExpression("[0-9]+"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"1"}, {}}},
+              {"2", MatchCaptures{ {"2"}, {}}},
+              {"3", MatchCaptures{ {"3"}, {}}},
+              {"4", MatchCaptures{ {"123"}, {}}},
+              {"5", MatchCaptures{ {"456"}, {}}},
+        });
     }
 
-    auto runChecksBackward = [&](const SearchTestCase &testCase, const QRegularExpression &needle, Qt::CaseSensitivity caseMatching) {
+    SECTION("captures") {
+        static auto testCases = generateTestCases(R"(
+                                  0|This is <1> test
+                                   >        111
+                                  1|<2> test
+                                   >222
+                                  2|and the last <3>
+                                   >             333
+                                  3|or <123> <456>tests
+                                   >   44444 55555
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("<([0-9]+)>"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"<1>", "1"}, {}}},
+              {"2", MatchCaptures{ {"<2>", "2"}, {}}},
+              {"3", MatchCaptures{ {"<3>", "3"}, {}}},
+              {"4", MatchCaptures{ {"<123>", "123"}, {}}},
+              {"5", MatchCaptures{ {"<456>", "456"}, {}}},
+        });
+    }
+
+    SECTION("named captures") {
+        static auto testCases = generateTestCases(R"(
+                                  0|This is <1> test
+                                   >        111
+                                  1|<2> test
+                                   >222
+                                  2|and the last <3>
+                                   >             333
+                                  3|or <123> <456>tests
+                                   >   44444 55555
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("<(?<zahl>[0-9]+)>"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"<1>", "1"}, {{"zahl", "1"}}}},
+              {"2", MatchCaptures{ {"<2>", "2"}, {{"zahl", "2"}}}},
+              {"3", MatchCaptures{ {"<3>", "3"}, {{"zahl", "3"}}}},
+              {"4", MatchCaptures{ {"<123>", "123"}, {{"zahl", "123"}}}},
+              {"5", MatchCaptures{ {"<456>", "456"}, {{"zahl", "456"}}}},
+        });
+    }
+
+    SECTION("captures 2x") {
+        static auto testCases = generateTestCases(R"(
+                                  0|This is <1=x> test
+                                   >        11111
+                                  1|<2=u> test
+                                   >22222
+                                  2|and the last <3=t>
+                                   >             33333
+                                  3|or <123=xut> <456=L>tests
+                                   >   444444444 5555555
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("<([0-9]+)=([a-zA-Z]+)>"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"<1=x>", "1", "x"}, {}}},
+              {"2", MatchCaptures{ {"<2=u>", "2", "u"}, {}}},
+              {"3", MatchCaptures{ {"<3=t>", "3", "t"}, {}}},
+              {"4", MatchCaptures{ {"<123=xut>", "123", "xut"}, {}}},
+              {"5", MatchCaptures{ {"<456=L>", "456", "L"}, {}}},
+        });
+    }
+
+    SECTION("named captures 2x") {
+        static auto testCases = generateTestCases(R"(
+                                  0|This is <1=x> test
+                                   >        11111
+                                  1|<2=u> test
+                                   >22222
+                                  2|and the last <3=t>
+                                   >             33333
+                                  3|or <123=xut> <456=L>tests
+                                   >   444444444 5555555
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecks(testCase, QRegularExpression("<(?<zahl>[0-9]+)=(?<letters>[a-zA-Z]+)>"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"<1=x>", "1", "x"}, {{"zahl", "1"}, {"letters", "x"}}}},
+              {"2", MatchCaptures{ {"<2=u>", "2", "u"}, {{"zahl", "2"}, {"letters", "u"}}}},
+              {"3", MatchCaptures{ {"<3=t>", "3", "t"}, {{"zahl", "3"}, {"letters", "t"}}}},
+              {"4", MatchCaptures{ {"<123=xut>", "123", "xut"}, {{"zahl", "123"}, {"letters", "xut"}}}},
+              {"5", MatchCaptures{ {"<456=L>", "456", "L"}, {{"zahl", "456"}, {"letters", "L"}}}},
+        });
+    }
+
+    auto runChecksBackward = [&](const SearchTestCase &testCase, const QRegularExpression &needle, Qt::CaseSensitivity caseMatching,
+            const QMap<QString, MatchCaptures> expectedCapturesMap) {
         cursor1.insertText(testCase.documentContents);
 
         const bool wrapAround = GENERATE(false, true);
         const bool useSelection = GENERATE(false, true);
 
+        auto checkCaptures = [&] (const DocumentFindResult &res) {
+            REQUIRE(expectedCapturesMap.contains(testCase.marker));
+            auto &expectedCaptures = expectedCapturesMap[testCase.marker];
+            CHECK(res.regexLastCapturedIndex() == expectedCaptures.captures.size() - 1);
+            if (res.regexLastCapturedIndex() == expectedCaptures.captures.size() - 1) {
+                for (int i = 0; i < expectedCaptures.captures.size(); i++) {
+                    CHECK(res.regexCapture(i) == expectedCaptures.captures[i]);
+                }
+            }
+            for (QString key: expectedCaptures.named.keys()) {
+                CHECK(res.regexCapture(key) == expectedCaptures.named.value(key));
+            }
+        };
+
+        CAPTURE(testCase.marker);
         CAPTURE(testCase.start);
         CAPTURE(testCase.end);
         CAPTURE(testCase.foundStart);
@@ -2054,15 +2237,16 @@ TEST_CASE("regex search") {
         }
 
         if (testCase.hasMatch) {
-            auto result = doc.findSync(needle, cursor1, options);
+            DocumentFindResult result = doc.findSyncWithDetails(needle, cursor1, options);
             if (!wrapAround && testCase.start <= testCase.foundStart) {
-                CAPTURE(result.anchor());
-                CAPTURE(result.position());
-                CHECK_FALSE(result.hasSelection());
+                CAPTURE(result.cursor.anchor());
+                CAPTURE(result.cursor.position());
+                CHECK_FALSE(result.cursor.hasSelection());
             } else {
-                CHECK(result.hasSelection());
-                CHECK(result.anchor() == testCase.foundStart);
-                CHECK(result.position() == testCase.foundEnd);
+                CHECK(result.cursor.hasSelection());
+                CHECK(result.cursor.anchor() == testCase.foundStart);
+                CHECK(result.cursor.position() == testCase.foundEnd);
+                checkCaptures(result);
             }
 
             while (cursor1.position() < testCase.end) {
@@ -2073,15 +2257,16 @@ TEST_CASE("regex search") {
                 CAPTURE(cursor1.position());
 
                 //cursor1.setAnchorPosition({0, 0});
-                auto result = doc.findSync(needle, cursor1, options);
+                DocumentFindResult result = doc.findSyncWithDetails(needle, cursor1, options);
                 if (!wrapAround && testCase.start <= testCase.foundStart) {
-                    CAPTURE(result.anchor());
-                    CAPTURE(result.position());
-                    CHECK_FALSE(result.hasSelection());
+                    CAPTURE(result.cursor.anchor());
+                    CAPTURE(result.cursor.position());
+                    CHECK_FALSE(result.cursor.hasSelection());
                 } else {
-                    CHECK(result.hasSelection());
-                    CHECK(result.anchor() == testCase.foundStart);
-                    CHECK(result.position() == testCase.foundEnd);
+                    CHECK(result.cursor.hasSelection());
+                    CHECK(result.cursor.anchor() == testCase.foundStart);
+                    CHECK(result.cursor.position() == testCase.foundEnd);
+                    checkCaptures(result);
                 }
             }
         } else {
@@ -2111,7 +2296,14 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, QRegularExpression("a"), Qt::CaseSensitive);
+        runChecksBackward(testCase, QRegularExpression("a"), Qt::CaseSensitive,
+        {
+              {"1", MatchCaptures{ {"a"}, {}}},
+              {"2", MatchCaptures{ {"a"}, {}}},
+              {"3", MatchCaptures{ {"a"}, {}}},
+              {"4", MatchCaptures{ {"a"}, {}}},
+              {"5", MatchCaptures{ {"a"}, {}}}
+        });
 
     }
 
@@ -2122,7 +2314,9 @@ TEST_CASE("regex search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, QRegularExpression("t"), Qt::CaseSensitive);
+        runChecksBackward(testCase, QRegularExpression("t"), Qt::CaseSensitive, {
+                              {"2", MatchCaptures{ {"t"}, {}}},
+                        });
     }
 
     SECTION("backward one char t - case insensitive") {
@@ -2132,7 +2326,10 @@ TEST_CASE("regex search") {
                                               )");
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, QRegularExpression("t"), Qt::CaseInsensitive);
+        runChecksBackward(testCase, QRegularExpression("t"), Qt::CaseInsensitive, {
+              {"1", MatchCaptures{ {"T"}, {}}},
+              {"2", MatchCaptures{ {"t"}, {}}},
+        });
     }
 
     SECTION("backward one char t - mismatched case with pattern option") {
@@ -2143,7 +2340,9 @@ TEST_CASE("regex search") {
         auto testCase = GENERATE(from_range(testCases));
 
         runChecksBackward(testCase, QRegularExpression("t", QRegularExpression::PatternOption::CaseInsensitiveOption),
-                  Qt::CaseSensitive);
+                  Qt::CaseSensitive, {
+              {"2", MatchCaptures{ {"t"}, {}}},
+        });
     }
 
     SECTION("backward literal-abc") {
@@ -2157,7 +2356,11 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, QRegularExpression("abc"), Qt::CaseSensitive);
+        runChecksBackward(testCase, QRegularExpression("abc"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"abc"}, {}}},
+              {"2", MatchCaptures{ {"abc"}, {}}},
+              {"3", MatchCaptures{ {"abc"}, {}}},
+        });
     }
 
     SECTION("backward literal-abc-nonutf16-in-line") {
@@ -2171,7 +2374,11 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, QRegularExpression{"abc"}, Qt::CaseSensitive);
+        runChecksBackward(testCase, QRegularExpression{"abc"}, Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"abc"}, {}}},
+              {"2", MatchCaptures{ {"abc"}, {}}},
+              {"3", MatchCaptures{ {"abc"}, {}}},
+        });
     }
 
     SECTION("backward literal-abc-nonutf16-at-end") {
@@ -2185,7 +2392,11 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, QRegularExpression{"abc"}, Qt::CaseSensitive);
+        runChecksBackward(testCase, QRegularExpression{"abc"}, Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"abc"}, {}}},
+              {"2", MatchCaptures{ {"abc"}, {}}},
+              {"3", MatchCaptures{ {"abc"}, {}}},
+        });
     }
 
     SECTION("backward multiline line literal") {
@@ -2199,7 +2410,9 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, QRegularExpression("t\na"), Qt::CaseSensitive);
+        runChecksBackward(testCase, QRegularExpression("t\na"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"t\na"}, {}}},
+        });
     }
 
     SECTION("backward three multiline line literal") {
@@ -2214,7 +2427,9 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, QRegularExpression("t\n.*\nxabc"), Qt::CaseSensitive);
+        runChecksBackward(testCase, QRegularExpression("t\n.*\nxabc"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"t\nabc Thing\nxabc"}, {}}},
+        });
     }
 
     SECTION("backward multiline line dotdefault") {
@@ -2226,7 +2441,7 @@ TEST_CASE("regex search") {
         REQUIRE(testCases[0].hasMatch == false);
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, QRegularExpression("t.*xabc"), Qt::CaseSensitive);
+        runChecksBackward(testCase, QRegularExpression("t.*xabc"), Qt::CaseSensitive, {});
     }
 
     SECTION("backward multiline dotall") {
@@ -2242,7 +2457,9 @@ TEST_CASE("regex search") {
         auto testCase = GENERATE(from_range(testCases));
 
         runChecksBackward(testCase, QRegularExpression{"t.*xabc", QRegularExpression::PatternOption::DotMatchesEverythingOption},
-                  Qt::CaseSensitive);
+                  Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"t\nabc Thing\nxabc"}, {}}},
+        });
     }
 
 
@@ -2256,7 +2473,9 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, QRegularExpression("^abc Thing$"), Qt::CaseSensitive);
+        runChecksBackward(testCase, QRegularExpression("^abc Thing$"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"abc Thing"}, {}}},
+        });
     }
 
     SECTION("backward numbers") {
@@ -2273,7 +2492,17 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, QRegularExpression("[0-9]"), Qt::CaseSensitive);
+        runChecksBackward(testCase, QRegularExpression("[0-9]"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"1"}, {}}},
+              {"2", MatchCaptures{ {"2"}, {}}},
+              {"3", MatchCaptures{ {"3"}, {}}},
+              {"4", MatchCaptures{ {"1"}, {}}},
+              {"5", MatchCaptures{ {"2"}, {}}},
+              {"6", MatchCaptures{ {"3"}, {}}},
+              {"7", MatchCaptures{ {"4"}, {}}},
+              {"8", MatchCaptures{ {"5"}, {}}},
+              {"9", MatchCaptures{ {"6"}, {}}},
+        });
     }
 
     SECTION("backward numbers+") {
@@ -2290,6 +2519,105 @@ TEST_CASE("regex search") {
 
         auto testCase = GENERATE(from_range(testCases));
 
-        runChecksBackward(testCase, QRegularExpression("[0-9]+"), Qt::CaseSensitive);
+        runChecksBackward(testCase, QRegularExpression("[0-9]+"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"1"}, {}}},
+              {"2", MatchCaptures{ {"2"}, {}}},
+              {"3", MatchCaptures{ {"3"}, {}}},
+              {"4", MatchCaptures{ {"123"}, {}}},
+              {"5", MatchCaptures{ {"456"}, {}}},
+        });
     }
+
+    SECTION("backward captures") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                  0|This is <1> test
+                                   >        111
+                                  1|<2> test
+                                   >222
+                                  2|and the last <3>
+                                   >             333
+                                  3|or <123> <456>tests
+                                   >   44444 55555
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("<([0-9]+)>"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"<1>", "1"}, {}}},
+              {"2", MatchCaptures{ {"<2>", "2"}, {}}},
+              {"3", MatchCaptures{ {"<3>", "3"}, {}}},
+              {"4", MatchCaptures{ {"<123>", "123"}, {}}},
+              {"5", MatchCaptures{ {"<456>", "456"}, {}}},
+        });
+    }
+
+    SECTION("backward named captures") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                  0|This is <1> test
+                                   >        111
+                                  1|<2> test
+                                   >222
+                                  2|and the last <3>
+                                   >             333
+                                  3|or <123> <456>tests
+                                   >   44444 55555
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("<(?<zahl>[0-9]+)>"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"<1>", "1"}, {{"zahl", "1"}}}},
+              {"2", MatchCaptures{ {"<2>", "2"}, {{"zahl", "2"}}}},
+              {"3", MatchCaptures{ {"<3>", "3"}, {{"zahl", "3"}}}},
+              {"4", MatchCaptures{ {"<123>", "123"}, {{"zahl", "123"}}}},
+              {"5", MatchCaptures{ {"<456>", "456"}, {{"zahl", "456"}}}},
+        });
+    }
+
+    SECTION("backward captures 2x") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                  0|This is <1=x> test
+                                   >        11111
+                                  1|<2=u> test
+                                   >22222
+                                  2|and the last <3=t>
+                                   >             33333
+                                  3|or <123=xut> <456=L>tests
+                                   >   444444444 5555555
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("<([0-9]+)=([a-zA-Z]+)>"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"<1=x>", "1", "x"}, {}}},
+              {"2", MatchCaptures{ {"<2=u>", "2", "u"}, {}}},
+              {"3", MatchCaptures{ {"<3=t>", "3", "t"}, {}}},
+              {"4", MatchCaptures{ {"<123=xut>", "123", "xut"}, {}}},
+              {"5", MatchCaptures{ {"<456=L>", "456", "L"}, {}}},
+        });
+    }
+
+    SECTION("backward named captures 2x") {
+        static auto testCases = generateTestCasesBackward(R"(
+                                  0|This is <1=x> test
+                                   >        11111
+                                  1|<2=u> test
+                                   >22222
+                                  2|and the last <3=t>
+                                   >             33333
+                                  3|or <123=xut> <456=L>tests
+                                   >   444444444 5555555
+                              )");
+
+        auto testCase = GENERATE(from_range(testCases));
+
+        runChecksBackward(testCase, QRegularExpression("<(?<zahl>[0-9]+)=(?<letters>[a-zA-Z]+)>"), Qt::CaseSensitive, {
+              {"1", MatchCaptures{ {"<1=x>", "1", "x"}, {{"zahl", "1"}, {"letters", "x"}}}},
+              {"2", MatchCaptures{ {"<2=u>", "2", "u"}, {{"zahl", "2"}, {"letters", "u"}}}},
+              {"3", MatchCaptures{ {"<3=t>", "3", "t"}, {{"zahl", "3"}, {"letters", "t"}}}},
+              {"4", MatchCaptures{ {"<123=xut>", "123", "xut"}, {{"zahl", "123"}, {"letters", "xut"}}}},
+              {"5", MatchCaptures{ {"<456=L>", "456", "L"}, {{"zahl", "456"}, {"letters", "L"}}}},
+        });
+    }
+
 }

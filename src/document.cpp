@@ -511,11 +511,11 @@ namespace {
     };
 
     DocumentFindAsyncResult noMatch(const DocumentSnapshot &snap) {
-        return DocumentFindAsyncResult{{0, 0}, {0, 0}, snap.revision()};
+        return DocumentFindAsyncResult{{0, 0}, {0, 0}, snap.revision(), QRegularExpressionMatch{}};
     }
 
     DocumentFindAsyncResult noMatch(unsigned revision) {
-        return DocumentFindAsyncResult{{0, 0}, {0, 0}, revision};
+        return DocumentFindAsyncResult{{0, 0}, {0, 0}, revision, QRegularExpressionMatch{}};
     }
 
     void replaceInvalidUtf16ForRegexSearch(QString &buffer, int start) {
@@ -620,7 +620,8 @@ namespace {
                     }
                     return DocumentFindAsyncResult{{found, foundLine},
                                                    {endCodeUnit, endLine},
-                                                   snap.revision()};
+                                                   snap.revision(),
+                                                   match};
                 }
                 // we searched everything until including folded line, so no need to try those lines again.
                 line = foldedLine;
@@ -671,7 +672,8 @@ namespace {
                             if (found != -1)
                                 return DocumentFindAsyncResult{{found, line},
                                                                {parts.last().size(), line + parts.size() - 1},
-                                                               snap.revision()};
+                                                               snap.revision(),
+                                                               QRegularExpressionMatch{}};
                        }
                     }
                     found = -1;
@@ -682,7 +684,8 @@ namespace {
                         const int length = needle.size();
                         return DocumentFindAsyncResult{{found, line},
                                                        {found + length, line},
-                                                       snap.revision()};
+                                                       snap.revision(),
+                                                       QRegularExpressionMatch{}};
                     }
                 }
 
@@ -795,7 +798,8 @@ namespace {
                 }
                 return DocumentFindAsyncResult{{found, foundLine},
                                                {endCodeUnit, endLine},
-                                               snap.revision()};
+                                               snap.revision(),
+                                               match};
 
             } else {
                 return noMatch(snap);
@@ -827,7 +831,8 @@ namespace {
                     if (match.capturedStart() <= searchAt - match.capturedLength()) {
                         res = DocumentFindAsyncResult{{match.capturedStart(), line},
                                                       {match.capturedStart() + match.capturedLength(), line},
-                                                      snap.revision()};
+                                                      snap.revision(),
+                                                      match};
                         continue;
                     }
                     break;
@@ -885,7 +890,8 @@ namespace {
                                 int endAt = snap.line(endLine).size() - parts.first().size();
                                 return DocumentFindAsyncResult{{endAt, endLine},
                                                                {searchAt, line},
-                                                               snap.revision()};
+                                                               snap.revision(),
+                                                               QRegularExpressionMatch{}};
                             }
                         }
                     }
@@ -899,7 +905,8 @@ namespace {
                         if (found != -1) {
                             return DocumentFindAsyncResult{{found, line},
                                                            {found + length, line},
-                                                           snap.revision()};
+                                                           snap.revision(),
+                                                           QRegularExpressionMatch{}};
                         }
                     }
                 }
@@ -1020,17 +1027,17 @@ TextCursor Document::findSync(const QString &subString, const TextCursor &start,
     return res;
 }
 
-TextCursor Document::findSync(const QRegularExpression &expr, const TextCursor &start,
-                              Document::FindFlags options) const {
+DocumentFindResult Document::findSyncWithDetails(const QRegularExpression &regex, const TextCursor &start,
+                                                 Document::FindFlags options) const {
     TextCursor res = start;
 
-    if (!expr.isValid()) {
+    if (!regex.isValid()) {
         res.clearSelection();
-        return res;
+        return {res, QRegularExpressionMatch{}};
     }
 
     SearchParameter param = prepareSearchParameter(this, start, options);
-    param.needle = expr;
+    param.needle = regex;
 
     DocumentFindAsyncResult resTmp = noMatch(revision());
     NoCanceler noCancler;
@@ -1042,7 +1049,11 @@ TextCursor Document::findSync(const QRegularExpression &expr, const TextCursor &
 
     searchResultToTextCursor(res, resTmp);
 
-    return res;
+    return {res, resTmp._match};
+}
+
+TextCursor Document::findSync(const QRegularExpression &regex, const TextCursor &start, Document::FindFlags options) const {
+    return findSyncWithDetails(regex, start, options).cursor;
 }
 
 QFuture<DocumentFindAsyncResult> Document::findAsync(const QString &subString, const TextCursor &start,
@@ -1065,7 +1076,7 @@ QFuture<DocumentFindAsyncResult> Document::findAsyncWithPool(QThreadPool *pool, 
 
     if (subString.isEmpty()) {
         DocumentFindAsyncResult res{TextCursor::Position(0, 0), TextCursor::Position(0, 0),
-                                    revision()};
+                                    revision(), QRegularExpressionMatch{}};
 
         promise.reportStarted();
         promise.reportResult(res);
@@ -1097,7 +1108,7 @@ QFuture<DocumentFindAsyncResult> Document::findAsyncWithPool(QThreadPool *pool, 
 
     if (!expr.isValid()) {
         DocumentFindAsyncResult res{TextCursor::Position(0, 0), TextCursor::Position(0, 0),
-                                    revision()};
+                                    revision(), QRegularExpressionMatch{}};
 
         promise.reportStarted();
         promise.reportResult(res);
@@ -1975,4 +1986,38 @@ bool DocumentSnapshot::isUpToDate() const {
 }
 
 UserData::~UserData() {
+}
+
+int DocumentFindAsyncResult::regexLastCapturedIndex() const {
+    return _match.lastCapturedIndex();
+}
+
+QString DocumentFindAsyncResult::regexCapture(int index) const {
+    return _match.captured(index);
+}
+
+QString DocumentFindAsyncResult::regexCapture(const QString &name) const {
+    return _match.captured(name);
+}
+
+DocumentFindAsyncResult::DocumentFindAsyncResult(TextCursor::Position anchor, TextCursor::Position cursor, unsigned revision, QRegularExpressionMatch match)
+    : anchor(anchor), cursor(cursor), revision(revision), _match(match)
+{
+}
+
+int DocumentFindResult::regexLastCapturedIndex() const {
+    return _match.lastCapturedIndex();
+}
+
+QString DocumentFindResult::regexCapture(int index) const {
+    return _match.captured(index);
+}
+
+QString DocumentFindResult::regexCapture(const QString &name) const {
+    return _match.captured(name);
+}
+
+DocumentFindResult::DocumentFindResult(TextCursor cursor, QRegularExpressionMatch match)
+    : cursor(cursor), _match(match)
+{
 }
