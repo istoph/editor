@@ -182,41 +182,41 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
     });
 
     QObject::connect(_findNextBtn, &Tui::ZButton::clicked, [this]{
-        Q_EMIT findNext(_searchText->text(), _forwardRadio->checked());
+        Q_EMIT searchFindNext(_searchText->text(), _forwardRadio->checked());
     });
 
     if (_replaceBtn) {
         QObject::connect(_replaceBtn, &Tui::ZButton::clicked, [this]{
-            Q_EMIT replace1(_searchText->text(), _replaceText->text(), _forwardRadio->checked());
+            Q_EMIT searchReplace(_searchText->text(), _replaceText->text(), _forwardRadio->checked());
         });
     }
 
     if (_replaceAllBtn) {
         QObject::connect(_replaceAllBtn, &Tui::ZButton::clicked, [=]{
-            Q_EMIT replaceAll(_searchText->text(), _replaceText->text());
+            Q_EMIT searchReplaceAll(_searchText->text(), _replaceText->text());
         });
     }
 
     QObject::connect(_regexMatchRadio, &Tui::ZRadioButton::toggled, [=](bool state){
-        Q_EMIT regex(state);
+        Q_EMIT searchRegexChanged(state);
     });
 
     QObject::connect(_cancelBtn, &Tui::ZButton::clicked, [=]{
-        Q_EMIT canceled();
+        Q_EMIT searchCanceled();
         setVisible(false);
     });
 
     QObject::connect(_caseMatchBox, &Tui::ZCheckBox::stateChanged, [this]{
-        Q_EMIT caseSensitiveChanged(_caseMatchBox->checkState() == Tui::CheckState::Checked);
+        Q_EMIT searchCaseSensitiveChanged(_caseMatchBox->checkState() == Tui::CheckState::Checked);
         update();
     });
 
     QObject::connect(_wrapBox, &Tui::ZCheckBox::stateChanged, [=]{
-        Q_EMIT wrapChanged(_wrapBox->checkState()  == Tui::CheckState::Checked);
+        Q_EMIT searchWrapChanged(_wrapBox->checkState()  == Tui::CheckState::Checked);
     });
 
     QObject::connect(_forwardRadio, &Tui::ZRadioButton::toggled, [=](bool state){
-        Q_EMIT forwardChanged(state);
+        Q_EMIT searchDirectionChanged(state);
     });
 }
 

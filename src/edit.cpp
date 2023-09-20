@@ -599,24 +599,24 @@ void Editor::setupSearchDialogs() {
     _searchDialog = new SearchDialog(this);
     QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
                      _searchDialog, &SearchDialog::open);
-    QObject::connect(_searchDialog, &SearchDialog::canceled, this, searchCancled);
-    QObject::connect(_searchDialog, &SearchDialog::caseSensitiveChanged, this, searchCaseSensitiveChanged);
-    QObject::connect(_searchDialog, &SearchDialog::wrapChanged, this, searchWrapChanged);
-    QObject::connect(_searchDialog, &SearchDialog::forwardChanged, this, searchForwardChanged);
+    QObject::connect(_searchDialog, &SearchDialog::searchCanceled, this, searchCancled);
+    QObject::connect(_searchDialog, &SearchDialog::searchCaseSensitiveChanged, this, searchCaseSensitiveChanged);
+    QObject::connect(_searchDialog, &SearchDialog::searchWrapChanged, this, searchWrapChanged);
+    QObject::connect(_searchDialog, &SearchDialog::searchDirectionChanged, this, searchForwardChanged);
     QObject::connect(_searchDialog, &SearchDialog::liveSearch, this, liveSearch);
-    QObject::connect(_searchDialog, &SearchDialog::findNext, this, searchNext);
-    QObject::connect(_searchDialog, &SearchDialog::regex, this, regex);
+    QObject::connect(_searchDialog, &SearchDialog::searchFindNext, this, searchNext);
+    QObject::connect(_searchDialog, &SearchDialog::searchRegexChanged, this, regex);
 
     _replaceDialog = new SearchDialog(this, true);
     QObject::connect(new Tui::ZCommandNotifier("replace", this), &Tui::ZCommandNotifier::activated,
                      _replaceDialog, &SearchDialog::open);
-    QObject::connect(_replaceDialog, &SearchDialog::canceled, this, searchCancled);
-    QObject::connect(_replaceDialog, &SearchDialog::caseSensitiveChanged, this, searchCaseSensitiveChanged);
-    QObject::connect(_replaceDialog, &SearchDialog::wrapChanged, this, searchWrapChanged);
-    QObject::connect(_replaceDialog, &SearchDialog::forwardChanged, this, searchForwardChanged);
+    QObject::connect(_replaceDialog, &SearchDialog::searchCanceled, this, searchCancled);
+    QObject::connect(_replaceDialog, &SearchDialog::searchCaseSensitiveChanged, this, searchCaseSensitiveChanged);
+    QObject::connect(_replaceDialog, &SearchDialog::searchWrapChanged, this, searchWrapChanged);
+    QObject::connect(_replaceDialog, &SearchDialog::searchDirectionChanged, this, searchForwardChanged);
     QObject::connect(_replaceDialog, &SearchDialog::liveSearch, this, liveSearch);
-    QObject::connect(_replaceDialog, &SearchDialog::findNext, this, searchNext);
-    QObject::connect(_replaceDialog, &SearchDialog::replace1, this, [this] (QString text, QString replacement, bool forward) {
+    QObject::connect(_replaceDialog, &SearchDialog::searchFindNext, this, searchNext);
+    QObject::connect(_replaceDialog, &SearchDialog::searchReplace, this, [this] (QString text, QString replacement, bool forward) {
         if (_file) {
             _file->setSearchText(text);
             _file->setReplaceText(replacement);
@@ -625,7 +625,7 @@ void Editor::setupSearchDialogs() {
             _file->runSearch(false);
         }
     });
-    QObject::connect(_replaceDialog, &SearchDialog::replaceAll, this, [this] (QString text, QString replacement) {
+    QObject::connect(_replaceDialog, &SearchDialog::searchReplaceAll, this, [this] (QString text, QString replacement) {
         if (_file) {
             _file->replaceAll(text, replacement);
         }

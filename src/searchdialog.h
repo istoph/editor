@@ -19,15 +19,15 @@ public:
     void setReplace(bool replace);
 
 signals:
-    void caseSensitiveChanged(bool value);
-    void regex(bool regex);
-    void forwardChanged(bool value);
-    void wrapChanged(bool value);
+    void searchCaseSensitiveChanged(bool value);
+    void searchRegexChanged(bool searchRegexChanged);
+    void searchDirectionChanged(bool value);
+    void searchWrapChanged(bool value);
     void liveSearch(QString text, bool forward);
-    void findNext(QString text, bool forward);
-    void replace1(QString text, QString replacement, bool forward);
-    void replaceAll(QString text, QString replacement);
-    void canceled();
+    void searchFindNext(QString text, bool forward);
+    void searchReplace(QString text, QString replacement, bool forward);
+    void searchReplaceAll(QString text, QString replacement);
+    void searchCanceled();
 
 public slots:
     void open();
