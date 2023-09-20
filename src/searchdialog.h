@@ -18,6 +18,9 @@ public:
     void setSearchText(QString text);
     void setReplace(bool replace);
 
+private:
+    void emitAllConditions();
+
 signals:
     void searchCaseSensitiveChanged(bool value);
     void searchRegexChanged(bool searchRegexChanged);
