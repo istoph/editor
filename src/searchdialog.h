@@ -20,14 +20,14 @@ public:
 
 signals:
     void caseSensitiveChanged(bool value);
-    void wrapChanged(bool value);
+    void regex(bool regex);
     void forwardChanged(bool value);
-    void canceled();
+    void wrapChanged(bool value);
     void liveSearch(QString text, bool forward);
     void findNext(QString text, bool forward);
     void replace1(QString text, QString replacement, bool forward);
     void replaceAll(QString text, QString replacement);
-    void regex(bool regex);
+    void canceled();
 
 public slots:
     void open();
@@ -36,19 +36,24 @@ private:
     bool _replace = false;
     Tui::ZInputBox *_searchText = nullptr;
     Tui::ZInputBox *_replaceText = nullptr;
+
+    Tui::ZCheckBox *_caseMatchBox = nullptr;
+    Tui::ZRadioButton *_plainTextRadio = nullptr;
+    Tui::ZRadioButton *_wordMatchRadio = nullptr;
+    Tui::ZRadioButton *_regexMatchRadio = nullptr;
+    Tui::ZRadioButton *_escapeSequenceRadio = nullptr;
+
+    Tui::ZCheckBox *_liveSearchBox = nullptr;
+    Tui::ZCheckBox *_wrapBox = nullptr;
+
+    Tui::ZRadioButton *_forwardRadio = nullptr;
+    Tui::ZRadioButton *_backwardRadio = nullptr;
+
     Tui::ZButton *_findNextBtn = nullptr;
     Tui::ZButton *_findPreviousBtn = nullptr;
-    Tui::ZButton *_cancelBtn = nullptr;
     Tui::ZButton *_replaceBtn = nullptr;
     Tui::ZButton *_replaceAllBtn = nullptr;
-    bool _caseSensitive = true;
-    Tui::ZCheckBox *_caseMatchBox = nullptr;
-    Tui::ZCheckBox *_parseBox = nullptr;
-    Tui::ZCheckBox *_wrapBox = nullptr;
-    Tui::ZCheckBox *_regexMatchBox = nullptr;
-    Tui::ZCheckBox *_liveSearchBox = nullptr;
-    Tui::ZRadioButton *_forward = nullptr;
-    Tui::ZRadioButton *_backward = nullptr;
+    Tui::ZButton *_cancelBtn = nullptr;
 };
 
 #endif // SEARCHDIALOG_H

@@ -82,45 +82,53 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         hbox->setSpacing(3);
 
         {
-            GroupBox *gbox = new GroupBox("Options", this);
+            ZWidget *gbox1 = new ZWidget(this);
             Tui::ZVBoxLayout *nbox = new Tui::ZVBoxLayout();
-            gbox->setLayout(nbox);
+            gbox1->setLayout(nbox);
 
-            _caseMatchBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>M</m>atch case", gbox);
+            _caseMatchBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>M</m>atch case sensitive", gbox1);
             nbox->addWidget(_caseMatchBox);
-            Tui::ZCheckBox *wordMatchBox = new Tui::ZCheckBox(Tui::withMarkup, "Match <m>e</m>ntire word only", gbox);
-            nbox->addWidget(wordMatchBox);
-            wordMatchBox->setEnabled(false);
-            _regexMatchBox = new Tui::ZCheckBox(Tui::withMarkup, "Re<m>g</m>ular expression", gbox);
-            nbox->addWidget(_regexMatchBox);
-            _liveSearchBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>L</m>ive search", gbox);
-            _liveSearchBox->setCheckState(Qt::Checked);
-            nbox->addWidget(_liveSearchBox);
 
-            hbox->addWidget(gbox);
+            _plainTextRadio = new Tui::ZRadioButton(Tui::withMarkup, "Plain <m>t</m>ext", gbox1);
+            _plainTextRadio->setChecked(true);
+            nbox->addWidget(_plainTextRadio);
+
+            _wordMatchRadio = new Tui::ZRadioButton(Tui::withMarkup, "Match <m>e</m>ntire word only", gbox1);
+            nbox->addWidget(_wordMatchRadio);
+            _wordMatchRadio->setEnabled(false);
+
+            _regexMatchRadio = new Tui::ZRadioButton(Tui::withMarkup, "Re<m>g</m>ular expression", gbox1);
+            nbox->addWidget(_regexMatchRadio);
+
+            _escapeSequenceRadio = new Tui::ZRadioButton(Tui::withMarkup, "escape sequence", gbox1);
+            _escapeSequenceRadio->setEnabled(false);
+            nbox->addWidget(_escapeSequenceRadio);
+
+            hbox->addWidget(gbox1);
         }
 
         {
-            GroupBox *gbox = new GroupBox("Direction", this);
+            ZWidget *gbox2 = new ZWidget(this);
             Tui::ZVBoxLayout *nbox = new Tui::ZVBoxLayout();
-            gbox->setLayout(nbox);
+            gbox2->setLayout(nbox);
 
-            _forward = new Tui::ZRadioButton(Tui::withMarkup, "Forward", gbox);
-            _forward->setChecked(true);
-            nbox->addWidget(_forward);
-            _backward = new Tui::ZRadioButton(Tui::withMarkup, "<m>B</m>ackward", gbox);
-            nbox->addWidget(_backward);
+            _forwardRadio = new Tui::ZRadioButton(Tui::withMarkup, "Forward", gbox2);
+            _forwardRadio->setChecked(true);
+            nbox->addWidget(_forwardRadio);
+            _backwardRadio = new Tui::ZRadioButton(Tui::withMarkup, "<m>B</m>ackward", gbox2);
+            nbox->addWidget(_backwardRadio);
 
-            _parseBox = new Tui::ZCheckBox(Tui::withMarkup, "escape sequence", gbox);
-            _parseBox->setCheckState(Qt::Checked);
-            _parseBox->setEnabled(false);
-            nbox->addWidget(_parseBox);
+            nbox->addSpacing(1);
 
-            _wrapBox = new Tui::ZCheckBox(Tui::withMarkup, "Wrap around", gbox);
+            _liveSearchBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>L</m>ive search", gbox2);
+            _liveSearchBox->setCheckState(Qt::Checked);
+            nbox->addWidget(_liveSearchBox);
+
+            _wrapBox = new Tui::ZCheckBox(Tui::withMarkup, "Wrap around", gbox2);
             _wrapBox->setCheckState(Qt::Checked);
             nbox->addWidget(_wrapBox);
 
-            hbox->addWidget(gbox);
+            hbox->addWidget(gbox2);
         }
 
         vbox->add(hbox);
@@ -149,8 +157,6 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         _cancelBtn = new Tui::ZButton(Tui::withMarkup, "<m>C</m>lose", this);
         hbox->addWidget(_cancelBtn);
 
-        hbox->addSpacing(3);
-
         vbox->add(hbox);
     }
 
@@ -171,17 +177,17 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
             _replaceAllBtn->setEnabled(newText.size());
         }
         if(_liveSearchBox->checkState() == Qt::Checked) {
-            Q_EMIT liveSearch(_searchText->text(), _forward->checked());
+            Q_EMIT liveSearch(_searchText->text(), _forwardRadio->checked());
         }
     });
 
     QObject::connect(_findNextBtn, &Tui::ZButton::clicked, [this]{
-        Q_EMIT findNext(_searchText->text(), _forward->checked());
+        Q_EMIT findNext(_searchText->text(), _forwardRadio->checked());
     });
 
     if (_replaceBtn) {
         QObject::connect(_replaceBtn, &Tui::ZButton::clicked, [this]{
-            Q_EMIT replace1(_searchText->text(), _replaceText->text(), _forward->checked());
+            Q_EMIT replace1(_searchText->text(), _replaceText->text(), _forwardRadio->checked());
         });
     }
 
@@ -191,8 +197,8 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         });
     }
 
-    QObject::connect(_regexMatchBox, &Tui::ZCheckBox::stateChanged, [this]{
-        Q_EMIT regex(_regexMatchBox->checkState());
+    QObject::connect(_regexMatchRadio, &Tui::ZRadioButton::toggled, [=](bool state){
+        Q_EMIT regex(state);
     });
 
     QObject::connect(_cancelBtn, &Tui::ZButton::clicked, [=]{
@@ -201,16 +207,15 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
     });
 
     QObject::connect(_caseMatchBox, &Tui::ZCheckBox::stateChanged, [this]{
-        _caseSensitive = !_caseSensitive;
-        Q_EMIT caseSensitiveChanged(_caseSensitive);
+        Q_EMIT caseSensitiveChanged(_caseMatchBox->checkState() == Tui::CheckState::Checked);
         update();
     });
 
     QObject::connect(_wrapBox, &Tui::ZCheckBox::stateChanged, [=]{
-        Q_EMIT wrapChanged(_wrapBox->checkState());
+        Q_EMIT wrapChanged(_wrapBox->checkState()  == Tui::CheckState::Checked);
     });
 
-    QObject::connect(_forward, &Tui::ZRadioButton::toggled, [=](bool state){
+    QObject::connect(_forwardRadio, &Tui::ZRadioButton::toggled, [=](bool state){
         Q_EMIT forwardChanged(state);
     });
 }
