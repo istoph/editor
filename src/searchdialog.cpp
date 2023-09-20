@@ -222,10 +222,14 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
 
 
 void SearchDialog::setSearchText(QString text) {
-    text = text.replace('\n', "\\n");
-    text = text.replace('\t', "\\t");
-    _searchText->setText(text);
-    _searchText->textChanged(text);
+    if (text != "") {
+        if (_searchText->text() == "" || !_regexMatchRadio->checked()) {
+            text = text.replace('\n', "\\n");
+            text = text.replace('\t', "\\t");
+            _searchText->setText(text);
+            _searchText->textChanged(text);
+        }
+    }
 }
 
 void SearchDialog::setReplace(bool replace) {
