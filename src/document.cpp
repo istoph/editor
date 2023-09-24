@@ -439,7 +439,7 @@ bool Document::isUndoAvailable() const {
 }
 
 bool Document::isRedoAvailable() const {
-    return _undoSteps.size() && _currentUndoStep + 1 < _undoSteps.size();
+    return _currentUndoStep + 1 < _undoSteps.size();
 }
 
 Document::UndoGroup Document::startUndoGroup(TextCursor *cursor) {
@@ -1534,8 +1534,8 @@ void Document::mergeLines(TextCursor *cursor, int line) {
 
 void Document::emitModifedSignals() {
     // TODO: Ideally emit these only when changed
-    undoAvailable(_undoSteps.size() && _currentUndoStep != 0);
-    redoAvailable(_undoSteps.size() && _currentUndoStep + 1 < _undoSteps.size());
+    undoAvailable(isUndoAvailable());
+    redoAvailable(isRedoAvailable());
     modificationChanged(isModified());
 }
 
