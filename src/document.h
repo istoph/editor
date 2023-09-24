@@ -382,6 +382,8 @@ public:
 
     void undo(TextCursor *cursor);
     void redo(TextCursor *cursor);
+    bool isUndoAvailable() const;
+    bool isRedoAvailable() const;
     UndoGroup startUndoGroup(TextCursor *cursor);
 
     void markUndoStateAsSaved();

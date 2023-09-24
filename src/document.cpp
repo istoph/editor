@@ -421,6 +421,14 @@ void Document::redo(TextCursor *cursor) {
     emitModifedSignals();
 }
 
+bool Document::isUndoAvailable() const {
+    return _currentUndoStep != 0;
+}
+
+bool Document::isRedoAvailable() const {
+    return _undoSteps.size() && _currentUndoStep + 1 < _undoSteps.size();
+}
+
 Document::UndoGroup Document::startUndoGroup(TextCursor *cursor) {
     _groupUndo++;
     return UndoGroup{this, cursor};
