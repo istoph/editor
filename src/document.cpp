@@ -260,7 +260,7 @@ void Document::sortLines(int first, int last, TextCursor *cursorForUndoStep) {
 
     noteContentsChange();
 
-    saveUndoStep(cursorForUndoStep);
+    saveUndoStep(cursorForUndoStep->position());
 }
 
 void Document::tmp_moveLine(int from, int to, TextCursor *cursorForUndoStep) {
@@ -326,7 +326,7 @@ void Document::tmp_moveLine(int from, int to, TextCursor *cursorForUndoStep) {
 
     noteContentsChange();
 
-    saveUndoStep(cursorForUndoStep);
+    saveUndoStep(cursorForUndoStep->position());
 }
 
 void Document::debugConsistencyCheck(const TextCursor *exclude) {
@@ -355,6 +355,8 @@ void Document::undo(TextCursor *cursor) {
     }
 
     --_currentUndoStep;
+
+    _undoSteps[_currentUndoStep].collapsable = false;
 
     _lines = _undoSteps[_currentUndoStep].text;
     cursor->setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
@@ -430,6 +432,11 @@ bool Document::isRedoAvailable() const {
 }
 
 Document::UndoGroup Document::startUndoGroup(TextCursor *cursor) {
+    if (_groupUndo == 0) {
+        _undoStepCreationDeferred = false;
+        _undoGroupCollapsable = true;
+        _undoGroupCollapse = true;
+    }
     _groupUndo++;
     return UndoGroup{this, cursor};
 }
@@ -438,7 +445,7 @@ void Document::closeUndoGroup(TextCursor *cursor) {
     if(_groupUndo <= 1) {
         _groupUndo = 0;
         if (_undoStepCreationDeferred) {
-            saveUndoStep(cursor);
+            saveUndoStep(cursor->position(), _undoGroupCollapsable, _undoGroupCollapse);
             _undoStepCreationDeferred = false;
         }
     } else {
@@ -514,15 +521,15 @@ Document::UndoGroup::UndoGroup(Document *doc, TextCursor *cursor)
 }
 
 void Document::markUndoStateAsSaved() {
+    _undoSteps[_currentUndoStep].collapsable = false;
     _savedUndoStep = _currentUndoStep;
 }
 
 void Document::initalUndoStep(int endCodeUnit, int endLine) {
-    _collapseUndoStep = false;
+    _collapseUndoStep = true;
     _groupUndo = 0;
-    _undoStepCreationDeferred = false;
     _undoSteps.clear();
-    _undoSteps.append({ _lines, endCodeUnit, endLine});
+    _undoSteps.append({ _lines, endCodeUnit, endLine, false});
     _currentUndoStep = 0;
     _savedUndoStep = _currentUndoStep;
     emitModifedSignals();
@@ -1163,19 +1170,26 @@ QFuture<DocumentFindAsyncResult> Document::findAsyncWithPool(QThreadPool *pool, 
     return future;
 }
 
-void Document::saveUndoStep(TextCursor *cursor, bool collapsable) {
+void Document::saveUndoStep(TextCursor::Position cursorPosition, bool collapsable, bool collapse) {
     if (_groupUndo == 0) {
+        const auto [endCodeUnit, endLine] = cursorPosition;
         if (_currentUndoStep + 1 != _undoSteps.size()) {
             _undoSteps.resize(_currentUndoStep + 1);
-        } else if (_collapseUndoStep && collapsable && _currentUndoStep != _savedUndoStep) {
-            _undoSteps.removeLast();
         }
-        const auto [endCodeUnit, endLine] = cursor->position();
-        _undoSteps.append({ _lines, endCodeUnit, endLine});
-        _currentUndoStep = _undoSteps.size() - 1;
-        _collapseUndoStep = collapsable;
+
+        if (_collapseUndoStep && _undoSteps[_currentUndoStep].collapsable && collapse) {
+            _undoSteps[_currentUndoStep].text = _lines;
+            _undoSteps[_currentUndoStep].cursorPositionX = endCodeUnit;
+            _undoSteps[_currentUndoStep].cursorPositionY = endLine;
+        } else {
+            _undoSteps.append({ _lines, endCodeUnit, endLine, collapsable});
+            _currentUndoStep = _undoSteps.size() - 1;
+        }
+        _collapseUndoStep = true;
         emitModifedSignals();
     } else {
+        _undoGroupCollapsable &= collapsable;
+        _undoGroupCollapse &= collapse;
         _undoStepCreationDeferred = true;
     }
 }
@@ -1590,7 +1604,7 @@ void TextCursor::insertText(const QString &text) {
     updateVerticalMovementColumn(lay);
 
     if (text.size()) {
-        _doc->saveUndoStep(this);
+        _doc->saveUndoStep(this->position(), true, !text.contains(' ') && !text.contains('\n') && !text.contains('\t'));
     }
 
     _doc->debugConsistencyCheck(nullptr);
@@ -1623,7 +1637,7 @@ void TextCursor::removeSelectedText() {
     clearSelection();
     setPosition(start);
 
-    _doc->saveUndoStep(this);
+    _doc->saveUndoStep(this->position());
     _doc->debugConsistencyCheck(nullptr);
 }
 

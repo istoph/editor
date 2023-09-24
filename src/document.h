@@ -444,7 +444,7 @@ private: // TextCursor interface
     void insertLine(TextCursor *cursor, int before, const QString &data);
     void splitLine(TextCursor *cursor, TextCursor::Position pos);
     void mergeLines(TextCursor *cursor, int line);
-    void saveUndoStep(TextCursor *cursor, bool collapsable=false);
+    void saveUndoStep(TextCursor::Position cursorPosition, bool collapsable=false, bool collapse=false);
     void registerTextCursor(TextCursor *marker);
     void unregisterTextCursor(TextCursor *marker);
 
@@ -468,6 +468,7 @@ private:
         QVector<LineData> text;
         int cursorPositionX;
         int cursorPositionY;
+        bool collapsable = false;
     };
 
 private:
@@ -482,6 +483,8 @@ private:
     bool _collapseUndoStep = false;
     int _groupUndo = 0;
     bool _undoStepCreationDeferred = false;
+    bool _undoGroupCollapsable = false;
+    bool _undoGroupCollapse = false;
 
     ListHead<LineMarker, LineMarkerToDocumentTag> lineMarkerList;
     ListHead<TextCursor, TextCursorToDocumentTag> cursorList;

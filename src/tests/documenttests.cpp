@@ -2,14 +2,14 @@
 
 #include "document.h"
 
-#include "documenttests.h"
+#include <optional>
+
 
 #include "catchwrapper.h"
 
 #include <Tui/ZRoot.h>
-#include <Tui/ZTest.h>
-
 #include <Tui/ZTerminal.h>
+#include <Tui/ZTest.h>
 #include <Tui/ZTextMetrics.h>
 
 static QVector<QString> docToVec(const Document &doc) {
@@ -2618,6 +2618,150 @@ TEST_CASE("regex search") {
               {"4", MatchCaptures{ {"<123=xut>", "123", "xut"}, {{"zahl", "123"}, {"letters", "xut"}}}},
               {"5", MatchCaptures{ {"<456=L>", "456", "L"}, {{"zahl", "456"}, {"letters", "L"}}}},
         });
+    }
+
+}
+
+TEST_CASE("Document Undo Redo") {
+    Tui::ZTerminal terminal{Tui::ZTerminal::OffScreen{1, 1}};
+    Tui::ZRoot root;
+    terminal.setMainWidget(&root);
+    Document doc;
+
+    TextCursor cursor1{&doc, nullptr, [&terminal,&doc](int line, bool wrappingAllowed) {
+            Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line));
+            lay.doLayout(65000);
+            return lay;
+        }
+    };
+
+    struct Action {
+        bool b;
+        std::function<void()> step;
+    };
+
+    auto runChecks = [&](std::initializer_list<Action> steps) {
+
+        const bool groupSteps = GENERATE(false, true);
+        CAPTURE(groupSteps);
+
+        struct DocumentState {
+            QList<QString> lines;
+            bool noNewline = false;
+        };
+
+        QList<DocumentState> states;
+
+        auto captureState = [&] {
+            QList<QString> lines;
+            for (int i = 0; i < doc.lineCount(); i++) {
+                lines.append(doc.line(i));
+            }
+            states.append(DocumentState{lines, doc.noNewLine()});
+        };
+
+        auto compareState = [&] (const DocumentState &state) {
+            QList<QString> lines;
+            for (int i = 0; i < doc.lineCount(); i++) {
+                lines.append(doc.line(i));
+            }
+            CHECK(state.lines == lines);
+            CHECK(state.noNewline == doc.noNewLine());
+        };
+
+        captureState();
+        compareState(states.last());
+        for (const auto& step: steps) {
+            std::optional<Document::UndoGroup> group;
+            if (groupSteps) {
+                auto dummyCursor = cursor1;
+                group.emplace(doc.startUndoGroup(&dummyCursor));
+            }
+            step.step();
+            if (step.b) {
+                captureState();
+                compareState(states.last());
+            }
+        }
+
+        int stateIndex = states.size() - 1;
+
+        auto dummyCursor = cursor1;
+
+        while (doc.isUndoAvailable()) {
+            doc.undo(&dummyCursor);
+            REQUIRE(stateIndex > 0);
+            stateIndex -= 1;
+            compareState(states[stateIndex]);
+        }
+
+        REQUIRE(stateIndex == 0);
+
+        while (doc.isRedoAvailable()) {
+            doc.redo(&dummyCursor);
+            REQUIRE(stateIndex + 1 < states.size());
+            stateIndex += 1;
+            compareState(states[stateIndex]);
+        }
+
+        REQUIRE(stateIndex + 1 == states.size());
+    };
+
+    SECTION("inserts") {
+        runChecks({
+                      { false, [&] { cursor1.insertText("a"); } },
+                      { false, [&] { cursor1.insertText("b"); } },
+                      { true,  [&] { cursor1.insertText("c"); } }
+                  });
+    }
+
+    SECTION("inserts2") {
+        runChecks({
+                      { false, [&] { cursor1.insertText("a"); } },
+                      { false, [&] { cursor1.insertText("b"); } },
+                      { true,  [&] { cursor1.insertText("c"); } },
+                      { false, [&] { cursor1.insertText(" "); } },
+                      { false, [&] { cursor1.insertText("d"); } },
+                      { false, [&] { cursor1.insertText("e"); } },
+                      { true,  [&] { cursor1.insertText("f"); } }
+                  });
+    }
+
+    SECTION("newline") {
+        runChecks({
+                      { true,  [&] { cursor1.insertText("\n"); } },
+                      { false, [&] { cursor1.insertText("\n"); } },
+                      { false, [&] { cursor1.insertText("a"); } },
+                      { true,  [&] { cursor1.insertText("b"); } },
+                      { false, [&] { cursor1.insertText("\n"); } },
+                      { true,  [&] { cursor1.insertText("c"); } },
+                      { true,  [&] { cursor1.insertText("\n"); } }
+                  });
+    }
+
+    SECTION("space") {
+        runChecks({
+                      { true,  [&] { cursor1.insertText(" "); } },
+                      { false, [&] { cursor1.insertText(" "); } },
+                      { false, [&] { cursor1.insertText("a"); } },
+                      { true,  [&] { cursor1.insertText("b"); } },
+                      { false, [&] { cursor1.insertText(" "); } },
+                      { true,  [&] { cursor1.insertText("c"); } },
+                      { true,  [&] { cursor1.insertText(" "); } }
+                  });
+    }
+
+
+    SECTION("tab") {
+        runChecks({
+                      { true,  [&] { cursor1.insertText("\t"); } },
+                      { false, [&] { cursor1.insertText("\t"); } },
+                      { false, [&] { cursor1.insertText("a"); } },
+                      { true,  [&] { cursor1.insertText("b"); } },
+                      { false, [&] { cursor1.insertText("\t"); } },
+                      { true,  [&] { cursor1.insertText("c"); } },
+                      { true,  [&] { cursor1.insertText("\t"); } }
+                  });
     }
 
 }

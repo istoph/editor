@@ -673,6 +673,7 @@ void File::paste() {
         insertAtCursorPosition(clipboard->getClipboard());
         adjustScrollPosition();
     }
+    _doc->clearCollapseUndoStep();
 }
 
 bool File::isInsertable() {
@@ -1845,6 +1846,7 @@ void File::pasteEvent(Tui::ZPasteEvent *event) {
     text.replace(QString('\r'), QString('\n'));
 
     insertAtCursorPosition(text);
+    _doc->clearCollapseUndoStep();
     adjustScrollPosition();
 }
 

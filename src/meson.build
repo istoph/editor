@@ -14,7 +14,6 @@ tests = [
 ]
 
 tests_headers = [
-  'tests/documenttests.h',
   'tests/eventrecorder.h',
 ]
 
