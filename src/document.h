@@ -472,6 +472,7 @@ private:
         int startCursorLine;
         int endCursorCodeUnit;
         int endCursorLine;
+        bool noNewlineAtEnd = false;
         bool collapsable = false;
     };
 

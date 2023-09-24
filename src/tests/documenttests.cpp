@@ -2764,6 +2764,15 @@ TEST_CASE("Document Undo Redo") {
                   });
     }
 
+    SECTION("no newline") {
+        runChecks({
+                      { Collapsed, [&] { cursor1.insertText("a"); } },
+                      { Collapsed, [&] { cursor1.insertText("b"); } },
+                      { NormalStp, [&] { cursor1.insertText("c"); } },
+                      { NormalStp, [&] { doc.setNoNewline(true); } }
+                  });
+    }
+
     SECTION("group with cursor movement") {
         runChecks({
                       { NormalStp, [&] { cursor1.insertText("    "); } },

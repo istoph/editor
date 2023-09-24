@@ -177,7 +177,10 @@ bool Document::isModified() const {
 }
 
 void Document::setNoNewline(bool value) {
+    const auto position = TextCursor::Position{_lines[_lines.size() - 1].chars.size(), _lines.size() - 1};
+    prepareModification(position);
     _nonewline = value;
+    saveUndoStep(position);
 }
 
 bool Document::noNewLine() const {
@@ -366,6 +369,7 @@ void Document::undo(TextCursor *cursor) {
 
     _lines = _undoSteps[_currentUndoStep].lines;
     cursor->setPosition({startCursorCodeUnit, startCursorLine});
+    _nonewline = _undoSteps[_currentUndoStep].noNewlineAtEnd;
 
     // ensure all cursors have valid positions.
     // Cursor positions after undo are still wonky as the undo state does not have enough information to properly
@@ -404,6 +408,7 @@ void Document::redo(TextCursor *cursor) {
 
     _lines = _undoSteps[_currentUndoStep].lines;
     cursor->setPosition({_undoSteps[_currentUndoStep].endCursorCodeUnit, _undoSteps[_currentUndoStep].endCursorLine});
+    _nonewline = _undoSteps[_currentUndoStep].noNewlineAtEnd;
 
     // ensure all cursors have valid positions.
     // Cursor positions after undo are still wonky as the undo state does not have enough information to properly
@@ -540,7 +545,7 @@ void Document::initalUndoStep(int endCodeUnit, int endLine) {
     _collapseUndoStep = true;
     _groupUndo = 0;
     _undoSteps.clear();
-    _undoSteps.append({ _lines, endCodeUnit, endLine, endCodeUnit, endLine, false});
+    _undoSteps.append({ _lines, endCodeUnit, endLine, endCodeUnit, endLine, _nonewline, false});
     _currentUndoStep = 0;
     _savedUndoStep = _currentUndoStep;
     emitModifedSignals();
@@ -1208,8 +1213,9 @@ void Document::saveUndoStep(TextCursor::Position cursorPosition, bool collapsabl
             _undoSteps[_currentUndoStep].lines = _lines;
             _undoSteps[_currentUndoStep].endCursorCodeUnit = endCodeUnit;
             _undoSteps[_currentUndoStep].endCursorLine = endLine;
+            _undoSteps[_currentUndoStep].noNewlineAtEnd = _nonewline;
         } else {
-            _undoSteps.append({ _lines, startCodeUnit, startLine, endCodeUnit, endLine, collapsable});
+            _undoSteps.append({ _lines, startCodeUnit, startLine, endCodeUnit, endLine, _nonewline, collapsable});
             _currentUndoStep = _undoSteps.size() - 1;
         }
         _collapseUndoStep = true;
