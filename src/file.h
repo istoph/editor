@@ -128,7 +128,7 @@ public:
     void setHighlightBracket(bool hb);
     bool getHighlightBracket();
     bool readAttributes();
-    void getAttributes();
+    TextCursor::Position getAttributes();
     bool writeAttributes();
     void setAttributesfile(QString attributesfile);
     QString getAttributesfile();

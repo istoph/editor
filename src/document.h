@@ -355,6 +355,7 @@ public:
     void reset();
     void writeTo(QIODevice *file, bool crLfMode = false);
     bool readFrom(QIODevice *file);
+    bool readFrom(QIODevice *file, TextCursor::Position initialPosition, TextCursor *initialPositionCursor);
 
     int lineCount() const;
     QString line(int line) const;
@@ -383,7 +384,7 @@ public:
     void redo(TextCursor *cursor);
     UndoGroup startUndoGroup(TextCursor *cursor);
 
-    void initalUndoStep(TextCursor *cursor);
+    void markUndoStateAsSaved();
 
     TextCursor findSync(const QString &subString, const TextCursor &start,
                         FindFlags options = FindFlags{}) const;
@@ -455,6 +456,7 @@ private: // TextCursor + LineMarker interface
     void scheduleChangeSignals();
 
 private:
+    void initalUndoStep(int endCodeUnit, int endLine);
     void noteContentsChange();
     void emitModifedSignals();
 

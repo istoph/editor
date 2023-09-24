@@ -12,7 +12,7 @@
 
 Document::Document(QObject *parent) : QObject (parent) {
     _lines.append(LineData());
-    initalUndoStep(nullptr);
+    initalUndoStep(0, 0);
 }
 
 Document::~Document() {
@@ -31,7 +31,7 @@ void Document::reset() {
         c->setPosition({0, 0});
     }
 
-    initalUndoStep(nullptr);
+    initalUndoStep(0, 0);
 
     debugConsistencyCheck(nullptr);
     noteContentsChange();
@@ -52,8 +52,12 @@ void Document::writeTo(QIODevice *file, bool crLfMode) {
     }
 }
 
-bool Document::readFrom(QIODevice *file) {
 
+bool Document::readFrom(QIODevice *file) {
+    return readFrom(file, {0, 0}, nullptr);
+}
+
+bool Document::readFrom(QIODevice *file, TextCursor::Position initialPosition, TextCursor *initialPositionCursor) {
     // Clear line markers and cursors while _lines still has contents.
     for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
         m->setLine(0);
@@ -111,6 +115,19 @@ bool Document::readFrom(QIODevice *file) {
             _lines[i].chars.remove(_lines[i].chars.size() - 1, 1);
         }
     }
+
+    if (initialPosition.line >= _lines.size()) {
+        initialPosition.line = _lines.size() - 1;
+    }
+    if (initialPosition.codeUnit > _lines[initialPosition.line].chars.size()) {
+        initialPosition.codeUnit = _lines[initialPosition.line].chars.size();
+    }
+
+    if (initialPositionCursor) {
+        initialPositionCursor->setPosition(initialPosition);
+        initialPosition = initialPositionCursor->position();
+    }
+    initalUndoStep(initialPosition.codeUnit, initialPosition.line);
 
     debugConsistencyCheck(nullptr);
 
@@ -479,17 +496,16 @@ Document::UndoGroup::UndoGroup(Document *doc, TextCursor *cursor)
 {
 }
 
-void Document::initalUndoStep(TextCursor *cursor) {
+void Document::markUndoStateAsSaved() {
+    _savedUndoStep = _currentUndoStep;
+}
+
+void Document::initalUndoStep(int endCodeUnit, int endLine) {
     _collapseUndoStep = false;
     _groupUndo = 0;
     _undoStepCreationDeferred = false;
     _undoSteps.clear();
-    if (cursor) {
-        const auto [endCodeUnit, endLine] = cursor->position();
-        _undoSteps.append({ _lines, endCodeUnit, endLine});
-    } else {
-        _undoSteps.append({ _lines, 0, 0});
-    }
+    _undoSteps.append({ _lines, endCodeUnit, endLine});
     _currentUndoStep = 0;
     _savedUndoStep = _currentUndoStep;
     emitModifedSignals();

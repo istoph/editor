@@ -317,21 +317,15 @@ bool File::readAttributes() {
     return true;
 }
 
-void File::getAttributes() {
-    if (_attributesfile.isEmpty() || !_cursor.atStart()) {
-        return;
+TextCursor::Position File::getAttributes() {
+    if (_attributesfile.isEmpty()) {
+        return {0, 0};
     }
-    if(readAttributes()) {
+    if (readAttributes()) {
         QJsonObject data = _jo.value(getFilename()).toObject();
-        if (_doc->lineCount() > data.value("cursorPositionY").toInt() && _doc->lineCodeUnits(data.value("cursorPositionY").toInt()) + 1 > data.value("cursorPositionX").toInt()) {
-            setCursorPosition({data.value("cursorPositionX").toInt(), data.value("cursorPositionY").toInt()});
-            _cursor.setVerticalMovementColumn(data.value("cursorPositionX").toInt());
-            _scrollPositionX = data.value("scrollPositionX").toInt();
-            _scrollPositionY.setLine(data.value("scrollPositionY").toInt());
-            _scrollFineLine = 0;
-            adjustScrollPosition();
-        }
+        return {data.value("cursorPositionX").toInt(), data.value("cursorPositionY").toInt()};
     }
+    return {0, 0};
 }
 
 bool File::writeAttributes() {
@@ -527,7 +521,7 @@ bool File::saveText() {
 
         //file.commit();
         file.close();
-        _doc->initalUndoStep(&_cursor);
+        _doc->markUndoStateAsSaved();
         modifiedChanged(false);
         setSaveAs(false);
         checkWritable();
@@ -577,7 +571,8 @@ bool File::openText(QString filename) {
     if (file.open(QIODevice::ReadOnly)) {
         initText();
 
-        _msdos = _doc->readFrom(&file);
+        TextCursor::Position initialPosition = getAttributes();
+        _msdos = _doc->readFrom(&file, initialPosition, &_cursor);
         file.close();
         msdosMode(_msdos);
 
@@ -587,12 +582,18 @@ bool File::openText(QString filename) {
             setSaveAs(true);
         }
 
-        getAttributes();
-        _doc->initalUndoStep(&_cursor);
-
         checkWritable();
 
         modifiedChanged(false);
+
+        // TODO refactor this
+        if (!_jo.isEmpty() && _jo.contains(getFilename())) {
+            QJsonObject data = _jo.value(getFilename()).toObject();
+            _scrollPositionX = data.value("scrollPositionX").toInt();
+            _scrollPositionY.setLine(data.value("scrollPositionY").toInt());
+        }
+        _scrollFineLine = 0;
+        adjustScrollPosition();
 
 #ifdef SYNTAX_HIGHLIGHTING
         _syntaxHighlightDefinition = _syntaxHighlightRepo.definitionForFileName(getFilename());
