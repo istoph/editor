@@ -1529,6 +1529,7 @@ TextCursor &TextCursor::operator=(const TextCursor &other) {
 }
 
 void TextCursor::insertText(const QString &text) {
+    auto undoGroup = _doc->startUndoGroup(this);
     auto lines = text.split("\n");
 
     removeSelectedText();
@@ -1657,6 +1658,7 @@ void TextCursor::deletePreviousWord() {
 }
 
 void TextCursor::deleteLine() {
+    auto undoGroup = _doc->startUndoGroup(this);
     clearSelection();
     moveToStartOfLine();
     moveToEndOfLine(true);
