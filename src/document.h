@@ -4,6 +4,7 @@
 #define DOCUMENT_H
 
 #include <functional>
+#include <optional>
 #include <variant>
 
 #include <QFuture>
@@ -445,6 +446,7 @@ private: // TextCursor interface
     void splitLine(TextCursor *cursor, TextCursor::Position pos);
     void mergeLines(TextCursor *cursor, int line);
     void saveUndoStep(TextCursor::Position cursorPosition, bool collapsable=false, bool collapse=false);
+    void prepareModification(TextCursor::Position cursorPosition);
     void registerTextCursor(TextCursor *marker);
     void unregisterTextCursor(TextCursor *marker);
 
@@ -466,6 +468,8 @@ private:
 private:
     struct UndoStep {
         QVector<LineData> lines;
+        int startCursorCodeUnit;
+        int startCursorLine;
         int endCursorCodeUnit;
         int endCursorLine;
         bool collapsable = false;
@@ -485,6 +489,10 @@ private:
     bool _undoStepCreationDeferred = false;
     bool _undoGroupCollapsable = false;
     bool _undoGroupCollapse = false;
+    struct PendingUndoStep {
+        TextCursor::Position preModificationCursorPosition;
+    };
+    std::optional<PendingUndoStep> _pendingUpdateStep;
 
     ListHead<LineMarker, LineMarkerToDocumentTag> lineMarkerList;
     ListHead<TextCursor, TextCursorToDocumentTag> cursorList;

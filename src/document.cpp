@@ -197,6 +197,7 @@ void Document::clearCollapseUndoStep() {
 }
 
 void Document::sortLines(int first, int last, TextCursor *cursorForUndoStep) {
+    prepareModification(cursorForUndoStep->position());
 
     // We need to capture how lines got reordered to also adjust the cursor and line markers in the same pattern.
     // Basically this is std::stable_sort(_lines.begin() + first, _lines.begin() + last) but also capturing the reordering
@@ -264,6 +265,8 @@ void Document::sortLines(int first, int last, TextCursor *cursorForUndoStep) {
 }
 
 void Document::tmp_moveLine(int from, int to, TextCursor *cursorForUndoStep) {
+    prepareModification(cursorForUndoStep->position());
+
     _lines.insert(to, _lines[from]);
     if (from < to) {
         _lines.remove(from);
@@ -354,12 +357,15 @@ void Document::undo(TextCursor *cursor) {
         return;
     }
 
+    const auto startCursorCodeUnit = _undoSteps[_currentUndoStep].startCursorCodeUnit;
+    const auto startCursorLine = _undoSteps[_currentUndoStep].startCursorLine;
+
     --_currentUndoStep;
 
     _undoSteps[_currentUndoStep].collapsable = false;
 
     _lines = _undoSteps[_currentUndoStep].lines;
-    cursor->setPosition({_undoSteps[_currentUndoStep].endCursorCodeUnit, _undoSteps[_currentUndoStep].endCursorLine});
+    cursor->setPosition({startCursorCodeUnit, startCursorLine});
 
     // ensure all cursors have valid positions.
     // Cursor positions after undo are still wonky as the undo state does not have enough information to properly
@@ -436,8 +442,11 @@ Document::UndoGroup Document::startUndoGroup(TextCursor *cursor) {
         _undoStepCreationDeferred = false;
         _undoGroupCollapsable = true;
         _undoGroupCollapse = true;
+        _groupUndo = 1;
+        prepareModification(cursor->position());
+    } else {
+        _groupUndo++;
     }
-    _groupUndo++;
     return UndoGroup{this, cursor};
 }
 
@@ -447,6 +456,8 @@ void Document::closeUndoGroup(TextCursor *cursor) {
         if (_undoStepCreationDeferred) {
             saveUndoStep(cursor->position(), _undoGroupCollapsable, _undoGroupCollapse);
             _undoStepCreationDeferred = false;
+        } else {
+            _pendingUpdateStep.reset();
         }
     } else {
         _groupUndo--;
@@ -529,7 +540,7 @@ void Document::initalUndoStep(int endCodeUnit, int endLine) {
     _collapseUndoStep = true;
     _groupUndo = 0;
     _undoSteps.clear();
-    _undoSteps.append({ _lines, endCodeUnit, endLine, false});
+    _undoSteps.append({ _lines, endCodeUnit, endLine, endCodeUnit, endLine, false});
     _currentUndoStep = 0;
     _savedUndoStep = _currentUndoStep;
     emitModifedSignals();
@@ -1170,22 +1181,39 @@ QFuture<DocumentFindAsyncResult> Document::findAsyncWithPool(QThreadPool *pool, 
     return future;
 }
 
+void Document::prepareModification(TextCursor::Position cursorPosition) {
+    if (_groupUndo == 0) {
+        if (_pendingUpdateStep.has_value()) {
+            qCritical("Document: Internal error, prepareModification called with already pending modification");
+            abort();
+        }
+    }
+    if (!_pendingUpdateStep.has_value()) {
+        _pendingUpdateStep = PendingUndoStep{cursorPosition};
+    }
+}
+
 void Document::saveUndoStep(TextCursor::Position cursorPosition, bool collapsable, bool collapse) {
     if (_groupUndo == 0) {
+        const auto [startCodeUnit, startLine] = _pendingUpdateStep.value().preModificationCursorPosition;
         const auto [endCodeUnit, endLine] = cursorPosition;
         if (_currentUndoStep + 1 != _undoSteps.size()) {
             _undoSteps.resize(_currentUndoStep + 1);
         }
 
-        if (_collapseUndoStep && _undoSteps[_currentUndoStep].collapsable && collapse) {
+        if (_collapseUndoStep && _undoSteps[_currentUndoStep].collapsable
+                   && _undoSteps[_currentUndoStep].endCursorCodeUnit == startCodeUnit
+                   && _undoSteps[_currentUndoStep].endCursorLine == startLine
+                   && collapse) {
             _undoSteps[_currentUndoStep].lines = _lines;
             _undoSteps[_currentUndoStep].endCursorCodeUnit = endCodeUnit;
             _undoSteps[_currentUndoStep].endCursorLine = endLine;
         } else {
-            _undoSteps.append({ _lines, endCodeUnit, endLine, collapsable});
+            _undoSteps.append({ _lines, startCodeUnit, startLine, endCodeUnit, endLine, collapsable});
             _currentUndoStep = _undoSteps.size() - 1;
         }
         _collapseUndoStep = true;
+        _pendingUpdateStep.reset();
         emitModifedSignals();
     } else {
         _undoGroupCollapsable &= collapsable;
@@ -1577,6 +1605,9 @@ TextCursor &TextCursor::operator=(const TextCursor &other) {
 
 void TextCursor::insertText(const QString &text) {
     auto undoGroup = _doc->startUndoGroup(this);
+
+    _doc->prepareModification(this->position());
+
     auto lines = text.split("\n");
 
     removeSelectedText();
@@ -1614,6 +1645,8 @@ void TextCursor::removeSelectedText() {
     if (!hasSelection()) {
         return;
     }
+
+    _doc->prepareModification(this->position());
 
     const Position start = selectionStartPos();
     const Position end = selectionEndPos();

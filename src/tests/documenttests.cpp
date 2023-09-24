@@ -2635,8 +2635,14 @@ TEST_CASE("Document Undo Redo") {
         }
     };
 
+    enum ActionType {
+        Collapsed,
+        Invisible,
+        NormalStp
+    };
+
     struct Action {
-        bool b;
+        ActionType type;
         std::function<void()> step;
     };
 
@@ -2648,16 +2654,19 @@ TEST_CASE("Document Undo Redo") {
         struct DocumentState {
             QList<QString> lines;
             bool noNewline = false;
+            TextCursor::Position startCursorPos;
+            TextCursor::Position endCursorPos;
         };
 
         QList<DocumentState> states;
+        TextCursor::Position beforePos = cursor1.position();
 
         auto captureState = [&] {
             QList<QString> lines;
             for (int i = 0; i < doc.lineCount(); i++) {
                 lines.append(doc.line(i));
             }
-            states.append(DocumentState{lines, doc.noNewLine()});
+            states.append(DocumentState{lines, doc.noNewLine(), beforePos, cursor1.position()});
         };
 
         auto compareState = [&] (const DocumentState &state) {
@@ -2674,23 +2683,26 @@ TEST_CASE("Document Undo Redo") {
         for (const auto& step: steps) {
             std::optional<Document::UndoGroup> group;
             if (groupSteps) {
-                auto dummyCursor = cursor1;
-                group.emplace(doc.startUndoGroup(&dummyCursor));
+                group.emplace(doc.startUndoGroup(&cursor1));
             }
             step.step();
-            if (step.b) {
+            if (step.type == NormalStp) {
                 captureState();
                 compareState(states.last());
+                beforePos = cursor1.position();
+            } else if (step.type == Invisible) {
+                beforePos = cursor1.position();
             }
         }
 
         int stateIndex = states.size() - 1;
 
-        auto dummyCursor = cursor1;
 
         while (doc.isUndoAvailable()) {
-            doc.undo(&dummyCursor);
+            CAPTURE(stateIndex);
+            doc.undo(&cursor1);
             REQUIRE(stateIndex > 0);
+            CHECK(states[stateIndex].startCursorPos == cursor1.position());
             stateIndex -= 1;
             compareState(states[stateIndex]);
         }
@@ -2698,10 +2710,11 @@ TEST_CASE("Document Undo Redo") {
         REQUIRE(stateIndex == 0);
 
         while (doc.isRedoAvailable()) {
-            doc.redo(&dummyCursor);
+            doc.redo(&cursor1);
             REQUIRE(stateIndex + 1 < states.size());
             stateIndex += 1;
             compareState(states[stateIndex]);
+            CHECK(states[stateIndex].endCursorPos == cursor1.position());
         }
 
         REQUIRE(stateIndex + 1 == states.size());
@@ -2709,58 +2722,98 @@ TEST_CASE("Document Undo Redo") {
 
     SECTION("inserts") {
         runChecks({
-                      { false, [&] { cursor1.insertText("a"); } },
-                      { false, [&] { cursor1.insertText("b"); } },
-                      { true,  [&] { cursor1.insertText("c"); } }
+                      { Collapsed, [&] { cursor1.insertText("a"); } },
+                      { Collapsed, [&] { cursor1.insertText("b"); } },
+                      { NormalStp, [&] { cursor1.insertText("c"); } }
                   });
     }
 
     SECTION("inserts2") {
         runChecks({
-                      { false, [&] { cursor1.insertText("a"); } },
-                      { false, [&] { cursor1.insertText("b"); } },
-                      { true,  [&] { cursor1.insertText("c"); } },
-                      { false, [&] { cursor1.insertText(" "); } },
-                      { false, [&] { cursor1.insertText("d"); } },
-                      { false, [&] { cursor1.insertText("e"); } },
-                      { true,  [&] { cursor1.insertText("f"); } }
+                      { Collapsed, [&] { cursor1.insertText("a"); } },
+                      { Collapsed, [&] { cursor1.insertText("b"); } },
+                      { NormalStp, [&] { cursor1.insertText("c"); } },
+                      { Collapsed, [&] { cursor1.insertText(" "); } },
+                      { Collapsed, [&] { cursor1.insertText("d"); } },
+                      { Collapsed, [&] { cursor1.insertText("e"); } },
+                      { NormalStp, [&] { cursor1.insertText("f"); } }
+                  });
+    }
+
+    SECTION("insert and move") {
+        runChecks({
+                      { Collapsed, [&] { cursor1.insertText("a"); } },
+                      { Collapsed, [&] { cursor1.insertText("b"); } },
+                      { NormalStp, [&] { cursor1.insertText("c"); } },
+                      { Invisible, [&] { cursor1.moveCharacterLeft(); } },
+                      { Collapsed, [&] { cursor1.insertText("d"); } },
+                      { Collapsed, [&] { cursor1.insertText("e"); } },
+                      { NormalStp, [&] { cursor1.insertText("f"); } }
+                  });
+    }
+
+    SECTION("insert and cancle collapsing") {
+        runChecks({
+                      { Collapsed, [&] { cursor1.insertText("a"); } },
+                      { Collapsed, [&] { cursor1.insertText("b"); } },
+                      { NormalStp, [&] { cursor1.insertText("c"); } },
+                      { Invisible, [&] { doc.clearCollapseUndoStep(); } },
+                      { Collapsed, [&] { cursor1.insertText("d"); } },
+                      { Collapsed, [&] { cursor1.insertText("e"); } },
+                      { NormalStp, [&] { cursor1.insertText("f"); } }
+                  });
+    }
+
+    SECTION("group with cursor movement") {
+        runChecks({
+                      { NormalStp, [&] { cursor1.insertText("    "); } },
+                      { NormalStp, [&] { cursor1.insertText("    "); } },
+                      { NormalStp, [&] { cursor1.insertText("    "); } },
+                      { NormalStp, [&] {
+                            const auto [cursorCodeUnit, cursorLine] = cursor1.position();
+                            auto group = doc.startUndoGroup(&cursor1);
+                            cursor1.setPosition({0, 0});
+                            cursor1.setPosition({4, 0}, true);
+                            cursor1.removeSelectedText();
+                            cursor1.setPosition({cursorCodeUnit - 4, cursorLine});
+                        } }
                   });
     }
 
     SECTION("newline") {
         runChecks({
-                      { true,  [&] { cursor1.insertText("\n"); } },
-                      { false, [&] { cursor1.insertText("\n"); } },
-                      { false, [&] { cursor1.insertText("a"); } },
-                      { true,  [&] { cursor1.insertText("b"); } },
-                      { false, [&] { cursor1.insertText("\n"); } },
-                      { true,  [&] { cursor1.insertText("c"); } },
-                      { true,  [&] { cursor1.insertText("\n"); } }
+                      { NormalStp, [&] { cursor1.insertText("\n"); } },
+                      { Collapsed, [&] { cursor1.insertText("\n"); } },
+                      { Collapsed, [&] { cursor1.insertText("a"); } },
+                      { NormalStp, [&] { cursor1.insertText("b"); } },
+                      { Collapsed, [&] { cursor1.insertText("\n"); } },
+                      { NormalStp, [&] { cursor1.insertText("c"); } },
+                      { NormalStp, [&] { cursor1.insertText("\n"); } }
                   });
     }
 
     SECTION("space") {
         runChecks({
-                      { true,  [&] { cursor1.insertText(" "); } },
-                      { false, [&] { cursor1.insertText(" "); } },
-                      { false, [&] { cursor1.insertText("a"); } },
-                      { true,  [&] { cursor1.insertText("b"); } },
-                      { false, [&] { cursor1.insertText(" "); } },
-                      { true,  [&] { cursor1.insertText("c"); } },
-                      { true,  [&] { cursor1.insertText(" "); } }
+                      { NormalStp, [&] { cursor1.insertText(" "); } },
+                      { Collapsed, [&] { cursor1.insertText(" "); } },
+                      { Collapsed, [&] { cursor1.insertText("a"); } },
+                      { NormalStp, [&] { cursor1.insertText("b"); } },
+                      { Collapsed, [&] { cursor1.insertText(" "); } },
+                      { NormalStp, [&] { cursor1.insertText("c"); } },
+                      { NormalStp, [&] { cursor1.insertText(" "); } }
                   });
     }
 
 
     SECTION("tab") {
         runChecks({
-                      { true,  [&] { cursor1.insertText("\t"); } },
-                      { false, [&] { cursor1.insertText("\t"); } },
-                      { false, [&] { cursor1.insertText("a"); } },
-                      { true,  [&] { cursor1.insertText("b"); } },
-                      { false, [&] { cursor1.insertText("\t"); } },
-                      { true,  [&] { cursor1.insertText("c"); } },
-                      { true,  [&] { cursor1.insertText("\t"); } }
+                      { NormalStp, [&] { cursor1.insertText("\t"); } },
+                      { Collapsed, [&] { cursor1.insertText("\t"); } },
+                      { Collapsed, [&] { cursor1.insertText("a"); } },
+                      { NormalStp, [&] { cursor1.insertText("b"); } },
+                      { Collapsed, [&] { cursor1.insertText("\t"); } },
+                      { NormalStp, [&] { cursor1.insertText("c"); } },
+                      { NormalStp, [&] { cursor1.insertText("\t"); } }
                   });
     }
 
