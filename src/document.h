@@ -465,9 +465,9 @@ private:
 
 private:
     struct UndoStep {
-        QVector<LineData> text;
-        int cursorPositionX;
-        int cursorPositionY;
+        QVector<LineData> lines;
+        int endCursorCodeUnit;
+        int endCursorLine;
         bool collapsable = false;
     };
 

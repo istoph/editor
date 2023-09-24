@@ -358,8 +358,8 @@ void Document::undo(TextCursor *cursor) {
 
     _undoSteps[_currentUndoStep].collapsable = false;
 
-    _lines = _undoSteps[_currentUndoStep].text;
-    cursor->setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
+    _lines = _undoSteps[_currentUndoStep].lines;
+    cursor->setPosition({_undoSteps[_currentUndoStep].endCursorCodeUnit, _undoSteps[_currentUndoStep].endCursorLine});
 
     // ensure all cursors have valid positions.
     // Cursor positions after undo are still wonky as the undo state does not have enough information to properly
@@ -396,8 +396,8 @@ void Document::redo(TextCursor *cursor) {
 
     ++_currentUndoStep;
 
-    _lines = _undoSteps[_currentUndoStep].text;
-    cursor->setPosition({_undoSteps[_currentUndoStep].cursorPositionX, _undoSteps[_currentUndoStep].cursorPositionY});
+    _lines = _undoSteps[_currentUndoStep].lines;
+    cursor->setPosition({_undoSteps[_currentUndoStep].endCursorCodeUnit, _undoSteps[_currentUndoStep].endCursorLine});
 
     // ensure all cursors have valid positions.
     // Cursor positions after undo are still wonky as the undo state does not have enough information to properly
@@ -1178,9 +1178,9 @@ void Document::saveUndoStep(TextCursor::Position cursorPosition, bool collapsabl
         }
 
         if (_collapseUndoStep && _undoSteps[_currentUndoStep].collapsable && collapse) {
-            _undoSteps[_currentUndoStep].text = _lines;
-            _undoSteps[_currentUndoStep].cursorPositionX = endCodeUnit;
-            _undoSteps[_currentUndoStep].cursorPositionY = endLine;
+            _undoSteps[_currentUndoStep].lines = _lines;
+            _undoSteps[_currentUndoStep].endCursorCodeUnit = endCodeUnit;
+            _undoSteps[_currentUndoStep].endCursorLine = endLine;
         } else {
             _undoSteps.append({ _lines, endCodeUnit, endLine, collapsable});
             _currentUndoStep = _undoSteps.size() - 1;
