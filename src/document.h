@@ -417,6 +417,7 @@ public:
     class UndoGroup {
     public:
         UndoGroup(const UndoGroup&) = delete;
+        UndoGroup(UndoGroup &&);
         UndoGroup &operator=(const UndoGroup&) = delete;
 
         ~UndoGroup();

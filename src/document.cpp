@@ -480,8 +480,17 @@ void Document::noteContentsChange() {
     scheduleChangeSignals();
 }
 
+Document::UndoGroup::UndoGroup(Document::UndoGroup &&other) {
+    _doc = other._doc;
+    _cursor = other._cursor;
+    _closed = other._closed;
+
+    other._doc = nullptr;
+    other._cursor = nullptr;
+}
+
 Document::UndoGroup::~UndoGroup() {
-    if (!_closed) {
+    if (!_closed && _doc) {
         closeGroup();
     }
 }
