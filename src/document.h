@@ -440,9 +440,7 @@ public:
 private: // TextCursor interface
     void removeFromLine(TextCursor *cursor, int line, int codeUnitStart, int codeUnits);
     void insertIntoLine(TextCursor *cursor, int line, int codeUnitStart, const QString &data);
-    void appendToLine(TextCursor *cursor, int line, const QString &data);
     void removeLines(TextCursor *cursor, int start, int count);
-    void insertLine(TextCursor *cursor, int before, const QString &data);
     void splitLine(TextCursor *cursor, TextCursor::Position pos);
     void mergeLines(TextCursor *cursor, int line);
     void saveUndoStep(TextCursor::Position cursorPosition, bool collapsable=false, bool collapse=false);

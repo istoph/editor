@@ -1326,14 +1326,6 @@ void Document::insertIntoLine(TextCursor *cursor, int line, int codeUnitStart, c
     noteContentsChange();
 }
 
-void Document::appendToLine(TextCursor *cursor, int line, const QString &data) {
-    _lines[line].revision++;
-    _lines[line].chars.append(data);
-
-    debugConsistencyCheck(cursor);
-    noteContentsChange();
-}
-
 void Document::removeLines(TextCursor *cursor, int start, int count) {
     _lines.remove(start, count);
 
@@ -1372,42 +1364,6 @@ void Document::removeLines(TextCursor *cursor, int start, int count) {
             positionMustBeSet = false;
         } else if (cursorLine >= start) {
             c->setPositionPreservingVerticalMovementColumn({0, start}, true);
-            positionMustBeSet = false;
-        }
-
-        if (positionMustBeSet) {
-            c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine}, true);
-        }
-    }
-
-    debugConsistencyCheck(cursor);
-    noteContentsChange();
-}
-
-void Document::insertLine(TextCursor *cursor, int before, const QString &data) {
-    _lines.insert(before, {data});
-
-    for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
-        if (m->line() >= before) {
-            m->setLine(m->line() + 1);
-        }
-    }
-    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
-        if (cursor == c) continue;
-
-        bool positionMustBeSet = false;
-
-        // anchor
-        const auto [anchorCodeUnit, anchorLine] = c->anchor();
-        if (anchorLine > before) {
-            c->setAnchorPosition({anchorCodeUnit, anchorLine + 1});
-            positionMustBeSet = true;
-        }
-
-        // position
-        const auto [cursorCodeUnit, cursorLine] = c->position();
-        if (cursorLine > before) {
-            c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine + 1}, true);
             positionMustBeSet = false;
         }
 
