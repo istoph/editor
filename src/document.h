@@ -459,9 +459,31 @@ private: // TextCursor + LineMarker interface
     void scheduleChangeSignals();
 
 private:
+    struct UndoCursor {
+        TextCursor *cursor;
+        bool anchorUpdated = false;
+        TextCursor::Position anchor = {0, 0};
+        bool positionUpdated = false;
+        TextCursor::Position position = {0, 0};
+
+        bool hasSelection() const {
+            return anchor != position;
+        }
+
+    };
+
+    struct UndoLineMarker {
+        LineMarker *marker;
+        bool updated = false;
+        int line = 0;
+    };
+
+private:
     void initalUndoStep(int endCodeUnit, int endLine);
     void noteContentsChange();
     void emitModifedSignals();
+    void applyCursorAdjustments(TextCursor *cursor,
+                                const QVector<std::function<void(QVector<UndoCursor>&, QVector<UndoLineMarker>&)>> &cursorAdjustments);
 
 private:
     struct UndoStep {
@@ -471,6 +493,8 @@ private:
         int endCursorCodeUnit;
         int endCursorLine;
         bool noNewlineAtEnd = false;
+        QVector<std::function<void(QVector<UndoCursor>&, QVector<UndoLineMarker>&)>> undoCursorAdjustments;
+        QVector<std::function<void(QVector<UndoCursor>&, QVector<UndoLineMarker>&)>> redoCursorAdjustments;
         bool collapsable = false;
     };
 
@@ -490,6 +514,8 @@ private:
     bool _undoGroupCollapse = false;
     struct PendingUndoStep {
         TextCursor::Position preModificationCursorPosition;
+        QVector<std::function<void(QVector<UndoCursor>&, QVector<UndoLineMarker>&)>> redoCursorAdjustments;
+        QVector<std::function<void(QVector<UndoCursor>&, QVector<UndoLineMarker>&)>> undoCursorAdjustments;
     };
     std::optional<PendingUndoStep> _pendingUpdateStep;
 

@@ -262,6 +262,58 @@ void Document::sortLines(int first, int last, TextCursor *cursorForUndoStep) {
 
     debugConsistencyCheck(nullptr);
 
+    auto redoTransform = [first, last, reorderBufferInverted] (QVector<UndoCursor> &cursors, QVector<UndoLineMarker> &markers) {
+        for (UndoCursor &c: cursors) {
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+
+            if (first <= anchorLine && anchorLine < last) {
+                c.anchor = {anchorCodeUnit, reorderBufferInverted[anchorLine - first]};
+                c.anchorUpdated = true;
+            }
+
+            if (first <= cursorLine && cursorLine < last) {
+                c.position = {cursorCodeUnit, reorderBufferInverted[cursorLine - first]};
+                c.positionUpdated = true;
+            }
+        }
+
+        for (UndoLineMarker &marker: markers) {
+            if (first <= marker.line && marker.line < last) {
+                marker.line = reorderBufferInverted[marker.line - first];
+                marker.updated = true;
+            }
+        }
+
+    };
+
+    auto undoTransform = [first, last, reorderBuffer](QVector<UndoCursor> &cursors, QVector<UndoLineMarker> &markers) {
+        for (UndoCursor &c: cursors) {
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+
+            if (first <= anchorLine && anchorLine < last) {
+                c.anchor = {anchorCodeUnit, reorderBuffer[anchorLine - first]};
+                c.anchorUpdated = true;
+            }
+
+            if (first <= cursorLine && cursorLine < last) {
+                c.position = {cursorCodeUnit, reorderBuffer[cursorLine - first]};
+                c.positionUpdated = true;
+            }
+        }
+
+        for (UndoLineMarker &marker: markers) {
+            if (first <= marker.line && marker.line < last) {
+                marker.line = reorderBuffer[marker.line - first];
+                marker.updated = true;
+            }
+        }
+    };
+
+    _pendingUpdateStep.value().redoCursorAdjustments.push_back(redoTransform);
+    _pendingUpdateStep.value().undoCursorAdjustments.prepend(undoTransform);
+
     noteContentsChange();
 
     saveUndoStep(cursorForUndoStep->position());
@@ -271,13 +323,19 @@ void Document::tmp_moveLine(int from, int to, TextCursor *cursorForUndoStep) {
     prepareModification(cursorForUndoStep->position());
 
     _lines.insert(to, _lines[from]);
+    int undoFrom;
+    int undoTo;
     if (from < to) {
         _lines.remove(from);
+        undoTo = from;
+        undoFrom = to - 1;
     } else {
         _lines.remove(from + 1);
+        undoTo = from + 1;
+        undoFrom = to;
     }
 
-    auto transform = [&](int line, int data, auto fn) {
+    auto transform = [](int from, int to, int line, int data, auto fn) {
         if (from < to) {
             // from         -> mid
             // mid          -> from
@@ -306,13 +364,13 @@ void Document::tmp_moveLine(int from, int to, TextCursor *cursorForUndoStep) {
         bool positionMustBeSet = false;
 
         // anchor
-        transform(anchorLine, anchorCodeUnit, [&](int line, int codeUnit) {
+        transform(from, to, anchorLine, anchorCodeUnit, [&](int line, int codeUnit) {
             c->setAnchorPosition({codeUnit, line});
             positionMustBeSet = true;
         });
 
         // position
-        transform(cursorLine, cursorCodeUnit, [&](int line, int codeUnit) {
+        transform(from, to, cursorLine, cursorCodeUnit, [&](int line, int codeUnit) {
             c->setPositionPreservingVerticalMovementColumn({codeUnit, line}, true);
             positionMustBeSet = false;
         });
@@ -323,12 +381,69 @@ void Document::tmp_moveLine(int from, int to, TextCursor *cursorForUndoStep) {
     }
     // similar for line markers
     for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
-        transform(m->line(), 0, [&](int line, int) {
+        transform(from, to, m->line(), 0, [&](int line, int) {
             m->setLine(line);
         });
     }
 
     debugConsistencyCheck(nullptr);
+
+    auto redoTransform = [from, to, transform] (QVector<UndoCursor> &cursors, QVector<UndoLineMarker> &markers) {
+        for (UndoCursor &c: cursors) {
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+
+            // anchor
+            transform(from, to, anchorLine, anchorCodeUnit, [&](int line, int codeUnit) {
+                c.anchor = {codeUnit, line};
+                c.anchorUpdated = true;
+            });
+
+            // position
+            transform(from, to, cursorLine, cursorCodeUnit, [&](int line, int codeUnit) {
+                c.position = {codeUnit, line};
+                c.positionUpdated = true;
+            });
+
+        }
+
+        for (UndoLineMarker &marker: markers) {
+            transform(from, to, marker.line, 0, [&](int line, int) {
+                marker.line = line;
+                marker.updated = true;
+            });
+        }
+
+    };
+
+    auto undoTransform = [undoFrom, undoTo, transform](QVector<UndoCursor> &cursors, QVector<UndoLineMarker> &markers) {
+        for (UndoCursor &c: cursors) {
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+
+            // anchor
+            transform(undoFrom, undoTo, anchorLine, anchorCodeUnit, [&](int line, int codeUnit) {
+                c.anchor = {codeUnit, line};
+                c.anchorUpdated = true;
+            });
+
+            // position
+            transform(undoFrom, undoTo, cursorLine, cursorCodeUnit, [&](int line, int codeUnit) {
+                c.position = {codeUnit, line};
+                c.positionUpdated = true;
+            });
+        }
+
+        for (UndoLineMarker &marker: markers) {
+            transform(undoFrom, undoTo, marker.line, 0, [&](int line, int) {
+                marker.line = line;
+                marker.updated = true;
+            });
+        }
+    };
+
+    _pendingUpdateStep.value().redoCursorAdjustments.push_back(redoTransform);
+    _pendingUpdateStep.value().undoCursorAdjustments.prepend(undoTransform);
 
     noteContentsChange();
 
@@ -351,6 +466,53 @@ void Document::debugConsistencyCheck(const TextCursor *exclude) {
     }
 }
 
+
+void Document::applyCursorAdjustments(TextCursor *cursor,
+                                      const QVector<std::function<void(QVector<UndoCursor>&, QVector<UndoLineMarker>&)>> &cursorAdjustments) {
+    // The adjustments don't necessarily have valid intermediate positions, so they can't replayed directly using the
+    // cursors. Instead work on a list of positions and update the cursors after all adjustments are applied.
+    QVector<UndoCursor> cursorPositions;
+    for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
+        if (cursor == c) continue;
+        cursorPositions.append({c, false, c->anchor(), false, c->position()});
+    }
+
+    // Same for line markers
+    QVector<UndoLineMarker> markerPositions;
+    for (LineMarker *m = lineMarkerList.first; m; m = m->markersList.next) {
+        markerPositions.append({m, false, m->line()});
+    }
+
+    for (const auto &adj: cursorAdjustments) {
+        adj(cursorPositions, markerPositions);
+    }
+
+    for (const UndoCursor &c: cursorPositions) {
+
+        bool positionMustBeSet = false;
+
+        if (c.anchorUpdated) {
+            c.cursor->setAnchorPosition(c.anchor);
+            positionMustBeSet = true;
+        }
+
+        if (c.positionUpdated) {
+            c.cursor->setPosition(c.position, true);
+            positionMustBeSet = false;
+        }
+
+        if (positionMustBeSet) {
+            c.cursor->setPositionPreservingVerticalMovementColumn(c.position, true);
+        }
+    }
+
+    for (UndoLineMarker &marker: markerPositions) {
+        if (marker.updated) {
+            marker.marker->setLine(marker.line);
+        }
+    }
+}
+
 void Document::undo(TextCursor *cursor) {
     if(_undoSteps.isEmpty()) {
         return;
@@ -362,6 +524,7 @@ void Document::undo(TextCursor *cursor) {
 
     const auto startCursorCodeUnit = _undoSteps[_currentUndoStep].startCursorCodeUnit;
     const auto startCursorLine = _undoSteps[_currentUndoStep].startCursorLine;
+    auto cursorAdjustments = _undoSteps[_currentUndoStep].undoCursorAdjustments;
 
     --_currentUndoStep;
 
@@ -371,7 +534,9 @@ void Document::undo(TextCursor *cursor) {
     cursor->setPosition({startCursorCodeUnit, startCursorLine});
     _nonewline = _undoSteps[_currentUndoStep].noNewlineAtEnd;
 
-    // ensure all cursors have valid positions.
+    applyCursorAdjustments(cursor, cursorAdjustments);
+
+    // ensure all cursors have valid positions, kept as a fallback for now.
     // Cursor positions after undo are still wonky as the undo state does not have enough information to properly
     // adjust the cursors, but at least all cursors should be on valid positions after this
     for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
@@ -409,8 +574,11 @@ void Document::redo(TextCursor *cursor) {
     _lines = _undoSteps[_currentUndoStep].lines;
     cursor->setPosition({_undoSteps[_currentUndoStep].endCursorCodeUnit, _undoSteps[_currentUndoStep].endCursorLine});
     _nonewline = _undoSteps[_currentUndoStep].noNewlineAtEnd;
+    auto cursorAdjustments = _undoSteps[_currentUndoStep].redoCursorAdjustments;
 
-    // ensure all cursors have valid positions.
+    applyCursorAdjustments(cursor, cursorAdjustments);
+
+    // ensure all cursors have valid positions, kept as a fallback for now.
     // Cursor positions after undo are still wonky as the undo state does not have enough information to properly
     // adjust the cursors, but at least all cursors should be on valid positions after this
     for (TextCursor *c = cursorList.first; c; c = c->markersList.next) {
@@ -462,6 +630,17 @@ void Document::closeUndoGroup(TextCursor *cursor) {
             saveUndoStep(cursor->position(), _undoGroupCollapsable, _undoGroupCollapse);
             _undoStepCreationDeferred = false;
         } else {
+            if (_pendingUpdateStep.has_value()) {
+                if (_pendingUpdateStep.value().redoCursorAdjustments.size()
+                    || _pendingUpdateStep.value().undoCursorAdjustments.size()) {
+
+                    qFatal("Document: Closing last undo group _pendingUpdateStep still containing changes.");
+                    abort();
+                }
+            } else {
+                qFatal("Document: Closing last undo group without _pendingUpdateStep set.");
+                abort();
+            }
             _pendingUpdateStep.reset();
         }
     } else {
@@ -545,7 +724,7 @@ void Document::initalUndoStep(int endCodeUnit, int endLine) {
     _collapseUndoStep = true;
     _groupUndo = 0;
     _undoSteps.clear();
-    _undoSteps.append({ _lines, endCodeUnit, endLine, endCodeUnit, endLine, _nonewline, false});
+    _undoSteps.append({ _lines, endCodeUnit, endLine, endCodeUnit, endLine, _nonewline, {}, {}, false});
     _currentUndoStep = 0;
     _savedUndoStep = _currentUndoStep;
     emitModifedSignals();
@@ -1189,7 +1368,7 @@ QFuture<DocumentFindAsyncResult> Document::findAsyncWithPool(QThreadPool *pool, 
 void Document::prepareModification(TextCursor::Position cursorPosition) {
     if (_groupUndo == 0) {
         if (_pendingUpdateStep.has_value()) {
-            qCritical("Document: Internal error, prepareModification called with already pending modification");
+            qFatal("Document: Internal error, prepareModification called with already pending modification");
             abort();
         }
     }
@@ -1214,8 +1393,13 @@ void Document::saveUndoStep(TextCursor::Position cursorPosition, bool collapsabl
             _undoSteps[_currentUndoStep].endCursorCodeUnit = endCodeUnit;
             _undoSteps[_currentUndoStep].endCursorLine = endLine;
             _undoSteps[_currentUndoStep].noNewlineAtEnd = _nonewline;
+            _undoSteps[_currentUndoStep].undoCursorAdjustments = _pendingUpdateStep.value().undoCursorAdjustments + _undoSteps[_currentUndoStep].undoCursorAdjustments;
+            _undoSteps[_currentUndoStep].redoCursorAdjustments += _pendingUpdateStep.value().redoCursorAdjustments;
         } else {
-            _undoSteps.append({ _lines, startCodeUnit, startLine, endCodeUnit, endLine, _nonewline, collapsable});
+            _undoSteps.append({ _lines, startCodeUnit, startLine, endCodeUnit, endLine, _nonewline,
+                                _pendingUpdateStep.value().undoCursorAdjustments,
+                                _pendingUpdateStep.value().redoCursorAdjustments,
+                                collapsable});
             _currentUndoStep = _undoSteps.size() - 1;
         }
         _collapseUndoStep = true;
@@ -1275,6 +1459,74 @@ void Document::removeFromLine(TextCursor *cursor, int line, int codeUnitStart, i
     }
 
     debugConsistencyCheck(cursor);
+
+    auto redoTransform = [line, codeUnitStart, codeUnits](QVector<UndoCursor> &cursors, QVector<UndoLineMarker>&) {
+        for (UndoCursor &c: cursors) {
+            // anchor
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            if (anchorLine == line) {
+                if (anchorCodeUnit >= codeUnitStart + codeUnits) {
+                    c.anchor = {anchorCodeUnit - codeUnits, anchorLine};
+                    c.anchorUpdated = true;
+                } else if (anchorCodeUnit >= codeUnitStart) {
+                    c.anchor = {codeUnitStart, anchorLine};
+                    c.anchorUpdated = true;
+                }
+            }
+
+            // position
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+            if (cursorLine == line) {
+                if (cursorCodeUnit >= codeUnitStart + codeUnits) {
+                    c.position = {cursorCodeUnit - codeUnits, cursorLine};
+                    c.positionUpdated = true;
+                } else if (cursorCodeUnit >= codeUnitStart) {
+                    c.position = {codeUnitStart, cursorLine};
+                    c.positionUpdated = true;
+                }
+            }
+        }
+    };
+
+    auto undoTransform = [line, codeUnitStart, codeUnits](QVector<UndoCursor> &cursors, QVector<UndoLineMarker>&) {
+        for (UndoCursor &c: cursors) {
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+
+            if (c.hasSelection()) {
+                const bool anchorBefore = anchorLine < cursorLine || (anchorLine == cursorLine && anchorCodeUnit < cursorCodeUnit);
+
+                // anchor
+                if (anchorLine == line) {
+                    const int anchorAdj = anchorBefore ? 0 : -1;
+                    if (anchorCodeUnit + anchorAdj >= codeUnitStart) {
+                        c.anchor = {anchorCodeUnit + codeUnits, anchorLine};
+                        c.anchorUpdated = true;
+                    }
+                }
+
+                // position
+                if (cursorLine == line) {
+                    const int cursorAdj = anchorBefore ? -1 : 1;
+                    if (cursorCodeUnit + cursorAdj >= codeUnitStart) {
+                        c.position = {cursorCodeUnit + codeUnits, cursorLine};
+                        c.positionUpdated = true;
+                    }
+                }
+            } else {
+                if (cursorLine == line && cursorCodeUnit >= codeUnitStart) {
+                    c.position = c.anchor = {cursorCodeUnit + codeUnits, cursorLine};
+                    c.positionUpdated = true;
+                    c.anchorUpdated = true;
+                }
+            }
+
+        }
+    };
+
+    _pendingUpdateStep.value().redoCursorAdjustments.push_back(redoTransform);
+    _pendingUpdateStep.value().undoCursorAdjustments.prepend(undoTransform);
+
     noteContentsChange();
 }
 
@@ -1323,6 +1575,74 @@ void Document::insertIntoLine(TextCursor *cursor, int line, int codeUnitStart, c
     }
 
     debugConsistencyCheck(cursor);
+
+    auto redoTransform = [line, codeUnitStart, codeUnits=data.size()](QVector<UndoCursor> &cursors, QVector<UndoLineMarker>&) {
+        for (UndoCursor &c: cursors) {
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+
+            if (c.hasSelection()) {
+                const bool anchorBefore = anchorLine < cursorLine || (anchorLine == cursorLine && anchorCodeUnit < cursorCodeUnit);
+
+                // anchor
+                if (anchorLine == line) {
+                    const int anchorAdj = anchorBefore ? 0 : -1;
+                    if (anchorCodeUnit + anchorAdj >= codeUnitStart) {
+                        c.anchor = {anchorCodeUnit + codeUnits, anchorLine};
+                        c.anchorUpdated = true;
+                    }
+                }
+
+                // position
+                if (cursorLine == line) {
+                    const int cursorAdj = anchorBefore ? -1 : 1;
+                    if (cursorCodeUnit + cursorAdj >= codeUnitStart) {
+                        c.position = {cursorCodeUnit + codeUnits, cursorLine};
+                        c.positionUpdated = true;
+                    }
+                }
+            } else {
+                if (cursorLine == line && cursorCodeUnit >= codeUnitStart) {
+                    c.position = c.anchor = {cursorCodeUnit + codeUnits, cursorLine};
+                    c.positionUpdated = true;
+                    c.anchorUpdated = true;
+                }
+            }
+
+        }
+    };
+
+    auto undoTransform = [line, codeUnitStart, codeUnits=data.size()](QVector<UndoCursor> &cursors, QVector<UndoLineMarker>&) {
+        for (UndoCursor &c: cursors) {
+            // anchor
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            if (anchorLine == line) {
+                if (anchorCodeUnit >= codeUnitStart + codeUnits) {
+                    c.anchor = {anchorCodeUnit - codeUnits, anchorLine};
+                    c.anchorUpdated = true;
+                } else if (anchorCodeUnit >= codeUnitStart) {
+                    c.anchor = {codeUnitStart, anchorLine};
+                    c.anchorUpdated = true;
+                }
+            }
+
+            // position
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+            if (cursorLine == line) {
+                if (cursorCodeUnit >= codeUnitStart + codeUnits) {
+                    c.position = {cursorCodeUnit - codeUnits, cursorLine};
+                    c.positionUpdated = true;
+                } else if (cursorCodeUnit >= codeUnitStart) {
+                    c.position = {codeUnitStart, cursorLine};
+                    c.positionUpdated = true;
+                }
+            }
+        }
+    };
+
+    _pendingUpdateStep.value().redoCursorAdjustments.push_back(redoTransform);
+    _pendingUpdateStep.value().undoCursorAdjustments.prepend(undoTransform);
+
     noteContentsChange();
 }
 
@@ -1373,6 +1693,79 @@ void Document::removeLines(TextCursor *cursor, int start, int count) {
     }
 
     debugConsistencyCheck(cursor);
+
+    auto redoTransform = [start, count, lineCount=_lines.size(), lastLineCodeUnits=_lines[_lines.size() - 1].chars.size()]
+            (QVector<UndoCursor> &cursors, QVector<UndoLineMarker> &markers) {
+        for (UndoCursor &c: cursors) {
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+
+            // anchor
+            if (anchorLine >= start + count) {
+                c.anchor = {anchorCodeUnit, anchorLine - count};
+                c.anchorUpdated = true;
+            } else if (anchorLine >= lineCount) {
+                c.anchor =  {lastLineCodeUnits, lineCount - 1};
+                c.anchorUpdated = true;
+            } else if (anchorLine >= start) {
+                c.anchor = {0, start};
+                c.anchorUpdated = true;
+            }
+
+            // position
+            if (cursorLine >= start + count) {
+                c.position = {cursorCodeUnit, cursorLine - count};
+                c.positionUpdated = true;
+            } else if (cursorLine >= lineCount) {
+                c.position = {lastLineCodeUnits, lineCount - 1};
+                c.positionUpdated = true;
+            } else if (cursorLine >= start) {
+                c.position = {0, start};
+                c.positionUpdated = true;
+            }
+        }
+
+        for (UndoLineMarker &marker: markers) {
+            if (marker.line > start + count) {
+                marker.line = marker.line - count;
+                marker.updated = true;
+            } else if (marker.line > start) {
+                marker.line = start;
+                marker.updated = true;
+            }
+        }
+
+    };
+
+    auto undoTransform = [start, count](QVector<UndoCursor> &cursors, QVector<UndoLineMarker> &markers) {
+        for (UndoCursor &c: cursors) {
+            // anchor
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+
+            if (anchorLine >= start) {
+                c.anchor = {anchorCodeUnit, anchorLine + count};
+                c.anchorUpdated = true;
+            }
+
+            // position
+            if (cursorLine >= start) {
+                c.position = {cursorCodeUnit, cursorLine + count};
+                c.positionUpdated = true;
+            }
+        }
+
+        for (UndoLineMarker &marker: markers) {
+            if (marker.line >= start) {
+                marker.line = marker.line + count;
+                marker.updated = true;
+            }
+        }
+    };
+
+    _pendingUpdateStep.value().redoCursorAdjustments.push_back(redoTransform);
+    _pendingUpdateStep.value().undoCursorAdjustments.prepend(undoTransform);
+
     noteContentsChange();
 }
 
@@ -1435,6 +1828,94 @@ void Document::splitLine(TextCursor *cursor, TextCursor::Position pos) {
     }
 
     debugConsistencyCheck(cursor);
+
+    auto redoTransform = [pos](QVector<UndoCursor> &cursors, QVector<UndoLineMarker> &markers) {
+        for (UndoCursor &c: cursors) {
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+
+            if (c.hasSelection()) {
+                // anchor
+                const bool anchorBefore = anchorLine < cursorLine || (anchorLine == cursorLine && anchorCodeUnit < cursorCodeUnit);
+
+                if (anchorLine > pos.line) {
+                    c.anchor = {anchorCodeUnit, anchorLine + 1};
+                    c.anchorUpdated = true;
+                } else if (anchorLine == pos.line) {
+                    const int anchorAdj = anchorBefore ? 0 : -1;
+                    if (anchorCodeUnit + anchorAdj >= pos.codeUnit) {
+                        c.anchor = {anchorCodeUnit - pos.codeUnit, anchorLine + 1};
+                        c.anchorUpdated = true;
+                    }
+                }
+
+                // position
+                if (cursorLine > pos.line) {
+                    c.position = {cursorCodeUnit, cursorLine + 1};
+                    c.positionUpdated = true;
+                } else if (cursorLine == pos.line) {
+                    const int cursorAdj = anchorBefore ? -1 : 1;
+                    if (cursorCodeUnit + cursorAdj >= pos.codeUnit) {
+                        c.position = {cursorCodeUnit - pos.codeUnit, cursorLine + 1};
+                        c.positionUpdated = true;
+                    }
+                }
+            } else {
+                if (cursorLine > pos.line) {
+                    c.position = c.anchor = {cursorCodeUnit, cursorLine + 1};
+                    c.anchorUpdated = true;
+                    c.positionUpdated = true;
+                } else if (cursorLine == pos.line && cursorCodeUnit >= pos.codeUnit) {
+                    c.position = c.anchor = {cursorCodeUnit - pos.codeUnit, cursorLine + 1};
+                    c.anchorUpdated = true;
+                    c.positionUpdated = true;
+                }
+            }
+        }
+
+        for (UndoLineMarker &marker: markers) {
+            if (marker.line > pos.line || (marker.line == pos.line && pos.codeUnit == 0)) {
+                marker.line = marker.line + 1;
+                marker.updated = true;
+            }
+        }
+    };
+
+    auto undoTransform = [pos](QVector<UndoCursor> &cursors, QVector<UndoLineMarker> &markers) {
+        for (UndoCursor &c: cursors) {
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+
+            // anchor
+            if (anchorLine > pos.line + 1) {
+                c.anchor = {anchorCodeUnit, anchorLine - 1};
+                c.anchorUpdated = true;
+            } else if (anchorLine == pos.line + 1) {
+                c.anchor = {pos.codeUnit + anchorCodeUnit, pos.line};
+                c.anchorUpdated = true;
+            }
+
+            // position
+            if (cursorLine > pos.line + 1) {
+                c.position = {cursorCodeUnit, cursorLine - 1};
+                c.positionUpdated = true;
+            } else if (cursorLine == pos.line + 1) {
+                c.position = {pos.codeUnit + cursorCodeUnit, pos.line};
+                c.positionUpdated = true;
+            }
+        }
+
+        for (UndoLineMarker &marker: markers) {
+            if (marker.line > pos.line || (marker.line - 1 == pos.line && pos.codeUnit == 0)) {
+                marker.line = marker.line - 1;
+                marker.updated = true;
+            }
+        }
+    };
+
+    _pendingUpdateStep.value().redoCursorAdjustments.push_back(redoTransform);
+    _pendingUpdateStep.value().undoCursorAdjustments.prepend(undoTransform);
+
     noteContentsChange();
 }
 
@@ -1485,6 +1966,92 @@ void Document::mergeLines(TextCursor *cursor, int line) {
     }
 
     debugConsistencyCheck(cursor);
+
+    auto redoTransform = [line, originalLineCodeUnits](QVector<UndoCursor> &cursors, QVector<UndoLineMarker> &markers) {
+        for (UndoCursor &c: cursors) {
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+
+            // anchor
+            if (anchorLine > line + 1) {
+                c.anchor = {anchorCodeUnit, anchorLine - 1};
+                c.anchorUpdated = true;
+            } else if (anchorLine == line + 1) {
+                c.anchor = {originalLineCodeUnits + anchorCodeUnit, line};
+                c.anchorUpdated = true;
+            }
+
+            // position
+            if (cursorLine > line + 1) {
+                c.position = {cursorCodeUnit, cursorLine - 1};
+                c.positionUpdated = true;
+            } else if (cursorLine == line + 1) {
+                c.position = {originalLineCodeUnits + cursorCodeUnit, line};
+                c.positionUpdated = true;
+            }
+        }
+        for (UndoLineMarker &marker: markers) {
+            if (marker.line > line) {
+                marker.line = marker.line - 1;
+                marker.updated = true;
+            }
+        }
+    };
+
+    auto undoTransform = [line, originalLineCodeUnits](QVector<UndoCursor> &cursors, QVector<UndoLineMarker> &markers) {
+        for (UndoCursor &c: cursors) {
+            const auto [anchorCodeUnit, anchorLine] = c.anchor;
+            const auto [cursorCodeUnit, cursorLine] = c.position;
+
+            if (c.hasSelection()) {
+                // anchor
+                const bool anchorBefore = anchorLine < cursorLine || (anchorLine == cursorLine && anchorCodeUnit < cursorCodeUnit);
+
+                if (anchorLine > line) {
+                    c.anchor = {anchorCodeUnit, anchorLine + 1};
+                    c.anchorUpdated = true;
+                } else if (anchorLine == line) {
+                    const int anchorAdj = anchorBefore ? 0 : -1;
+                    if (anchorCodeUnit + anchorAdj >= originalLineCodeUnits) {
+                        c.anchor = {anchorCodeUnit - originalLineCodeUnits, anchorLine + 1};
+                        c.anchorUpdated = true;
+                    }
+                }
+
+                // position
+                if (cursorLine > line) {
+                    c.position = {cursorCodeUnit, cursorLine + 1};
+                    c.positionUpdated = true;
+                } else if (cursorLine == line) {
+                    const int cursorAdj = anchorBefore ? -1 : 1;
+                    if (cursorCodeUnit + cursorAdj >= originalLineCodeUnits) {
+                        c.position = {cursorCodeUnit - originalLineCodeUnits, cursorLine + 1};
+                        c.positionUpdated = true;
+                    }
+                }
+            } else {
+                if (cursorLine > line) {
+                    c.position = c.anchor = {cursorCodeUnit, cursorLine + 1};
+                    c.anchorUpdated = true;
+                    c.positionUpdated = true;
+                } else if (cursorLine == line && cursorCodeUnit >= originalLineCodeUnits) {
+                    c.position = c.anchor = {cursorCodeUnit - originalLineCodeUnits, cursorLine + 1};
+                    c.anchorUpdated = true;
+                    c.positionUpdated = true;
+                }
+            }
+        }
+        for (UndoLineMarker &marker: markers) {
+            if (marker.line > line || (marker.line == line && originalLineCodeUnits == 0)) {
+                marker.line = marker.line + 1;
+                marker.updated = true;
+            }
+        }
+    };
+
+    _pendingUpdateStep.value().redoCursorAdjustments.push_back(redoTransform);
+    _pendingUpdateStep.value().undoCursorAdjustments.prepend(undoTransform);
+
     noteContentsChange();
 }
 
