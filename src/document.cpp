@@ -1270,7 +1270,7 @@ void Document::removeLines(TextCursor *cursor, int start, int count) {
 
         // anchor
         const auto [anchorCodeUnit, anchorLine] = c->anchor();
-        if (anchorLine > start + count) {
+        if (anchorLine >= start + count) {
             c->setAnchorPosition({anchorCodeUnit, anchorLine - count});
             positionMustBeSet = true;
         } else if (anchorLine >= _lines.size()) {
@@ -1283,7 +1283,7 @@ void Document::removeLines(TextCursor *cursor, int start, int count) {
 
         // position
         const auto [cursorCodeUnit, cursorLine] = c->position();
-        if (cursorLine > start + count) {
+        if (cursorLine >= start + count) {
             c->setPositionPreservingVerticalMovementColumn({cursorCodeUnit, cursorLine - count}, true);
             positionMustBeSet = false;
         } else if (cursorLine >= _lines.size()) {
