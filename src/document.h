@@ -130,8 +130,12 @@ public:
 
 public:
     TextCursor(Document *doc, Tui::ZWidget *widget, std::function<Tui::ZTextLayout(int line, bool wrappingAllowed)> createTextLayout);
+    TextCursor(const TextCursor &other);
     ~TextCursor();
 
+    TextCursor &operator=(const TextCursor &other);
+
+public:
     void insertText(const QString &text);
     void removeSelectedText();
     void clearSelection();

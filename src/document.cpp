@@ -1488,8 +1488,44 @@ TextCursor::TextCursor(Document *doc, Tui::ZWidget *widget, std::function<Tui::Z
     _doc->registerTextCursor(this);
 }
 
+TextCursor::TextCursor(const TextCursor &other)
+    : _cursorCodeUnit(other._cursorCodeUnit), _cursorLine(other._cursorLine),
+      _anchorCodeUnit(other._anchorCodeUnit), _anchorLine(other._anchorLine),
+      _VerticalMovementColumn(other._VerticalMovementColumn),
+      _doc(other._doc), _widget(other._widget), _createTextLayout(other._createTextLayout)
+{
+    _doc->registerTextCursor(this);
+}
+
 TextCursor::~TextCursor() {
     _doc->unregisterTextCursor(this);
+}
+
+TextCursor &TextCursor::operator=(const TextCursor &other) {
+    if (_doc != other._doc) {
+        _doc->unregisterTextCursor(this);
+        _doc = other._doc;
+        _doc->registerTextCursor(this);
+        scheduleChangeSignal();
+    }
+
+    _widget = other._widget;
+    _createTextLayout = other._createTextLayout;
+
+    if (_cursorCodeUnit != other._cursorCodeUnit
+        || _cursorLine != other._cursorLine
+        || _anchorCodeUnit != other._anchorCodeUnit
+        || _anchorLine != other._anchorLine
+        || _VerticalMovementColumn != other._VerticalMovementColumn) {
+        _cursorCodeUnit = other._cursorCodeUnit;
+        _cursorLine = other._cursorLine;
+        _anchorCodeUnit = other._anchorCodeUnit;
+        _anchorLine = other._anchorLine;
+        _VerticalMovementColumn = other._VerticalMovementColumn;
+        scheduleChangeSignal();
+    }
+
+    return *this;
 }
 
 void TextCursor::insertText(const QString &text) {
