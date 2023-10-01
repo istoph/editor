@@ -223,8 +223,11 @@ struct LineMarkerToDocumentTag;
 class LineMarker {
 public:
     explicit LineMarker(Document *doc);
+    LineMarker(const LineMarker &other);
     explicit LineMarker(Document *doc, int line);
     ~LineMarker();
+
+    LineMarker &operator=(const LineMarker &other);
 
 public:
     int line();

@@ -1956,12 +1956,34 @@ void TextCursor::debugConsistencyCheck() {
 LineMarker::LineMarker(Document *doc) : LineMarker(doc, 0) {
 }
 
+LineMarker::LineMarker(const LineMarker &other) : LineMarker(other._doc, other._line) {
+}
+
 LineMarker::LineMarker(Document *doc, int line) : _line(line), _doc(doc) {
     _doc->registerLineMarker(this);
 }
 
 LineMarker::~LineMarker() {
     _doc->unregisterLineMarker(this);
+}
+
+LineMarker &LineMarker::operator=(const LineMarker &other) {
+
+    if (_doc != other._doc) {
+        _doc->unregisterLineMarker(this);
+        _doc = other._doc;
+        _doc->registerLineMarker(this);
+        _changed = true;
+        _doc->scheduleChangeSignals();
+    }
+
+    if (_line == other._line) {
+        _line = other._line;
+        _changed = true;
+        _doc->scheduleChangeSignals();
+    }
+
+    return *this;
 }
 
 int LineMarker::line() {
