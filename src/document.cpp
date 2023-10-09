@@ -1210,8 +1210,6 @@ namespace {
     class SearchOnThread : public QRunnable {
     public:
         void run() override {
-            promise.reportStarted();
-
             if (promise.isCanceled()) {
                 promise.reportFinished();
                 return;
@@ -1309,11 +1307,12 @@ QFuture<DocumentFindAsyncResult> Document::findAsyncWithPool(QThreadPool *pool, 
 
     QFuture<DocumentFindAsyncResult> future = promise.future();
 
+    promise.reportStarted();
+
     if (subString.isEmpty()) {
         DocumentFindAsyncResult res{TextCursor::Position(0, 0), TextCursor::Position(0, 0),
                                     revision(), QRegularExpressionMatch{}};
 
-        promise.reportStarted();
         promise.reportResult(res);
         promise.reportFinished();
         return future;
@@ -1341,11 +1340,12 @@ QFuture<DocumentFindAsyncResult> Document::findAsyncWithPool(QThreadPool *pool, 
 
     QFuture<DocumentFindAsyncResult> future = promise.future();
 
+    promise.reportStarted();
+
     if (!expr.isValid()) {
         DocumentFindAsyncResult res{TextCursor::Position(0, 0), TextCursor::Position(0, 0),
                                     revision(), QRegularExpressionMatch{}};
 
-        promise.reportStarted();
         promise.reportResult(res);
         promise.reportFinished();
         return future;
