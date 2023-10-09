@@ -102,7 +102,7 @@ bool Document::readFrom(QIODevice *file, TextCursor::Position initialPosition, T
 
     bool allLinesCrLf = false;
 
-    for (int l = 0; l < lineCount(); l++) {
+    for (int l = 0; l < lineCount() - (_nonewline ? 1 : 0); l++) {
         if (_lines[l].chars.size() >= 1 && _lines[l].chars.at(_lines[l].chars.size() - 1) == QChar('\r')) {
             allLinesCrLf = true;
         } else {
@@ -111,7 +111,7 @@ bool Document::readFrom(QIODevice *file, TextCursor::Position initialPosition, T
         }
     }
     if (allLinesCrLf) {
-        for (int i = 0; i < lineCount(); i++) {
+        for (int i = 0; i < lineCount() - (_nonewline ? 1 : 0); i++) {
             _lines[i].chars.remove(_lines[i].chars.size() - 1, 1);
         }
     }
