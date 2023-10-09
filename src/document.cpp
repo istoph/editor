@@ -718,6 +718,7 @@ Document::UndoGroup::UndoGroup(Document *doc, TextCursor *cursor)
 void Document::markUndoStateAsSaved() {
     _undoSteps[_currentUndoStep].collapsable = false;
     _savedUndoStep = _currentUndoStep;
+    emitModifedSignals();
 }
 
 void Document::initalUndoStep(int endCodeUnit, int endLine) {
