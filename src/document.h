@@ -119,6 +119,7 @@ public:
         int codeUnit = 0; // in line
         int line = 0;
 
+        Position() {}
         Position(int codeUnit, int line) : codeUnit(codeUnit), line(line) {}
         friend bool operator<(const Position& a, const Position& b);
         friend bool operator<=(const Position& a, const Position& b);
