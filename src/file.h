@@ -19,13 +19,16 @@
 #endif
 
 #include <Tui/ZCommandNotifier.h>
+#include <Tui/ZDocument.h>
+#include <Tui/ZDocumentLineMarker.h>
+#include <Tui/ZDocumentSnapshot.h>
 #include <Tui/ZTextLayout.h>
+#include <Tui/ZTextMetrics.h>
 #include <Tui/ZTextOption.h>
 #include <Tui/ZWidget.h>
 
-#include "document.h"
 
-struct ExtraData : public UserData {
+struct ExtraData : public Tui::ZDocumentLineUserData {
 #ifdef SYNTAX_HIGHLIGHTING
     KSyntaxHighlighting::State stateBegin;
     KSyntaxHighlighting::State stateEnd;
@@ -74,11 +77,12 @@ class File : public Tui::ZWidget {
 
     friend class DocumentTestHelper;
 public:
-    using Position = TextCursor::Position;
+    using Position = Tui::ZDocumentCursor::Position;
 
 public:
-    explicit File(Tui::ZWidget *parent);
+    explicit File(Tui::ZTextMetrics textMetrics, Tui::ZWidget *parent);
     ~File();
+    Tui::ZDocument *document() { return _doc.get(); }
     bool setFilename(QString _filename);
     QString getFilename();
     //QString emptyFilename();
@@ -116,7 +120,7 @@ public:
     bool delSelect();
     void toggleOverwrite();
     bool isOverwrite();
-    void addTabAt(TextCursor &cur);
+    void addTabAt(Tui::ZDocumentCursor &cur);
     int getVisibleLines();
     void appendLine(const QString &line);
     void insertAtCursorPosition(const QString &str);
@@ -128,16 +132,14 @@ public:
     void setHighlightBracket(bool hb);
     bool getHighlightBracket();
     bool readAttributes();
-    TextCursor::Position getAttributes();
+    Tui::ZDocumentCursor::Position getAttributes();
     bool writeAttributes();
     void setAttributesfile(QString attributesfile);
     QString getAttributesfile();
-    bool getMsDosMode();
-    void setMsDosMode(bool msdos);
     int tabToSpace();
     int replaceAll(QString searchText, QString replaceText);
     QPoint getCursorPosition();
-    void setCursorPosition(TextCursor::Position position);
+    void setCursorPosition(Tui::ZDocumentCursor::Position position);
     QPoint getScrollPosition();
     void setRightMarginHint(int hint);
     int rightMarginHint() const;
@@ -180,7 +182,6 @@ signals:
     void textMax(int x, int y);
     void modifiedChanged(bool modified);
     void setWritable(bool rw);
-    void msdosMode(bool msdos);
     void modifiedSelectMode(bool f4);
     void emitSearchCount(int sc);
     void emitSearchText(QString searchText);
@@ -211,7 +212,7 @@ private:
     bool getSelectMode();
     int shiftLinenumber();
     Tui::ZTextLayout getTextLayoutForLineWithoutWrapping(int line);
-    TextCursor createCursor();
+    Tui::ZDocumentCursor createCursor();
     std::tuple<int, int, int> cursorPositionOrBlockSelectionEnd();
 
     // block selection
@@ -234,18 +235,19 @@ private:
 #endif
 
 private:
-    std::shared_ptr<Document> _doc;
-    TextCursor _cursor;
+    Tui::ZTextMetrics _textMetrics;
+    std::shared_ptr<Tui::ZDocument> _doc;
+    Tui::ZDocumentCursor _cursor;
 
     // block selection
     bool _blockSelect = false;
-    std::optional<LineMarker> _blockSelectStartLine;
-    std::optional<LineMarker> _blockSelectEndLine;
+    std::optional<Tui::ZDocumentLineMarker> _blockSelectStartLine;
+    std::optional<Tui::ZDocumentLineMarker> _blockSelectEndLine;
     int _blockSelectStartColumn = -1;
     int _blockSelectEndColumn = -1;
 
     int _scrollPositionX = 0;
-    LineMarker _scrollPositionY;
+    Tui::ZDocumentLineMarker _scrollPositionY;
     int _scrollFineLine = 0;
     bool _detachedScrolling = false;
     int _tabsize = 8;
@@ -260,7 +262,7 @@ private:
     bool _searchReg = false;
     bool _searchDirection = true;
     std::shared_ptr<std::atomic<int>> searchGeneration = std::make_shared<std::atomic<int>>();
-    std::optional<QFuture<DocumentFindAsyncResult>> _searchNextFuture;
+    std::optional<QFuture<Tui::ZDocumentFindAsyncResult>> _searchNextFuture;
     bool _follow = false;
     int _bracketX = -1;
     int _bracketY = -1;
@@ -268,7 +270,6 @@ private:
     QJsonObject _jo;
     bool _noattr = false;
     QString _attributesfile;
-    bool _msdos = false;
     bool _linenumber = false;
     bool _saveAs = true;
     bool _formattingCharacters = true;

@@ -2,12 +2,13 @@
 
 #include "searchcount.h"
 
+#include <Tui/ZDocumentSnapshot.h>
 
 SearchCount::SearchCount() {
 
 }
 
-void SearchCount::run(DocumentSnapshot snap, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
+void SearchCount::run(Tui::ZDocumentSnapshot snap, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
     int found = 0;
     for (int line = 0; line < snap.lineCount(); line++) {
         if (gen != *searchGen) {

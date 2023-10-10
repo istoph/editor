@@ -18,7 +18,7 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
                | Tui::ZWindow::AutomaticOption);
     setBorderEdges({ Qt::TopEdge });
 
-    _file = new File(this);
+    _file = new File(terminal()->textMetrics(), this);
 
     _scrollbarVertical = new ScrollBar(this);
     _scrollbarVertical->setTransparent(true);

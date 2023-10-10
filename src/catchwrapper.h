@@ -3,11 +3,12 @@
 #ifndef CATCHWRAPPER_H
 #define CATCHWRAPPER_H
 
-#include "document.h"
 
 #include <QString>
 #include <QRect>
+
 #include <Tui/ZColor.h>
+#include <Tui/ZDocument.h>
 
 #include <../third-party/catch.hpp>
 
@@ -42,8 +43,8 @@ namespace Catch {
     };
 
     template<>
-    struct StringMaker<TextCursor::Position, void> {
-        static std::string convert(TextCursor::Position const& value) {
+    struct StringMaker<Tui::ZDocumentCursor::Position, void> {
+        static std::string convert(Tui::ZDocumentCursor::Position const& value) {
             return QStringLiteral("(codeUnit: %0, line: %1)").arg(
                         QString::number(value.codeUnit),
                         QString::number(value.line)).toStdString();

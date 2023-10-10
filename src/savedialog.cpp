@@ -34,7 +34,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
 
     _dos = new Tui::ZCheckBox(Tui::withMarkup, "<m>D</m>OS Mode", this);
     _dos->setGeometry({3, 12, 16, 1});
-    if(file->getMsDosMode()) {
+    if(file->document()->crLfMode()) {
         _dos->setCheckState(Qt::Checked);
     } else {
         _dos->setCheckState(Qt::Unchecked);
@@ -60,9 +60,9 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     });
     QObject::connect(_dos, &Tui::ZCheckBox::stateChanged, [=] {
        if(_dos->checkState() == Qt::Checked) {
-            file->setMsDosMode(true);
+            file->document()->setCrLfMode(true);
        } else {
-            file->setMsDosMode(false);
+            file->document()->setCrLfMode(false);
        }
     });
     QObject::connect(_cancelButton, &Tui::ZButton::clicked, this, &SaveDialog::rejected);

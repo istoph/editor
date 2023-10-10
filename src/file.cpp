@@ -15,6 +15,9 @@
 
 #include <Tui/Misc/SurrogateEscape.h>
 #include <Tui/ZCommandNotifier.h>
+#include <Tui/ZDocumentCursor.h>
+#include <Tui/ZDocumentLineMarker.h>
+#include <Tui/ZDocumentSnapshot.h>
 #include <Tui/ZImage.h>
 #include <Tui/ZPainter.h>
 #include <Tui/ZShortcut.h>
@@ -26,8 +29,8 @@
 #include "searchcount.h"
 
 
-File::File(Tui::ZWidget *parent)
-    : Tui::ZWidget(parent), _doc(std::make_shared<Document>()),
+File::File(Tui::ZTextMetrics textMetrics, Tui::ZWidget *parent)
+    : Tui::ZWidget(parent), _textMetrics(textMetrics), _doc(std::make_shared<Tui::ZDocument>()),
       _cursor(createCursor()), _scrollPositionY(_doc.get())
 {
     setFocusPolicy(Qt::StrongFocus);
@@ -47,11 +50,11 @@ File::File(Tui::ZWidget *parent)
     _cmdUndo = new Tui::ZCommandNotifier("Undo", this, Qt::WindowShortcut);
     QObject::connect(_cmdUndo, &Tui::ZCommandNotifier::activated, this, &File::undo);
     _cmdUndo->setEnabled(false);
-    QObject::connect(_doc.get(), &Document::undoAvailable, _cmdUndo, &Tui::ZCommandNotifier::setEnabled);
+    QObject::connect(_doc.get(), &Tui::ZDocument::undoAvailable, _cmdUndo, &Tui::ZCommandNotifier::setEnabled);
     _cmdRedo = new Tui::ZCommandNotifier("Redo", this, Qt::WindowShortcut);
     QObject::connect(_cmdRedo, &Tui::ZCommandNotifier::activated, this, &File::redo);
     _cmdRedo->setEnabled(false);
-    QObject::connect(_doc.get(), &Document::redoAvailable, _cmdRedo, &Tui::ZCommandNotifier::setEnabled);
+    QObject::connect(_doc.get(), &Tui::ZDocument::redoAvailable, _cmdRedo, &Tui::ZCommandNotifier::setEnabled);
 
     _cmdSearchNext = new Tui::ZCommandNotifier("Search Next", this, Qt::WindowShortcut);
     QObject::connect(_cmdSearchNext, &Tui::ZCommandNotifier::activated, this, [this]{runSearch(false);});
@@ -69,9 +72,9 @@ File::File(Tui::ZWidget *parent)
             runSearch(true);
           });
 
-    QObject::connect(_doc.get(), &Document::modificationChanged, this, &File::modifiedChanged);
+    QObject::connect(_doc.get(), &Tui::ZDocument::modificationChanged, this, &File::modifiedChanged);
 
-    QObject::connect(_doc.get(), &Document::lineMarkerChanged, this, [this](const LineMarker *marker) {
+    QObject::connect(_doc.get(), &Tui::ZDocument::lineMarkerChanged, this, [this](const Tui::ZDocumentLineMarker *marker) {
         if (marker == &_scrollPositionY || (_blockSelectEndLine && marker == &*_blockSelectEndLine)) {
             // Recalculate the scroll position:
             //  * In case any editing from outside of this class moved our scroll position line marker to ensure
@@ -91,7 +94,7 @@ File::File(Tui::ZWidget *parent)
         }
     });
 
-    QObject::connect(_doc.get(), &Document::cursorChanged, this, [this](const TextCursor *marker) {
+    QObject::connect(_doc.get(), &Tui::ZDocument::cursorChanged, this, [this](const Tui::ZDocumentCursor *marker) {
         if (marker == &_cursor) {
             // Ensure that even if editing from outside of this class moved the cursor position it is still in the
             // visible portion of the widget.
@@ -107,7 +110,7 @@ File::File(Tui::ZWidget *parent)
 #ifdef SYNTAX_HIGHLIGHTING
     qRegisterMetaType<Updates>();
 
-    QObject::connect(_doc.get(), &Document::contentsChanged, this, [this] {
+    QObject::connect(_doc.get(), &Tui::ZDocument::contentsChanged, this, [this] {
         updateSyntaxHighlighting(false);
     });
 #endif
@@ -125,7 +128,7 @@ void File::updateSyntaxHighlighting(bool force = false) {
         return;
     }
 
-    DocumentSnapshot snapshot = _doc->snapshot();
+    Tui::ZDocumentSnapshot snapshot = _doc->snapshot();
     SyntaxHighlightingSignalForwarder *forwarder = new SyntaxHighlightingSignalForwarder();
     forwarder->moveToThread(nullptr); // enable later pull to worker thread
     QObject::connect(forwarder, &SyntaxHighlightingSignalForwarder::updates, this, &File::ingestSyntaxHighlightingUpdates);
@@ -317,7 +320,7 @@ bool File::readAttributes() {
     return true;
 }
 
-TextCursor::Position File::getAttributes() {
+Tui::ZDocumentCursor::Position File::getAttributes() {
     if (_attributesfile.isEmpty()) {
         return {0, 0};
     }
@@ -381,15 +384,6 @@ QString File::getAttributesfile() {
     return _attributesfile;
 }
 
-bool File::getMsDosMode() {
-    return _msdos;
-}
-
-void File::setMsDosMode(bool msdos) {
-    _msdos = msdos;
-    msdosMode(_msdos);
-}
-
 int File::tabToSpace() {
     auto undoGroup = _doc->startUndoGroup(&_cursor);
 
@@ -406,7 +400,7 @@ int File::tabToSpace() {
     Tui::ZTextLayout lay = getTextLayoutForLine(option, cursorLine);
     int cursorPosition = lay.lineAt(0).cursorToX(cursorCodeUnit, Tui::ZTextLayout::Leading);
 
-    TextCursor cur = createCursor();
+    Tui::ZDocumentCursor cur = createCursor();
 
     for (int line = 0, found = -1; line < _doc->lineCount(); line++) {
         found = _doc->line(line).lastIndexOf("\t");
@@ -439,7 +433,7 @@ QPoint File::getCursorPosition() {
     return {cursorCodeUnit, cursorLine};
 }
 
-void File::setCursorPosition(TextCursor::Position position) {
+void File::setCursorPosition(Tui::ZDocumentCursor::Position position) {
     if (_blockSelect) {
         disableBlockSelection();
     }
@@ -506,7 +500,6 @@ bool File::initText() {
     _cursor.setPosition({0, 0});
     cursorPositionChanged(0, 0, 0);
     scrollPositionChanged(0, 0);
-    setMsDosMode(false);
     update();
     return true;
 }
@@ -517,7 +510,7 @@ bool File::saveText() {
     QFile file(getFilename());
     //QSaveFile file(getFilename());
     if (file.open(QIODevice::WriteOnly)) {
-        _doc->writeTo(&file, getMsDosMode());
+        _doc->writeTo(&file, _doc->crLfMode());
 
         //file.commit();
         file.close();
@@ -571,10 +564,9 @@ bool File::openText(QString filename) {
     if (file.open(QIODevice::ReadOnly)) {
         initText();
 
-        TextCursor::Position initialPosition = getAttributes();
-        _msdos = _doc->readFrom(&file, initialPosition, &_cursor);
+        Tui::ZDocumentCursor::Position initialPosition = getAttributes();
+        _doc->readFrom(&file, initialPosition, &_cursor);
         file.close();
-        msdosMode(_msdos);
 
         if (getWritable()) {
             setSaveAs(false);
@@ -965,7 +957,7 @@ void File::blockSelectRemoveSelectedAndConvertToMultiInsert() {
         const int selFirstCodeUnitInLine = tlrSel.xToCursor(firstSelectBlockColumn);
         const int selLastCodeUnitInLine = tlrSel.xToCursor(lastSelectBlockColumn);
 
-        TextCursor cur = createCursor();
+        Tui::ZDocumentCursor cur = createCursor();
         cur.setPosition({selFirstCodeUnitInLine, line});
         cur.setPosition({selLastCodeUnitInLine, line}, true);
         cur.removeSelectedText();
@@ -991,7 +983,7 @@ void File::multiInsertForEachCursor(int flags, F f) {
 
         const int codeUnitInLine = tlrSel.xToCursor(column);
 
-        TextCursor cur = createCursor();
+        Tui::ZDocumentCursor cur = createCursor();
         cur.setPosition({codeUnitInLine, line});
 
         bool skip = false;
@@ -1027,7 +1019,7 @@ void File::multiInsertForEachCursor(int flags, F f) {
 
 void File::multiInsertDeletePreviousCharacter() {
     // pre-condition: hasMultiInsert() = true
-    multiInsertForEachCursor(mi_skip_short_lines, [&](TextCursor &cur) {
+    multiInsertForEachCursor(mi_skip_short_lines, [&](Tui::ZDocumentCursor &cur) {
         const auto [cursorCodeUnit, cursorLine] = cur.position();
         if (cursorCodeUnit > 0) {
             cur.deletePreviousCharacter();
@@ -1037,7 +1029,7 @@ void File::multiInsertDeletePreviousCharacter() {
 
 void File::multiInsertDeletePreviousWord() {
     // pre-condition: hasMultiInsert() = true
-    multiInsertForEachCursor(mi_skip_short_lines, [&](TextCursor &cur) {
+    multiInsertForEachCursor(mi_skip_short_lines, [&](Tui::ZDocumentCursor &cur) {
         const auto [cursorCodeUnit, cursorLine] = cur.position();
         if (cursorCodeUnit > 0) {
             cur.deletePreviousWord();
@@ -1047,7 +1039,7 @@ void File::multiInsertDeletePreviousWord() {
 
 void File::multiInsertDeleteCharacter() {
     // pre-condition: hasMultiInsert() = true
-    multiInsertForEachCursor(mi_skip_short_lines, [&](TextCursor &cur) {
+    multiInsertForEachCursor(mi_skip_short_lines, [&](Tui::ZDocumentCursor &cur) {
         const auto [cursorCodeUnit, cursorLine] = cur.position();
         if (cursorCodeUnit < _doc->lineCodeUnits(cursorLine)) {
             cur.deleteCharacter();
@@ -1057,7 +1049,7 @@ void File::multiInsertDeleteCharacter() {
 
 void File::multiInsertDeleteWord() {
     // pre-condition: hasMultiInsert() = true
-    multiInsertForEachCursor(mi_skip_short_lines, [&](TextCursor &cur) {
+    multiInsertForEachCursor(mi_skip_short_lines, [&](Tui::ZDocumentCursor &cur) {
         const auto [cursorCodeUnit, cursorLine] = cur.position();
         if (cursorCodeUnit < _doc->lineCodeUnits(cursorLine)) {
             cur.deleteWord();
@@ -1067,7 +1059,7 @@ void File::multiInsertDeleteWord() {
 
 void File::multiInsertInsert(const QString &text) {
     // pre-condition: hasMultiInsert() = true
-    multiInsertForEachCursor(mi_add_spaces, [&](TextCursor &cur) {
+    multiInsertForEachCursor(mi_add_spaces, [&](Tui::ZDocumentCursor &cur) {
         cur.insertText(text);
     });
 }
@@ -1090,7 +1082,7 @@ void File::setSearchText(QString searchText) {
     SearchCountSignalForwarder *searchCountSignalForwarder = new SearchCountSignalForwarder();
     QObject::connect(searchCountSignalForwarder, &SearchCountSignalForwarder::searchCount, this, &File::emitSearchCount);
 
-    QtConcurrent::run([searchCountSignalForwarder](DocumentSnapshot snap, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
+    QtConcurrent::run([searchCountSignalForwarder](Tui::ZDocumentSnapshot snap, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
         SearchCount sc;
         QObject::connect(&sc, &SearchCount::searchCount, searchCountSignalForwarder, &SearchCountSignalForwarder::searchCount);
         sc.run(snap, searchText, caseSensitivity, gen, searchGen);
@@ -1185,28 +1177,28 @@ void File::runSearch(bool direction) {
 
         const bool effectiveDirection = direction ^ _searchDirection;
 
-        Document::FindFlags flags;
+        Tui::ZDocument::FindFlags flags;
         if (_searchCaseSensitivity == Qt::CaseSensitive) {
-            flags |= Document::FindFlag::FindCaseSensitively;
+            flags |= Tui::ZDocument::FindFlag::FindCaseSensitively;
         }
         if (_searchWrap) {
-            flags |= Document::FindFlag::FindWrap;
+            flags |= Tui::ZDocument::FindFlag::FindWrap;
         }
         if (!effectiveDirection) {
-            flags |= Document::FindFlag::FindBackward;
+            flags |= Tui::ZDocument::FindFlag::FindBackward;
         }
 
-        auto watcher = new QFutureWatcher<DocumentFindAsyncResult>();
+        auto watcher = new QFutureWatcher<Tui::ZDocumentFindAsyncResult>();
 
-        QObject::connect(watcher, &QFutureWatcher<DocumentFindAsyncResult>::finished, this, [this, watcher] {
+        QObject::connect(watcher, &QFutureWatcher<Tui::ZDocumentFindAsyncResult>::finished, this, [this, watcher] {
             if (!watcher->isCanceled()) {
-                DocumentFindAsyncResult res = watcher->future().result();
-                if (res.anchor != res.cursor) { // has a match?
+                Tui::ZDocumentFindAsyncResult res = watcher->future().result();
+                if (res.anchor() != res.cursor()) { // has a match?
                     // Get rid of block selections and multi insert.
                     resetSelect();
 
-                    _cursor.setPosition(res.anchor);
-                    _cursor.setPosition(res.cursor, true);
+                    _cursor.setPosition(res.anchor());
+                    _cursor.setPosition(res.cursor(), true);
 
                     updateCommands();
 
@@ -1244,14 +1236,14 @@ int File::replaceAll(QString searchText, QString replaceText) {
     auto undoGroup = _doc->startUndoGroup(&_cursor);
     int counter = 0;
 
-    Document::FindFlags flags;
+    Tui::ZDocument::FindFlags flags;
     if (_searchCaseSensitivity == Qt::CaseSensitive) {
-        flags |= Document::FindFlag::FindCaseSensitively;
+        flags |= Tui::ZDocument::FindFlag::FindCaseSensitively;
     }
 
     _cursor.setPosition({0, 0});
     while (true) {
-        TextCursor found = _cursor;
+        Tui::ZDocumentCursor found = _cursor;
         if (_searchReg) {
             found = _doc->findSync(QRegularExpression(_searchText), _cursor, flags);
         } else {
@@ -1428,9 +1420,9 @@ Tui::ZTextLayout File::getTextLayoutForLineWithoutWrapping(int line) {
     return getTextLayoutForLine(option, line);
 }
 
-TextCursor File::createCursor() {
-    return TextCursor(_doc.get(), this, [this](int line, bool wrappingAllowed) {
-        Tui::ZTextLayout lay(terminal()->textMetrics(), _doc->line(line));
+Tui::ZDocumentCursor File::createCursor() {
+    return Tui::ZDocumentCursor(_doc.get(), [this](int line, bool wrappingAllowed) {
+        Tui::ZTextLayout lay(_textMetrics, _doc->line(line));
         Tui::ZTextOption option;
         option.setTabStopDistance(_tabsize);
         if (wrappingAllowed) {
@@ -1478,8 +1470,8 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     const int firstSelectBlockColumn = std::min(_blockSelectStartColumn, _blockSelectEndColumn);
     const int lastSelectBlockColumn = std::max(_blockSelectStartColumn, _blockSelectEndColumn);
 
-    TextCursor::Position startSelectCursor(-1, -1);
-    TextCursor::Position endSelectCursor(-1, -1);
+    Tui::ZDocumentCursor::Position startSelectCursor(-1, -1);
+    Tui::ZDocumentCursor::Position endSelectCursor(-1, -1);
 
     if (_cursor.hasSelection()) {
         startSelectCursor = _cursor.selectionStartPos();
@@ -1688,7 +1680,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         }
         y += lay.lineCount();
     }
-    if (_doc->noNewLine()) {
+    if (_doc->newlineAfterLastLineMissing()) {
         if (formattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
             const Tui::ZTextStyle &markStyle = (_rightMarginHint && tmpLastLineWidth > _rightMarginHint) ? formatingCharInMargin : formatingChar;
 
@@ -1702,7 +1694,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     }
 }
 
-void File::addTabAt(TextCursor &cur) {
+void File::addTabAt(Tui::ZDocumentCursor &cur) {
     auto undoGroup = _doc->startUndoGroup(&_cursor);
 
     if (getTabOption()) {
@@ -1725,7 +1717,7 @@ int File::getVisibleLines() {
 }
 
 void File::appendLine(const QString &line) {
-    TextCursor cur = createCursor();
+    Tui::ZDocumentCursor cur = createCursor();
     if (_doc->lineCount() == 1 && _doc->lineCodeUnits(0) == 0) {
         cur.insertText(line);
     } else {
@@ -1766,7 +1758,7 @@ void File::insertAtCursorPosition(const QString &str) {
                 Tui::ZTextLayout laySel = getTextLayoutForLineWithoutWrapping(line);
                 Tui::ZTextLineRef tlrSel = laySel.lineAt(0);
 
-                TextCursor cur = createCursor();
+                Tui::ZDocumentCursor cur = createCursor();
 
                 const int codeUnitInLine = tlrSel.xToCursor(column);
                 cur.setPosition({codeUnitInLine, line});
@@ -1961,7 +1953,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _cursor.deleteWord();
             } else {
                 if (_cursor.atEnd()) {
-                    _doc->setNoNewline(true);
+                    _doc->setNewlineAfterLastLineMissing(true);
                 }
                 _cursor.deleteCharacter();
             }
@@ -2281,7 +2273,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 blockSelectRemoveSelectedAndConvertToMultiInsert();
             }
 
-            multiInsertForEachCursor(mi_add_spaces, [&](TextCursor &cur) {
+            multiInsertForEachCursor(mi_add_spaces, [&](Tui::ZDocumentCursor &cur) {
                 addTabAt(cur);
             });
         } else if (_cursor.hasSelection()) {
@@ -2293,7 +2285,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             const bool savedSelectMode = getSelectMode();
             resetSelect();
 
-            TextCursor cur = createCursor();
+            Tui::ZDocumentCursor cur = createCursor();
 
             for (int line = firstLine; line <= lastLine; line++) {
                 if (_doc->lineCodeUnits(line) > 0) {
@@ -2434,7 +2426,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             resetSelect();
 
             // move lines up
-            _doc->tmp_moveLine(firstLine - 1, endLine + 1, &_cursor);
+            _doc->moveLine(firstLine - 1, endLine, &_cursor);
 
             // Update cursor / recreate selection
             if (!reselect) {
@@ -2461,7 +2453,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             resetSelect();
 
             // Move lines down
-            _doc->tmp_moveLine(lastLine + 1, firstLine, &_cursor);
+            _doc->moveLine(lastLine + 1, firstLine, &_cursor);
 
             // Update cursor / recreate selection
             if (!reselect) {

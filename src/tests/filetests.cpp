@@ -2,20 +2,20 @@
 
 #include "catchwrapper.h"
 
-#include "Tui/ZRoot.h"
-#include "Tui/ZTerminal.h"
-#include "Tui/ZTest.h"
-#include "Tui/ZTextMetrics.h"
-#include "Tui/ZWindow.h"
+#include <Tui/ZDocument.h>
+#include <Tui/ZRoot.h>
+#include <Tui/ZTerminal.h>
+#include <Tui/ZTest.h>
+#include <Tui/ZTextMetrics.h>
+#include <Tui/ZWindow.h>
 
 #include "clipboard.h"
-#include "document.h"
 #include "file.h"
 #include "eventrecorder.h"
 
 class DocumentTestHelper {
 public:
-    Document &getDoc(File *f) {
+    Tui::ZDocument &getDoc(File *f) {
         return *f->_doc;
     }
     void f3(bool backward, Tui::ZTerminal *terminal, File *f) {
@@ -56,13 +56,13 @@ TEST_CASE("file") {
     terminal.setMainWidget(&root);
     w->setGeometry({0, 0, 80, 24});
 
-    File *f = new File(w);
+    File *f = new File(terminal.textMetrics(), w);
     f->setFocus();
     f->setGeometry({0, 0, 80, 24});
 
     DocumentTestHelper t;
-    Document &doc = t.getDoc(f);
-    TextCursor cursor{&doc, f, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line)); lay.doLayout(65000); return lay; }};
+    Tui::ZDocument &doc = t.getDoc(f);
+    Tui::ZDocumentCursor cursor{&doc, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line)); lay.doLayout(65000); return lay; }};
 
     //OHNE TEXT
     CHECK(f->getCursorPosition() == QPoint{0,0});
@@ -178,12 +178,12 @@ TEST_CASE("file-getseter") {
     terminal.setMainWidget(&root);
     w->setGeometry({0, 0, 80, 24});
 
-    File *f = new File(w);
+    File *f = new File(terminal.textMetrics(), w);
 
     DocumentTestHelper t;
 
-    Document &doc = t.getDoc(f);
-    TextCursor cursor{&doc, f, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line)); lay.doLayout(65000); return lay; }};
+    Tui::ZDocument &doc = t.getDoc(f);
+    Tui::ZDocumentCursor cursor{&doc, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line)); lay.doLayout(65000); return lay; }};
 
     CHECK(f->getFilename() == "");
     CHECK(f->isInsertable() == false);
@@ -201,7 +201,7 @@ TEST_CASE("file-getseter") {
     CHECK(f->getHighlightBracket() == false);
     CHECK(f->readAttributes() == false);
     CHECK(f->getAttributesfile() == "");
-    CHECK(f->getMsDosMode() == false);
+    CHECK(f->document()->crLfMode() == false);
     CHECK(f->tabToSpace() == false);
     CHECK(f->getCursorPosition() == QPoint{0,0});
     CHECK(f->getScrollPosition() == QPoint{0,0});
@@ -296,10 +296,10 @@ TEST_CASE("file-getseter") {
         CHECK(f->isOverwrite() == false);
     }
     SECTION("getMsDosMode") {
-        f->setMsDosMode(true);
-        CHECK(f->getMsDosMode() == true);
-        f->setMsDosMode(false);
-        CHECK(f->getMsDosMode() == false);
+        f->document()->setCrLfMode(true);
+        CHECK(f->document()->crLfMode() == true);
+        f->document()->setCrLfMode(false);
+        CHECK(f->document()->crLfMode() == false);
         //TODO check output file
     }
     SECTION("rightMarginHint") {
@@ -319,12 +319,12 @@ TEST_CASE("actions") {
     terminal.setMainWidget(&root);
     w->setGeometry({0, 0, 80, 24});
 
-    File *f = new File(w);
+    File *f = new File(terminal.textMetrics(), w);
 
     DocumentTestHelper t;
 
-    Document &doc = t.getDoc(f);
-    TextCursor cursor{&doc, f, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line)); lay.doLayout(65000); return lay; }};
+    Tui::ZDocument &doc = t.getDoc(f);
+    Tui::ZDocumentCursor cursor{&doc, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line)); lay.doLayout(65000); return lay; }};
 
     f->setFocus();
     f->setGeometry({0, 0, 80, 24});
@@ -416,7 +416,7 @@ TEST_CASE("actions") {
         CHECK(doc.lineCount() == 3);
         CHECK(f->getCursorPosition() == QPoint{1,2});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, Qt::KeyboardModifier::NoModifier);
-        CHECK(f->getCursorPosition() == QPoint{1,0});
+        CHECK(f->getCursorPosition() == QPoint{0,0});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::NoModifier);
         CHECK(f->getCursorPosition() == QPoint{0,0});
         CHECK(f->isSelect() == false);
@@ -437,33 +437,27 @@ TEST_CASE("actions") {
         f->insertAtCursorPosition("3\n2\n1");
         CHECK(doc.lineCount() == 3);
         CHECK(f->getCursorPosition() == QPoint{1,2});
-        Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, Qt::KeyboardModifier::NoModifier);
-        CHECK(f->getCursorPosition() == QPoint{1,0});
-        CHECK(f->isSelect() == false);
-        Tui::ZTest::sendKey(&terminal, Qt::Key_Down, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == QPoint{1,1});
+        Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, Qt::KeyboardModifier::ShiftModifier);
+        CHECK(f->getCursorPosition() == QPoint{0,0});
         CHECK(f->isSelect() == true);
-        Tui::ZTest::sendKey(&terminal, Qt::Key_Down, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == QPoint{1,2});
-        CHECK(f->isSelect() == true);
-        CHECK(f->getSelectText() == "\n2\n1");
+        CHECK(f->getSelectText() == "3\n2\n1");
         Tui::ZTest::sendText(&terminal, "S", Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier);
         CHECK(doc.line(0) == "1");
         CHECK(doc.line(1) == "2");
         CHECK(doc.line(2) == "3");
     }
-    SECTION("sort-231") {
+    SECTION("sort-3") {
         f->newText("123");
         f->insertAtCursorPosition("3\n2\n1");
         CHECK(doc.lineCount() == 3);
         CHECK(f->getCursorPosition() == QPoint{1,2});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, Qt::KeyboardModifier::NoModifier);
-        CHECK(f->getCursorPosition() == QPoint{1,0});
+        CHECK(f->getCursorPosition() == QPoint{0,0});
         CHECK(f->isSelect() == false);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Right, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == QPoint{0,1});
+        CHECK(f->getCursorPosition() == QPoint{1,0});
         CHECK(f->isSelect() == true);
-        CHECK(f->getSelectText() == "\n");
+        CHECK(f->getSelectText() == "3");
         Tui::ZTest::sendText(&terminal, "S", Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier);
         CHECK(doc.line(0) == "3");
         CHECK(doc.line(1) == "2");
@@ -586,6 +580,8 @@ TEST_CASE("actions") {
     }
 
     SECTION("move-lines-up") {
+        CHECK(doc.lineCount() == 2);
+        CHECK(f->getScrollPosition() == QPoint{0,0});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Up, (Qt::KeyboardModifier::ShiftModifier | Qt::KeyboardModifier::ControlModifier));
         CHECK(doc.line(0) == "    new1");
     }
@@ -658,36 +654,6 @@ TEST_CASE("actions") {
         CHECK(f->getCursorPosition() == QPoint{8,1});
     }
 
-    //up down
-    SECTION("up-down-page-up-page-down") {
-        //is this case up and page-up are the same
-        Qt::KeyboardModifier shift = GENERATE(Qt::KeyboardModifier::NoModifier, Qt::KeyboardModifier::ShiftModifier);
-        CAPTURE(shift);
-
-        struct TestCase { int line; Qt::Key up; Qt::Key down; };
-        auto testCase = GENERATE( TestCase{__LINE__, Qt::Key_Up, Qt::Key_Down},
-                                  TestCase{__LINE__, Qt::Key_PageUp, Qt::Key_PageDown});
-
-        CHECK(f->getCursorPosition() == QPoint{8,1});
-        Tui::ZTest::sendKey(&terminal, testCase.up, shift);
-        CHECK(f->getCursorPosition() == QPoint{8,0});
-        Tui::ZTest::sendKey(&terminal, testCase.down, shift);
-        CHECK(f->getCursorPosition() == QPoint{8,1});
-
-        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == QPoint{4,1});
-        Tui::ZTest::sendKey(&terminal, testCase.up, shift);
-        CHECK(f->getCursorPosition() == QPoint{4,0});
-        Tui::ZTest::sendKey(&terminal, testCase.down, shift);
-        CHECK(f->getCursorPosition() == QPoint{4,1});
-
-        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == QPoint{0,1});
-        Tui::ZTest::sendKey(&terminal, testCase.up, shift);
-        CHECK(f->getCursorPosition() == QPoint{0,0});
-        Tui::ZTest::sendKey(&terminal, testCase.down, shift);
-        CHECK(f->getCursorPosition() == QPoint{0,1});
-    }
     SECTION("up-down-page-up-page-down") {
         Qt::KeyboardModifier shift = GENERATE(Qt::KeyboardModifier::NoModifier, Qt::KeyboardModifier::ShiftModifier);
         CAPTURE(shift);
@@ -698,10 +664,9 @@ TEST_CASE("actions") {
 
         CHECK(f->getCursorPosition() == QPoint{8,2});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, shift);
-        CHECK(f->getCursorPosition() == QPoint{8,0});
+        CHECK(f->getCursorPosition() == QPoint{0,0});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageDown, shift);
         CHECK(f->getCursorPosition() == QPoint{8,2});
-
     }
 
     //esc
@@ -1131,7 +1096,7 @@ TEST_CASE("actions") {
 
         f->selectAll();
         f->insertAtCursorPosition("asd \n\nasd");
-        f->setCursorPosition(TextCursor::Position{4,0});
+        f->setCursorPosition(Tui::ZDocumentCursor::Position{4,0});
         CHECK(f->getCursorPosition() == QPoint{4,0});
         CHECK(f->isSelect() == false);
         recorder.clearEvents();

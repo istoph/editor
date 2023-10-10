@@ -9,6 +9,8 @@
 #include <QCryptographicHash>
 #include <QFile>
 
+#include <Tui/ZTerminal.h>
+
 int main( int argc, char* argv[] ) {
   QCoreApplication app(argc, argv);
 
@@ -32,9 +34,12 @@ QByteArray fileChecksum(const QString &fileName,
 }
 
 void readWrite(QString in) {
+    Tui::ZTerminal::OffScreen of(80, 24);
+    Tui::ZTerminal terminal(of);
+
     QString out = in + "_dub";
 
-    File *f = new File(nullptr);
+    File *f = new File(terminal.textMetrics(), nullptr);
     //f->setFilename(in);
     CHECK(f->openText(in));
     f->setFilename(out);

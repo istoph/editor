@@ -4,7 +4,6 @@ main = ['main.cpp']
 
 #ide:editable-filelist
 tests = [
-  'tests/documenttests.cpp',
   'tests/eventrecorder.cpp',
   'tests/filelistparsertests.cpp',
   'tests/fileopentests.cpp',
@@ -25,7 +24,6 @@ editor_sources = [
   'commandlinewidget.cpp',
   'confirmsave.cpp',
   'dlgfilemodel.cpp',
-  'document.cpp',
   'edit.cpp',
   'file.cpp',
   'filecategorize.cpp',
@@ -58,7 +56,6 @@ editor_headers = [
   'commandlinewidget.h',
   'confirmsave.h',
   'dlgfilemodel.h',
-  'document.h',
   'edit.h',
   'file.h',
   'filecategorize.h',
