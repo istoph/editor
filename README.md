@@ -17,7 +17,7 @@ build-essential meson ninja-build pkg-config qt5-qmake qttools5-dev-tools qtbase
 
 For third-party syntex highlighting you need the compile option: `-Dsyntax_highlighting=true` and the following dependencies:
 ```
-libkf5syntaxhighlighting-dev libkf5syntaxhighlighting-tools
+libkf5syntaxhighlighting-dev libkf5syntaxhighlighting-tools cmake
 ```
 
 
