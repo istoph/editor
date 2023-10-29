@@ -428,9 +428,8 @@ int File::tabToSpace() {
     return count;
 }
 
-QPoint File::getCursorPosition() {
-    const auto [cursorCodeUnit, cursorLine] = _cursor.position();
-    return {cursorCodeUnit, cursorLine};
+Tui::ZDocumentCursor::Position File::getCursorPosition() {
+    return _cursor.position();
 }
 
 void File::setCursorPosition(Tui::ZDocumentCursor::Position position) {

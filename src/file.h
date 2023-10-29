@@ -138,7 +138,7 @@ public:
     QString getAttributesfile();
     int tabToSpace();
     int replaceAll(QString searchText, QString replaceText);
-    QPoint getCursorPosition();
+    Tui::ZDocumentCursor::Position getCursorPosition();
     void setCursorPosition(Tui::ZDocumentCursor::Position position);
     QPoint getScrollPosition();
     void setRightMarginHint(int hint);

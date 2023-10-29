@@ -243,11 +243,11 @@ void FileWindow::openFile(QString filename) {
 void FileWindow::reload() {
     closePipe();
     _file->resetSelect();
-    QPoint xy = _file->getCursorPosition();
+    Tui::ZDocumentCursor::Position cursorPosition = _file->getCursorPosition();
     watcherRemove();
     _file->openText(_file->getFilename());
     fileChangedExternally(false);
-    _file->setCursorPosition({xy.x(), xy.y()});
+    _file->setCursorPosition(cursorPosition);
     watcherAdd();
 }
 
