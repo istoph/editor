@@ -128,7 +128,6 @@ public:
     void setReplaceSelected();
     void setHighlightBracket(bool hb);
     bool getHighlightBracket();
-    bool readAttributes();
     Tui::ZDocumentCursor::Position getAttributes();
     bool writeAttributes();
     void setAttributesfile(QString attributesfile);
@@ -208,6 +207,7 @@ private:
     bool getSelectMode();
     bool isInsertable();
     int shiftLinenumber();
+    bool readAttributes();
     Tui::ZTextLayout getTextLayoutForLineWithoutWrapping(int line);
     Tui::ZDocumentCursor createCursor();
     std::tuple<int, int, int> cursorPositionOrBlockSelectionEnd();

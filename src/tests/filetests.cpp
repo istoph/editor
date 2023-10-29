@@ -198,7 +198,6 @@ TEST_CASE("file-getseter") {
     CHECK(f->getVisibleLines() == 1);
     CHECK(f->isModified() == false);
     CHECK(f->getHighlightBracket() == false);
-    CHECK(f->readAttributes() == false);
     CHECK(f->getAttributesfile() == "");
     CHECK(f->document()->crLfMode() == false);
     CHECK(f->tabToSpace() == false);
