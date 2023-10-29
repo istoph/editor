@@ -1693,12 +1693,11 @@ void File::addTabAt(Tui::ZDocumentCursor &cur) {
     if (getTabOption()) {
         cur.insertText("\t");
     } else {
-        for (int i = 0; i < getTabsize(); i++) {
-            // TODO this needs to work on columns not on codeUnits
-            if (cur.position().codeUnit % getTabsize() == 0 && i != 0)
-                break;
-            cur.insertText(" ");
-        }
+        Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(cur.position().line);
+        Tui::ZTextLineRef tlr = lay.lineAt(0);
+        const int colum = tlr.cursorToX(cur.position().codeUnit, Tui::ZTextLayout::Leading);
+        const int remainingTabWidth = getTabsize() - colum % getTabsize();
+        cur.insertText(QStringLiteral(" ").repeated(remainingTabWidth));
     }
 }
 
