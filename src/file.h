@@ -94,7 +94,6 @@ public:
     void copy();
     void paste();
     bool isInsertable();
-    void insertLinebreak();
     void gotoline(QString pos);
     bool setTabsize(int tab);
     int getTabsize();

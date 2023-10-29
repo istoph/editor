@@ -673,12 +673,6 @@ bool File::isInsertable() {
     return !_clipboard.isEmpty();
 }
 
-void File::insertLinebreak() {
-    // Inserting might adjust the scroll position, so save it here and restore it later.
-    const int line = _scrollPositionY.line();
-    _cursor.insertText("\n");
-    _scrollPositionY.setLine(line);
-}
 
 void File::gotoline(QString pos) {
     int lineNumber = -1, lineChar = 0;
