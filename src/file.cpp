@@ -190,7 +190,7 @@ void File::syntaxHighlightDefinition() {
         _syntaxHighlightExporter.defBg = getColor("chr.editBg");
         _syntaxHighlightExporter.defFg = getColor("chr.editFg");
         _syntaxHighlightingLanguage = _syntaxHighlightDefinition.name();
-        emitSyntaxHighlightingLanguage(_syntaxHighlightingLanguage);
+        syntaxHighlightingLanguageChanged(_syntaxHighlightingLanguage);
     }
 }
 
@@ -287,7 +287,7 @@ bool File::syntaxHighlightingActive() {
 void File::setSyntaxHighlightingActive(bool active) {
 #ifdef SYNTAX_HIGHLIGHTING
     _syntaxHighlightingActive = active;
-    emitSyntaxHighlightingEnable(_syntaxHighlightingActive);
+    syntaxHighlightingEnabledChanged(_syntaxHighlightingActive);
     if (active) {
         // rehighlight, highlight have not been updated while syntax highlighting was disabled
         updateSyntaxHighlighting(true);
@@ -891,7 +891,7 @@ void File::toggleOverwrite() {
        _overwrite = true;
        setCursorStyle(Tui::CursorStyle::Block);
     }
-    emitOverwrite(_overwrite);
+    overwriteChanged(_overwrite);
 }
 
 bool File::isOverwrite() {
@@ -1061,7 +1061,7 @@ void File::setSearchText(QString searchText) {
     int gen = ++(*searchGeneration);
     _searchText = searchText.replace("\\n","\n");
     _searchText = searchText.replace("\\t","\t");
-    emitSearchText(_searchText);
+    searchTextChanged(_searchText);
 
     if(searchText == "") {
         _cmdSearchNext->setEnabled(false);
@@ -1073,7 +1073,7 @@ void File::setSearchText(QString searchText) {
     }
 
     SearchCountSignalForwarder *searchCountSignalForwarder = new SearchCountSignalForwarder();
-    QObject::connect(searchCountSignalForwarder, &SearchCountSignalForwarder::searchCount, this, &File::emitSearchCount);
+    QObject::connect(searchCountSignalForwarder, &SearchCountSignalForwarder::searchCount, this, &File::searchCountChanged);
 
     QtConcurrent::run([searchCountSignalForwarder](Tui::ZDocumentSnapshot snap, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
         SearchCount sc;

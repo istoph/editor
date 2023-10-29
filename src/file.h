@@ -173,12 +173,12 @@ signals:
     void textMax(int x, int y);
     void modifiedChanged(bool modified);
     void setWritable(bool rw);
-    void modifiedSelectMode(bool f4);
-    void emitSearchCount(int sc);
-    void emitSearchText(QString searchText);
-    void emitOverwrite(bool overwrite);
-    void emitSyntaxHighlightingLanguage(QString language);
-    void emitSyntaxHighlightingEnable(bool enable);
+    void modifiedSelectMode(bool mode);
+    void searchCountChanged(int sc);
+    void searchTextChanged(QString searchText);
+    void overwriteChanged(bool overwrite);
+    void syntaxHighlightingLanguageChanged(QString language);
+    void syntaxHighlightingEnabledChanged(bool enable);
 
 protected:
     void paintEvent(Tui::ZPaintEvent *event) override;

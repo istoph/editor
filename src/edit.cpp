@@ -421,12 +421,12 @@ FileWindow *Editor::createFileWindow() {
     _mux.connect(win, file, &File::setWritable, _statusBar, &StatusBar::setWritable, true);
     _mux.connect(win, file->document(), &Tui::ZDocument::crLfModeChanged, _statusBar, &StatusBar::msdosMode, false);
     _mux.connect(win, file, &File::modifiedSelectMode, _statusBar, &StatusBar::modifiedSelectMode, false);
-    _mux.connect(win, file, &File::emitSearchCount, _statusBar, &StatusBar::searchCount, -1);
-    _mux.connect(win, file, &File::emitSearchText, _statusBar, &StatusBar::searchText, QString());
-    _mux.connect(win, file, &File::emitOverwrite, _statusBar, &StatusBar::overwrite, false);
+    _mux.connect(win, file, &File::searchCountChanged, _statusBar, &StatusBar::searchCount, -1);
+    _mux.connect(win, file, &File::searchTextChanged, _statusBar, &StatusBar::searchText, QString());
+    _mux.connect(win, file, &File::overwriteChanged, _statusBar, &StatusBar::overwrite, false);
     _mux.connect(win, win, &FileWindow::fileChangedExternally, _statusBar, &StatusBar::fileHasBeenChangedExternally, false);
-    _mux.connect(win, file, &File::emitSyntaxHighlightingEnable, _statusBar, &StatusBar::syntaxHighlightingEnabled, false);
-    _mux.connect(win, file, &File::emitSyntaxHighlightingLanguage, _statusBar, &StatusBar::language, QString());
+    _mux.connect(win, file, &File::syntaxHighlightingEnabledChanged, _statusBar, &StatusBar::syntaxHighlightingEnabled, false);
+    _mux.connect(win, file, &File::syntaxHighlightingLanguageChanged, _statusBar, &StatusBar::language, QString());
 
     _allWindows.append(win);
 
