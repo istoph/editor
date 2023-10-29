@@ -168,7 +168,7 @@ public slots:
     void followStandardInput(bool follow);
 
 signals:
-    void cursorPositionChanged(int x, int utf8x, int y);
+    void cursorPositionChanged(int x, int utf8x, int line);
     void scrollPositionChanged(int x, int y);
     void textMax(int x, int y);
     void modifiedChanged(bool modified);
