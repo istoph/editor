@@ -107,9 +107,6 @@ public:
     void setColorSpaceEnd(bool colorSpaceEnd);
     void setWrapOption(Tui::ZTextOption::WrapMode wrap);
     Tui::ZTextOption::WrapMode getWrapOption();
-    QPair<int, int> getSelectLinesSort();
-    QPair<int, int> getSelectLines();
-    void selectLines(int startY, int endY);
     void resetSelect();
     QString getSelectText();
     bool isSelect();
@@ -128,7 +125,6 @@ public:
     void setReplaceSelected();
     void setHighlightBracket(bool hb);
     bool getHighlightBracket();
-    Tui::ZDocumentCursor::Position getAttributes();
     bool writeAttributes();
     void setAttributesfile(QString attributesfile);
     QString getAttributesfile();
@@ -207,7 +203,14 @@ private:
     bool getSelectMode();
     bool isInsertable();
     int shiftLinenumber();
+
+    QPair<int, int> getSelectLinesSort();
+    QPair<int, int> getSelectLines();
+    void selectLines(int startY, int endY);
+
     bool readAttributes();
+    Tui::ZDocumentCursor::Position getAttributes();
+
     Tui::ZTextLayout getTextLayoutForLineWithoutWrapping(int line);
     Tui::ZDocumentCursor createCursor();
     std::tuple<int, int, int> cursorPositionOrBlockSelectionEnd();
