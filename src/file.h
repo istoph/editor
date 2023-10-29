@@ -92,7 +92,6 @@ public:
     void deleteLine();
     void copy();
     void paste();
-    bool isInsertable();
     void gotoline(QString pos);
     bool setTabsize(int tab);
     int getTabsize();
@@ -207,6 +206,7 @@ private:
     void searchSelect(int line, int found, int length, bool direction);
     void setSelectMode(bool f4);
     bool getSelectMode();
+    bool isInsertable();
     int shiftLinenumber();
     Tui::ZTextLayout getTextLayoutForLineWithoutWrapping(int line);
     Tui::ZDocumentCursor createCursor();

@@ -186,7 +186,6 @@ TEST_CASE("file-getseter") {
     Tui::ZDocumentCursor cursor{&doc, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line)); lay.doLayout(65000); return lay; }};
 
     CHECK(f->getFilename() == "");
-    CHECK(f->isInsertable() == false);
     CHECK(f->getTabsize() == 8); //default?
     CHECK(f->getTabOption() == false);
     CHECK(f->eatSpaceBeforeTabs() == true);
