@@ -2393,15 +2393,36 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         deleteLine();
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Up) {
         // Fenster hoch Scrolen
-        if (_scrollPositionY.line() > 0) {
+        if (_scrollFineLine > 0) {
+            _detachedScrolling = true;
+            _scrollFineLine -= 1;
+            update();
+        } else if (_scrollPositionY.line() > 0) {
             _detachedScrolling = true;
             _scrollPositionY.setLine(_scrollPositionY.line() - 1);
+            if (getWrapOption() != Tui::ZTextOption::WrapMode::NoWrap) {
+                Tui::ZTextLayout lay = getTextLayoutForLine(getTextOption(false), _scrollPositionY.line());
+                _scrollFineLine = lay.lineCount() - 1;
+            } else {
+                _scrollFineLine = 0;
+            }
         }
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Down) {
         // Fenster runter Scrolen
-        if (_doc->lineCount() -1 > _scrollPositionY.line()) {
+        bool adjustedFineScrolling = false;
+        if (getWrapOption() != Tui::ZTextOption::WrapMode::NoWrap) {
+            Tui::ZTextLayout lay = getTextLayoutForLine(getTextOption(false), _scrollPositionY.line());
+            if (lay.lineCount() - 1 > _scrollFineLine) {
+                _scrollFineLine += 1;
+                adjustedFineScrolling = true;
+                update();
+            }
+        }
+
+        if (!adjustedFineScrolling && _doc->lineCount() - 1 > _scrollPositionY.line()) {
             _detachedScrolling = true;
             _scrollPositionY.setLine(_scrollPositionY.line() + 1);
+            _scrollFineLine = 0;
         }
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Up) {
         _detachedScrolling = false;
