@@ -94,8 +94,8 @@ File::File(Tui::ZTextMetrics textMetrics, Tui::ZWidget *parent)
         }
     });
 
-    QObject::connect(_doc.get(), &Tui::ZDocument::cursorChanged, this, [this](const Tui::ZDocumentCursor *marker) {
-        if (marker == &_cursor) {
+    QObject::connect(_doc.get(), &Tui::ZDocument::cursorChanged, this, [this](const Tui::ZDocumentCursor *changedCursor) {
+        if (changedCursor == &_cursor) {
             // Ensure that even if editing from outside of this class moved the cursor position it is still in the
             // visible portion of the widget.
             adjustScrollPosition();
