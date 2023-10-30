@@ -145,7 +145,7 @@ void SaveDialog::refreshFolder() {
 void SaveDialog::userInput(QString filename) {
     QString tmp = filename.left(filename.size()-1);
     if(QFileInfo(_dir.filePath(filename)).isDir() && QFileInfo(_dir.filePath(tmp)).isSymLink()) {
-       _dir.setPath(_dir.filePath(QFileInfo(_dir.filePath(tmp)).readLink()));
+       _dir.setPath(_dir.filePath(QFileInfo(_dir.filePath(tmp)).symLinkTarget()));
        _dir.makeAbsolute();
        refreshFolder();
     } else if(QFileInfo(_dir.filePath(filename)).isDir()) {

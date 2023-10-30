@@ -78,9 +78,9 @@ void OpenDialog::refreshFolder() {
 }
 
 void OpenDialog::userInput(QString filename) {
-    if(QFileInfo(_dir.filePath(filename)).isDir()) {
+    if (QFileInfo(_dir.filePath(filename)).isDir()) {
         if (QFileInfo(_dir.filePath(filename)).isSymLink()) {
-            _dir.setPath(_dir.filePath(QFileInfo(_dir.filePath(filename)).readLink()));
+            _dir.setPath(_dir.filePath(QFileInfo(_dir.filePath(filename)).symLinkTarget()));
         } else {
             _dir.setPath(_dir.filePath(filename));
         }
