@@ -2557,7 +2557,6 @@ void File::adjustScrollPosition() {
             _scrollPositionLine.setLine(std::max(0, _doc->lineCount() - geometry().height() + 1));
         }
     } else {
-        //TODO: #193 scrollup with Crl+Up and wraped lines.
         Tui::ZTextOption option = getTextOption(false);
 
         const int availableLinesAbove = geometry().height() - 2;
