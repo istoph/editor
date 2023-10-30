@@ -40,7 +40,7 @@ private:
     Tui::ZInputBox *_filenameText = nullptr;
     Tui::ZListView *_folder = nullptr;
     Tui::ZCheckBox *_hiddenCheckBox = nullptr;
-    Tui::ZCheckBox *_dos = nullptr;
+    Tui::ZCheckBox *_crlf = nullptr;
     Tui::ZButton *_cancelButton = nullptr;
     Tui::ZButton *_saveButton = nullptr;
     QDir _dir;

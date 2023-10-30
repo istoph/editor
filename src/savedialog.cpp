@@ -32,12 +32,12 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     _hiddenCheckBox->setGeometry({3, 11, 13, 1});
     _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
 
-    _dos = new Tui::ZCheckBox(Tui::withMarkup, "<m>D</m>OS Mode", this);
-    _dos->setGeometry({3, 12, 16, 1});
+    _crlf = new Tui::ZCheckBox(Tui::withMarkup, "<m>C</m>RLF Mode", this);
+    _crlf->setGeometry({3, 12, 16, 1});
     if(file->document()->crLfMode()) {
-        _dos->setCheckState(Qt::Checked);
+        _crlf->setCheckState(Qt::Checked);
     } else {
-        _dos->setCheckState(Qt::Unchecked);
+        _crlf->setCheckState(Qt::Unchecked);
     }
 
     _cancelButton = new Tui::ZButton(this);
@@ -58,8 +58,8 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     QObject::connect(_hiddenCheckBox, &Tui::ZCheckBox::stateChanged, this, [&]{
         _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
     });
-    QObject::connect(_dos, &Tui::ZCheckBox::stateChanged, [=] {
-       if(_dos->checkState() == Qt::Checked) {
+    QObject::connect(_crlf, &Tui::ZCheckBox::stateChanged, [=] {
+       if (_crlf->checkState() == Qt::Checked) {
             file->document()->setCrLfMode(true);
        } else {
             file->document()->setCrLfMode(false);
