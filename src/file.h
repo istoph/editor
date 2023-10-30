@@ -263,8 +263,7 @@ private:
     std::shared_ptr<std::atomic<int>> searchGeneration = std::make_shared<std::atomic<int>>();
     std::optional<QFuture<Tui::ZDocumentFindAsyncResult>> _searchNextFuture;
     bool _followMode = false;
-    int _bracketX = -1;
-    int _bracketY = -1;
+    Position _bracketPosition;
     bool _bracket = false;
     QJsonObject _attributeObject;
     QString _attributesFile;

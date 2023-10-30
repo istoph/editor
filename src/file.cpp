@@ -1353,8 +1353,8 @@ bool File::highlightBracketFind() {
                                 if(counter>0) {
                                     counter--;
                                 } else {
-                                    _bracketY=line;
-                                    _bracketX=startX;
+                                    _bracketPosition.line = line;
+                                    _bracketPosition.codeUnit = startX;
                                     return true;
                                 }
                             }
@@ -1374,8 +1374,8 @@ bool File::highlightBracketFind() {
                                 if(counter>0) {
                                     counter--;
                                 } else {
-                                    _bracketY=line;
-                                    _bracketX=startX;
+                                    _bracketPosition.line = line;
+                                    _bracketPosition.codeUnit = startX;
                                     return true;
                                 }
                             }
@@ -1388,8 +1388,8 @@ bool File::highlightBracketFind() {
             }
         }
     }
-    _bracketX=-1;
-    _bracketY=-1;
+    _bracketPosition.line = -1;
+    _bracketPosition.codeUnit = -1;
     return false;
 }
 
@@ -1534,9 +1534,9 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 }
             }
         }
-        if(_bracketX >= 0) {
-            if (_bracketY == line) {
-                highlights.append(Tui::ZFormatRange{_bracketX, 1, {Tui::Colors::cyan, bg,Tui::ZTextAttribute::Bold}, selectedFormatingChar});
+        if (_bracketPosition.codeUnit >= 0) {
+            if (_bracketPosition.line == line) {
+                highlights.append(Tui::ZFormatRange{_bracketPosition.codeUnit, 1, {Tui::Colors::cyan, bg,Tui::ZTextAttribute::Bold}, selectedFormatingChar});
             }
             if (line == cursorLine) {
                 highlights.append(Tui::ZFormatRange{cursorCodeUnit, 1, {Tui::Colors::cyan, bg,Tui::ZTextAttribute::Bold}, selectedFormatingChar});
