@@ -1339,7 +1339,7 @@ Tui::ZTextLayout File::getTextLayoutForLine(const Tui::ZTextOption &option, int 
     return lay;
 }
 
-bool File::highlightBracket() {
+bool File::highlightBracketFind() {
     QString openBracket = "{[(<";
     QString closeBracket = "}])>";
 
@@ -1433,7 +1433,7 @@ Tui::ZDocumentCursor File::createCursor() {
 void File::paintEvent(Tui::ZPaintEvent *event) {
     Tui::ZColor fg = getColor("chr.editFg");
     Tui::ZColor bg = getColor("chr.editBg");
-    highlightBracket();
+    highlightBracketFind();
 
     Tui::ZColor marginMarkBg = [](Tui::ZColorHSV base)
         {

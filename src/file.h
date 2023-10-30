@@ -197,7 +197,7 @@ private:
 
     Tui::ZTextOption getTextOption(bool lineWithCursor);
     Tui::ZTextLayout getTextLayoutForLine(const Tui::ZTextOption &option, int line);
-    bool highlightBracket();
+    bool highlightBracketFind();
     void searchSelect(int line, int found, int length, bool direction);
     void setSelectMode(bool f4);
     bool getSelectMode();
