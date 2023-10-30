@@ -95,8 +95,8 @@ public:
     void gotoLine(QString pos);
     bool setTabStopDistance(int tab);
     int tabStopDistance();
-    void setTabOption(bool tab);
-    bool getTabOption();
+    void setUseTabChar(bool tab);
+    bool useTabChar();
     void setEatSpaceBeforeTabs(bool eat);
     bool eatSpaceBeforeTabs();
     bool formattingCharacters();
@@ -251,7 +251,7 @@ private:
     int _scrollPositionFineLine = 0;
     bool _detachedScrolling = false;
     int _tabsize = 8;
-    bool _tabOption = false;
+    bool _useTabChar = false;
     bool _eatSpaceBeforeTabs = true;
     Tui::ZTextOption::WrapMode _wrapMode = Tui::ZTextOption::NoWrap;
     bool _overwriteMode = false;

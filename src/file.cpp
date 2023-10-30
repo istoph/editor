@@ -691,13 +691,13 @@ int File::tabStopDistance() {
     return this->_tabsize;
 }
 
-void File::setTabOption(bool tab) {
+void File::setUseTabChar(bool tab) {
     //false is space, true is real \t
-    this->_tabOption = tab;
+    this->_useTabChar = tab;
 }
 
-bool File::getTabOption() {
-    return this->_tabOption;
+bool File::useTabChar() {
+    return this->_useTabChar;
 }
 
 bool File::formattingCharacters() {
@@ -1269,7 +1269,7 @@ Tui::ZTextOption File::getTextOption(bool lineWithCursor) {
     }
     if (colorTabs()) {
         flags |= Tui::ZTextOption::ShowTabsAndSpacesWithColors;
-        if (!getTabOption()) {
+        if (!useTabChar()) {
             option.setTabColor([] (int pos, int size, int hidden, const Tui::ZTextStyle &base, const Tui::ZTextStyle &formating, const Tui::ZFormatRange* range) -> Tui::ZTextStyle {
                 (void)formating;
                 if (range) {
@@ -1687,7 +1687,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 void File::addTabAt(Tui::ZDocumentCursor &cur) {
     auto undoGroup = _doc->startUndoGroup(&_cursor);
 
-    if (getTabOption()) {
+    if (useTabChar()) {
         cur.insertText("\t");
     } else {
         Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(cur.position().line);
@@ -2278,7 +2278,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
             for (int line = firstLine; line <= lastLine; line++) {
                 if (_doc->lineCodeUnits(line) > 0) {
-                    if (getTabOption()) {
+                    if (useTabChar()) {
                         cur.setPosition({0, line});
                         cur.insertText(QString("\t"));
                     } else {
@@ -2292,7 +2292,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             setSelectMode(savedSelectMode);
             adjustScrollPosition();
         } else {
-            if (_eatSpaceBeforeTabs && !_tabOption) {
+            if (_eatSpaceBeforeTabs && !_useTabChar) {
                 // If spaces in front of a tab
                 const auto [cursorCodeUnit, cursorLine] = _cursor.position();
                 int leadingSpace = 0;

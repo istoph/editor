@@ -129,7 +129,7 @@ TEST_CASE("file") {
         }
     }
     SECTION("key-tab-space") {
-        f->setTabOption(false);
+        f->setUseTabChar(false);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, testCase);
         if (Qt::KeyboardModifier::NoModifier == testCase) {
             CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,0});
@@ -139,7 +139,7 @@ TEST_CASE("file") {
         }
     }
     SECTION("key-tab") {
-        f->setTabOption(true);
+        f->setUseTabChar(true);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, testCase);
         if (Qt::KeyboardModifier::NoModifier == testCase) {
             CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,0});
@@ -187,7 +187,7 @@ TEST_CASE("file-getseter") {
 
     CHECK(f->getFilename() == "");
     CHECK(f->tabStopDistance() == 8); //default?
-    CHECK(f->getTabOption() == false);
+    CHECK(f->useTabChar() == false);
     CHECK(f->eatSpaceBeforeTabs() == true);
     CHECK(f->formattingCharacters() == true);
     CHECK(f->colorTabs() == true); //default?
@@ -248,10 +248,10 @@ TEST_CASE("file-getseter") {
         }
     }
     SECTION("setTabOption") {
-        f->setTabOption(true);
-        CHECK(f->getTabOption() == true);
-        f->setTabOption(false);
-        CHECK(f->getTabOption() == false);
+        f->setUseTabChar(true);
+        CHECK(f->useTabChar() == true);
+        f->setUseTabChar(false);
+        CHECK(f->useTabChar() == false);
     }
     SECTION("setEatSpaceBeforeTabs") {
         f->setEatSpaceBeforeTabs(true);

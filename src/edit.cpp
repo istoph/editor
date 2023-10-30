@@ -175,18 +175,18 @@ void Editor::setupUi() {
             } else {
                 _tabDialog = new TabDialog(this);
                 if (_file) {
-                    _tabDialog->updateSettings(!_file->getTabOption(), _file->tabStopDistance(), _file->eatSpaceBeforeTabs());
+                    _tabDialog->updateSettings(!_file->useTabChar(), _file->tabStopDistance(), _file->eatSpaceBeforeTabs());
                 }
                 QObject::connect(_tabDialog, &TabDialog::convert, this, [this] (bool useTabs, int indentSize) {
                     if (_file) {
-                        _file->setTabOption(useTabs);
+                        _file->setUseTabChar(useTabs);
                         _file->setTabStopDistance(indentSize);
                         _file->convertTabsToSpaces();
                     }
                 });
                 QObject::connect(_tabDialog, &TabDialog::settingsChanged, this, [this] (bool useTabs, int indentSize, bool eatSpaceBeforeTabs) {
                     if (_file) {
-                        _file->setTabOption(useTabs);
+                        _file->setUseTabChar(useTabs);
                         _file->setTabStopDistance(indentSize);
                         _file->setEatSpaceBeforeTabs(eatSpaceBeforeTabs);
                     }
@@ -369,7 +369,7 @@ void Editor::terminalChanged() {
             if (_file != _win->getFileWidget()) {
                 _file = _win->getFileWidget();
                 if (_tabDialog) {
-                    _tabDialog->updateSettings(!_file->getTabOption(), _file->tabStopDistance(), _file->eatSpaceBeforeTabs());
+                    _tabDialog->updateSettings(!_file->useTabChar(), _file->tabStopDistance(), _file->eatSpaceBeforeTabs());
                 }
                 if (_syntaxHighlightDialog) {
                     _syntaxHighlightDialog->updateSettings(_file->syntaxHighlightingActive(), _file->syntaxHighlightingLanguage());
@@ -470,7 +470,7 @@ FileWindow *Editor::createFileWindow() {
     if (_win) {
         file->setTabStopDistance(_file->tabStopDistance());
         file->setShowLineNumbers(_file->showLineNumbers());
-        file->setTabOption(_file->getTabOption());
+        file->setUseTabChar(_file->useTabChar());
         file->setEatSpaceBeforeTabs(_file->eatSpaceBeforeTabs());
         file->setFormattingCharacters(_file->formattingCharacters());
         file->setColorTabs(_file->colorTabs());
@@ -484,7 +484,7 @@ FileWindow *Editor::createFileWindow() {
     } else {
         file->setTabStopDistance(initialFileSettings.tabSize);
         file->setShowLineNumbers(initialFileSettings.showLineNumber);
-        file->setTabOption(initialFileSettings.tabOption);
+        file->setUseTabChar(initialFileSettings.tabOption);
         file->setEatSpaceBeforeTabs(initialFileSettings.eatSpaceBeforeTabs);
         file->setFormattingCharacters(initialFileSettings.formattingCharacters);
         file->setColorTabs(initialFileSettings.colorTabs);
