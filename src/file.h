@@ -113,6 +113,7 @@ public:
     void selectAll();
     bool removeSelectedText();
     void toggleOverwriteMode();
+    void setOverwriteMode(bool mode);
     bool overwriteMode();
     void addTabAt(Tui::ZDocumentCursor &cur);
     void appendLine(const QString &line);

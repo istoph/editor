@@ -887,6 +887,10 @@ void File::toggleOverwriteMode() {
     overwriteModeChanged(_overwriteMode);
 }
 
+void File::setOverwriteMode(bool mode) {
+    _overwriteMode = mode;
+}
+
 bool File::overwriteMode() {
     return _overwriteMode;
 }
