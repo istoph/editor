@@ -228,7 +228,7 @@ int main(int argc, char **argv) {
                 actions.push_back([root, name=datei.absoluteFilePath(), pos=fle.pos] {
                     FileWindow* win = root->openFile(name);
                     if (pos != "") {
-                        win->getFileWidget()->gotoline(pos);
+                        win->getFileWidget()->gotoLine(pos);
                     }
                 });
             } else if (filecategory == FileCategory::invalid_filetype) {

@@ -140,7 +140,7 @@ void Editor::setupUi() {
          [this] {
             QObject::connect(new InsertCharacter(this), &InsertCharacter::characterSelected, this, [this] (QString str) {
                 if (_file) {
-                    _file->insertAtCursorPosition(str);
+                    _file->insertText(str);
                 }
             });
         }
@@ -150,7 +150,7 @@ void Editor::setupUi() {
     auto gotoLine = [this] {
         QObject::connect(new GotoLine(this), &GotoLine::lineSelected, this, [this] (QString line) {
             if (_file) {
-                _file->gotoline(line);
+                _file->gotoLine(line);
             }
         });
     };
@@ -175,19 +175,19 @@ void Editor::setupUi() {
             } else {
                 _tabDialog = new TabDialog(this);
                 if (_file) {
-                    _tabDialog->updateSettings(!_file->getTabOption(), _file->getTabsize(), _file->eatSpaceBeforeTabs());
+                    _tabDialog->updateSettings(!_file->getTabOption(), _file->tabStopDistance(), _file->eatSpaceBeforeTabs());
                 }
                 QObject::connect(_tabDialog, &TabDialog::convert, this, [this] (bool useTabs, int indentSize) {
                     if (_file) {
                         _file->setTabOption(useTabs);
-                        _file->setTabsize(indentSize);
-                        _file->tabToSpace();
+                        _file->setTabStopDistance(indentSize);
+                        _file->convertTabsToSpaces();
                     }
                 });
                 QObject::connect(_tabDialog, &TabDialog::settingsChanged, this, [this] (bool useTabs, int indentSize, bool eatSpaceBeforeTabs) {
                     if (_file) {
                         _file->setTabOption(useTabs);
-                        _file->setTabsize(indentSize);
+                        _file->setTabStopDistance(indentSize);
                         _file->setEatSpaceBeforeTabs(eatSpaceBeforeTabs);
                     }
                 });
@@ -198,7 +198,7 @@ void Editor::setupUi() {
     QObject::connect(new Tui::ZCommandNotifier("LineNumber", this), &Tui::ZCommandNotifier::activated,
         [&] {
             if (_file) {
-                _file->toggleLineNumber();
+                _file->toggleShowLineNumbers();
             }
         }
     );
@@ -207,7 +207,7 @@ void Editor::setupUi() {
          [&] {
             FormattingDialog *_formattingDialog = new FormattingDialog(this);
             if (_file) {
-                _formattingDialog->updateSettings(_file->formattingCharacters(), _file->colorTabs(), _file->colorSpaceEnd());
+                _formattingDialog->updateSettings(_file->formattingCharacters(), _file->colorTabs(), _file->colorTrailingSpaces());
             } else {
                 _formattingDialog->updateSettings(initialFileSettings.formattingCharacters, initialFileSettings.colorTabs, initialFileSettings.colorSpaceEnd);
             }
@@ -215,7 +215,7 @@ void Editor::setupUi() {
                              if (_file) {
                                  _file->setFormattingCharacters(formattingCharacters);
                                  _file->setColorTabs(colorTabs);
-                                 _file->setColorSpaceEnd(colorSpaceEnd);
+                                 _file->setColorTrailingSpaces(colorSpaceEnd);
                              } else {
                                  initialFileSettings.formattingCharacters = formattingCharacters;
                                  initialFileSettings.colorTabs = colorTabs;
@@ -228,7 +228,7 @@ void Editor::setupUi() {
     QObject::connect(new Tui::ZCommandNotifier("Brackets", this), &Tui::ZCommandNotifier::activated,
          [&] {
             if (_file) {
-                _file->setHighlightBracket(!_file->getHighlightBracket());
+                _file->setHighlightBracket(!_file->highlightBracket());
             }
         }
     );
@@ -369,7 +369,7 @@ void Editor::terminalChanged() {
             if (_file != _win->getFileWidget()) {
                 _file = _win->getFileWidget();
                 if (_tabDialog) {
-                    _tabDialog->updateSettings(!_file->getTabOption(), _file->getTabsize(), _file->eatSpaceBeforeTabs());
+                    _tabDialog->updateSettings(!_file->getTabOption(), _file->tabStopDistance(), _file->eatSpaceBeforeTabs());
                 }
                 if (_syntaxHighlightDialog) {
                     _syntaxHighlightDialog->updateSettings(_file->syntaxHighlightingActive(), _file->syntaxHighlightingLanguage());
@@ -418,12 +418,12 @@ FileWindow *Editor::createFileWindow() {
     _mux.connect(win, file, &File::modifiedChanged, _statusBar, &StatusBar::setModified, false);
     _mux.connect(win, win, &FileWindow::readFromStandadInput, _statusBar, &StatusBar::readFromStandardInput, false);
     _mux.connect(win, win, &FileWindow::followStandadInput, _statusBar, &StatusBar::followStandardInput, false);
-    _mux.connect(win, file, &File::setWritable, _statusBar, &StatusBar::setWritable, true);
+    _mux.connect(win, file, &File::writableChanged, _statusBar, &StatusBar::setWritable, true);
     _mux.connect(win, file->document(), &Tui::ZDocument::crLfModeChanged, _statusBar, &StatusBar::msdosMode, false);
-    _mux.connect(win, file, &File::modifiedSelectMode, _statusBar, &StatusBar::modifiedSelectMode, false);
+    _mux.connect(win, file, &File::selectModeChanged, _statusBar, &StatusBar::modifiedSelectMode, false);
     _mux.connect(win, file, &File::searchCountChanged, _statusBar, &StatusBar::searchCount, -1);
     _mux.connect(win, file, &File::searchTextChanged, _statusBar, &StatusBar::searchText, QString());
-    _mux.connect(win, file, &File::overwriteChanged, _statusBar, &StatusBar::overwrite, false);
+    _mux.connect(win, file, &File::overwriteModeChanged, _statusBar, &StatusBar::overwrite, false);
     _mux.connect(win, win, &FileWindow::fileChangedExternally, _statusBar, &StatusBar::fileHasBeenChangedExternally, false);
     _mux.connect(win, file, &File::syntaxHighlightingEnabledChanged, _statusBar, &StatusBar::syntaxHighlightingEnabled, false);
     _mux.connect(win, file, &File::syntaxHighlightingLanguageChanged, _statusBar, &StatusBar::language, QString());
@@ -468,31 +468,31 @@ FileWindow *Editor::createFileWindow() {
     });
 
     if (_win) {
-        file->setTabsize(_file->getTabsize());
-        file->setLineNumber(_file->getLineNumber());
+        file->setTabStopDistance(_file->tabStopDistance());
+        file->setShowLineNumbers(_file->showLineNumbers());
         file->setTabOption(_file->getTabOption());
         file->setEatSpaceBeforeTabs(_file->eatSpaceBeforeTabs());
         file->setFormattingCharacters(_file->formattingCharacters());
         file->setColorTabs(_file->colorTabs());
-        file->setColorSpaceEnd(_file->colorSpaceEnd());
-        win->setWrap(_file->getWrapOption());
+        file->setColorTrailingSpaces(_file->colorTrailingSpaces());
+        win->setWrap(_file->wordWrapMode());
         file->setRightMarginHint(_file->rightMarginHint());
-        file->setHighlightBracket(_file->getHighlightBracket());
-        file->setAttributesfile(_file->getAttributesfile());
+        file->setHighlightBracket(_file->highlightBracket());
+        file->setAttributesFile(_file->attributesFile());
         file->setSyntaxHighlightingTheme(initialFileSettings.syntaxHighlightingTheme);
         file->setSyntaxHighlightingActive(_file->syntaxHighlightingActive());
     } else {
-        file->setTabsize(initialFileSettings.tabSize);
-        file->setLineNumber(initialFileSettings.showLineNumber);
+        file->setTabStopDistance(initialFileSettings.tabSize);
+        file->setShowLineNumbers(initialFileSettings.showLineNumber);
         file->setTabOption(initialFileSettings.tabOption);
         file->setEatSpaceBeforeTabs(initialFileSettings.eatSpaceBeforeTabs);
         file->setFormattingCharacters(initialFileSettings.formattingCharacters);
         file->setColorTabs(initialFileSettings.colorTabs);
-        file->setColorSpaceEnd(initialFileSettings.colorSpaceEnd);
+        file->setColorTrailingSpaces(initialFileSettings.colorSpaceEnd);
         win->setWrap(initialFileSettings.wrap);
         file->setRightMarginHint(initialFileSettings.rightMarginHint);
         file->setHighlightBracket(initialFileSettings.highlightBracket);
-        file->setAttributesfile(initialFileSettings.attributesFile);
+        file->setAttributesFile(initialFileSettings.attributesFile);
         file->setSyntaxHighlightingTheme(initialFileSettings.syntaxHighlightingTheme);
         file->setSyntaxHighlightingActive(!initialFileSettings.disableSyntaxHighlighting);
     }
@@ -534,7 +534,7 @@ void Editor::setupSearchDialogs() {
     auto searchCancled = [this] {
         if (_file) {
             _file->setSearchText("");
-            _file->resetSelect();
+            _file->clearSelection();
         }
     };
 
@@ -568,14 +568,14 @@ void Editor::setupSearchDialogs() {
         if (_file) {
             if (text.size() == 0) {
                 _file->setSearchText("");
-                _file->resetSelect();
+                _file->clearSelection();
             } else {
                 _file->setSearchText(text);
                 _file->setSearchDirection(forward);
                 if(forward) {
-                    _file->setCursorPosition({_file->getCursorPosition().codeUnit - text.size(), _file->getCursorPosition().line});
+                    _file->setCursorPosition({_file->cursorPosition().codeUnit - text.size(), _file->cursorPosition().line});
                 } else {
-                    _file->setCursorPosition({_file->getCursorPosition().codeUnit + text.size(), _file->getCursorPosition().line});
+                    _file->setCursorPosition({_file->cursorPosition().codeUnit + text.size(), _file->cursorPosition().line});
                 }
                 _file->runSearch(false);
             }
@@ -635,14 +635,14 @@ void Editor::setupSearchDialogs() {
 void Editor::searchDialog() {
     if (_file) {
         _searchDialog->open();
-        _searchDialog->setSearchText(_file->getSelectText());
+        _searchDialog->setSearchText(_file->selectedText());
     }
 }
 
 void Editor::replaceDialog() {
     if (_file) {
         _replaceDialog->open();
-       _replaceDialog->setSearchText(_file->getSelectText());
+       _replaceDialog->setSearchText(_file->selectedText());
     }
 }
 
@@ -665,7 +665,7 @@ void Editor::openFileMenue() {
 
 void Editor::gotoLineInCurrentFile(QString lineInfo) {
     if (_file) {
-        _file->gotoline(lineInfo);
+        _file->gotoLine(lineInfo);
     }
 }
 

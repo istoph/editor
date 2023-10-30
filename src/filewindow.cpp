@@ -162,7 +162,7 @@ File *FileWindow::getFileWidget() {
 }
 
 void FileWindow::setWrap(Tui::ZTextOption::WrapMode wrap) {
-    _file->setWrapOption(wrap);
+    _file->setWordWrapMode(wrap);
     if(wrap == Tui::ZTextOption::NoWrap) {
         _scrollbarHorizontal->setVisible(true);
         _winLayout->setRightBorderBottomAdjust(-1);
@@ -242,8 +242,8 @@ void FileWindow::openFile(QString filename) {
 
 void FileWindow::reload() {
     closePipe();
-    _file->resetSelect();
-    Tui::ZDocumentCursor::Position cursorPosition = _file->getCursorPosition();
+    _file->clearSelection();
+    Tui::ZDocumentCursor::Position cursorPosition = _file->cursorPosition();
     watcherRemove();
     _file->openText(_file->getFilename());
     fileChangedExternally(false);

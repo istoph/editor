@@ -65,8 +65,8 @@ TEST_CASE("file") {
     Tui::ZDocumentCursor cursor{&doc, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line)); lay.doLayout(65000); return lay; }};
 
     //OHNE TEXT
-    CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-    CHECK(f->isSelect() == false);
+    CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+    CHECK(f->hasSelection() == false);
 
     auto testCase = GENERATE(as<Qt::KeyboardModifiers>{}, Qt::KeyboardModifier::NoModifier, Qt::KeyboardModifier::AltModifier, Qt::KeyboardModifier::MetaModifier,
                              Qt::KeyboardModifier::ShiftModifier, Qt::KeyboardModifier::KeypadModifier, Qt::KeyboardModifier::ControlModifier,
@@ -79,94 +79,94 @@ TEST_CASE("file") {
 
     SECTION("key-left") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, testCase);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
     }
     SECTION("key-right") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Right, testCase);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
     }
     SECTION("key-up") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Up, testCase);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
     }
     SECTION("key-down") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Down, testCase);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
     }
     SECTION("key-home") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, testCase);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, testCase);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
     }
     SECTION("key-end") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_End, testCase);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
     }
     SECTION("key-page-up") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, testCase);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
     }
     SECTION("key-page-down") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageDown, testCase);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
     }
     SECTION("key-enter") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Enter, testCase);
         if (Qt::KeyboardModifier::NoModifier == testCase || Qt::KeyboardModifier::KeypadModifier == testCase) {
-            CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,1});
+            CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
         } else {
-            CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+            CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
         }
     }
     SECTION("key-tab-space") {
         f->setTabOption(false);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, testCase);
         if (Qt::KeyboardModifier::NoModifier == testCase) {
-            CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,0});
+            CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,0});
             CHECK(doc.line(0) == "        ");
         } else {
-            CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+            CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
         }
     }
     SECTION("key-tab") {
         f->setTabOption(true);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, testCase);
         if (Qt::KeyboardModifier::NoModifier == testCase) {
-            CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,0});
+            CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,0});
             CHECK(doc.line(0) == "\t");
         } else {
-            CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+            CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
         }
     }
     SECTION("key-insert") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Insert, testCase);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
     }
     SECTION("key-delete") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Delete, testCase);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
     }
     SECTION("key-backspace") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Backspace, testCase);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
     }
     SECTION("key-escape") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Escape, testCase);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
     }
 }
 
@@ -186,23 +186,21 @@ TEST_CASE("file-getseter") {
     Tui::ZDocumentCursor cursor{&doc, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line)); lay.doLayout(65000); return lay; }};
 
     CHECK(f->getFilename() == "");
-    CHECK(f->getTabsize() == 8); //default?
+    CHECK(f->tabStopDistance() == 8); //default?
     CHECK(f->getTabOption() == false);
     CHECK(f->eatSpaceBeforeTabs() == true);
     CHECK(f->formattingCharacters() == true);
     CHECK(f->colorTabs() == true); //default?
-    CHECK(f->colorSpaceEnd() == true); //default?
-    CHECK(f->getSelectText() == "");
-    CHECK(f->isSelect() == false);
-    CHECK(f->isOverwrite() == false);
-    CHECK(f->getVisibleLines() == 1);
+    CHECK(f->colorTrailingSpaces() == true); //default?
+    CHECK(f->selectedText() == "");
+    CHECK(f->hasSelection() == false);
+    CHECK(f->overwriteMode() == false);
     CHECK(f->isModified() == false);
-    CHECK(f->getHighlightBracket() == false);
-    CHECK(f->getAttributesfile() == "");
+    CHECK(f->highlightBracket() == false);
+    CHECK(f->attributesFile() == "");
     CHECK(f->document()->crLfMode() == false);
-    CHECK(f->tabToSpace() == false);
-    CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-    CHECK(f->getScrollPosition() == QPoint{0,0});
+    CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+    CHECK(f->scrollPosition() == QPoint{0,0});
     CHECK(f->rightMarginHint() == 0);
     CHECK(f->isNewFile() == false); //default?
 
@@ -214,39 +212,39 @@ TEST_CASE("file-getseter") {
     }
     SECTION("gotoline") {
         QString str = GENERATE("+", "");
-        f->insertAtCursorPosition("123\n123\n123");
+        f->insertText("123\n123\n123");
 
-        f->gotoline(str + "0,0");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        f->gotoline(str + "0,-1");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        f->gotoline(str + "-1,0");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        f->gotoline(str + "1,1");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        f->gotoline(str + "2,2");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,1});
-        f->gotoline(str + "3,3");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,2});
-        f->gotoline(str + "4,4");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{3,2});
-        f->gotoline(str + "6500000,6500000");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{3,2});
+        f->gotoLine(str + "0,0");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        f->gotoLine(str + "0,-1");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        f->gotoLine(str + "-1,0");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        f->gotoLine(str + "1,1");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        f->gotoLine(str + "2,2");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,1});
+        f->gotoLine(str + "3,3");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,2});
+        f->gotoLine(str + "4,4");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{3,2});
+        f->gotoLine(str + "6500000,6500000");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{3,2});
 
-        f->gotoline(str + "1");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        f->gotoline(str + "2");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,1});
-        f->gotoline(str + "3");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,2});
-        f->gotoline(str + "4");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,2});
+        f->gotoLine(str + "1");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        f->gotoLine(str + "2");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
+        f->gotoLine(str + "3");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,2});
+        f->gotoLine(str + "4");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,2});
     }
     SECTION("tabsize") {
         for(int i = -1; i <= 10; i++) {
             CAPTURE(i);
-            f->setTabsize(i);
-            CHECK(f->getTabsize() == std::max(1,i));
+            f->setTabStopDistance(i);
+            CHECK(f->tabStopDistance() == std::max(1,i));
         }
     }
     SECTION("setTabOption") {
@@ -274,24 +272,24 @@ TEST_CASE("file-getseter") {
         CHECK(f->colorTabs() == false);
     }
     SECTION("colorSpaceEnd") {
-        f->setColorSpaceEnd(true);
-        CHECK(f->colorSpaceEnd() == true);
-        f->setColorSpaceEnd(false);
-        CHECK(f->colorSpaceEnd() == false);
+        f->setColorTrailingSpaces(true);
+        CHECK(f->colorTrailingSpaces() == true);
+        f->setColorTrailingSpaces(false);
+        CHECK(f->colorTrailingSpaces() == false);
     }
     SECTION("colorSpaceEnd") {
         Tui::ZTextOption::WrapMode wrap = GENERATE(Tui::ZTextOption::WrapMode::NoWrap,
                                                    Tui::ZTextOption::WrapMode::WordWrap,
                                                    Tui::ZTextOption::WrapMode::WrapAnywhere);
-        f->setWrapOption(wrap);
-        CHECK(f->getWrapOption() == wrap);
+        f->setWordWrapMode(wrap);
+        CHECK(f->wordWrapMode() == wrap);
 
     }
     SECTION("overwrite") {
-        f->toggleOverwrite();
-        CHECK(f->isOverwrite() == true);
-        f->toggleOverwrite();
-        CHECK(f->isOverwrite() == false);
+        f->toggleOverwriteMode();
+        CHECK(f->overwriteMode() == true);
+        f->toggleOverwriteMode();
+        CHECK(f->overwriteMode() == false);
     }
     SECTION("getMsDosMode") {
         f->document()->setCrLfMode(true);
@@ -327,7 +325,7 @@ TEST_CASE("actions") {
     f->setFocus();
     f->setGeometry({0, 0, 80, 24});
 
-    CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+    CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
     Tui::ZTest::sendText(&terminal, "    text", Qt::KeyboardModifier::NoModifier);
 
     Tui::ZTest::sendKey(&terminal, Qt::Key_Enter, Qt::KeyboardModifier::NoModifier);
@@ -337,61 +335,61 @@ TEST_CASE("actions") {
     SECTION("acv") {
         Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
         Tui::ZTest::sendText(&terminal, "c", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         CHECK(doc.lineCount() == 2);
         Tui::ZTest::sendText(&terminal, "v", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         CHECK(doc.lineCount() == 2);
     }
     SECTION("acv") {
         Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
         Tui::ZTest::sendText(&terminal, "c", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         CHECK(doc.lineCount() == 2);
         Tui::ZTest::sendText(&terminal, "v", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         CHECK(doc.lineCount() == 2);
     }
     SECTION("ac-right-v") {
         Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
         Tui::ZTest::sendText(&terminal, "c", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         CHECK(doc.lineCount() == 2);
         CHECK(root.findFacet<Clipboard>()->getClipboard() == "    text\n    new1");
         Tui::ZTest::sendKey(&terminal, Tui::Key_Right, Qt::KeyboardModifier::NoModifier);
         Tui::ZTest::sendText(&terminal, "v", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,2});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,2});
         CHECK(doc.lineCount() == 3);
     }
     SECTION("axv") {
         Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
-        CHECK(f->isSelect() == true);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->hasSelection() == true);
         Tui::ZTest::sendText(&terminal, "x", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
         Tui::ZTest::sendText(&terminal, "v", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->isSelect() == false);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->hasSelection() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
     }
     SECTION("cv-newline") {
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         Tui::ZTest::sendKey(&terminal, Tui::Key_Up, Qt::KeyboardModifier::NoModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,0});
         Tui::ZTest::sendKey(&terminal, Tui::Key_Right, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
         Tui::ZTest::sendText(&terminal, "c", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
         CHECK(root.findFacet<Clipboard>()->getClipboard() == "\n");
 
         CHECK(doc.lineCount() == 2);
         Tui::ZTest::sendText(&terminal, "v", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
         CHECK(doc.lineCount() == 2);
-        CHECK(f->isSelect() == false);
+        CHECK(f->hasSelection() == false);
 
         Tui::ZTest::sendText(&terminal, "v", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,2});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,2});
         CHECK(doc.lineCount() == 3);
         CHECK(doc.line(1) == "");
     }
@@ -402,29 +400,29 @@ TEST_CASE("actions") {
         CHECK(doc.lineCount() == 2);
         CHECK(doc.line(1) == "    new1");
         Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
         Tui::ZTest::sendText(&terminal, "S", Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier);
         CHECK(doc.line(0) == "    new1");
         CHECK(doc.lineCount() == 2);
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
     }
     SECTION("sort-231") {
         f->newText("123");
-        f->insertAtCursorPosition("3\n2\n1");
+        f->insertText("3\n2\n1");
         CHECK(doc.lineCount() == 3);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,2});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,2});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, Qt::KeyboardModifier::NoModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::NoModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Down, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,1});
-        CHECK(f->isSelect() == true);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
+        CHECK(f->hasSelection() == true);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Down, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,2});
-        CHECK(f->isSelect() == true);
-        CHECK(f->getSelectText() == "3\n2\n");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,2});
+        CHECK(f->hasSelection() == true);
+        CHECK(f->selectedText() == "3\n2\n");
         Tui::ZTest::sendText(&terminal, "S", Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier);
         CHECK(doc.line(0) == "2");
         CHECK(doc.line(1) == "3");
@@ -432,13 +430,13 @@ TEST_CASE("actions") {
     }
     SECTION("sort-312") {
         f->newText("123");
-        f->insertAtCursorPosition("3\n2\n1");
+        f->insertText("3\n2\n1");
         CHECK(doc.lineCount() == 3);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,2});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,2});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == true);
-        CHECK(f->getSelectText() == "3\n2\n1");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == true);
+        CHECK(f->selectedText() == "3\n2\n1");
         Tui::ZTest::sendText(&terminal, "S", Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier);
         CHECK(doc.line(0) == "1");
         CHECK(doc.line(1) == "2");
@@ -446,16 +444,16 @@ TEST_CASE("actions") {
     }
     SECTION("sort-3") {
         f->newText("123");
-        f->insertAtCursorPosition("3\n2\n1");
+        f->insertText("3\n2\n1");
         CHECK(doc.lineCount() == 3);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,2});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,2});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, Qt::KeyboardModifier::NoModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == false);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Right, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,0});
-        CHECK(f->isSelect() == true);
-        CHECK(f->getSelectText() == "3");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,0});
+        CHECK(f->hasSelection() == true);
+        CHECK(f->selectedText() == "3");
         Tui::ZTest::sendText(&terminal, "S", Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier);
         CHECK(doc.line(0) == "3");
         CHECK(doc.line(1) == "2");
@@ -468,100 +466,100 @@ TEST_CASE("actions") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Delete, Qt::KeyboardModifier::NoModifier);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Delete, Qt::KeyboardModifier::NoModifier);
         CHECK(doc.line(1) == "  new1");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
     }
     SECTION("key-delete-remove-line") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Up, Qt::KeyboardModifier::NoModifier);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Delete, Qt::KeyboardModifier::NoModifier);
         CHECK(doc.line(0) == "    text    new1");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,0});
     }
     SECTION("ctrl+key-delete") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::NoModifier);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Delete, Qt::KeyboardModifier::ControlModifier);
         CHECK(doc.line(1) == "");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
     }
     SECTION("shift+key-delete") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::NoModifier);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Delete, Qt::KeyboardModifier::ShiftModifier);
         CHECK(doc.line(1) == "    new1");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
     }
     SECTION("alt+key-delete") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::NoModifier);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Delete, Qt::KeyboardModifier::AltModifier);
         CHECK(doc.line(1) == "    new1");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
     }
     //backspace
     SECTION("key-backspace") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Backspace, Qt::KeyboardModifier::NoModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{7,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{7,1});
         CHECK(doc.line(1) == "    new");
     }
     SECTION("ctrl+key-backspace") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Backspace, Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{4,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{4,1});
         CHECK(doc.line(1) == "    ");
     }
     SECTION("alt+key-backspace") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Backspace, Qt::KeyboardModifier::AltModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         CHECK(doc.line(1) == "    new1");
     }
     SECTION("key-left") {
         for(int i = 0; i <= 8; i++) {
-            CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8 - i, 1});
+            CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8 - i, 1});
             Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::NoModifier);
         }
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8, 0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8, 0});
     }
 
     //left
     SECTION("crl+key-left") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{4, 1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{4, 1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0, 1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0, 1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8, 0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8, 0});
     }
 
     SECTION("crl+shift+key-left") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ControlModifier | Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{4, 1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{4, 1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ControlModifier | Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0, 1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0, 1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ControlModifier | Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8, 0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8, 0});
     }
 
     //right
     SECTION("crl+key-right") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::ControlModifier);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Right, Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8, 0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8, 0});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Right, Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0, 1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0, 1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Right, Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8, 1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8, 1});
     }
     SECTION("crl+key-right") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::ControlModifier);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Right, Qt::KeyboardModifier::ControlModifier | Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8, 0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8, 0});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Right, Qt::KeyboardModifier::ControlModifier | Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0, 1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0, 1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Right, Qt::KeyboardModifier::ControlModifier | Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8, 1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8, 1});
     }
 
 
     SECTION("scroll") {
         auto testCase = GENERATE(Tui::ZTextOption::WrapMode::NoWrap, Tui::ZTextOption::WrapMode::WordWrap, Tui::ZTextOption::WrapMode::WrapAnywhere);
-        f->setWrapOption(testCase);
-        CHECK(f->getScrollPosition() == QPoint{0,0});
+        f->setWordWrapMode(testCase);
+        CHECK(f->scrollPosition() == QPoint{0,0});
 
         //TODO: #193 scrollup with Crl+Up and wraped lines.
         //Tui::ZTest::sendText(&terminal, QString("a").repeated(100), Qt::KeyboardModifier::NoModifier);
@@ -569,17 +567,17 @@ TEST_CASE("actions") {
         for (int i = 0; i < 48; i++) {
             Tui::ZTest::sendKey(&terminal, Qt::Key_Enter, Qt::KeyboardModifier::NoModifier);
         }
-        CHECK(f->getScrollPosition() == QPoint{0,27});
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,49});
+        CHECK(f->scrollPosition() == QPoint{0,27});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,49});
         for (int i = 0; i <= 26; i++) {
             Tui::ZTest::sendKey(&terminal, Qt::Key_Up, Qt::KeyboardModifier::ControlModifier);
-            CHECK(f->getScrollPosition() == QPoint{0,26 - i});
+            CHECK(f->scrollPosition() == QPoint{0,26 - i});
         }
     }
 
     SECTION("move-lines-up") {
         CHECK(doc.lineCount() == 2);
-        CHECK(f->getScrollPosition() == QPoint{0,0});
+        CHECK(f->scrollPosition() == QPoint{0,0});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Up, (Qt::KeyboardModifier::ShiftModifier | Qt::KeyboardModifier::ControlModifier));
         CHECK(doc.line(0) == "    new1");
     }
@@ -591,7 +589,7 @@ TEST_CASE("actions") {
 
     SECTION("select-tab") {
         Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, Qt::KeyboardModifier::ShiftModifier);
         CHECK(doc.line(0) == "text");
         CHECK(doc.line(1) == "new1");
@@ -603,10 +601,10 @@ TEST_CASE("actions") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, Qt::KeyboardModifier::ShiftModifier);
         CHECK(doc.line(0) == "    text");
         CHECK(doc.line(1) == "new1");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{4, 1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{4, 1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Tab, Qt::KeyboardModifier::NoModifier);
         CHECK(doc.line(1) == "new1    ");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8, 1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8, 1});
     }
 
     //home end
@@ -614,42 +612,42 @@ TEST_CASE("actions") {
         Qt::KeyboardModifier shift = GENERATE(Qt::KeyboardModifier::NoModifier, Qt::KeyboardModifier::ShiftModifier);
         CAPTURE(shift);
 
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, shift);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, shift);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{4,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{4,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, shift);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
     }
 
     SECTION("home-end") {
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::NoModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_End, Qt::KeyboardModifier::NoModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
     }
     SECTION("shift+home-end") {
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_End, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
     }
     SECTION("crl+home-end") {
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
         Tui::ZTest::sendKey(&terminal, Qt::Key_End, Qt::KeyboardModifier::ControlModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
     }
     SECTION("crl+shift+home-end") {
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, (Qt::KeyboardModifier::ShiftModifier | Qt::KeyboardModifier::ControlModifier));
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
         Tui::ZTest::sendKey(&terminal, Qt::Key_End, (Qt::KeyboardModifier::ShiftModifier | Qt::KeyboardModifier::ControlModifier));
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
     }
 
     SECTION("up-down-page-up-page-down") {
@@ -660,27 +658,27 @@ TEST_CASE("actions") {
         Tui::ZTest::sendText(&terminal, "    new2", Qt::KeyboardModifier::NoModifier);
         CHECK(doc.lineCount() == 3);
 
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,2});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,2});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, shift);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageDown, shift);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,2});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,2});
     }
 
     //esc
     SECTION("esc") {
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, (Qt::KeyboardModifier::ShiftModifier | Qt::KeyboardModifier::ControlModifier));
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == true);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == true);
 
         Tui::ZTest::sendKey(&terminal, Qt::Key_Escape, Qt::KeyboardModifier::NoModifier);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-        CHECK(f->isSelect() == true);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->hasSelection() == true);
     }
 
     //eat space
     SECTION("eat space") {
-        f->setTabsize(4);
+        f->setTabStopDistance(4);
         Tui::ZTest::sendText(&terminal, "a", Qt::KeyboardModifier::ControlModifier);
 
         //prepare enviromend
@@ -743,42 +741,42 @@ TEST_CASE("actions") {
 
         Tui::ZTest::sendKey(&terminal, Qt::Key_Home, Qt::KeyboardModifier::ControlModifier);
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageDown, shift);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,23});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,23});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageDown, shift);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,46});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,46});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageDown, shift);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,50});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,50});
 
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, shift);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,27});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,27});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, shift);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,4});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,4});
         Tui::ZTest::sendKey(&terminal, Qt::Key_PageUp, shift);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{0,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
     }
 
     SECTION("search") {
         EventRecorder recorder;
         auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
 
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         f->setSearchText("t");
 
         recorder.waitForEvent(cursorSignal);
         recorder.clearEvents();
         t.f3(false, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{5,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{5,0});
 
         recorder.clearEvents();
         t.f3(false, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,0});
 
         recorder.clearEvents();
         t.f3(false, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{5,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{5,0});
         recorder.clearEvents();
     }
     SECTION("search-t") {
@@ -794,9 +792,9 @@ TEST_CASE("actions") {
         CAPTURE(backward);
 
         f->selectAll();
-        f->insertAtCursorPosition("t");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,0});
-        CHECK(f->isSelect() == false);
+        f->insertText("t");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,0});
+        CHECK(f->hasSelection() == false);
         recorder.clearEvents();
 
         f->setSearchText("t");
@@ -805,15 +803,15 @@ TEST_CASE("actions") {
         recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
     }
     SECTION("search-t-t") {
         EventRecorder recorder;
@@ -827,10 +825,10 @@ TEST_CASE("actions") {
 
 
         f->selectAll();
-        f->insertAtCursorPosition("t t");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{3,0});
+        f->insertText("t t");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{3,0});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
         recorder.clearEvents();
 
         f->setSearchText("t");
@@ -839,21 +837,21 @@ TEST_CASE("actions") {
         recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{3,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{3,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
     }
 
     SECTION("search-space-t-t") {
@@ -865,9 +863,9 @@ TEST_CASE("actions") {
         f->setRegex(reg);
 
         f->selectAll();
-        f->insertAtCursorPosition(" t t ");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{5,0});
-        CHECK(f->isSelect() == false);
+        f->insertText(" t t ");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{5,0});
+        CHECK(f->hasSelection() == false);
         recorder.clearEvents();
 
         f->setSearchText("t");
@@ -876,21 +874,21 @@ TEST_CASE("actions") {
         recorder.clearEvents();
         t.f3(false, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(false, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{4,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{4,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(false, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
     }
 
     SECTION("searchBackword-space-t-t") {
@@ -902,9 +900,9 @@ TEST_CASE("actions") {
         f->setRegex(reg);
 
         f->selectAll();
-        f->insertAtCursorPosition(" t t ");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{5,0});
-        CHECK(f->isSelect() == false);
+        f->insertText(" t t ");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{5,0});
+        CHECK(f->hasSelection() == false);
         recorder.clearEvents();
 
         f->setSearchText("t");
@@ -913,21 +911,21 @@ TEST_CASE("actions") {
         recorder.clearEvents();
         t.f3(true, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{4,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{4,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(true, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(true, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{4,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{4,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
     }
 
     SECTION("search-t-newline-t") {
@@ -941,10 +939,10 @@ TEST_CASE("actions") {
         f->setRegex(reg);
 
         f->selectAll();
-        f->insertAtCursorPosition("t\nt");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,1});
+        f->insertText("t\nt");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
         recorder.clearEvents();
 
         f->setSearchText("t");
@@ -953,21 +951,21 @@ TEST_CASE("actions") {
         recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,1});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{1,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
     }
 
     SECTION("search-t-newline-space-t") {
@@ -981,10 +979,10 @@ TEST_CASE("actions") {
         f->setRegex(reg);
 
         f->selectAll();
-        f->insertAtCursorPosition(" t\n t");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,1});
+        f->insertText(" t\n t");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
         recorder.clearEvents();
 
         f->setSearchText("t");
@@ -993,21 +991,21 @@ TEST_CASE("actions") {
         recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,1});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
     }
 
     SECTION("search-aa") {
@@ -1021,11 +1019,11 @@ TEST_CASE("actions") {
         f->setRegex(reg);
 
         f->selectAll();
-        f->insertAtCursorPosition(" aa\naa");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,1});
+        f->insertText(" aa\naa");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
         recorder.clearEvents();
 
         f->setSearchText("aa");
@@ -1034,15 +1032,15 @@ TEST_CASE("actions") {
         recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{3,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{3,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,1});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
     }
 
     SECTION("search-aa-aa") {
@@ -1056,11 +1054,11 @@ TEST_CASE("actions") {
         f->setRegex(reg);
 
         f->selectAll();
-        f->insertAtCursorPosition(" aa aa\naa");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,1});
+        f->insertText(" aa aa\naa");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
         recorder.clearEvents();
 
         f->setSearchText("aa");
@@ -1078,9 +1076,9 @@ TEST_CASE("actions") {
         for (Tui::ZDocumentCursor::Position point : positions) {
             t.f3(backward, &terminal, f);
             recorder.waitForEvent(cursorSignal);
-            CHECK(f->getCursorPosition() == point);
+            CHECK(f->cursorPosition() == point);
             recorder.clearEvents();
-            CHECK(f->isSelect() == true);
+            CHECK(f->hasSelection() == true);
         }
     }
 
@@ -1093,10 +1091,10 @@ TEST_CASE("actions") {
         f->setRegex(reg);
 
         f->selectAll();
-        f->insertAtCursorPosition("asd \n\nasd");
+        f->insertText("asd \n\nasd");
         f->setCursorPosition(Tui::ZDocumentCursor::Position{4,0});
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{4,0});
-        CHECK(f->isSelect() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{4,0});
+        CHECK(f->hasSelection() == false);
         recorder.clearEvents();
 
         f->setSearchText("asd");
@@ -1105,9 +1103,9 @@ TEST_CASE("actions") {
         recorder.clearEvents();
         t.f3(true, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{3,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{3,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
     }
 
@@ -1120,11 +1118,11 @@ TEST_CASE("actions") {
         f->setRegex(reg);
 
         f->selectAll();
-        f->insertAtCursorPosition("bb\nbb\nbb");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,2});
+        f->insertText("bb\nbb\nbb");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,2});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
         recorder.clearEvents();
 
         f->setSearchText("bb");
@@ -1136,15 +1134,15 @@ TEST_CASE("actions") {
             for(int i = 0; i < 3; i++) {
                 t.f3(false, &terminal, f);
                 recorder.waitForEvent(cursorSignal);
-                CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,0});
+                CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,0});
                 recorder.clearEvents();
-                CHECK(f->isSelect() == true);
+                CHECK(f->hasSelection() == true);
 
                 t.f3(true, &terminal, f);
                 recorder.waitForEvent(cursorSignal);
-                CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,2});
+                CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,2});
                 recorder.clearEvents();
-                CHECK(f->isSelect() == true);
+                CHECK(f->hasSelection() == true);
             }
         }
 
@@ -1156,9 +1154,9 @@ TEST_CASE("actions") {
             for (Tui::ZDocumentCursor::Position point : positions) {
                 t.f3(backward, &terminal, f);
                 recorder.waitForEvent(cursorSignal);
-                CHECK(f->getCursorPosition() == point);
+                CHECK(f->cursorPosition() == point);
                 recorder.clearEvents();
-                CHECK(f->isSelect() == true);
+                CHECK(f->hasSelection() == true);
 
                 if (point.line == 0) backward = !backward;
             }
@@ -1177,10 +1175,10 @@ TEST_CASE("actions") {
         f->setRegex(reg);
 
         f->selectAll();
-        f->insertAtCursorPosition("😎😎");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{4,0});
+        f->insertText("😎😎");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{4,0});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
         recorder.clearEvents();
 
         f->setSearchText("😎");
@@ -1189,15 +1187,15 @@ TEST_CASE("actions") {
         recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{4,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{4,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
     }
 
     SECTION("search-smiley-multiline") {
@@ -1211,10 +1209,10 @@ TEST_CASE("actions") {
         f->setRegex(reg);
 
         f->selectAll();
-        f->insertAtCursorPosition("😎\n😎");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,1});
+        f->insertText("😎\n😎");
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,1});
         Tui::ZTest::sendKey(&terminal, Qt::Key_Left, Qt::KeyboardModifier::ShiftModifier);
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
         recorder.clearEvents();
 
         f->setSearchText("😎");
@@ -1223,38 +1221,38 @@ TEST_CASE("actions") {
         recorder.clearEvents();
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,0});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,0});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
 
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{2,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,1});
         recorder.clearEvents();
-        CHECK(f->isSelect() == true);
+        CHECK(f->hasSelection() == true);
     }
 
     SECTION("replace") {
         EventRecorder recorder;
         auto cursorSignal = recorder.watchSignal(f, RECORDER_SIGNAL(&File::cursorPositionChanged));
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
 
         f->replaceAll("1","2");
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{8,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         CHECK(doc.line(1) == "    new2");
         recorder.clearEvents();
 
         f->replaceAll("e","E");
         recorder.waitForEvent(cursorSignal);
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{6,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{6,1});
         recorder.clearEvents();
 
         f->replaceAll(" ","   ");
         recorder.waitForEvent(cursorSignal);
         CHECK(doc.line(0) == "            tExt");
         CHECK(doc.line(1) == "            nEw2");
-        CHECK(f->getCursorPosition() == Tui::ZDocumentCursor::Position{12,1});
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{12,1});
         recorder.clearEvents();
     }
 }

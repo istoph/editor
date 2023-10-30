@@ -31,7 +31,7 @@
 
 File::File(Tui::ZTextMetrics textMetrics, Tui::ZWidget *parent)
     : Tui::ZWidget(parent), _textMetrics(textMetrics), _doc(std::make_shared<Tui::ZDocument>()),
-      _cursor(createCursor()), _scrollPositionY(_doc.get())
+      _cursor(createCursor()), _scrollPositionLine(_doc.get())
 {
     setFocusPolicy(Qt::StrongFocus);
     setCursorStyle(Tui::CursorStyle::Bar);
@@ -75,7 +75,7 @@ File::File(Tui::ZTextMetrics textMetrics, Tui::ZWidget *parent)
     QObject::connect(_doc.get(), &Tui::ZDocument::modificationChanged, this, &File::modifiedChanged);
 
     QObject::connect(_doc.get(), &Tui::ZDocument::lineMarkerChanged, this, [this](const Tui::ZDocumentLineMarker *marker) {
-        if (marker == &_scrollPositionY || (_blockSelectEndLine && marker == &*_blockSelectEndLine)) {
+        if (marker == &_scrollPositionLine || (_blockSelectEndLine && marker == &*_blockSelectEndLine)) {
             // Recalculate the scroll position:
             //  * In case any editing from outside of this class moved our scroll position line marker to ensure
             //    that the line marker still keeps the cursor visible
@@ -200,7 +200,7 @@ void File::ingestSyntaxHighlightingUpdates(Updates updates) {
         return;
     }
 
-    const int visibleLinesStart = _scrollPositionY.line();
+    const int visibleLinesStart = _scrollPositionLine.line();
     const int visibleLinesEnd = visibleLinesStart + geometry().height();
 
     bool needRepaint = false;
@@ -304,10 +304,10 @@ File::~File() {
 }
 
 bool File::readAttributes() {
-    if(_attributesfile.isEmpty()) {
+    if(_attributesFile.isEmpty()) {
         return false;
     }
-    QFile fileRead(_attributesfile);
+    QFile fileRead(_attributesFile);
     if(!fileRead.open(QIODevice::ReadOnly | QIODevice::Text)) {
         //qDebug() << "File open error";
         return false;
@@ -316,16 +316,16 @@ bool File::readAttributes() {
     fileRead.close();
 
     QJsonDocument jd = QJsonDocument::fromJson(val.toUtf8());
-    _jo = jd.object();
+    _attributeObject = jd.object();
     return true;
 }
 
 Tui::ZDocumentCursor::Position File::getAttributes() {
-    if (_attributesfile.isEmpty()) {
+    if (_attributesFile.isEmpty()) {
         return {0, 0};
     }
     if (readAttributes()) {
-        QJsonObject data = _jo.value(getFilename()).toObject();
+        QJsonObject data = _attributeObject.value(getFilename()).toObject();
         return {data.value("cursorPositionX").toInt(), data.value("cursorPositionY").toInt()};
     }
     return {0, 0};
@@ -333,7 +333,7 @@ Tui::ZDocumentCursor::Position File::getAttributes() {
 
 bool File::writeAttributes() {
     QFileInfo filenameInfo(getFilename());
-    if(!filenameInfo.exists() || _attributesfile.isEmpty()) {
+    if(!filenameInfo.exists() || _attributesFile.isEmpty()) {
         return false;
     }
     readAttributes();
@@ -343,15 +343,15 @@ bool File::writeAttributes() {
     QJsonObject data;
     data.insert("cursorPositionX", cursorCodeUnit);
     data.insert("cursorPositionY", cursorLine);
-    data.insert("scrollPositionX",_scrollPositionX);
-    data.insert("scrollPositionY",_scrollPositionY.line());
-    _jo.insert(filenameInfo.absoluteFilePath(), data);
+    data.insert("scrollPositionX",_scrollPositionColumns);
+    data.insert("scrollPositionY",_scrollPositionLine.line());
+    _attributeObject.insert(filenameInfo.absoluteFilePath(), data);
 
     QJsonDocument jsonDoc;
-    jsonDoc.setObject(_jo);
+    jsonDoc.setObject(_attributeObject);
 
     //Save
-    QDir d = QFileInfo(_attributesfile).absoluteDir();
+    QDir d = QFileInfo(_attributesFile).absoluteDir();
     QString absolute=d.absolutePath();
     if(!QDir(absolute).exists()) {
         if(QDir().mkdir(absolute)) {
@@ -360,9 +360,9 @@ bool File::writeAttributes() {
         }
     }
 
-    QSaveFile file(_attributesfile);
+    QSaveFile file(_attributesFile);
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qWarning("%s%s", "can not save attributes file: ", _attributesfile.toUtf8().data());
+        qWarning("%s%s", "can not save attributes file: ", _attributesFile.toUtf8().data());
         return false;
     }
     file.write(jsonDoc.toJson());
@@ -370,21 +370,21 @@ bool File::writeAttributes() {
     return true;
 }
 
-void File::setAttributesfile(QString attributesfile) {
+void File::setAttributesFile(QString attributesFile) {
     //TODO is creatable
-    if(attributesfile.isEmpty() || attributesfile.isNull()) {
-        _attributesfile = "";
+    if(attributesFile.isEmpty() || attributesFile.isNull()) {
+        _attributesFile = "";
     } else {
-        QFileInfo i(attributesfile);
-        _attributesfile = i.absoluteFilePath();
+        QFileInfo i(attributesFile);
+        _attributesFile = i.absoluteFilePath();
     }
 }
 
-QString File::getAttributesfile() {
-    return _attributesfile;
+QString File::attributesFile() {
+    return _attributesFile;
 }
 
-int File::tabToSpace() {
+int File::convertTabsToSpaces() {
     auto undoGroup = _doc->startUndoGroup(&_cursor);
 
     int count = 0;
@@ -395,7 +395,7 @@ int File::tabToSpace() {
     // This changes code unit based positions in many lines. To avoid glitches reset selection and
     // manually save and restore cursor position. This should no longer be needed when TextCursor
     // is fixed to be able to keep its position even when edits happen.
-    resetSelect();
+    clearSelection();
     const auto [cursorCodeUnit, cursorLine] = _cursor.position();
     Tui::ZTextLayout lay = getTextLayoutForLine(option, cursorLine);
     int cursorPosition = lay.lineAt(0).cursorToX(cursorCodeUnit, Tui::ZTextLayout::Leading);
@@ -428,7 +428,7 @@ int File::tabToSpace() {
     return count;
 }
 
-Tui::ZDocumentCursor::Position File::getCursorPosition() {
+Tui::ZDocumentCursor::Position File::cursorPosition() {
     return _cursor.position();
 }
 
@@ -444,8 +444,8 @@ void File::setCursorPosition(Tui::ZDocumentCursor::Position position) {
     update();
 }
 
-QPoint File::getScrollPosition() {
-    return {_scrollPositionX, _scrollPositionY.line()};
+QPoint File::scrollPosition() {
+    return {_scrollPositionColumns, _scrollPositionLine.line()};
 }
 
 void File::setSaveAs(bool state) {
@@ -493,9 +493,9 @@ bool File::stdinText() {
 bool File::initText() {
     _doc->reset();
 
-    _scrollPositionX = 0;
-    _scrollPositionY.setLine(0);
-    _scrollFineLine = 0;
+    _scrollPositionColumns = 0;
+    _scrollPositionLine.setLine(0);
+    _scrollPositionFineLine = 0;
     _cursor.setPosition({0, 0});
     cursorPositionChanged(0, 0, 0);
     scrollPositionChanged(0, 0);
@@ -526,7 +526,7 @@ bool File::saveText() {
 }
 
 void File::checkWritable() {
-    setWritable(getWritable());
+    writableChanged(getWritable());
 }
 
 bool File::getWritable() {
@@ -553,7 +553,7 @@ void File::setHighlightBracket(bool hb) {
     _bracket = hb;
 }
 
-bool File::getHighlightBracket() {
+bool File::highlightBracket() {
     return _bracket;
 }
 
@@ -578,12 +578,12 @@ bool File::openText(QString filename) {
         modifiedChanged(false);
 
         // TODO refactor this
-        if (!_jo.isEmpty() && _jo.contains(getFilename())) {
-            QJsonObject data = _jo.value(getFilename()).toObject();
-            _scrollPositionX = data.value("scrollPositionX").toInt();
-            _scrollPositionY.setLine(data.value("scrollPositionY").toInt());
+        if (!_attributeObject.isEmpty() && _attributeObject.contains(getFilename())) {
+            QJsonObject data = _attributeObject.value(getFilename()).toObject();
+            _scrollPositionColumns = data.value("scrollPositionX").toInt();
+            _scrollPositionLine.setLine(data.value("scrollPositionY").toInt());
         }
-        _scrollFineLine = 0;
+        _scrollPositionFineLine = 0;
         adjustScrollPosition();
 
 #ifdef SYNTAX_HIGHLIGHTING
@@ -598,13 +598,13 @@ bool File::openText(QString filename) {
 
 void File::cut() {
     copy();
-    delSelect();
+    removeSelectedText();
     updateCommands();
     adjustScrollPosition();
 }
 
 void File::cutline() {
-    resetSelect();
+    clearSelection();
     _cursor.moveToStartOfLine();
     _cursor.moveToEndOfLine(true);
     cut();
@@ -615,8 +615,8 @@ void File::cutline() {
 void File::deleteLine() {
     auto undoGroup = _doc->startUndoGroup(&_cursor);
     if (_cursor.hasSelection() || hasBlockSelection() || hasMultiInsert()) {
-        const auto [start, end] = getSelectLinesSort();
-        resetSelect();
+        const auto [start, end] = getSelectedLinesSort();
+        clearSelection();
         _cursor.setPosition({0,end});
         _cursor.moveToEndOfLine();
         _cursor.setPosition({0,start}, true);
@@ -661,20 +661,13 @@ void File::paste() {
     auto undoGroup = _doc->startUndoGroup(&_cursor);
     Clipboard *clipboard = findFacet<Clipboard>();
     if (clipboard->getClipboard().size()) {
-        insertAtCursorPosition(clipboard->getClipboard());
+        insertText(clipboard->getClipboard());
         adjustScrollPosition();
     }
     _doc->clearCollapseUndoStep();
 }
 
-bool File::isInsertable() {
-    Clipboard *clipboard = findFacet<Clipboard>();
-    QString _clipboard = clipboard->getClipboard();
-    return !_clipboard.isEmpty();
-}
-
-
-void File::gotoline(QString pos) {
+void File::gotoLine(QString pos) {
     int lineNumber = -1, lineChar = 0;
     if (pos.mid(0,1) == "+") {
         pos = pos.mid(1);
@@ -689,12 +682,12 @@ void File::gotoline(QString pos) {
     setCursorPosition({lineChar, lineNumber});
 }
 
-bool File::setTabsize(int tab) {
+bool File::setTabStopDistance(int tab) {
     this->_tabsize = std::max(1, tab);
     return true;
 }
 
-int File::getTabsize() {
+int File::tabStopDistance() {
     return this->_tabsize;
 }
 
@@ -733,11 +726,11 @@ void File::setColorTabs(bool colorTabs) {
     _colorTabs = colorTabs;
 }
 
-bool File::colorSpaceEnd() {
-    return _colorSpaceEnd;
+bool File::colorTrailingSpaces() {
+    return _colorTrailingSpaces;
 }
-void File::setColorSpaceEnd(bool colorSpaceEnd) {
-    _colorSpaceEnd = colorSpaceEnd;
+void File::setColorTrailingSpaces(bool colorSpaceEnd) {
+    _colorTrailingSpaces = colorSpaceEnd;
 }
 
 void File::setEatSpaceBeforeTabs(bool eat) {
@@ -748,24 +741,24 @@ bool File::eatSpaceBeforeTabs() {
     return _eatSpaceBeforeTabs;
 }
 
-void File::setWrapOption(Tui::ZTextOption::WrapMode wrap) {
-    _wrapOption = wrap;
-    if (_wrapOption) {
-        _scrollPositionX = 0;
+void File::setWordWrapMode(Tui::ZTextOption::WrapMode wrap) {
+    _wrapMode = wrap;
+    if (_wrapMode) {
+        _scrollPositionColumns = 0;
     }
     adjustScrollPosition();
 }
 
-Tui::ZTextOption::WrapMode File::getWrapOption() {
-    return _wrapOption;
+Tui::ZTextOption::WrapMode File::wordWrapMode() {
+    return _wrapMode;
 }
 
-QPair<int,int> File::getSelectLinesSort() {
-    auto lines = getSelectLines();
+QPair<int,int> File::getSelectedLinesSort() {
+    auto lines = getSelectedLines();
     return {std::min(lines.first, lines.second), std::max(lines.first, lines.second)};
 }
 
-QPair<int,int> File::getSelectLines() {
+QPair<int,int> File::getSelectedLines() {
     int startY;
     int endeY;
 
@@ -793,7 +786,7 @@ QPair<int,int> File::getSelectLines() {
 }
 
 void File::selectLines(int startY, int endY) {
-    resetSelect();
+    clearSelection();
     if(startY > endY) {
         _cursor.setPosition({_doc->lineCodeUnits(startY), startY});
         _cursor.setPosition({0, endY}, true);
@@ -803,7 +796,7 @@ void File::selectLines(int startY, int endY) {
     }
 }
 
-void File::resetSelect() {
+void File::clearSelection() {
     if (_blockSelect) {
         disableBlockSelection();
     }
@@ -815,7 +808,7 @@ void File::resetSelect() {
     _cmdCut->setEnabled(false);
 }
 
-QString File::getSelectText() {
+QString File::selectedText() {
     QString selectText = "";
     if (hasBlockSelection()) {
         const int firstSelectBlockLine = std::min(_blockSelectStartLine->line(), _blockSelectEndLine->line());
@@ -840,18 +833,18 @@ QString File::getSelectText() {
     return selectText;
 }
 
-bool File::isSelect() {
+bool File::hasSelection() {
     return hasBlockSelection() || hasMultiInsert() || _cursor.hasSelection();
 }
 
 void File::selectAll() {
-    resetSelect();
+    clearSelection();
     _cursor.selectAll();
     updateCommands();
     adjustScrollPosition();
 }
 
-bool File::delSelect() {
+bool File::removeSelectedText() {
     auto undoGroup = _doc->startUndoGroup(&_cursor);
 
     if (!hasBlockSelection() && !hasMultiInsert() && !_cursor.hasSelection()) {
@@ -883,19 +876,19 @@ bool File::delSelect() {
     return true;
 }
 
-void File::toggleOverwrite() {
-   if(isOverwrite()) {
-       _overwrite = false;
+void File::toggleOverwriteMode() {
+   if (overwriteMode()) {
+       _overwriteMode = false;
        setCursorStyle(Tui::CursorStyle::Underline);
     } else {
-       _overwrite = true;
+       _overwriteMode = true;
        setCursorStyle(Tui::CursorStyle::Block);
     }
-    overwriteChanged(_overwrite);
+    overwriteModeChanged(_overwriteMode);
 }
 
-bool File::isOverwrite() {
-    return _overwrite;
+bool File::overwriteMode() {
+    return _overwriteMode;
 }
 
 bool File::hasBlockSelection() const {
@@ -1092,34 +1085,34 @@ void File::setReplaceText(QString replaceText) {
 }
 
 void File::setRegex(bool reg) {
-    _searchReg = reg;
+    _searchRegex = reg;
 }
 void File::setSearchWrap(bool wrap) {
     _searchWrap = wrap;
 }
 
-bool File::getSearchWrap() {
+bool File::searchWrap() {
     return _searchWrap;
 }
 
 void File::setSearchDirection(bool searchDirection) {
-    _searchDirection = searchDirection;
+    _searchDirectionForward = searchDirection;
 }
 
-void File::setLineNumber(bool linenumber) {
-    _linenumber = linenumber;
+void File::setShowLineNumbers(bool show) {
+    _showLineNumbers = show;
 }
 
-bool File::getLineNumber() {
-    return _linenumber;
+bool File::showLineNumbers() {
+    return _showLineNumbers;
 }
 
-void File::toggleLineNumber() {
-    _linenumber = !_linenumber;
+void File::toggleShowLineNumbers() {
+    _showLineNumbers = !_showLineNumbers;
 }
 
 void File::followStandardInput(bool follow) {
-    _follow = follow;
+    _followMode = follow;
 }
 
 void File::setReplaceSelected() {
@@ -1168,7 +1161,7 @@ void File::runSearch(bool direction) {
             _searchNextFuture.reset();
         }
 
-        const bool effectiveDirection = direction ^ _searchDirection;
+        const bool effectiveDirection = direction ^ _searchDirectionForward;
 
         Tui::ZDocument::FindFlags flags;
         if (_searchCaseSensitivity == Qt::CaseSensitive) {
@@ -1188,7 +1181,7 @@ void File::runSearch(bool direction) {
                 Tui::ZDocumentFindAsyncResult res = watcher->future().result();
                 if (res.anchor() != res.cursor()) { // has a match?
                     // Get rid of block selections and multi insert.
-                    resetSelect();
+                    clearSelection();
 
                     _cursor.setPosition(res.anchor());
                     _cursor.setPosition(res.cursor(), true);
@@ -1198,7 +1191,7 @@ void File::runSearch(bool direction) {
                     const auto [currentCodeUnit, currentLine] = _cursor.position();
 
                     if (currentLine - 1 > 0) {
-                        _scrollPositionY.setLine(currentLine - 1);
+                        _scrollPositionLine.setLine(currentLine - 1);
                     }
                     adjustScrollPosition();
                 }
@@ -1206,7 +1199,7 @@ void File::runSearch(bool direction) {
             watcher->deleteLater();
         });
 
-        if (_searchReg) {
+        if (_searchRegex) {
             _searchNextFuture.emplace(_doc->findAsync(QRegularExpression(_searchText), _cursor, flags));
         } else {
             _searchNextFuture.emplace(_doc->findAsync(_searchText, _cursor, flags));
@@ -1220,7 +1213,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
     setReplaceText(replaceText);
 
     // Get rid of block selections and multi insert.
-    resetSelect();
+    clearSelection();
 
     if (searchText.isEmpty()) {
         return 0;
@@ -1237,7 +1230,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
     _cursor.setPosition({0, 0});
     while (true) {
         Tui::ZDocumentCursor found = _cursor;
-        if (_searchReg) {
+        if (_searchRegex) {
             found = _doc->findSync(QRegularExpression(_searchText), _cursor, flags);
         } else {
             found = _doc->findSync(_searchText, _cursor, flags);
@@ -1254,7 +1247,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
 
     const auto [currentCodeUnit, currentLine] = _cursor.position();
     if (currentLine - 1 > 0) {
-        _scrollPositionY.setLine(currentLine - 1);
+        _scrollPositionLine.setLine(currentLine - 1);
     }
 
     adjustScrollPosition();
@@ -1263,7 +1256,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
 
 Tui::ZTextOption File::getTextOption(bool lineWithCursor) {
     Tui::ZTextOption option;
-    option.setWrapMode(_wrapOption);
+    option.setWrapMode(_wrapMode);
     option.setTabStopDistance(_tabsize);
 
     Tui::ZTextOption::Flags flags;
@@ -1312,7 +1305,7 @@ Tui::ZTextOption File::getTextOption(bool lineWithCursor) {
             });
         }
     }
-    if (colorSpaceEnd()) {
+    if (colorTrailingSpaces()) {
         flags |= Tui::ZTextOption::ShowTabsAndSpacesWithColors;
         if (!lineWithCursor) {
             option.setTrailingWhitespaceColor([] (const Tui::ZTextStyle &base, const Tui::ZTextStyle &formating, const Tui::ZFormatRange* range) -> Tui::ZTextStyle {
@@ -1331,8 +1324,8 @@ Tui::ZTextOption File::getTextOption(bool lineWithCursor) {
 Tui::ZTextLayout File::getTextLayoutForLine(const Tui::ZTextOption &option, int line) {
     Tui::ZTextLayout lay(terminal()->textMetrics(), _doc->line(line));
     lay.setTextOption(option);
-    if (_wrapOption) {
-        lay.doLayout(std::max(rect().width() - shiftLinenumber(), 0));
+    if (_wrapMode) {
+        lay.doLayout(std::max(rect().width() - lineNumberBorderWidth(), 0));
     } else {
         lay.doLayout(std::numeric_limits<unsigned short>::max() - 1);
     }
@@ -1343,7 +1336,7 @@ bool File::highlightBracketFind() {
     QString openBracket = "{[(<";
     QString closeBracket = "}])>";
 
-    if(getHighlightBracket()) {
+    if (highlightBracket()) {
         const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
         if (cursorCodeUnit < _doc->lineCodeUnits(cursorLine)) {
@@ -1400,8 +1393,8 @@ bool File::highlightBracketFind() {
     return false;
 }
 
-int File::shiftLinenumber() {
-    if(_linenumber) {
+int File::lineNumberBorderWidth() {
+    if (_showLineNumbers) {
         return QString::number(_doc->lineCount()).size() + 1;
     }
     return 0;
@@ -1419,9 +1412,9 @@ Tui::ZDocumentCursor File::createCursor() {
         Tui::ZTextOption option;
         option.setTabStopDistance(_tabsize);
         if (wrappingAllowed) {
-            option.setWrapMode(_wrapOption);
+            option.setWrapMode(_wrapMode);
             lay.setTextOption(option);
-            lay.doLayout(std::max(rect().width() - shiftLinenumber(), 0));
+            lay.doLayout(std::max(rect().width() - lineNumberBorderWidth(), 0));
         } else {
             lay.setTextOption(option);
             lay.doLayout(65000);
@@ -1446,8 +1439,8 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 
     auto *painter = event->painter();
     if (_rightMarginHint) {
-        painter->clearRect(0, 0, -_scrollPositionX + shiftLinenumber() + _rightMarginHint, rect().height(), fg, bg);
-        painter->clearRect(-_scrollPositionX + shiftLinenumber() + _rightMarginHint, 0, Tui::tuiMaxSize, rect().height(), fg, marginMarkBg);
+        painter->clearRect(0, 0, -_scrollPositionColumns + lineNumberBorderWidth() + _rightMarginHint, rect().height(), fg, bg);
+        painter->clearRect(-_scrollPositionColumns + lineNumberBorderWidth() + _rightMarginHint, 0, Tui::tuiMaxSize, rect().height(), fg, marginMarkBg);
 
         // One extra column to account for double wide character at last position
         leftOfMarginBuffer.emplace(terminal(), _rightMarginHint + 1, 1);
@@ -1485,9 +1478,9 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     const int cursorLine = _blockSelect ? _blockSelectEndLine->line() : cursorLineReal;
 
     QString strlinenumber;
-    int y = -_scrollFineLine;
+    int y = -_scrollPositionFineLine;
     int tmpLastLineWidth = 0;
-    for (int line = _scrollPositionY.line(); y < rect().height() && line < _doc->lineCount(); line++) {
+    for (int line = _scrollPositionLine.line(); y < rect().height() && line < _doc->lineCount(); line++) {
         const bool multiIns = hasMultiInsert();
         const bool cursorAtEndOfCurrentLine = [&, cursorCodeUnit=cursorCodeUnit] {
             if (_blockSelect) {
@@ -1526,7 +1519,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         // search matches
         if(_searchText != "") {
             int found = -1;
-            if(_searchReg) {
+            if(_searchRegex) {
                 QRegularExpression rx(_searchText);
                 QRegularExpressionMatchIterator i = rx.globalMatch(_doc->line(line));
                 while (i.hasNext()) {
@@ -1586,17 +1579,17 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 painterLeftOfMargin.emplace(leftOfMarginBuffer->painter());
             }
 
-            lay.draw(*painter, {-_scrollPositionX + shiftLinenumber(), y}, baseInMargin, &formatingCharInMargin, highlights);
+            lay.draw(*painter, {-_scrollPositionColumns + lineNumberBorderWidth(), y}, baseInMargin, &formatingCharInMargin, highlights);
             painterLeftOfMargin->clearRect(0, 0, _rightMarginHint + 1, lay.lineCount(), base.foregroundColor(), base.backgroundColor());
             lay.draw(*painterLeftOfMargin, {0, 0}, base, &formatingChar, highlights);
-            painter->drawImageWithTiling(-_scrollPositionX + shiftLinenumber(), y,
+            painter->drawImageWithTiling(-_scrollPositionColumns + lineNumberBorderWidth(), y,
                                               *leftOfMarginBuffer, 0, 0, _rightMarginHint, lay.lineCount(),
                                               Tui::ZTilingMode::NoTiling, Tui::ZTilingMode::Put);
         } else {
             if (_formattingCharacters) {
-                lay.draw(*painter, {-_scrollPositionX + shiftLinenumber(), y}, base, &formatingChar, highlights);
+                lay.draw(*painter, {-_scrollPositionColumns + lineNumberBorderWidth(), y}, base, &formatingChar, highlights);
             } else {
-                lay.draw(*painter, {-_scrollPositionX + shiftLinenumber(), y}, base, &base, highlights);
+                lay.draw(*painter, {-_scrollPositionColumns + lineNumberBorderWidth(), y}, base, &base, highlights);
             }
         }
         Tui::ZTextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
@@ -1615,7 +1608,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                         markStyle = blockSelected;
                     }
                     const int firstColumnAfterLineBreakMarker = std::max(lastLine.width() + 1, firstSelectBlockColumn);
-                    painter->clearRect(-_scrollPositionX + firstColumnAfterLineBreakMarker + shiftLinenumber(),
+                    painter->clearRect(-_scrollPositionColumns + firstColumnAfterLineBreakMarker + lineNumberBorderWidth(),
                                        y + lastLine.y(), std::max(1, lastSelectBlockColumn - firstColumnAfterLineBreakMarker),
                                        1, markStyle.foregroundColor(), markStyle.backgroundColor());
                 }
@@ -1630,36 +1623,36 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 if (multiIns) {
                     markStyle = blockSelected;
                 }
-                painter->writeWithAttributes(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), QStringLiteral("¶"),
+                painter->writeWithAttributes(-_scrollPositionColumns + lastLine.width() + lineNumberBorderWidth(), y + lastLine.y(), QStringLiteral("¶"),
                                          markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
             } else {
                 Tui::ZTextStyle markStyle = selected;
                 if (multiIns) {
                     markStyle = blockSelected;
                 }
-                painter->clearRect(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), 1, 1, markStyle.foregroundColor(), markStyle.backgroundColor());
+                painter->clearRect(-_scrollPositionColumns + lastLine.width() + lineNumberBorderWidth(), y + lastLine.y(), 1, 1, markStyle.foregroundColor(), markStyle.backgroundColor());
             }
         } else if (formattingCharacters()) {
             const Tui::ZTextStyle &markStyle = (_rightMarginHint && lastLine.width() > _rightMarginHint) ? formatingCharInMargin : formatingChar;
-            painter->writeWithAttributes(-_scrollPositionX + lastLine.width() + shiftLinenumber(), y + lastLine.y(), QStringLiteral("¶"),
+            painter->writeWithAttributes(-_scrollPositionColumns + lastLine.width() + lineNumberBorderWidth(), y + lastLine.y(), QStringLiteral("¶"),
                                          markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
         }
 
         if (cursorLine == line) {
             if (focus()) {
                 if (_blockSelect) {
-                    painter->setCursor(-_scrollPositionX + shiftLinenumber() + _blockSelectEndColumn, y);
+                    painter->setCursor(-_scrollPositionColumns + lineNumberBorderWidth() + _blockSelectEndColumn, y);
                 } else {
-                    lay.showCursor(*painter, {-_scrollPositionX + shiftLinenumber(), y}, cursorCodeUnit);
+                    lay.showCursor(*painter, {-_scrollPositionColumns + lineNumberBorderWidth(), y}, cursorCodeUnit);
                 }
             }
         }
         // linenumber
-        if (_linenumber) {
+        if (_showLineNumbers) {
             for (int i = lay.lineCount() - 1; i > 0; i--) {
-                painter->writeWithColors(0, y + i, QString(" ").repeated(shiftLinenumber()), getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
+                painter->writeWithColors(0, y + i, QString(" ").repeated(lineNumberBorderWidth()), getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
             }
-            strlinenumber = QString::number(line + 1) + QString(" ").repeated(shiftLinenumber() - QString::number(line + 1).size());
+            strlinenumber = QString::number(line + 1) + QString(" ").repeated(lineNumberBorderWidth() - QString::number(line + 1).size());
             int lineNumberY = y;
             if (y < 0) {
                 strlinenumber.replace(' ', '^');
@@ -1674,15 +1667,15 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         y += lay.lineCount();
     }
     if (_doc->newlineAfterLastLineMissing()) {
-        if (formattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
+        if (formattingCharacters() && y < rect().height() && _scrollPositionColumns == 0) {
             const Tui::ZTextStyle &markStyle = (_rightMarginHint && tmpLastLineWidth > _rightMarginHint) ? formatingCharInMargin : formatingChar;
 
-            painter->writeWithAttributes(-_scrollPositionX + tmpLastLineWidth + shiftLinenumber(), y-1, "♦", markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
+            painter->writeWithAttributes(-_scrollPositionColumns + tmpLastLineWidth + lineNumberBorderWidth(), y-1, "♦", markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
         }
-        painter->writeWithAttributes(0 + shiftLinenumber(), y, "\\ No newline at end of file", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+        painter->writeWithAttributes(0 + lineNumberBorderWidth(), y, "\\ No newline at end of file", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
     } else {
-        if (formattingCharacters() && y < rect().height() && _scrollPositionX == 0) {
-            painter->writeWithAttributes(0 + shiftLinenumber(), y, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+        if (formattingCharacters() && y < rect().height() && _scrollPositionColumns == 0) {
+            painter->writeWithAttributes(0 + lineNumberBorderWidth(), y, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
         }
     }
 }
@@ -1696,13 +1689,13 @@ void File::addTabAt(Tui::ZDocumentCursor &cur) {
         Tui::ZTextLayout lay = getTextLayoutForLineWithoutWrapping(cur.position().line);
         Tui::ZTextLineRef tlr = lay.lineAt(0);
         const int colum = tlr.cursorToX(cur.position().codeUnit, Tui::ZTextLayout::Leading);
-        const int remainingTabWidth = getTabsize() - colum % getTabsize();
+        const int remainingTabWidth = tabStopDistance() - colum % tabStopDistance();
         cur.insertText(QStringLiteral(" ").repeated(remainingTabWidth));
     }
 }
 
 int File::getVisibleLines() {
-    if(getWrapOption()) {
+    if(wordWrapMode()) {
         return std::max(1, geometry().height() - 2);
     }
     return std::max(1, geometry().height() - 1);
@@ -1716,13 +1709,13 @@ void File::appendLine(const QString &line) {
         cur.moveToEndOfDocument();
         cur.insertText("\n" + line);
     }
-    if(_follow) {
+    if(_followMode) {
         _cursor.moveToEndOfDocument();
     }
     adjustScrollPosition();
 }
 
-void File::insertAtCursorPosition(const QString &str) {
+void File::insertText(const QString &str) {
     auto undoGroup = _doc->startUndoGroup(&_cursor);
 
     if (_blockSelect) {
@@ -1783,17 +1776,17 @@ void File::insertAtCursorPosition(const QString &str) {
         }
     } else {
         // Inserting might adjust the scroll position, so save it here and restore it later.
-        const int line = _scrollPositionY.line();
+        const int line = _scrollPositionLine.line();
         _cursor.insertText(str);
-        _scrollPositionY.setLine(line);
+        _scrollPositionLine.setLine(line);
     }
     adjustScrollPosition();
 }
 
 void File::sortSelecedLines() {
     if (hasBlockSelection() || hasMultiInsert() || _cursor.hasSelection()) {
-        const auto [startLine, endLine] = getSelectLines();
-        auto lines = getSelectLinesSort();
+        const auto [startLine, endLine] = getSelectedLines();
+        auto lines = getSelectedLinesSort();
         _doc->sortLines(lines.first, lines.second + 1, &_cursor);
         selectLines(startLine, endLine);
     }
@@ -1829,7 +1822,7 @@ void File::pasteEvent(Tui::ZPasteEvent *event) {
     text.replace(QString("\r\n"), QString('\n'));
     text.replace(QString('\r'), QString('\n'));
 
-    insertAtCursorPosition(text);
+    insertText(text);
     _doc->clearCollapseUndoStep();
     adjustScrollPosition();
 }
@@ -1853,12 +1846,12 @@ void File::focusInEvent(Tui::ZFocusEvent *event) {
     modifiedChanged(isModified());
 }
 
-void File::setSelectMode(bool event) {
-    _selectMode = event;
-    modifiedSelectMode(_selectMode);
+void File::setSelectMode(bool mode) {
+    _selectMode = mode;
+    selectModeChanged(_selectMode);
 }
 
-bool File::getSelectMode() {
+bool File::selectMode() {
     return _selectMode;
 }
 
@@ -1904,8 +1897,8 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
     auto delAndClearSelection = [this] {
         //Markierte Zeichen Löschen
-        delSelect();
-        resetSelect();
+        removeSelectedText();
+        clearSelection();
         adjustScrollPosition();
     };
 
@@ -1971,26 +1964,26 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                     blockSelectRemoveSelectedAndConvertToMultiInsert();
                 }
 
-                if (isOverwrite()) {
+                if (overwriteMode()) {
                     multiInsertDeleteCharacter();
                 }
                 multiInsertInsert(text);
             } else {
-                if (isOverwrite()
+                if (overwriteMode()
                     && !_cursor.hasSelection()
                     && !_cursor.atLineEnd()) {
 
                     _cursor.deleteCharacter();
                 }
                 // Inserting might adjust the scroll position, so save it here and restore it later.
-                const int line = _scrollPositionY.line();
+                const int line = _scrollPositionLine.line();
                 _cursor.insertText(text);
-                _scrollPositionY.setLine(line);
+                _scrollPositionLine.setLine(line);
             }
             adjustScrollPosition();
         }
         updateCommands();
-    } else if (event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == Qt::AltModifier | Qt::ShiftModifier)  && isSelect()) {
+    } else if (event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == Qt::AltModifier | Qt::ShiftModifier)  && hasSelection()) {
         _detachedScrolling = false;
         // Alt + Shift + s sort selected lines
         sortSelecedLines();
@@ -2253,9 +2246,9 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             delAndClearSelection();
         }
         // Inserting might adjust the scroll position, so save it here and restore it later.
-        const int line = _scrollPositionY.line();
+        const int line = _scrollPositionLine.line();
         _cursor.insertText("\n");
-        _scrollPositionY.setLine(line);
+        _scrollPositionLine.setLine(line);
         updateCommands();
         adjustScrollPosition();
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == 0) {
@@ -2271,11 +2264,11 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         } else if (_cursor.hasSelection()) {
             // Add one level of indent to the selected lines.
 
-            const auto [firstLine, lastLine] = getSelectLinesSort();
-            const auto [startLine, endLine] = getSelectLines();
+            const auto [firstLine, lastLine] = getSelectedLinesSort();
+            const auto [startLine, endLine] = getSelectedLines();
 
-            const bool savedSelectMode = getSelectMode();
-            resetSelect();
+            const bool savedSelectMode = selectMode();
+            clearSelection();
 
             Tui::ZDocumentCursor cur = createCursor();
 
@@ -2286,7 +2279,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                         cur.insertText(QString("\t"));
                     } else {
                         cur.setPosition({0, line});
-                        cur.insertText(QString(" ").repeated(getTabsize()));
+                        cur.insertText(QString(" ").repeated(tabStopDistance()));
                     }
                 }
             }
@@ -2313,13 +2306,13 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if(event->key() == Qt::Key_Tab && event->modifiers() == Qt::ShiftModifier) {
         _detachedScrolling = false;
         // returns current line if no selection is active
-        const auto [firstLine, lastLine] = getSelectLinesSort();
-        const auto [startLine, endLine] = getSelectLines();
+        const auto [firstLine, lastLine] = getSelectedLinesSort();
+        const auto [startLine, endLine] = getSelectedLines();
         const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
-        const bool savedSelectMode = getSelectMode();
+        const bool savedSelectMode = selectMode();
         const bool reselect = hasMultiInsert() || hasBlockSelection() || _cursor.hasSelection();
-        resetSelect();
+        clearSelection();
 
         int cursorAdjust = 0;
 
@@ -2330,7 +2323,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             } else {
                 while (true) {
                     if (codeUnitsToRemove < _doc->lineCodeUnits(line)
-                        && codeUnitsToRemove < getTabsize()
+                        && codeUnitsToRemove < tabStopDistance()
                         && _doc->line(line)[codeUnitsToRemove] == ' ') {
                         codeUnitsToRemove++;
                     } else {
@@ -2393,50 +2386,50 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         deleteLine();
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Up) {
         // Fenster hoch Scrolen
-        if (_scrollFineLine > 0) {
+        if (_scrollPositionFineLine > 0) {
             _detachedScrolling = true;
-            _scrollFineLine -= 1;
+            _scrollPositionFineLine -= 1;
             update();
-        } else if (_scrollPositionY.line() > 0) {
+        } else if (_scrollPositionLine.line() > 0) {
             _detachedScrolling = true;
-            _scrollPositionY.setLine(_scrollPositionY.line() - 1);
-            if (getWrapOption() != Tui::ZTextOption::WrapMode::NoWrap) {
-                Tui::ZTextLayout lay = getTextLayoutForLine(getTextOption(false), _scrollPositionY.line());
-                _scrollFineLine = lay.lineCount() - 1;
+            _scrollPositionLine.setLine(_scrollPositionLine.line() - 1);
+            if (wordWrapMode() != Tui::ZTextOption::WrapMode::NoWrap) {
+                Tui::ZTextLayout lay = getTextLayoutForLine(getTextOption(false), _scrollPositionLine.line());
+                _scrollPositionFineLine = lay.lineCount() - 1;
             } else {
-                _scrollFineLine = 0;
+                _scrollPositionFineLine = 0;
             }
         }
     } else if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Down) {
         // Fenster runter Scrolen
         bool adjustedFineScrolling = false;
-        if (getWrapOption() != Tui::ZTextOption::WrapMode::NoWrap) {
-            Tui::ZTextLayout lay = getTextLayoutForLine(getTextOption(false), _scrollPositionY.line());
-            if (lay.lineCount() - 1 > _scrollFineLine) {
-                _scrollFineLine += 1;
+        if (wordWrapMode() != Tui::ZTextOption::WrapMode::NoWrap) {
+            Tui::ZTextLayout lay = getTextLayoutForLine(getTextOption(false), _scrollPositionLine.line());
+            if (lay.lineCount() - 1 > _scrollPositionFineLine) {
+                _scrollPositionFineLine += 1;
                 adjustedFineScrolling = true;
                 update();
             }
         }
 
-        if (!adjustedFineScrolling && _doc->lineCount() - 1 > _scrollPositionY.line()) {
+        if (!adjustedFineScrolling && _doc->lineCount() - 1 > _scrollPositionLine.line()) {
             _detachedScrolling = true;
-            _scrollPositionY.setLine(_scrollPositionY.line() + 1);
-            _scrollFineLine = 0;
+            _scrollPositionLine.setLine(_scrollPositionLine.line() + 1);
+            _scrollPositionFineLine = 0;
         }
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Up) {
         _detachedScrolling = false;
         // returns current line if no selection is active
-        const auto [firstLine, lastLine] = getSelectLinesSort();
+        const auto [firstLine, lastLine] = getSelectedLinesSort();
 
         if (firstLine > 0) {
-            const auto scrollPositionYSave = _scrollPositionY.line();
-            const auto [startLine, endLine] = getSelectLines();
+            const auto scrollPositionYSave = _scrollPositionLine.line();
+            const auto [startLine, endLine] = getSelectedLines();
             const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
-            const bool savedSelectMode = getSelectMode();
+            const bool savedSelectMode = selectMode();
             const bool reselect = hasMultiInsert() || hasBlockSelection() || _cursor.hasSelection();
-            resetSelect();
+            clearSelection();
 
             // move lines up
             _doc->moveLine(firstLine - 1, endLine, &_cursor);
@@ -2448,22 +2441,22 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 selectLines(startLine - 1, endLine - 1);
             }
             setSelectMode(savedSelectMode);
-            _scrollPositionY.setLine(scrollPositionYSave);
+            _scrollPositionLine.setLine(scrollPositionYSave);
             adjustScrollPosition();
         }
     } else if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) && event->key() == Qt::Key_Down) {
         _detachedScrolling = false;
         // returns current line if no selection is active
-        const auto [firstLine, lastLine] = getSelectLinesSort();
+        const auto [firstLine, lastLine] = getSelectedLinesSort();
 
         if (lastLine < _doc->lineCount() - 1) {
-            const auto scrollPositionYSave = _scrollPositionY.line();
-            const auto [startLine, endLine] = getSelectLines();
+            const auto scrollPositionYSave = _scrollPositionLine.line();
+            const auto [startLine, endLine] = getSelectedLines();
             const auto [cursorCodeUnit, cursorLine] = _cursor.position();
 
-            const bool savedSelectMode = getSelectMode();
+            const bool savedSelectMode = selectMode();
             const bool reselect = hasMultiInsert() || hasBlockSelection() || _cursor.hasSelection();
-            resetSelect();
+            clearSelection();
 
             // Move lines down
             _doc->moveLine(lastLine + 1, firstLine, &_cursor);
@@ -2475,7 +2468,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 selectLines(startLine + 1, endLine + 1);
             }
             setSelectMode(savedSelectMode);
-            _scrollPositionY.setLine(scrollPositionYSave);
+            _scrollPositionLine.setLine(scrollPositionYSave);
             adjustScrollPosition();
         }
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
@@ -2487,7 +2480,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         adjustScrollPosition();
     } else if (event->key() == Qt::Key_Insert && event->modifiers() == 0) {
         _detachedScrolling = false;
-        toggleOverwrite();
+        toggleOverwriteMode();
     } else if (event->key() == Qt::Key_F4 && event->modifiers() == 0) {
         _detachedScrolling = false;
         toggleSelectMode();
@@ -2520,8 +2513,8 @@ void File::adjustScrollPosition() {
     }
 
     if (_detachedScrolling) {
-        if (_scrollPositionY.line() >= _doc->lineCount()) {
-            _scrollPositionY.setLine(_doc->lineCount() - 1);
+        if (_scrollPositionLine.line() >= _doc->lineCount()) {
+            _scrollPositionLine.setLine(_doc->lineCount() - 1);
         }
 
         update();
@@ -2530,38 +2523,38 @@ void File::adjustScrollPosition() {
 
     const auto [cursorCodeUnit, cursorLine, cursorColumn] = cursorPositionOrBlockSelectionEnd();
 
-    int viewWidth = geometry().width() - shiftLinenumber();
+    int viewWidth = geometry().width() - lineNumberBorderWidth();
     // horizontal scroll position
-    if (!_wrapOption) {
-        if (cursorColumn - _scrollPositionX >= viewWidth) {
-             _scrollPositionX = cursorColumn - viewWidth + 1;
+    if (!_wrapMode) {
+        if (cursorColumn - _scrollPositionColumns >= viewWidth) {
+             _scrollPositionColumns = cursorColumn - viewWidth + 1;
         }
         if (cursorColumn > 0) {
-            if (cursorColumn - _scrollPositionX < 1) {
-                _scrollPositionX = cursorColumn - 1;
+            if (cursorColumn - _scrollPositionColumns < 1) {
+                _scrollPositionColumns = cursorColumn - 1;
             }
         } else {
-            _scrollPositionX = 0;
+            _scrollPositionColumns = 0;
         }
     } else {
-        _scrollPositionX = 0;
+        _scrollPositionColumns = 0;
     }
 
     // vertical scroll position
-    if (!_wrapOption) {
+    if (!_wrapMode) {
         if (cursorLine >= 0) {
-            if (cursorLine - _scrollPositionY.line() < 1) {
-                _scrollPositionY.setLine(cursorLine);
-                _scrollFineLine = 0;
+            if (cursorLine - _scrollPositionLine.line() < 1) {
+                _scrollPositionLine.setLine(cursorLine);
+                _scrollPositionFineLine = 0;
             }
         }
 
-        if (cursorLine - _scrollPositionY.line() >= geometry().height() - 1) {
-            _scrollPositionY.setLine(cursorLine - geometry().height() + 2);
+        if (cursorLine - _scrollPositionLine.line() >= geometry().height() - 1) {
+            _scrollPositionLine.setLine(cursorLine - geometry().height() + 2);
         }
 
-        if (_doc->lineCount() - _scrollPositionY.line() < geometry().height() - 1) {
-            _scrollPositionY.setLine(std::max(0, _doc->lineCount() - geometry().height() + 1));
+        if (_doc->lineCount() - _scrollPositionLine.line() < geometry().height() - 1) {
+            _scrollPositionLine.setLine(std::max(0, _doc->lineCount() - geometry().height() + 1));
         }
     } else {
         //TODO: #193 scrollup with Crl+Up and wraped lines.
@@ -2573,24 +2566,24 @@ void File::adjustScrollPosition() {
         int linesAbove = layCursorLayout.lineForTextPosition(cursorCodeUnit).lineNumber();
 
         if (linesAbove >= availableLinesAbove) {
-            if (_scrollPositionY.line() < cursorLine) {
-                _scrollPositionY.setLine(cursorLine);
-                _scrollFineLine = linesAbove - availableLinesAbove;
-            } if (_scrollPositionY.line() == cursorLine) {
-                if (_scrollFineLine < linesAbove - availableLinesAbove) {
-                    _scrollFineLine = linesAbove - availableLinesAbove;
+            if (_scrollPositionLine.line() < cursorLine) {
+                _scrollPositionLine.setLine(cursorLine);
+                _scrollPositionFineLine = linesAbove - availableLinesAbove;
+            } if (_scrollPositionLine.line() == cursorLine) {
+                if (_scrollPositionFineLine < linesAbove - availableLinesAbove) {
+                    _scrollPositionFineLine = linesAbove - availableLinesAbove;
                 }
             }
         } else {
             for (int line = cursorLine - 1; line >= 0; line--) {
                 Tui::ZTextLayout lay = getTextLayoutForLine(option, line);
                 if (linesAbove + lay.lineCount() >= availableLinesAbove) {
-                    if (_scrollPositionY.line() < line) {
-                        _scrollPositionY.setLine(line);
-                        _scrollFineLine = (linesAbove + lay.lineCount()) - availableLinesAbove;
-                    } if (_scrollPositionY.line() == line) {
-                        if (_scrollFineLine < (linesAbove + lay.lineCount()) - availableLinesAbove) {
-                            _scrollFineLine = (linesAbove + lay.lineCount()) - availableLinesAbove;
+                    if (_scrollPositionLine.line() < line) {
+                        _scrollPositionLine.setLine(line);
+                        _scrollPositionFineLine = (linesAbove + lay.lineCount()) - availableLinesAbove;
+                    } if (_scrollPositionLine.line() == line) {
+                        if (_scrollPositionFineLine < (linesAbove + lay.lineCount()) - availableLinesAbove) {
+                            _scrollPositionFineLine = (linesAbove + lay.lineCount()) - availableLinesAbove;
                         }
                     }
 
@@ -2604,17 +2597,17 @@ void File::adjustScrollPosition() {
 
         linesAbove = layCursorLayout.lineForTextPosition(cursorCodeUnit).lineNumber();
 
-        if (_scrollPositionY.line() == cursorLine) {
-            if (linesAbove < _scrollFineLine) {
-                _scrollFineLine = linesAbove;
+        if (_scrollPositionLine.line() == cursorLine) {
+            if (linesAbove < _scrollPositionFineLine) {
+                _scrollPositionFineLine = linesAbove;
             }
-        } else if (_scrollPositionY.line() > cursorLine) {
-            _scrollPositionY.setLine(cursorLine);
-            _scrollFineLine = linesAbove;
+        } else if (_scrollPositionLine.line() > cursorLine) {
+            _scrollPositionLine.setLine(cursorLine);
+            _scrollPositionFineLine = linesAbove;
         }
 
         // scroll when window is larger than the document shown (unless scrolled to top)
-        if (_scrollPositionY.line() && _scrollPositionY.line() + (geometry().height() - 1) > _doc->lineCount()) {
+        if (_scrollPositionLine.line() && _scrollPositionLine.line() + (geometry().height() - 1) > _doc->lineCount()) {
             int linesCounted = 0;
             QVector<int> sizes;
 
@@ -2623,12 +2616,12 @@ void File::adjustScrollPosition() {
                 sizes.append(lay.lineCount());
                 linesCounted += lay.lineCount();
                 if (linesCounted >= geometry().height() - 1) {
-                    if (_scrollPositionY.line() > line) {
-                        _scrollPositionY.setLine(line);
-                        _scrollFineLine = linesCounted - (geometry().height() - 1);
-                    } else if (_scrollPositionY.line() == line &&
-                               _scrollFineLine > linesCounted - (geometry().height() - 1)) {
-                        _scrollFineLine = linesCounted - (geometry().height() - 1);
+                    if (_scrollPositionLine.line() > line) {
+                        _scrollPositionLine.setLine(line);
+                        _scrollPositionFineLine = linesCounted - (geometry().height() - 1);
+                    } else if (_scrollPositionLine.line() == line &&
+                               _scrollPositionFineLine > linesCounted - (geometry().height() - 1)) {
+                        _scrollPositionFineLine = linesCounted - (geometry().height() - 1);
                     }
                     break;
                 }
@@ -2636,10 +2629,10 @@ void File::adjustScrollPosition() {
         }
     }
 
-    scrollPositionChanged(_scrollPositionX, _scrollPositionY.line());
+    scrollPositionChanged(_scrollPositionColumns, _scrollPositionLine.line());
 
     int max=0;
-    for (int i = _scrollPositionY.line(); i < _doc->lineCount() && i < _scrollPositionY.line() + geometry().height(); i++) {
+    for (int i = _scrollPositionLine.line(); i < _doc->lineCount() && i < _scrollPositionLine.line() + geometry().height(); i++) {
         if(max < _doc->lineCodeUnits(i)) {
             max = _doc->lineCodeUnits(i);
         }
@@ -2652,7 +2645,10 @@ void File::adjustScrollPosition() {
 void File::updateCommands() {
     _cmdCopy->setEnabled(hasBlockSelection() || _cursor.hasSelection());
     _cmdCut->setEnabled(hasBlockSelection() || _cursor.hasSelection());
-    _cmdPaste->setEnabled(isInsertable());
+
+    Clipboard *clipboard = findFacet<Clipboard>();
+    QString _clipboard = clipboard->getClipboard();
+    _cmdPaste->setEnabled(!_clipboard.isEmpty());
 }
 
 
