@@ -109,7 +109,10 @@ bool SaveDialog::_filenameChanged(QString filename, bool absolutePath) {
         if (regex.indexIn(filename) < 0) {
             filename = _dir.absolutePath() + QString('/') + filename;
         } else {
-            return false;
+            QFileInfo datei(filename);
+            _dir.setPath(datei.path());
+            refreshFolder();
+            return _filenameChanged(datei.absoluteFilePath() + datei.fileName(), true);
         }
     }
     QFileInfo datei(filename);
