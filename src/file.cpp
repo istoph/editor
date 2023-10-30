@@ -39,13 +39,13 @@ File::File(Tui::ZTextMetrics textMetrics, Tui::ZWidget *parent)
     setCursorStyle(Tui::CursorStyle::Underline);
     initText();
     _cmdCopy = new Tui::ZCommandNotifier("Copy", this, Qt::WindowShortcut);
-    QObject::connect(_cmdCopy, &Tui::ZCommandNotifier::activated, this, [this]{copy();});
+    QObject::connect(_cmdCopy, &Tui::ZCommandNotifier::activated, this, &File::copy);
     _cmdCopy->setEnabled(false);
     _cmdCut = new Tui::ZCommandNotifier("Cut", this, Qt::WindowShortcut);
-    QObject::connect(_cmdCut, &Tui::ZCommandNotifier::activated, this, [this]{cut();});
+    QObject::connect(_cmdCut, &Tui::ZCommandNotifier::activated, this, &File::cut);
     _cmdCut->setEnabled(false);
     _cmdPaste = new Tui::ZCommandNotifier("Paste", this, Qt::WindowShortcut);
-    QObject::connect(_cmdPaste, &Tui::ZCommandNotifier::activated, this, [this]{paste();});
+    QObject::connect(_cmdPaste, &Tui::ZCommandNotifier::activated, this, &File::paste);
     _cmdPaste->setEnabled(false);
     _cmdUndo = new Tui::ZCommandNotifier("Undo", this, Qt::WindowShortcut);
     QObject::connect(_cmdUndo, &Tui::ZCommandNotifier::activated, this, &File::undo);
