@@ -20,7 +20,6 @@ tests_headers = [
 editor_sources = [
   'aboutdialog.cpp',
   'alert.cpp',
-  'clipboard.cpp',
   'commandlinewidget.cpp',
   'confirmsave.cpp',
   'dlgfilemodel.cpp',
@@ -52,7 +51,6 @@ editor_sources = [
 editor_headers = [
   'aboutdialog.h',
   'alert.h',
-  'clipboard.h',
   'commandlinewidget.h',
   'confirmsave.h',
   'dlgfilemodel.h',

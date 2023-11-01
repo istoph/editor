@@ -14,6 +14,7 @@
 #endif
 
 #include <Tui/Misc/SurrogateEscape.h>
+#include <Tui/ZClipboard.h>
 #include <Tui/ZCommandNotifier.h>
 #include <Tui/ZDocumentCursor.h>
 #include <Tui/ZDocumentLineMarker.h>
@@ -25,7 +26,6 @@
 #include <Tui/ZTerminal.h>
 #include <Tui/ZTextMetrics.h>
 
-#include "clipboard.h"
 #include "searchcount.h"
 
 
@@ -629,7 +629,7 @@ void File::deleteLine() {
 
 void File::copy() {
     if (hasBlockSelection()) {
-        Clipboard *clipboard = findFacet<Clipboard>();
+        Tui::ZClipboard *clipboard = findFacet<Tui::ZClipboard>();
 
         const int firstSelectBlockLine = std::min(_blockSelectStartLine->line(), _blockSelectEndLine->line());
         const int lastSelectBlockLine = std::max(_blockSelectStartLine->line(), _blockSelectEndLine->line());
@@ -648,20 +648,20 @@ void File::copy() {
                 selectedText += "\n";
             }
         }
-        clipboard->setClipboard(selectedText);
+        clipboard->setContents(selectedText);
         _cmdPaste->setEnabled(true);
     } else if (_cursor.hasSelection()) {
-        Clipboard *clipboard = findFacet<Clipboard>();
-        clipboard->setClipboard(_cursor.selectedText());
+        Tui::ZClipboard *clipboard = findFacet<Tui::ZClipboard>();
+        clipboard->setContents(_cursor.selectedText());
         _cmdPaste->setEnabled(true);
     }
 }
 
 void File::paste() {
     auto undoGroup = _doc->startUndoGroup(&_cursor);
-    Clipboard *clipboard = findFacet<Clipboard>();
-    if (clipboard->getClipboard().size()) {
-        insertText(clipboard->getClipboard());
+    Tui::ZClipboard *clipboard = findFacet<Tui::ZClipboard>();
+    if (clipboard->contents().size()) {
+        insertText(clipboard->contents());
         adjustScrollPosition();
     }
     _doc->clearCollapseUndoStep();
@@ -2649,8 +2649,8 @@ void File::updateCommands() {
     _cmdCopy->setEnabled(hasBlockSelection() || _cursor.hasSelection());
     _cmdCut->setEnabled(hasBlockSelection() || _cursor.hasSelection());
 
-    Clipboard *clipboard = findFacet<Clipboard>();
-    QString _clipboard = clipboard->getClipboard();
+    Tui::ZClipboard *clipboard = findFacet<Tui::ZClipboard>();
+    QString _clipboard = clipboard->contents();
     _cmdPaste->setEnabled(!_clipboard.isEmpty());
 }
 

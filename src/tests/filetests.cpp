@@ -2,6 +2,7 @@
 
 #include "catchwrapper.h"
 
+#include <Tui/ZClipboard.h>
 #include <Tui/ZDocument.h>
 #include <Tui/ZRoot.h>
 #include <Tui/ZTerminal.h>
@@ -9,7 +10,6 @@
 #include <Tui/ZTextMetrics.h>
 #include <Tui/ZWindow.h>
 
-#include "clipboard.h"
 #include "file.h"
 #include "eventrecorder.h"
 
@@ -33,25 +33,10 @@ public:
     }
 };
 
-class Rootabgeletiet : public Tui::ZRoot {
-public:
-    QObject *facet(const QMetaObject &metaObject) const override {
-        if (metaObject.className()  == Clipboard::staticMetaObject.className()) {
-            return &_clipboard;
-        } else {
-            return ZRoot::facet(metaObject);
-        }
-    }
-
-private:
-    mutable Clipboard _clipboard;
-};
-
-
 TEST_CASE("file") {
     Tui::ZTerminal::OffScreen of(80, 24);
     Tui::ZTerminal terminal(of);
-    Rootabgeletiet root;
+    Tui::ZRoot root;
     Tui::ZWindow *w = new Tui::ZWindow(&root);
     terminal.setMainWidget(&root);
     w->setGeometry({0, 0, 80, 24});
@@ -173,7 +158,7 @@ TEST_CASE("file") {
 TEST_CASE("file-getseter") {
     Tui::ZTerminal::OffScreen of(80, 24);
     Tui::ZTerminal terminal(of);
-    Rootabgeletiet root;
+    Tui::ZRoot root;
     Tui::ZWindow *w = new Tui::ZWindow(&root);
     terminal.setMainWidget(&root);
     w->setGeometry({0, 0, 80, 24});
@@ -310,7 +295,7 @@ TEST_CASE("file-getseter") {
 TEST_CASE("actions") {
     Tui::ZTerminal::OffScreen of(80, 24);
     Tui::ZTerminal terminal(of);
-    Rootabgeletiet root;
+    Tui::ZRoot root;
     Tui::ZWindow *w = new Tui::ZWindow(&root);
     terminal.setMainWidget(&root);
     w->setGeometry({0, 0, 80, 24});
@@ -355,7 +340,7 @@ TEST_CASE("actions") {
         Tui::ZTest::sendText(&terminal, "c", Qt::KeyboardModifier::ControlModifier);
         CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,1});
         CHECK(doc.lineCount() == 2);
-        CHECK(root.findFacet<Clipboard>()->getClipboard() == "    text\n    new1");
+        CHECK(root.findFacet<Tui::ZClipboard>()->contents() == "    text\n    new1");
         Tui::ZTest::sendKey(&terminal, Tui::Key_Right, Qt::KeyboardModifier::NoModifier);
         Tui::ZTest::sendText(&terminal, "v", Qt::KeyboardModifier::ControlModifier);
         CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{8,2});
@@ -380,7 +365,7 @@ TEST_CASE("actions") {
         CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,1});
         Tui::ZTest::sendText(&terminal, "c", Qt::KeyboardModifier::ControlModifier);
         CHECK(f->hasSelection() == true);
-        CHECK(root.findFacet<Clipboard>()->getClipboard() == "\n");
+        CHECK(root.findFacet<Tui::ZClipboard>()->contents() == "\n");
 
         CHECK(doc.lineCount() == 2);
         Tui::ZTest::sendText(&terminal, "v", Qt::KeyboardModifier::ControlModifier);

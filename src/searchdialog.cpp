@@ -3,12 +3,12 @@
 #include "searchdialog.h"
 
 #include <Tui/ZButton.h>
+#include <Tui/ZClipboard.h>
 #include <Tui/ZHBoxLayout.h>
 #include <Tui/ZLabel.h>
 #include <Tui/ZVBoxLayout.h>
 #include <Tui/ZWindowLayout.h>
 
-#include "clipboard.h"
 #include "groupbox.h"
 
 
@@ -18,11 +18,11 @@ public:
 protected:
     void keyEvent(Tui::ZKeyEvent *event) override {
         QString text = event->text();
-        Clipboard *clipboard = findFacet<Clipboard>();
+        Tui::ZClipboard *clipboard = findFacet<Tui::ZClipboard>();
 
         if(event->text() == "v" && event->modifiers() == Qt::Modifier::CTRL) {
-            if (clipboard->getClipboard().size()) {
-                insertAtCursorPosition(clipboard->getClipboard());
+            if (clipboard->contents().size()) {
+                insertAtCursorPosition(clipboard->contents());
             }
         } else {
             Tui::ZInputBox::keyEvent(event);

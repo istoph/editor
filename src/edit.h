@@ -6,7 +6,6 @@
 #include <Tui/ZMenuItem.h>
 #include <Tui/ZRoot.h>
 
-#include "clipboard.h"
 #include "commandlinewidget.h"
 #include "file.h"
 #include "filewindow.h"
@@ -65,9 +64,6 @@ public:
 
     void setStartActions(std::vector<std::function<void()>> actions);
 
-public:
-    QObject *facet(const QMetaObject &metaObject) const override;
-
 public slots:
     void showCommandLine();
 
@@ -102,7 +98,6 @@ private:
     QPointer<SyntaxHighlightDialog> _syntaxHighlightDialog = nullptr;
     StatusBar *_statusBar = nullptr;
     CommandLineWidget *_commandLineWidget = nullptr;
-    mutable Clipboard _clipboard;
     Theme _theme = Theme::classic;
     Settings initialFileSettings;
 

@@ -712,14 +712,6 @@ void Editor::openFileDialog(QString path) {
     });
 }
 
-QObject * Editor::facet(const QMetaObject &metaObject) const {
-    if (metaObject.className()  == Clipboard::staticMetaObject.className()) {
-        return &_clipboard;
-    } else {
-        return ZRoot::facet(metaObject);
-    }
-}
-
 void Editor::quitImpl(int i) {
     if (i >= _allWindows.size()) {
         // delete all windows so they can signal work in QtConcurrent to quit also.
