@@ -1684,7 +1684,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     }
 }
 
-void File::addTabAt(Tui::ZDocumentCursor &cur) {
+void File::insertTabAt(Tui::ZDocumentCursor &cur) {
     auto undoGroup = _doc->startUndoGroup(&_cursor);
 
     if (useTabChar()) {
@@ -2263,7 +2263,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             }
 
             multiInsertForEachCursor(mi_add_spaces, [&](Tui::ZDocumentCursor &cur) {
-                addTabAt(cur);
+                insertTabAt(cur);
             });
         } else if (_cursor.hasSelection()) {
             // Add one level of indent to the selected lines.
@@ -2302,7 +2302,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 }
             }
             // a normal tab
-            addTabAt(_cursor);
+            insertTabAt(_cursor);
             updateCommands();
             adjustScrollPosition();
             update();
@@ -2640,7 +2640,7 @@ void File::adjustScrollPosition() {
             max = _doc->lineCodeUnits(i);
         }
     }
-    textMax(max - viewWidth, _doc->lineCount() - geometry().height());
+    scrollRangeChanged(max - viewWidth, _doc->lineCount() - geometry().height());
 
     update();
 }

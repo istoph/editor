@@ -115,7 +115,7 @@ public:
     void toggleOverwriteMode();
     void setOverwriteMode(bool mode);
     bool overwriteMode();
-    void addTabAt(Tui::ZDocumentCursor &cur);
+    void insertTabAt(Tui::ZDocumentCursor &cur);
     void appendLine(const QString &line);
     void insertText(const QString &str);
     bool isModified() const { return _doc->isModified(); };
@@ -171,7 +171,7 @@ public slots:
 signals:
     void cursorPositionChanged(int x, int utf8x, int line);
     void scrollPositionChanged(int x, int y);
-    void textMax(int x, int y);
+    void scrollRangeChanged(int x, int y);
     void modifiedChanged(bool modified);
     void writableChanged(bool rw);
     void selectModeChanged(bool mode);

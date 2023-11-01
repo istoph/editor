@@ -23,11 +23,11 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
     _scrollbarVertical = new ScrollBar(this);
     _scrollbarVertical->setTransparent(true);
     QObject::connect(_file, &File::scrollPositionChanged, _scrollbarVertical, &ScrollBar::scrollPosition);
-    QObject::connect(_file, &File::textMax, _scrollbarVertical, &ScrollBar::positonMax);
+    QObject::connect(_file, &File::scrollRangeChanged, _scrollbarVertical, &ScrollBar::positonMax);
 
     _scrollbarHorizontal = new ScrollBar(this);
     QObject::connect(_file, &File::scrollPositionChanged, _scrollbarHorizontal, &ScrollBar::scrollPosition);
-    QObject::connect(_file, &File::textMax, _scrollbarHorizontal, &ScrollBar::positonMax);
+    QObject::connect(_file, &File::scrollRangeChanged, _scrollbarHorizontal, &ScrollBar::positonMax);
     _scrollbarHorizontal->setTransparent(true);
 
     _winLayout = new Tui::ZWindowLayout();
