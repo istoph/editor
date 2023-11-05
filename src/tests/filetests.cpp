@@ -16,7 +16,7 @@
 class DocumentTestHelper {
 public:
     Tui::ZDocument &getDoc(File *f) {
-        return *f->_doc;
+        return *f->document();
     }
     void f3(bool backward, Tui::ZTerminal *terminal, File *f) {
         bool t = GENERATE(true, false);
@@ -185,7 +185,8 @@ TEST_CASE("file-getseter") {
     CHECK(f->attributesFile() == "");
     CHECK(f->document()->crLfMode() == false);
     CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
-    CHECK(f->scrollPosition() == QPoint{0,0});
+    CHECK(f->scrollPositionLine() == 0);
+    CHECK(f->scrollPositionColumn() == 0);
     CHECK(f->rightMarginHint() == 0);
     CHECK(f->isNewFile() == false); //default?
 
@@ -276,7 +277,7 @@ TEST_CASE("file-getseter") {
         f->toggleOverwriteMode();
         CHECK(f->overwriteMode() == false);
     }
-    SECTION("getMsDosMode") {
+    SECTION("crLfMode") {
         f->document()->setCrLfMode(true);
         CHECK(f->document()->crLfMode() == true);
         f->document()->setCrLfMode(false);
@@ -544,7 +545,8 @@ TEST_CASE("actions") {
     SECTION("scroll") {
         auto testCase = GENERATE(Tui::ZTextOption::WrapMode::NoWrap, Tui::ZTextOption::WrapMode::WordWrap, Tui::ZTextOption::WrapMode::WrapAnywhere);
         f->setWordWrapMode(testCase);
-        CHECK(f->scrollPosition() == QPoint{0,0});
+        CHECK(f->scrollPositionColumn() == 0);
+        CHECK(f->scrollPositionLine() == 0);
 
         //TODO: #193 scrollup with Crl+Up and wraped lines.
         //Tui::ZTest::sendText(&terminal, QString("a").repeated(100), Qt::KeyboardModifier::NoModifier);
@@ -552,17 +554,20 @@ TEST_CASE("actions") {
         for (int i = 0; i < 48; i++) {
             Tui::ZTest::sendKey(&terminal, Qt::Key_Enter, Qt::KeyboardModifier::NoModifier);
         }
-        CHECK(f->scrollPosition() == QPoint{0,27});
+        CHECK(f->scrollPositionColumn() == 0);
+        CHECK(f->scrollPositionLine() == 27);
         CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,49});
         for (int i = 0; i <= 26; i++) {
             Tui::ZTest::sendKey(&terminal, Qt::Key_Up, Qt::KeyboardModifier::ControlModifier);
-            CHECK(f->scrollPosition() == QPoint{0,26 - i});
+            CHECK(f->scrollPositionColumn() == 0);
+            CHECK(f->scrollPositionLine() == 26 - i);
         }
     }
 
     SECTION("move-lines-up") {
         CHECK(doc.lineCount() == 2);
-        CHECK(f->scrollPosition() == QPoint{0,0});
+        CHECK(f->scrollPositionColumn() == 0);
+        CHECK(f->scrollPositionLine() == 0);
         Tui::ZTest::sendKey(&terminal, Qt::Key_Up, (Qt::KeyboardModifier::ShiftModifier | Qt::KeyboardModifier::ControlModifier));
         CHECK(doc.line(0) == "    new1");
     }

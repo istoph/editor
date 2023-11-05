@@ -27,6 +27,8 @@
 #include <Tui/ZTextOption.h>
 #include <Tui/ZWidget.h>
 
+#include "textedit.h"
+
 
 struct ExtraData : public Tui::ZDocumentLineUserData {
 #ifdef SYNTAX_HIGHLIGHTING
@@ -72,53 +74,34 @@ protected:
 
 #endif
 
-class File : public Tui::ZWidget {
+class File : public ZTextEdit {
     Q_OBJECT
-
-    friend class DocumentTestHelper;
-public:
-    using Position = Tui::ZDocumentCursor::Position;
 
 public:
     explicit File(Tui::ZTextMetrics textMetrics, Tui::ZWidget *parent);
     ~File();
-    Tui::ZDocument *document() { return _doc.get(); }
     bool setFilename(QString _filename);
     QString getFilename();
     bool saveText();
     bool openText(QString filename);
-    void cut();
     void cutline();
     void deleteLine();
-    void copy();
-    void paste();
+    void copy() override;
+    void paste() override;
     void gotoLine(QString pos);
-    bool setTabStopDistance(int tab);
-    int tabStopDistance();
-    void setUseTabChar(bool tab);
-    bool useTabChar();
     void setEatSpaceBeforeTabs(bool eat);
     bool eatSpaceBeforeTabs();
-    bool formattingCharacters();
+    bool formattingCharacters() const;
     void setFormattingCharacters(bool formattingCharacters);
-    bool colorTabs();
+    bool colorTabs() const;
     void setColorTabs(bool colorTabs);
     bool colorTrailingSpaces();
     void setColorTrailingSpaces(bool colorTrailingSpaces);
-    void setWordWrapMode(Tui::ZTextOption::WrapMode wrap);
-    Tui::ZTextOption::WrapMode wordWrapMode();
-    void clearSelection();
     QString selectedText();
     bool hasSelection();
-    void selectAll();
     bool removeSelectedText();
-    void toggleOverwriteMode();
-    void setOverwriteMode(bool mode);
-    bool overwriteMode();
-    void insertTabAt(Tui::ZDocumentCursor &cur);
     void appendLine(const QString &line);
     void insertText(const QString &str);
-    bool isModified() const { return _doc->isModified(); };
     void setSearchText(QString searchText);
     void setSearchCaseSensitivity(Qt::CaseSensitivity searchCaseSensitivity);
     void setReplaceText(QString replaceText);
@@ -130,17 +113,9 @@ public:
     QString attributesFile();
     int convertTabsToSpaces();
     int replaceAll(QString searchText, QString replaceText);
-    void setCursorPosition(Tui::ZDocumentCursor::Position position);
-    Tui::ZDocumentCursor::Position cursorPosition();
-    QPoint scrollPosition();
     void setRightMarginHint(int hint);
     int rightMarginHint() const;
-    void toggleSelectMode();
-    void setSelectMode(bool mode);
-    bool selectMode();
     bool isNewFile();
-    void undo();
-    void redo();
     void setSyntaxHighlightingTheme(QString themeName);
     void setSyntaxHighlightingLanguage(QString language);
     QString syntaxHighlightingLanguage();
@@ -154,8 +129,6 @@ public:
     bool getWritable();
     void runSearch(bool direction);
     void setSearchDirection(bool searchDirection);
-    void setShowLineNumbers(bool show);
-    bool showLineNumbers();
     void toggleShowLineNumbers();
     void setSaveAs(bool state);
     bool isSaveAs();
@@ -169,15 +142,9 @@ public slots:
     void followStandardInput(bool follow);
 
 signals:
-    void cursorPositionChanged(int x, int utf8x, int line);
-    void scrollPositionChanged(int x, int y);
-    void scrollRangeChanged(int x, int y);
-    void modifiedChanged(bool modified);
     void writableChanged(bool rw);
-    void selectModeChanged(bool mode);
     void searchCountChanged(int sc);
     void searchTextChanged(QString searchText);
-    void overwriteModeChanged(bool overwrite);
     void syntaxHighlightingLanguageChanged(QString language);
     void syntaxHighlightingEnabledChanged(bool enable);
 
@@ -185,23 +152,26 @@ protected:
     void paintEvent(Tui::ZPaintEvent *event) override;
     void keyEvent(Tui::ZKeyEvent *event) override;
     void pasteEvent(Tui::ZPasteEvent *event) override;
-    void resizeEvent(Tui::ZResizeEvent *event) override;
     void focusInEvent(Tui::ZFocusEvent *event) override;
+
+    void clearAdvancedSelection() override;
+
+    bool canCut() override;
+    bool canCopy() override;
 
 private:
     bool initText();
-    void adjustScrollPosition();
-    void updateCommands();
+    void adjustScrollPosition() override;
+    void emitCursorPostionChanged() override;
 
     bool hasBlockSelection() const;
     bool hasMultiInsert() const;
 
-    Tui::ZTextOption getTextOption(bool lineWithCursor);
-    Tui::ZTextLayout getTextLayoutForLine(const Tui::ZTextOption &option, int line);
+    Tui::ZTextOption textOption() const override;
+
     bool highlightBracketFind();
     void searchSelect(int line, int found, int length, bool direction);
-    int lineNumberBorderWidth();
-    int getVisibleLines();
+    int pageNavigationLineCount() const override;
     void checkWritable();
 
     QPair<int, int> getSelectedLinesSort();
@@ -211,8 +181,6 @@ private:
     bool readAttributes();
     Tui::ZDocumentCursor::Position getAttributes();
 
-    Tui::ZTextLayout getTextLayoutForLineWithoutWrapping(int line);
-    Tui::ZDocumentCursor createCursor();
     std::tuple<int, int, int> cursorPositionOrBlockSelectionEnd();
 
     // block selection
@@ -235,9 +203,6 @@ private:
 #endif
 
 private:
-    Tui::ZTextMetrics _textMetrics;
-    std::shared_ptr<Tui::ZDocument> _doc;
-    Tui::ZDocumentCursor _cursor;
 
     // block selection
     bool _blockSelect = false;
@@ -246,15 +211,7 @@ private:
     int _blockSelectStartColumn = -1;
     int _blockSelectEndColumn = -1;
 
-    int _scrollPositionColumns = 0;
-    Tui::ZDocumentLineMarker _scrollPositionLine;
-    int _scrollPositionFineLine = 0;
-    bool _detachedScrolling = false;
-    int _tabsize = 8;
-    bool _useTabChar = false;
     bool _eatSpaceBeforeTabs = true;
-    Tui::ZTextOption::WrapMode _wrapMode = Tui::ZTextOption::NoWrap;
-    bool _overwriteMode = false;
     QString _searchText;
     Qt::CaseSensitivity _searchCaseSensitivity = Qt::CaseSensitivity::CaseSensitive;
     QString _replaceText;
@@ -268,21 +225,14 @@ private:
     bool _bracket = false;
     QJsonObject _attributeObject;
     QString _attributesFile;
-    bool _showLineNumbers = false;
     bool _saveAs = true;
     bool _formattingCharacters = true;
     int _rightMarginHint = 0;
     bool _colorTabs = true;
     bool _colorTrailingSpaces = true;
 
-    Tui::ZCommandNotifier *_cmdCopy = nullptr;
-    Tui::ZCommandNotifier *_cmdCut = nullptr;
-    Tui::ZCommandNotifier *_cmdPaste = nullptr;
-    Tui::ZCommandNotifier *_cmdUndo = nullptr;
-    Tui::ZCommandNotifier *_cmdRedo = nullptr;
     Tui::ZCommandNotifier *_cmdSearchNext = nullptr;
     Tui::ZCommandNotifier *_cmdSearchPrevious = nullptr;
-    bool _selectMode = false;
 
     // Syntax highlighting
     QString _syntaxHighlightingThemeName;
