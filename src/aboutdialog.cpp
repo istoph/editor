@@ -32,6 +32,16 @@ AboutDialog::AboutDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     licenseLabel->setText("License: BSL-1.0");
     vbox->addWidget(licenseLabel);
 
+#ifdef SYNTAX_HIGHLIGHTING
+    Tui::ZLabel *moduleLabel = new Tui::ZLabel(this);
+    moduleLabel->setText("Module: SyntaxHighlighting");
+    vbox->addWidget(moduleLabel);
+#endif
+
+    Tui::ZLabel *githubLabel = new Tui::ZLabel(this);
+    githubLabel->setText("Bugtracker: https://github.com/istoph/editor");
+    vbox->addWidget(githubLabel);
+
     Tui::ZHBoxLayout *hbox1 = new Tui::ZHBoxLayout();
     hbox1->addStretch();
     Tui::ZButton *okButton = new Tui::ZButton(this);
