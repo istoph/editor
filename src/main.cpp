@@ -211,7 +211,7 @@ int main(int argc, char **argv) {
                 }
                 actions.push_back([root] { root->watchPipe(); });
 
-            } else if (filecategory == FileCategory::dir) {
+            } else if (filecategory == FileCategory::dir || filecategory == FileCategory::invalid_file_not_readable) {
                 QFileInfo datei(fle.fileName);
                 QString tmp = datei.absoluteFilePath();
                 actions.push_back([root, tmp] { root->openFileDialog(tmp); });

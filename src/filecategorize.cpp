@@ -27,8 +27,12 @@ FileCategory fileCategorize(QString input, int maxrecursion) {
     }
 
     //FILE
-    if (datei.exists() && datei.isFile()) { // && datei.isReadable()
-        return FileCategory::open_file;
+    if (datei.exists() && datei.isFile()) {
+        if (datei.isReadable())
+            return FileCategory::open_file;
+        else {
+            return FileCategory::invalid_file_not_readable;
+        }
     } else if (datei.exists()) {
         return FileCategory::invalid_filetype;
     }
