@@ -19,10 +19,10 @@ QSize StatusBar::sizeHint() const {
     return { 20, 1 };
 }
 
-void StatusBar::cursorPosition(int x, int utf8x, int y) {
+void StatusBar::cursorPosition(int x, int utf16CodeUnit, int utf8CodeUnit, int line) {
     _cursorPositionX = x;
-    _utf8PositionX = utf8x;
-    _cursorPositionY = y;
+    _utf8PositionX = utf8CodeUnit;
+    _cursorPositionY = line;
     update();
 }
 QString StatusBar::viewCursorPosition() {

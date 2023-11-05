@@ -43,7 +43,6 @@ editor_sources = [
   'statusbar.cpp',
   'syntaxhighlightdialog.cpp',
   'tabdialog.cpp',
-  'textedit.cpp',
   'themedialog.cpp',
   'wrapdialog.cpp',
 ]
@@ -73,7 +72,6 @@ editor_headers = [
   'statusbar.h',
   'syntaxhighlightdialog.h',
   'tabdialog.h',
-  'textedit.h',
   'themedialog.h',
   'wrapdialog.h',
 ]

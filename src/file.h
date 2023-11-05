@@ -22,12 +22,11 @@
 #include <Tui/ZDocument.h>
 #include <Tui/ZDocumentLineMarker.h>
 #include <Tui/ZDocumentSnapshot.h>
+#include <Tui/ZTextEdit.h>
 #include <Tui/ZTextLayout.h>
 #include <Tui/ZTextMetrics.h>
 #include <Tui/ZTextOption.h>
 #include <Tui/ZWidget.h>
-
-#include "textedit.h"
 
 
 struct ExtraData : public Tui::ZDocumentLineUserData {
@@ -74,7 +73,7 @@ protected:
 
 #endif
 
-class File : public ZTextEdit {
+class File : public Tui::ZTextEdit {
     Q_OBJECT
 
 public:

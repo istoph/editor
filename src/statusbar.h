@@ -25,7 +25,7 @@ public:
     QSize sizeHint() const override;
 
 public slots:
-    void cursorPosition(int x, int utf8x, int y);
+    void cursorPosition(int x, int utf16CodeUnit, int utf8CodeUnit, int line);
     void scrollPosition(int x, int y);
     void setModified(bool modifiedFile);
     void readFromStandardInput(bool activ);
