@@ -1803,7 +1803,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             adjustScrollPosition();
         }
         updateCommands();
-    } else if (event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == Qt::AltModifier | Qt::ShiftModifier)  && hasSelection()) {
+    } else if (event->text() == "S" && (event->modifiers() == Qt::AltModifier || event->modifiers() == (Qt::AltModifier | Qt::ShiftModifier))  && hasSelection()) {
         disableDetachedScrolling();
         // Alt + Shift + s sort selected lines
         sortSelecedLines();
