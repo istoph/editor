@@ -34,12 +34,12 @@ struct ExtraData : public Tui::ZDocumentLineUserData {
     KSyntaxHighlighting::State stateEnd;
 #endif
     QVector<Tui::ZFormatRange> highlights;
-    int lineRevision = -1;
+    unsigned lineRevision = -1;
 };
 struct Updates {
     QList<std::shared_ptr<ExtraData>> data;
     QList<int> lines;
-    int documentRevision = 0;
+    unsigned documentRevision = 0;
 };
 
 Q_DECLARE_METATYPE(Updates);
