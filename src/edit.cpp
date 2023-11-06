@@ -419,7 +419,7 @@ FileWindow *Editor::createFileWindow() {
     _mux.connect(win, win, &FileWindow::readFromStandadInput, _statusBar, &StatusBar::readFromStandardInput, false);
     _mux.connect(win, win, &FileWindow::followStandadInput, _statusBar, &StatusBar::followStandardInput, false);
     _mux.connect(win, file, &File::writableChanged, _statusBar, &StatusBar::setWritable, true);
-    _mux.connect(win, file->document(), &Tui::ZDocument::crLfModeChanged, _statusBar, &StatusBar::msdosMode, false);
+    _mux.connect(win, file->document(), &Tui::ZDocument::crLfModeChanged, _statusBar, &StatusBar::crlfMode, false);
     _mux.connect(win, file, &File::selectModeChanged, _statusBar, &StatusBar::modifiedSelectMode, false);
     _mux.connect(win, file, &File::searchCountChanged, _statusBar, &StatusBar::searchCount, -1);
     _mux.connect(win, file, &File::searchTextChanged, _statusBar, &StatusBar::searchText, QString());

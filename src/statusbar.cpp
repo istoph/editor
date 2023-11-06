@@ -100,16 +100,16 @@ void StatusBar::searchText(QString searchText) {
     update();
 }
 
-void StatusBar::msdosMode(bool msdos) {
-    _msdosMode = msdos;
+void StatusBar::crlfMode(bool crlf) {
+    _crlfMode = crlf;
     update();
 }
 
-QString StatusBar::viewMsdosMode() {
+QString StatusBar::viewMode() {
     QString text;
     text += "UTF-8";
-    if (_msdosMode) {
-        text += " DOS";
+    if (_crlfMode) {
+        text += " CRLF";
     }
     return text;
 }
@@ -202,7 +202,7 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     }
 
     text += slash(viewOverwrite());
-    text += slash(viewMsdosMode());
+    text += slash(viewMode());
     text += slash(viewCursorPosition());
 
     painter->clear({0, 0, 0}, _bg);

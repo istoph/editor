@@ -13,7 +13,7 @@ public:
     StatusBar(Tui::ZWidget *parent);
     QString viewCursorPosition();
     QString viewFileChanged();
-    QString viewMsdosMode();
+    QString viewMode();
     QString viewModifiedFile();
     QString viewOverwrite();
     QString viewReadWriete();
@@ -33,7 +33,7 @@ public slots:
     void setWritable(bool rw);
     void searchCount(int sc);
     void searchText(QString searchText);
-    void msdosMode(bool msdos);
+    void crlfMode(bool msdos);
     void modifiedSelectMode(bool f4);
     void fileHasBeenChangedExternally(bool fileChanged = true);
     void overwrite(bool overwrite);
@@ -55,7 +55,7 @@ private:
     bool _readwrite = true;
     int _searchCount = -1;
     QString _searchText = "";
-    bool _msdosMode = false;
+    bool _crlfMode = false;
     bool _selectMode = false;
     bool _fileChanged = false;
     bool _overwrite = false;
