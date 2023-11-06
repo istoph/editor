@@ -2401,7 +2401,7 @@ void File::adjustScrollPosition() {
             max = document()->lineCodeUnits(i);
         }
     }
-    scrollRangeChanged(max - viewWidth, document()->lineCount() - geometry().height());
+    scrollRangeChanged(std::max(0, max - viewWidth), std::max(0, document()->lineCount() - geometry().height()));
 
     update();
 }
