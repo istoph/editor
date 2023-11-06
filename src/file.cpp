@@ -957,10 +957,12 @@ void File::setSearchText(QString searchText) {
     if(searchText == "") {
         _cmdSearchNext->setEnabled(false);
         _cmdSearchPrevious->setEnabled(false);
+        setSearchVisible(false);
         return;
     } else {
         _cmdSearchNext->setEnabled(true);
         _cmdSearchPrevious->setEnabled(true);
+        setSearchVisible(true);
     }
 
     SearchCountSignalForwarder *searchCountSignalForwarder = new SearchCountSignalForwarder();
@@ -976,6 +978,15 @@ void File::setSearchText(QString searchText) {
 
 void File::setSearchCaseSensitivity(Qt::CaseSensitivity searchCaseSensitivity) {
     _searchCaseSensitivity = searchCaseSensitivity;
+}
+
+void File::setSearchVisible(bool visible) {
+    _searchVisible = visible;
+    searchVisibleChanged(visible);
+}
+
+bool File::searchVisible() {
+    return _searchVisible;
 }
 
 void File::setReplaceText(QString replaceText) {
@@ -1046,6 +1057,7 @@ void File::setReplaceSelected() {
 
 void File::runSearch(bool direction) {
     if (_searchText != "") {
+        setSearchVisible(true);
         if (_searchNextFuture) {
             _searchNextFuture->cancel();
             _searchNextFuture.reset();
@@ -1374,7 +1386,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 #endif
 
         // search matches
-        if(_searchText != "") {
+        if(searchVisible() && _searchText != "") {
             int found = -1;
             if(_searchRegex) {
                 QRegularExpression rx(_searchText);
@@ -2232,7 +2244,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
         disableDetachedScrolling();
-        setSearchText("");
+        setSearchVisible(false);
         if (_blockSelect) {
             disableBlockSelection();
         }

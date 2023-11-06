@@ -423,6 +423,7 @@ FileWindow *Editor::createFileWindow() {
     _mux.connect(win, file, &File::selectModeChanged, _statusBar, &StatusBar::modifiedSelectMode, false);
     _mux.connect(win, file, &File::searchCountChanged, _statusBar, &StatusBar::searchCount, -1);
     _mux.connect(win, file, &File::searchTextChanged, _statusBar, &StatusBar::searchText, QString());
+    _mux.connect(win, file, &File::searchVisibleChanged, _statusBar, &StatusBar::searchVisible, false);
     _mux.connect(win, file, &File::overwriteModeChanged, _statusBar, &StatusBar::overwrite, false);
     _mux.connect(win, win, &FileWindow::fileChangedExternally, _statusBar, &StatusBar::fileHasBeenChangedExternally, false);
     _mux.connect(win, file, &File::syntaxHighlightingEnabledChanged, _statusBar, &StatusBar::syntaxHighlightingEnabled, false);

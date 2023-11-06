@@ -33,6 +33,7 @@ public slots:
     void setWritable(bool rw);
     void searchCount(int sc);
     void searchText(QString searchText);
+    void searchVisible(bool visible);
     void crlfMode(bool msdos);
     void modifiedSelectMode(bool f4);
     void fileHasBeenChangedExternally(bool fileChanged = true);
@@ -55,6 +56,7 @@ private:
     bool _readwrite = true;
     int _searchCount = -1;
     QString _searchText = "";
+    bool _searchVisible = false;
     bool _crlfMode = false;
     bool _selectMode = false;
     bool _fileChanged = false;

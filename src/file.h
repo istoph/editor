@@ -104,6 +104,8 @@ public:
     void insertText(const QString &str);
     void setSearchText(QString searchText);
     void setSearchCaseSensitivity(Qt::CaseSensitivity searchCaseSensitivity);
+    void setSearchVisible(bool visible);
+    bool searchVisible();
     void setReplaceText(QString replaceText);
     void setReplaceSelected();
     void setHighlightBracket(bool hb);
@@ -145,6 +147,7 @@ signals:
     void writableChanged(bool rw);
     void searchCountChanged(int sc);
     void searchTextChanged(QString searchText);
+    void searchVisibleChanged(bool visible);
     void syntaxHighlightingLanguageChanged(QString language);
     void syntaxHighlightingEnabledChanged(bool enable);
 
@@ -218,6 +221,7 @@ private:
     bool _searchWrap = true;
     bool _searchRegex = false;
     bool _searchDirectionForward = true;
+    bool _searchVisible = false;
     std::shared_ptr<std::atomic<int>> searchGeneration = std::make_shared<std::atomic<int>>();
     std::optional<QFuture<Tui::ZDocumentFindAsyncResult>> _searchNextFuture;
     bool _followMode = false;
