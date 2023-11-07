@@ -12,11 +12,11 @@ DlgFileModel::DlgFileModel(const QDir &dir) : AbstractTableModelTrackBy(1), _dir
 void DlgFileModel::update() {
     QFileInfoList list;
     if (_displayHidden) {
-        _dir.setFilter(QDir::AllEntries | QDir::Hidden);
+        _dir.setFilter(QDir::AllEntries | QDir::System | QDir::Hidden);
     } else {
-        _dir.setFilter(QDir::AllEntries);
+        _dir.setFilter(QDir::AllEntries | QDir::System );
     }
-    _dir.setSorting(QDir::DirsFirst | QDir::Name);
+    _dir.setSorting(QDir::DirsFirst | QDir::Name | QDir::SortFlag::IgnoreCase);
     list = _dir.entryInfoList();
 
     QVector<Row> newData;
