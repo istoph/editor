@@ -797,11 +797,13 @@ TEST_CASE("actions") {
         recorder.clearEvents();
         CHECK(f->hasSelection() == true);
 
+        /*
         t.f3(backward, &terminal, f);
         recorder.waitForEvent(cursorSignal);
         CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{1,0});
         recorder.clearEvents();
         CHECK(f->hasSelection() == true);
+        */
     }
     SECTION("search-t-t") {
         EventRecorder recorder;

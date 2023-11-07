@@ -1087,14 +1087,22 @@ void File::runSearch(bool direction) {
 
         auto watcher = new QFutureWatcher<Tui::ZDocumentFindAsyncResult>();
 
-        QObject::connect(watcher, &QFutureWatcher<Tui::ZDocumentFindAsyncResult>::finished, this, [this, watcher] {
+        QObject::connect(watcher, &QFutureWatcher<Tui::ZDocumentFindAsyncResult>::finished, this,
+                         [this, watcher, effectiveDirection] {
             if (!watcher->isCanceled()) {
                 Tui::ZDocumentFindAsyncResult res = watcher->future().result();
                 if (res.anchor() != res.cursor()) { // has a match?
-                    // Get rid of block selections and multi insert.
-                    clearSelection();
+                    clearAdvancedSelection();
 
-                    setSelection(res.anchor(), res.cursor());
+                    if (selectMode()) {
+                        if (effectiveDirection) {
+                            setCursorPosition(res.cursor(), true);
+                        } else {
+                            setCursorPosition(res.anchor(), true);
+                        }
+                    } else {
+                        setSelection(res.anchor(), res.cursor());
+                    }
 
                     updateCommands();
 
