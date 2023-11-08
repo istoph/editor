@@ -58,7 +58,7 @@ public:
     void openFileMenue();
 
     void gotoLineInCurrentFile(QString lineInfo);
-    void followInCurrentFile();
+    void followInCurrentFile(bool follow=true);
 
     void watchPipe();
 

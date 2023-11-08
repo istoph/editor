@@ -418,6 +418,7 @@ FileWindow *Editor::createFileWindow() {
     _mux.connect(win, file, &File::modifiedChanged, _statusBar, &StatusBar::setModified, false);
     _mux.connect(win, win, &FileWindow::readFromStandadInput, _statusBar, &StatusBar::readFromStandardInput, false);
     _mux.connect(win, win, &FileWindow::followStandadInput, _statusBar, &StatusBar::followStandardInput, false);
+    _mux.connect(win, file, &File::followStandardInputChanged, _statusBar, &StatusBar::followStandardInput, false);
     _mux.connect(win, file, &File::writableChanged, _statusBar, &StatusBar::setWritable, true);
     _mux.connect(win, file->document(), &Tui::ZDocument::crLfModeChanged, _statusBar, &StatusBar::crlfMode, false);
     _mux.connect(win, file, &File::selectModeChanged, _statusBar, &StatusBar::modifiedSelectMode, false);
@@ -670,9 +671,9 @@ void Editor::gotoLineInCurrentFile(QString lineInfo) {
     }
 }
 
-void Editor::followInCurrentFile() {
+void Editor::followInCurrentFile(bool follow) {
     if (_win) {
-        _win->setFollow(true);
+        _win->setFollow(follow);
     }
 }
 

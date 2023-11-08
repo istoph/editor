@@ -88,6 +88,14 @@ void File::emitCursorPostionChanged() {
     const auto [cursorCodeUnit, cursorLine, cursorColumn] = cursorPositionOrBlockSelectionEnd();
     int utf8CodeUnit = document()->line(cursorLine).leftRef(cursorCodeUnit).toUtf8().size();
     cursorPositionChanged(cursorColumn, utf8CodeUnit, cursorLine);
+
+    if (_stdin && document()->lineCount() - 1 == cursorLine) {
+        _followMode = true;
+        followStandardInputChanged(true);
+    } else {
+        _followMode = false;
+        followStandardInputChanged(false);
+    }
 }
 
 
@@ -441,6 +449,7 @@ bool File::newText(QString filename = "") {
 
 bool File::stdinText() {
     document()->setFilename("STDIN");
+    _stdin = true;
     initText();
     modifiedChanged(true);
     setSaveAs(true);
@@ -1012,7 +1021,7 @@ void File::toggleShowLineNumbers() {
     setShowLineNumbers(!showLineNumbers());
 }
 
-void File::followStandardInput(bool follow) {
+void File::setFollowStandardInput(bool follow) {
     _followMode = follow;
 }
 
@@ -1560,13 +1569,17 @@ void File::appendLine(const QString &line) {
     Tui::ZDocumentCursor cur = makeCursor();
     if (document()->lineCount() == 1 && document()->lineCodeUnits(0) == 0) {
         cur.insertText(line);
+        // We reposition the cursor so that the cursor is not moved in front of the cur coursor.
+        Tui::ZDocumentCursor cursor = textCursor();
+        cursor.setPosition({0, 0});
+        setTextCursor(cursor);
     } else {
         cur.moveToEndOfDocument();
         cur.insertText("\n" + line);
     }
     if(_followMode) {
         Tui::ZDocumentCursor cursor = textCursor();
-        cursor.moveToEndOfDocument();
+        cursor.setPosition({cursor.position().codeUnit, document()->lineCount() - 1});
         setTextCursor(cursor);
     }
     adjustScrollPosition();
@@ -1673,6 +1686,10 @@ bool File::event(QEvent *event) {
     }
 
     return ZWidget::event(event);
+}
+
+bool File::followStandardInput() {
+    return _followMode;
 }
 
 void File::pasteEvent(Tui::ZPasteEvent *event) {

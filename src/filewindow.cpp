@@ -392,7 +392,7 @@ void FileWindow::inputPipeReadable(int socket) {
 
 void FileWindow::setFollow(bool follow) {
     _follow = follow;
-    _file->followStandardInput(getFollow());
+    _file->setFollowStandardInput(getFollow());
     followStandadInput(getFollow());
 }
 

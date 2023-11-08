@@ -139,11 +139,13 @@ public:
     void sortSelecedLines();
 
     bool event(QEvent *event) override;
+    bool followStandardInput();
 
 public slots:
-    void followStandardInput(bool follow);
+    void setFollowStandardInput(bool follow);
 
 signals:
+    void followStandardInputChanged(bool follow);
     void writableChanged(bool rw);
     void searchCountChanged(int sc);
     void searchTextChanged(QString searchText);
@@ -225,6 +227,7 @@ private:
     std::shared_ptr<std::atomic<int>> searchGeneration = std::make_shared<std::atomic<int>>();
     std::optional<QFuture<Tui::ZDocumentFindAsyncResult>> _searchNextFuture;
     bool _followMode = false;
+    bool _stdin = false;
     Position _bracketPosition;
     bool _bracket = false;
     QJsonObject _attributeObject;
