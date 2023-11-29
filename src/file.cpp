@@ -1792,9 +1792,17 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 cursor.deleteWord();
             } else {
                 if (cursor.atEnd()) {
-                    document()->setNewlineAfterLastLineMissing(true);
+                    if (document()->line(cursor.position().line) != "") {
+                        document()->setNewlineAfterLastLineMissing(true);
+                        cursor.deleteCharacter();
+                    } else {
+                        if (cursor.atStart() == cursor.atEnd()) {
+                            document()->setNewlineAfterLastLineMissing(true);
+                        }
+                    }
+                } else {
+                    cursor.deleteCharacter();
                 }
-                cursor.deleteCharacter();
             }
             setTextCursor(cursor);
         }
