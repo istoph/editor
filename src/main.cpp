@@ -260,6 +260,10 @@ int main(int argc, char **argv) {
     });
 
     std::unique_ptr<PosixSignalNotifier> sigIntNotifier;
+    if (!PosixSignalManager::isCreated()) {
+        PosixSignalManager::create();
+    }
+
     sigIntNotifier = std::unique_ptr<PosixSignalNotifier>(new PosixSignalNotifier(SIGINT));
     QObject::connect(sigIntNotifier.get(), &PosixSignalNotifier::activated, [] {
         //qDebug("%i SIGINT", (int)QCoreApplication::applicationPid());
