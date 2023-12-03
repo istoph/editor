@@ -1833,15 +1833,14 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 multiInsertInsert(text);
             } else {
                 Tui::ZDocumentCursor cursor = textCursor();
-                if (overwriteMode()
-                    && !cursor.hasSelection()
-                    && !cursor.atLineEnd()) {
-
-                    cursor.deleteCharacter();
-                }
                 // Inserting might adjust the scroll position, so save it here and restore it later.
                 const int line = scrollPositionLine();
-                cursor.insertText(text);
+
+                if (overwriteMode()) {
+                    cursor.overwriteText(text);
+                } else {
+                    cursor.insertText(text);
+                }
                 setTextCursor(cursor);
                 setScrollPosition(scrollPositionColumn(), line, scrollPositionFineLine());
             }
