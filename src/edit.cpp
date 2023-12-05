@@ -80,7 +80,7 @@ void Editor::setupUi() {
                                  { "<m>L</m>ine Number", "", "LineNumber", {}},
                                  { "<m>F</m>ormatting", "", "Formatting", {}},
                                  { "<m>W</m>rap long lines", "", "Wrap", {}},
-                                 { "Following standard input", "", "Following", {}},
+                                 { "Following (standard input)", "", "Following", {}},
                                  { "Stop Input Pipe", "", "InputPipe", {}},
                                  { "<m>H</m>ighlight Brackets", "", "Brackets", {}},
                                  { "<m>S</m>yntax Highlighting", "", "SyntaxHighlighting", {}},
