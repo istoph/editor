@@ -1,4 +1,4 @@
 # SPDX-License-Identifier: BSL-1.0
 
 option('syntax_highlighting', type: 'boolean', value: false, description: 'enable syntax highlighting (needs KF5SyntaxHighlighting)')
-
+option('system-catch2', type : 'feature', value : 'disabled')
