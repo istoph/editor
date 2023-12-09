@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     QCoreApplication::setApplicationVersion(version);
 
     QCommandLineParser parser;
-    parser.setApplicationDescription("chr.edit");
+    parser.setApplicationDescription("chr");
     parser.addHelpOption();
     parser.addVersionOption();
 

@@ -34,7 +34,7 @@ meson install -C _build
 ## Doku
 ```
 NAME
-       chr - chr.edit is a console based editor
+       chr - chr is a console based editor
 
 SYNOPSIS
        Usage: chr [options] [[+line[,char]] file …] [/directory]

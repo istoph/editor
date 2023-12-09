@@ -88,8 +88,9 @@ editor_lib = static_library('editor', [editor_sources, syntax_qrc],
   include_directories: include_directories('.'),
   dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep, syntax_dep])
 
-executable('editor', main,
+executable('chr', main,
   vcs_dep,
+  install : true,
   include_directories: include_directories('.'),
   link_with: editor_lib,
   dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep, syntax_dep])

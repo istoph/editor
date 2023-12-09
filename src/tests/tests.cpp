@@ -159,6 +159,6 @@ TEST_CASE("all chars") {
 
 TEST_CASE("read write") {
 
-    readWrite("editor");
+    readWrite("chr");
 
 }
