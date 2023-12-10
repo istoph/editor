@@ -160,6 +160,10 @@ int main(int argc, char **argv) {
     QString attributesfileDefault = qsettings->value("attributesfile", QDir::homePath() + "/.cache/chr.json").toString();
     if (attributesfile.isEmpty()) {
         attributesfile = attributesfileDefault;
+        QDir dir(QFileInfo(attributesfile).absolutePath());
+        if (!dir.exists() && !dir.mkpath(".")) {
+            qDebug() << "Error can't create dir:" << dir.absolutePath();
+        }
     }
     settings.attributesFile = attributesfile;
 
