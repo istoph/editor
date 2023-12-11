@@ -2,6 +2,8 @@
 
 #include "alert.h"
 
+#include <QRect>
+
 #include <Tui/ZSymbol.h>
 
 
@@ -20,12 +22,16 @@ void Alert::setMarkup(QString m) {
 }
 
 void Alert::paintEvent(Tui::v0::ZPaintEvent *event) {
-    Tui::ZWindow::paintEvent(event);
+    Tui::ZDialog::paintEvent(event);
     _styledText.setBaseStyle({getColor("control.fg"), getColor("control.bg")});
     //_styledText.setWidth(geometry().width() - 4);
     auto *painter = event->painter();
     //_styledText.write(painter, 2, 2, geometry().width() - 4, geometry().height() - 4);
     _styledText.write(painter, 2, 2, 47);
+
+    painter->writeWithColors(3, geometry().height() - 1,
+                             " Press ESC or Enter to dismiss ",
+                             getColor("control.fg"), getColor("control.bg"));
 }
 
 void Alert::keyEvent(Tui::v0::ZKeyEvent *event) {
