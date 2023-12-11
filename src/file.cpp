@@ -467,10 +467,14 @@ bool File::saveText() {
     QFile file(getFilename());
     //QSaveFile file(getFilename());
     if (file.open(QIODevice::WriteOnly)) {
-        writeTo(&file);
+        bool ok = writeTo(&file);
+        ok &= file.flush();
 
         //file.commit();
         file.close();
+        if (!ok) {
+            return false;
+        }
         modifiedChanged(false);
         setSaveAs(false);
         checkWritable();
@@ -521,8 +525,12 @@ bool File::openText(QString filename) {
         initText();
 
         Tui::ZDocumentCursor::Position initialPosition = getAttributes();
-        readFrom(&file, initialPosition);
+        const bool ok = readFrom(&file, initialPosition);
         file.close();
+
+        if (!ok) {
+            return false;
+        }
 
         if (getWritable()) {
             setSaveAs(false);

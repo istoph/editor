@@ -179,15 +179,14 @@ void FileWindow::saveFile(QString filename) {
     _file->setFilename(filename);
     backingFileChanged(_file->getFilename());
     watcherRemove();
-    if(_file->saveText()) {
+    if (_file->saveText()) {
         //windowTitle(filename);
         update();
         fileChangedExternally(false);
     } else {
-        Alert *e = new Alert(this);
-        e->addPaletteClass("red");
+        Alert *e = new Alert(parentWidget());
         e->setWindowTitle("Error");
-        e->setMarkup("file could not be saved"); //Die Datei konnte nicht gespeicher werden!
+        e->setMarkup("file could not be saved");
         e->setGeometry({15,5,50,5});
         e->setDefaultPlacement(Qt::AlignCenter);
         e->setVisible(true);
@@ -234,7 +233,15 @@ void FileWindow::newFile(QString filename) {
 void FileWindow::openFile(QString filename) {
     closePipe();
     watcherRemove();
-    _file->openText(filename);
+    if (!_file->openText(filename)) {
+        Alert *e = new Alert(parentWidget());
+        e->setWindowTitle("Error");
+        e->setMarkup("Error while reading file.");
+        e->setGeometry({15,5,50,5});
+        e->setDefaultPlacement(Qt::AlignCenter);
+        e->setVisible(true);
+        e->setFocus();
+    }
     backingFileChanged(_file->getFilename());
     fileChangedExternally(false);
     watcherAdd();
@@ -245,7 +252,15 @@ void FileWindow::reload() {
     _file->clearSelection();
     Tui::ZDocumentCursor::Position cursorPosition = _file->cursorPosition();
     watcherRemove();
-    _file->openText(_file->getFilename());
+    if (!_file->openText(_file->getFilename())) {
+        Alert *e = new Alert(parentWidget());
+        e->setWindowTitle("Error");
+        e->setMarkup("Error while reading file.");
+        e->setGeometry({15,5,50,5});
+        e->setDefaultPlacement(Qt::AlignCenter);
+        e->setVisible(true);
+        e->setFocus();
+    }
     fileChangedExternally(false);
     _file->setCursorPosition(cursorPosition);
     watcherAdd();
