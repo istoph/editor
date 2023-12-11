@@ -36,7 +36,7 @@ private:
     void refreshFolder();
 
 private:
-    Tui::ZLabel *_curentPath = nullptr;
+    Tui::ZLabel *_currentPath = nullptr;
     Tui::ZInputBox *_filenameText = nullptr;
     Tui::ZListView *_folder = nullptr;
     Tui::ZCheckBox *_hiddenCheckBox = nullptr;

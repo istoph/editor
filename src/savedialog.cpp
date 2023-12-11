@@ -15,8 +15,8 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     setWindowTitle("Save as...");
     setContentsMargins({ 1, 1, 2, 1});
 
-    _curentPath = new Tui::ZLabel(this);
-    _curentPath->setGeometry({2,2,45,1});
+    _currentPath = new Tui::ZLabel(this);
+    _currentPath->setGeometry({2,2,45,1});
 
     _model = std::make_unique<DlgFileModel>(_dir);
 
@@ -147,7 +147,7 @@ bool SaveDialog::_filenameChanged(QString filename) {
 
 void SaveDialog::refreshFolder() {
     _model->setDirectory(_dir);
-    _curentPath->setText(_dir.absolutePath().right(44));
+    _currentPath->setText(_dir.absolutePath().right(44));
     _folder->setCurrentIndex(_model->index(0, 0));
 }
 
