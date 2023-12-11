@@ -701,8 +701,8 @@ FileWindow* Editor::openFile(QString fileName) {
     } else {
         FileWindow *win = createFileWindow();
         _mdiLayout->addWindow(win);
-        win->openFile(fileName);
         win->getFileWidget()->setFocus();
+        win->openFile(fileName);
         return win;
     }
 }
