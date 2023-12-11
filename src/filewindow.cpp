@@ -175,10 +175,13 @@ void FileWindow::setWrap(Tui::ZTextOption::WrapMode wrap) {
     }
 }
 
-void FileWindow::saveFile(QString filename) {
+void FileWindow::saveFile(QString filename, std::optional<bool> crlfMode) {
     _file->setFilename(filename);
     backingFileChanged(_file->getFilename());
     watcherRemove();
+    if (crlfMode.has_value()) {
+        _file->document()->setCrLfMode(*crlfMode);
+    }
     if (_file->saveText()) {
         //windowTitle(filename);
         update();
@@ -212,7 +215,7 @@ SaveDialog *FileWindow::saveOrSaveas() {
         SaveDialog *q = saveFileDialog();
         return q;
     } else {
-        saveFile(_file->getFilename());
+        saveFile(_file->getFilename(), std::nullopt);
         return nullptr;
     }
 }

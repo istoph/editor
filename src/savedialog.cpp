@@ -58,13 +58,6 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     QObject::connect(_hiddenCheckBox, &Tui::ZCheckBox::stateChanged, this, [&]{
         _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
     });
-    QObject::connect(_crlf, &Tui::ZCheckBox::stateChanged, [=] {
-       if (_crlf->checkState() == Qt::Checked) {
-            file->document()->setCrLfMode(true);
-       } else {
-            file->document()->setCrLfMode(false);
-       }
-    });
     QObject::connect(_cancelButton, &Tui::ZButton::clicked, this, &SaveDialog::rejected);
     QObject::connect(this, &Tui::ZDialog::rejected, this, &SaveDialog::rejected);
     QObject::connect(_saveButton, &Tui::ZButton::clicked, this, &SaveDialog::saveFile);
@@ -85,14 +78,14 @@ void SaveDialog::saveFile() {
         QObject::connect(overwriteDialog, &OverwriteDialog::confirm, this,
                          [this, overwriteDialog, fileName](bool value) {
                             if (value) {
-                                fileSelected(fileName);
+                                fileSelected(fileName, _crlf->checkState() == Qt::Checked);
                                 deleteLater();
                             }
                             overwriteDialog->deleteLater();
                          }
         );
     } else {
-        fileSelected(fileName);
+        fileSelected(fileName, _crlf->checkState() == Qt::Checked);
         deleteLater();
     }
 }

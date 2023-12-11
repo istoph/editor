@@ -27,7 +27,7 @@ public slots:
     void rejected();
 
 signals:
-    void fileSelected(QString filename);
+    void fileSelected(QString filename, bool crlfMode);
 
 private:
     void filenameChanged(QString filename);

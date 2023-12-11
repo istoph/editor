@@ -22,7 +22,7 @@ public:
 public:
     File *getFileWidget();
     void setWrap(Tui::ZTextOption::WrapMode wrap);
-    void saveFile(QString filename);
+    void saveFile(QString filename, std::optional<bool> crlfMode);
     void newFile(QString filename);
     void openFile(QString filename);
 
