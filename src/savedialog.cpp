@@ -99,43 +99,56 @@ void SaveDialog::saveFile() {
 
 void SaveDialog::filenameChanged(QString filename) {
     bool isSaveable = false;
-    isSaveable = _filenameChanged(filename, false);
+    isSaveable = _filenameChanged(filename);
     _saveButton->setEnabled(isSaveable);
 }
 
-bool SaveDialog::_filenameChanged(QString filename, bool absolutePath) {
-    if (!absolutePath) {
-        QRegExp regex("[\/]");
-        if (regex.indexIn(filename) < 0) {
-            filename = _dir.absolutePath() + QString('/') + filename;
-        } else {
-            QFileInfo datei(filename);
-            _dir.setPath(datei.path());
-            refreshFolder();
-            return _filenameChanged(datei.absoluteFilePath() + datei.fileName(), true);
-        }
-    }
-    QFileInfo datei(filename);
+bool SaveDialog::_filenameChanged(QString filename) {
+
     if (filename.isEmpty()) {
         return false;
-    } else if (datei.isDir()) {
-        return false;
-    } else if (datei.isFile()) {
-        if (datei.isSymLink()) {
-            return _filenameChanged(QString(datei.symLinkTarget()), true);
-        } else if (datei.isWritable()) {
-            return true;
-        }
+    }
+
+    if (!filename.contains('/')) {
+        filename = _dir.absolutePath() + QString('/') + filename;
     } else {
-        if (datei.isSymLink()) {
-            return _filenameChanged(QString(datei.symLinkTarget()), true);
-        } else {
-            QFileInfo parent(datei.path());
-            if(parent.isWritable()) {
+        QFileInfo datei(filename);
+        _dir.setPath(datei.path());
+        refreshFolder();
+        filename = datei.absoluteFilePath() + datei.fileName();
+    }
+
+    // Loop to easyly catch symlink loops
+    for (int cycle = 0; cycle < 100; cycle++) {
+        QFileInfo fileInfo(filename);
+        if (filename.isEmpty()) {
+            return false;
+        } else if (fileInfo.isDir()) {
+            return false;
+        } else if (fileInfo.isFile()) {
+            // existing file
+            if (fileInfo.isSymLink()) {
+                filename = fileInfo.symLinkTarget();
+                continue;
+            } else if (fileInfo.isWritable()) {
                 return true;
             }
+        } else {
+            // to create a new file
+            if (fileInfo.isSymLink()) {
+                filename = fileInfo.symLinkTarget();
+                continue;
+            } else {
+                QFileInfo parent(fileInfo.path());
+                if(parent.isWritable()) {
+                    return true;
+                }
+            }
         }
+        return false;
     }
+
+    // too many symlinks, bail out
     return false;
 }
 

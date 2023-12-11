@@ -31,7 +31,7 @@ signals:
 
 private:
     void filenameChanged(QString filename);
-    bool _filenameChanged(QString filename, bool absolutePath = false);
+    bool _filenameChanged(QString filename);
     void userInput(QString filename);
     void refreshFolder();
 
