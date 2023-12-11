@@ -6,9 +6,9 @@
 
 
 Alert::Alert(Tui::v0::ZWidget *parent)
-    : Tui::ZWindow(parent)
+    : Tui::ZDialog(parent)
 {
-
+    setFocusPolicy(Tui::StrongFocus);
 }
 
 QString Alert::markup() const {
@@ -32,6 +32,6 @@ void Alert::keyEvent(Tui::v0::ZKeyEvent *event) {
     if (event->key() == Qt::Key_Escape || event->key() == Qt::Key_Enter) {
         deleteLater();
     } else {
-        Tui::ZWidget::keyEvent(event);
+        Tui::ZDialog::keyEvent(event);
     }
 }

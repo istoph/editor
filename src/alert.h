@@ -6,10 +6,10 @@
 #include <QObject>
 
 #include <Tui/ZStyledTextLine.h>
-#include <Tui/ZWindow.h>
+#include <Tui/ZDialog.h>
 
 
-class Alert : public Tui::ZWindow {
+class Alert : public Tui::ZDialog {
     Q_OBJECT
 
 public:
