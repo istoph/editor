@@ -42,20 +42,14 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
 
     QObject::connect(_file, &File::modifiedChanged, this,
             [this] {
-                QString filename = _file->getFilename();
-                if (terminal()) {
-                    terminal()->setTitle("chr - "+ filename);
-                    terminal()->setIconTitle("chr - "+ filename);
-                }
-                if(_file->isModified()) {
-                    filename = "*" + filename;
+                if (_file->isModified()) {
                     if (!_file->isNewFile()) {
                         _cmdReload->setEnabled(true);
                     }
                 } else {
                     _cmdReload->setEnabled(false);
                 }
-                setWindowTitle(filename);
+                updateTitle();
             }
     );
 
@@ -278,6 +272,7 @@ void FileWindow::closeEvent(Tui::ZCloseEvent *event) {
 
 void FileWindow::resizeEvent(Tui::ZResizeEvent *event) {
     updateBorders();
+    updateTitle();
     Tui::ZWindow::resizeEvent(event);
 }
 
@@ -313,6 +308,33 @@ void FileWindow::updateBorders() {
         _scrollbarHorizontal->setTransparent(true);
     }
     setBorderEdges(borders);
+}
+
+void FileWindow::updateTitle() {
+    if (!terminal()) {
+        return;
+    }
+
+    QString title = _file->getFilename();
+    if (_file->isModified()) {
+        title = "*" + title;
+    }
+
+    terminal()->setTitle("chr - " + title);
+    terminal()->setIconTitle("chr - " + title);
+
+    Tui::ZTextMetrics metrics = terminal()->textMetrics();
+
+    const int maxWidth = geometry().width() - 14;
+
+    const int width = metrics.sizeInColumns(title);
+
+    if (width > maxWidth) {
+        auto splitPoint = metrics.splitByColumns(title, width - maxWidth - 1);
+        title = "…" + title.mid(splitPoint.codeUnits);
+    }
+
+    setWindowTitle(title);
 }
 
 void FileWindow::closeRequested() {

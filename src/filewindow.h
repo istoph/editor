@@ -46,6 +46,7 @@ protected:
 
 private:
     void updateBorders();
+    void updateTitle();
     void closeRequested();
     SaveDialog *saveFileDialog();
     WrapDialog *wrapDialog();
