@@ -78,9 +78,18 @@ editor_headers = [
 
 vcs_dep = vcs_tag(command : ['git', 'rev-parse', '--short', 'HEAD'],
         fallback: '000000',
-        input:'git_version.h.in',
-        output:'git_version.h',
+        input:'version_git.h.in',
+        output:'version_git.h',
         replace_string:'%GIT_VERSION%')
+
+conf_data = configuration_data()
+conf_data.set_quoted('VERSION_NUMBER', get_option('version'))
+configure_file(
+  input: 'version.h.in',
+  output: 'version.h',
+  configuration: conf_data
+)
+
 
 editor_lib = static_library('editor', [editor_sources, syntax_qrc],
   qt5.preprocess(moc_headers: editor_headers, moc_sources: editor_sources,

@@ -14,7 +14,7 @@
 #include "edit.h"
 #include "filecategorize.h"
 #include "filelistparser.h"
-#include "git_version.h"
+#include "version_git.h"
 
 int main(int argc, char **argv) {
 
