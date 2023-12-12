@@ -18,6 +18,10 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     _currentPath = new Tui::ZLabel(this);
     _currentPath->setGeometry({2,2,45,1});
 
+    if (!file->isNewFile()) {
+        QFileInfo fileInfo(file->getFilename());
+        _dir.setPath(fileInfo.path());
+    }
     _model = std::make_unique<DlgFileModel>(_dir);
 
     _folder = new Tui::ZListView(this);
@@ -28,13 +32,18 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     _filenameText = new Tui::ZInputBox(this);
     _filenameText->setGeometry({3,10,44,1});
 
+    if (!file->isNewFile()) {
+        QFileInfo fileInfo(file->getFilename());
+        _filenameText->setText(fileInfo.fileName());
+    }
+
     _hiddenCheckBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>h</m>idden", this);
     _hiddenCheckBox->setGeometry({3, 11, 13, 1});
     _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
 
     _crlf = new Tui::ZCheckBox(Tui::withMarkup, "<m>C</m>RLF Mode", this);
     _crlf->setGeometry({3, 12, 16, 1});
-    if(file->document()->crLfMode()) {
+    if (file->document()->crLfMode()) {
         _crlf->setCheckState(Qt::Checked);
     } else {
         _crlf->setCheckState(Qt::Unchecked);
