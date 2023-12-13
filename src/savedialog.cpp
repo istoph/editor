@@ -3,6 +3,7 @@
 #include "savedialog.h"
 
 #include <Tui/ZTerminal.h>
+#include <Tui/ZPalette.h>
 
 #include "overwritedialog.h"
 
@@ -58,6 +59,14 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     _saveButton->setText("Save");
     _saveButton->setDefault(true);
     _saveButton->setEnabled(false);
+
+    Tui::ZPalette p;
+    p.setColors({{"control.bg", Tui::Colors::lightGray},
+                 {"control.fg", Tui::Colors::red}});
+
+    _noteText = new Tui::ZLabel(this);
+    _noteText->setGeometry({2, 9, 45, 1});
+    _noteText->setPalette(p);
 
     QObject::connect(_folder, &Tui::ZListView::enterPressed, [this](int selected){
         (void)selected;
@@ -117,6 +126,7 @@ void SaveDialog::filenameChanged(QString filename) {
             _previewDir.reset();
             refreshFolder();
         }
+        _noteText->setText("");
         _saveButton->setText("Save");
         _saveButton->setEnabled(false);
         return;
@@ -135,6 +145,7 @@ void SaveDialog::filenameChanged(QString filename) {
             refreshFolder();
             filename = QFileInfo(_dir.filePath(filename)).absoluteFilePath();
         } else {
+            _noteText->setText("directory does not exist: " + fileInfo.absoluteFilePath());
             _saveButton->setText("Save");
             _saveButton->setEnabled(false);
             return;
@@ -149,6 +160,7 @@ void SaveDialog::filenameChanged(QString filename) {
             _saveButton->setEnabled(false);
             return;
         } else if (fileInfo.isDir()) {
+            _noteText->setText("");
             _saveButton->setText("Open");
             _saveButton->setEnabled(true);
             return;
@@ -162,6 +174,7 @@ void SaveDialog::filenameChanged(QString filename) {
                 _saveButton->setEnabled(true);
                 return;
             }
+            _noteText->setText("no permission to write file");
         } else {
             // to create a new file
             if (fileInfo.isSymLink()) {
@@ -172,7 +185,10 @@ void SaveDialog::filenameChanged(QString filename) {
                 if (parent.isWritable()) {
                     _saveButton->setText("Save");
                     _saveButton->setEnabled(true);
+                    _noteText->setText("");
                     return;
+                } else {
+                    _noteText->setText("no permission to create file");
                 }
             }
         }
@@ -182,6 +198,7 @@ void SaveDialog::filenameChanged(QString filename) {
     }
 
     // too many symlinks, bail out
+    _noteText->setText("symlink loop");
     _saveButton->setText("Save");
     _saveButton->setEnabled(false);
 }

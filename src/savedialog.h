@@ -43,6 +43,7 @@ private:
     Tui::ZCheckBox *_crlf = nullptr;
     Tui::ZButton *_cancelButton = nullptr;
     Tui::ZButton *_saveButton = nullptr;
+    Tui::ZLabel *_noteText = nullptr;
     QDir _dir;
     std::optional<QDir> _previewDir;
     std::unique_ptr<DlgFileModel> _model;
