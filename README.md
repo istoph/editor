@@ -1,6 +1,6 @@
 [![License](https://img.shields.io/badge/License-Boost_1.0-lightblue.svg)](/COPYING)
 
-Console based text editor with special attention to ease of use like gedit. It has been written from scratch using [tuiwidget](https://tuiwidgets.namepad.de/)
+Console based text editor with special attention to ease of use like gedit. It has been written from scratch using [Tui Widget](https://tuiwidgets.namepad.de/)
 
 ![Screenshots](https://blog.chr.istoph.de/wp-content/uploads/chr.edit_20230920.png)
 
@@ -10,9 +10,9 @@ The project is always open for contributions and welcomes merge requests. Take a
 
 ### Technologies / Dependencies
 
-Dependencies in Debian Bookworm:
+Dependencies in Debian Sid:
 ```
-build-essential meson ninja-build pkg-config qt5-qmake qttools5-dev-tools qtbase5-dev libtermpaint-dev libtuiwidgets-dev
+build-essential meson ninja-build pkg-config qt5-qmake qttools5-dev-tools qtbase5-dev libtermpaint-dev libtuiwidgets-dev libposixsignalmanager-dev
 ```
 
 For third-party syntex highlighting you need the compile option: `-Dsyntax_highlighting=true` and the following dependencies:
@@ -21,7 +21,7 @@ libkf5syntaxhighlighting-dev libkf5syntaxhighlighting-tools cmake
 ```
 
 
-See also [Tui Widgets](https://tuiwidgets.namepad.de/) and [termpaint](https://termpaint.namepad.de/)
+See also [Tui Widgets](https://tuiwidgets.namepad.de/) and [Termpaint](https://termpaint.namepad.de/)
 
 ```
 git clone https://github.com/istoph/editor
