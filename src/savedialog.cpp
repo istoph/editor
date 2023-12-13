@@ -64,7 +64,7 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
         userInput(_folder->currentItem());
     });
     QObject::connect(_filenameText, &Tui::ZInputBox::textChanged, this, &SaveDialog::filenameChanged);
-    QObject::connect(_hiddenCheckBox, &Tui::ZCheckBox::stateChanged, this, [&]{
+    QObject::connect(_hiddenCheckBox, &Tui::ZCheckBox::stateChanged, this, [&] {
         _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
     });
     QObject::connect(_cancelButton, &Tui::ZButton::clicked, this, &SaveDialog::rejected);
@@ -76,11 +76,23 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     setGeometry(r);
 
     refreshFolder();
+
+    if (_filenameText->text().size()) {
+        filenameChanged(_filenameText->text());
+    }
 }
 
 void SaveDialog::saveFile() {
     QString fileName = _dir.absoluteFilePath(_filenameText->text());
-    if(_dir.exists(fileName)) {
+    QFileInfo fileInfo(fileName);
+    if (fileInfo.isDir()) {
+        _previewDir.reset();
+        _dir.setPath(fileName);
+        refreshFolder();
+        _filenameText->setText("");
+        return;
+    }
+    if (_dir.exists(fileName)) {
 
         OverwriteDialog *overwriteDialog = new OverwriteDialog(parentWidget(), fileName);
         overwriteDialog->setFocus();
@@ -100,40 +112,55 @@ void SaveDialog::saveFile() {
 }
 
 void SaveDialog::filenameChanged(QString filename) {
-    bool isSaveable = false;
-    isSaveable = _filenameChanged(filename);
-    _saveButton->setEnabled(isSaveable);
-}
-
-bool SaveDialog::_filenameChanged(QString filename) {
-
     if (filename.isEmpty()) {
-        return false;
+        if (_previewDir) {
+            _previewDir.reset();
+            refreshFolder();
+        }
+        _saveButton->setText("Save");
+        _saveButton->setEnabled(false);
+        return;
     }
 
     if (!filename.contains('/')) {
         filename = _dir.absolutePath() + QString('/') + filename;
+        if (_previewDir) {
+            _previewDir.reset();
+            refreshFolder();
+        }
     } else {
-        QFileInfo datei(filename);
-        _dir.setPath(datei.path());
-        refreshFolder();
-        filename = datei.absoluteFilePath() + datei.fileName();
+        QFileInfo fileInfo(_dir.filePath(QFileInfo(filename).path()));
+        if (fileInfo.isDir()) {
+            _previewDir.emplace(fileInfo.absoluteFilePath());
+            refreshFolder();
+            filename = QFileInfo(_dir.filePath(filename)).absoluteFilePath();
+        } else {
+            _saveButton->setText("Save");
+            _saveButton->setEnabled(false);
+            return;
+        }
     }
 
     // Loop to easyly catch symlink loops
     for (int cycle = 0; cycle < 100; cycle++) {
         QFileInfo fileInfo(filename);
         if (filename.isEmpty()) {
-            return false;
+            _saveButton->setText("Save");
+            _saveButton->setEnabled(false);
+            return;
         } else if (fileInfo.isDir()) {
-            return false;
+            _saveButton->setText("Open");
+            _saveButton->setEnabled(true);
+            return;
         } else if (fileInfo.isFile()) {
             // existing file
             if (fileInfo.isSymLink()) {
                 filename = fileInfo.symLinkTarget();
                 continue;
             } else if (fileInfo.isWritable()) {
-                return true;
+                _saveButton->setText("Save");
+                _saveButton->setEnabled(true);
+                return;
             }
         } else {
             // to create a new file
@@ -142,33 +169,58 @@ bool SaveDialog::_filenameChanged(QString filename) {
                 continue;
             } else {
                 QFileInfo parent(fileInfo.path());
-                if(parent.isWritable()) {
-                    return true;
+                if (parent.isWritable()) {
+                    _saveButton->setText("Save");
+                    _saveButton->setEnabled(true);
+                    return;
                 }
             }
         }
-        return false;
+        _saveButton->setText("Save");
+        _saveButton->setEnabled(false);
+        return;
     }
 
     // too many symlinks, bail out
-    return false;
+    _saveButton->setText("Save");
+    _saveButton->setEnabled(false);
 }
 
 void SaveDialog::refreshFolder() {
-    _model->setDirectory(_dir);
-    _currentPath->setText(_dir.absolutePath().right(44));
-    _folder->setCurrentIndex(_model->index(0, 0));
+    if (_previewDir) {
+        _model->setDirectory(*_previewDir);
+        _currentPath->setText((*_previewDir).absolutePath().right(34) + " (preview)");
+        _folder->setCurrentIndex(_model->index(0, 0));
+    } else {
+        _model->setDirectory(_dir);
+        _currentPath->setText(_dir.absolutePath().right(44));
+        _folder->setCurrentIndex(_model->index(0, 0));
+    }
 }
 
 void SaveDialog::userInput(QString filename) {
-    QString tmp = filename.left(filename.size()-1);
-    if(QFileInfo(_dir.filePath(filename)).isDir() && QFileInfo(_dir.filePath(tmp)).isSymLink()) {
-       _dir.setPath(_dir.filePath(QFileInfo(_dir.filePath(tmp)).symLinkTarget()));
-       _dir.makeAbsolute();
-       refreshFolder();
-    } else if(QFileInfo(_dir.filePath(filename)).isDir()) {
-        _dir.setPath(_dir.filePath(filename));
+    if (_previewDir) {
+        _dir = *_previewDir;
+        _previewDir.reset();
+        _currentPath->setText(_dir.absolutePath().right(44));
+    }
+
+    const bool isDirectory = QFileInfo(_dir.filePath(filename)).isDir();
+    if (isDirectory) {
+        QString tmp = filename.left(filename.size() - 1);
+        const bool isSymlink = QFileInfo(_dir.filePath(tmp)).isSymLink();
+        if (isSymlink) {
+            _dir.setPath(_dir.filePath(QFileInfo(_dir.filePath(tmp)).symLinkTarget()));
+        } else {
+            _dir.setPath(_dir.filePath(filename));
+        }
         _dir.makeAbsolute();
+
+        if (_filenameText->text().contains('/')) {
+            _filenameText->setText(_filenameText->text().section('/', -1));
+        } else {
+            filenameChanged(_filenameText->text());
+        }
         refreshFolder();
     } else {
         _filenameText->setText(filename);

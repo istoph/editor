@@ -44,6 +44,7 @@ private:
     Tui::ZButton *_cancelButton = nullptr;
     Tui::ZButton *_saveButton = nullptr;
     QDir _dir;
+    std::optional<QDir> _previewDir;
     std::unique_ptr<DlgFileModel> _model;
 
 };
