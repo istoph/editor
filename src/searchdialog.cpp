@@ -2,6 +2,8 @@
 
 #include "searchdialog.h"
 
+#include <QRegularExpression>
+
 #include <Tui/ZButton.h>
 #include <Tui/ZClipboard.h>
 #include <Tui/ZHBoxLayout.h>
@@ -77,13 +79,11 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
 
             _wordMatchRadio = new Tui::ZRadioButton(Tui::withMarkup, "Match <m>e</m>ntire word only", gbox1);
             nbox->addWidget(_wordMatchRadio);
-            _wordMatchRadio->setEnabled(false);
 
             _regexMatchRadio = new Tui::ZRadioButton(Tui::withMarkup, "Re<m>g</m>ular expression", gbox1);
             nbox->addWidget(_regexMatchRadio);
 
             _escapeSequenceRadio = new Tui::ZRadioButton(Tui::withMarkup, "escape sequence", gbox1);
-            _escapeSequenceRadio->setEnabled(false);
             nbox->addWidget(_escapeSequenceRadio);
 
             hbox->addWidget(gbox1);
@@ -166,7 +166,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         }
         if (_liveSearchBox->checkState() == Qt::Checked) {
             emitAllConditions();
-            Q_EMIT liveSearch(translateSearch(_searchText->text()), _forwardRadio->checked());
+            emitLiveSearch();
         }
     });
 
@@ -189,21 +189,56 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         });
     }
 
-    QObject::connect(_cancelBtn, &Tui::ZButton::clicked, [=]{
+    QObject::connect(_cancelBtn, &Tui::ZButton::clicked, [=] {
         Q_EMIT searchCanceled();
         setVisible(false);
     });
 
-    QObject::connect(_caseMatchBox, &Tui::ZCheckBox::stateChanged, [=]{
+    QObject::connect(_caseMatchBox, &Tui::ZCheckBox::stateChanged, [=] {
         emitAllConditions();
     });
-    QObject::connect(_regexMatchRadio, &Tui::ZRadioButton::toggled, [=]{
+
+    QObject::connect(_escapeSequenceRadio, &Tui::ZRadioButton::toggled, [=] {
+        if (!_escapeSequenceRadio->checked()) {
+            return;
+        }
+        emitAllConditions();
+        if (_liveSearchBox->checkState() == Qt::Checked) {
+            emitLiveSearch();
+        }
+    });
+    QObject::connect(_wordMatchRadio, &Tui::ZRadioButton::toggled, [=] {
+        if (!_wordMatchRadio->checked()) {
+            return;
+        }
+        emitAllConditions();
+        if (_liveSearchBox->checkState() == Qt::Checked) {
+            emitLiveSearch();
+        }
+    });
+    QObject::connect(_regexMatchRadio, &Tui::ZRadioButton::toggled, [=] {
+        if (!_regexMatchRadio->checked()) {
+            return;
+        }
+        emitAllConditions();
+        if (_liveSearchBox->checkState() == Qt::Checked) {
+            emitLiveSearch();
+        }
+    });
+    QObject::connect(_plainTextRadio, &Tui::ZRadioButton::toggled, [=] {
+        if (!_plainTextRadio->checked()) {
+            return;
+        }
+        emitAllConditions();
+        if (_liveSearchBox->checkState() == Qt::Checked) {
+            emitLiveSearch();
+        }
+    });
+
+    QObject::connect(_wrapBox, &Tui::ZCheckBox::stateChanged, [=] {
         emitAllConditions();
     });
-    QObject::connect(_wrapBox, &Tui::ZCheckBox::stateChanged, [=]{
-        emitAllConditions();
-    });
-    QObject::connect(_forwardRadio, &Tui::ZRadioButton::toggled, [=]{
+    QObject::connect(_forwardRadio, &Tui::ZRadioButton::toggled, [=] {
         emitAllConditions();
     });
 }
@@ -212,8 +247,10 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
 void SearchDialog::setSearchText(QString text) {
     if (text != "") {
         if (_searchText->text() == "" || !_regexMatchRadio->checked()) {
-            text = text.replace('\n', "\\n");
-            text = text.replace('\t', "\\t");
+            if (_escapeSequenceRadio->checked()) {
+                text.replace('\n', "\\n");
+                text.replace('\t', "\\t");
+            }
             _searchText->setText(text);
             _searchText->textChanged(text);
         }
@@ -226,15 +263,24 @@ void SearchDialog::setReplace(bool replace) {
 
 void SearchDialog::emitAllConditions() {
     Q_EMIT searchCaseSensitiveChanged(_caseMatchBox->checkState() == Tui::CheckState::Checked);
-    Q_EMIT searchRegexChanged(_regexMatchRadio->checked());
+    Q_EMIT searchRegexChanged(_regexMatchRadio->checked()
+                              || _wordMatchRadio->checked());
     Q_EMIT searchDirectionChanged(_forwardRadio->checked());
     Q_EMIT searchWrapChanged(_wrapBox->checkState()  == Tui::CheckState::Checked);
 }
 
+void SearchDialog::emitLiveSearch() {
+    Q_EMIT liveSearch(translateSearch(_searchText->text()), _forwardRadio->checked());
+}
+
 QString SearchDialog::translateSearch(const QString &in) {
     QString text = in;
-    text.replace("\\n","\n");
-    text.replace("\\t","\t");
+    if (_escapeSequenceRadio->checked()) {
+        text.replace("\\n","\n");
+        text.replace("\\t","\t");
+    } else if (_wordMatchRadio->checked()) {
+        text = "\\b" + QRegularExpression::escape(text) + "\\b";
+    }
 
     return text;
 }

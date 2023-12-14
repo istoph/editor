@@ -20,6 +20,7 @@ public:
 
 private:
     void emitAllConditions();
+    void emitLiveSearch();
     QString translateSearch(const QString &in);
 
 signals:
