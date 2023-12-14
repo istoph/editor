@@ -967,8 +967,7 @@ void File::multiInsertInsert(const QString &text) {
 
 void File::setSearchText(QString searchText) {
     int gen = ++(*searchGeneration);
-    _searchText = searchText.replace("\\n","\n");
-    _searchText = searchText.replace("\\t","\t");
+    _searchText = searchText;
     searchTextChanged(_searchText);
 
     if(searchText == "") {

@@ -20,6 +20,7 @@ public:
 
 private:
     void emitAllConditions();
+    QString translateSearch(const QString &in);
 
 signals:
     void searchCaseSensitiveChanged(bool value);

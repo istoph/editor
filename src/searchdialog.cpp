@@ -164,28 +164,28 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         if (_replaceAllBtn) {
             _replaceAllBtn->setEnabled(newText.size());
         }
-        if(_liveSearchBox->checkState() == Qt::Checked) {
+        if (_liveSearchBox->checkState() == Qt::Checked) {
             emitAllConditions();
-            Q_EMIT liveSearch(_searchText->text(), _forwardRadio->checked());
+            Q_EMIT liveSearch(translateSearch(_searchText->text()), _forwardRadio->checked());
         }
     });
 
-    QObject::connect(_findNextBtn, &Tui::ZButton::clicked, [this]{
+    QObject::connect(_findNextBtn, &Tui::ZButton::clicked, [this] {
         emitAllConditions();
-        Q_EMIT searchFindNext(_searchText->text(), _forwardRadio->checked());
+        Q_EMIT searchFindNext(translateSearch(_searchText->text()), _forwardRadio->checked());
     });
 
     if (_replaceBtn) {
-        QObject::connect(_replaceBtn, &Tui::ZButton::clicked, [this]{
+        QObject::connect(_replaceBtn, &Tui::ZButton::clicked, [this] {
             emitAllConditions();
-            Q_EMIT searchReplace(_searchText->text(), _replaceText->text(), _forwardRadio->checked());
+            Q_EMIT searchReplace(translateSearch(_searchText->text()), _replaceText->text(), _forwardRadio->checked());
         });
     }
 
     if (_replaceAllBtn) {
-        QObject::connect(_replaceAllBtn, &Tui::ZButton::clicked, [=]{
+        QObject::connect(_replaceAllBtn, &Tui::ZButton::clicked, [=] {
             emitAllConditions();
-            Q_EMIT searchReplaceAll(_searchText->text(), _replaceText->text());
+            Q_EMIT searchReplaceAll(translateSearch(_searchText->text()), _replaceText->text());
         });
     }
 
@@ -229,6 +229,14 @@ void SearchDialog::emitAllConditions() {
     Q_EMIT searchRegexChanged(_regexMatchRadio->checked());
     Q_EMIT searchDirectionChanged(_forwardRadio->checked());
     Q_EMIT searchWrapChanged(_wrapBox->checkState()  == Tui::CheckState::Checked);
+}
+
+QString SearchDialog::translateSearch(const QString &in) {
+    QString text = in;
+    text.replace("\\n","\n");
+    text.replace("\\t","\t");
+
+    return text;
 }
 
 void SearchDialog::open() {
