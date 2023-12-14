@@ -12,24 +12,6 @@
 #include "groupbox.h"
 
 
-class MyInputBox : public Tui::ZInputBox {
-public:
-    MyInputBox(Tui::ZWidget *parent) : Tui::ZInputBox(parent) {};
-protected:
-    void keyEvent(Tui::ZKeyEvent *event) override {
-        QString text = event->text();
-        Tui::ZClipboard *clipboard = findFacet<Tui::ZClipboard>();
-
-        if(event->text() == "v" && event->modifiers() == Qt::Modifier::CTRL) {
-            if (clipboard->contents().size()) {
-                insertAtCursorPosition(clipboard->contents());
-            }
-        } else {
-            Tui::ZInputBox::keyEvent(event);
-        }
-    }
-};
-
 SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setDefaultPlacement(Qt::AlignBottom | Qt::AlignHCenter, {0, -2});
@@ -56,7 +38,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         labelFind = new Tui::ZLabel(Tui::withMarkup, "Find", this);
         hbox->addWidget(labelFind);
 
-        _searchText = new MyInputBox(this);
+        _searchText = new Tui::ZInputBox(this);
         labelFind->setBuddy(_searchText);
         hbox->addWidget(_searchText);
 
@@ -70,7 +52,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         Tui::ZLabel *labelReplace = new Tui::ZLabel(Tui::withMarkup, "Replace", this);
         hbox->addWidget(labelReplace);
 
-        _replaceText = new MyInputBox(this);
+        _replaceText = new Tui::ZInputBox(this);
         labelReplace->setBuddy(_replaceText);
         hbox->addWidget(_replaceText);
         labelFind->setMinimumSize(labelReplace->sizeHint());
