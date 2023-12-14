@@ -1415,6 +1415,9 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
             int found = -1;
             if(_searchRegex) {
                 QRegularExpression rx(_searchText);
+                if (_searchCaseSensitivity == Qt::CaseInsensitive) {
+                    rx.setPatternOptions(QRegularExpression::PatternOption::CaseInsensitiveOption);
+                }
                 QRegularExpressionMatchIterator i = rx.globalMatch(document()->line(line));
                 while (i.hasNext()) {
                     QRegularExpressionMatch match = i.next();
