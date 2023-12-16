@@ -6,6 +6,7 @@
 
 #include <Tui/ZPainter.h>
 #include <Tui/ZSymbol.h>
+#include <Tui/ZTextLayout.h>
 #include <Tui/ZTerminal.h>
 #include <Tui/ZTextMetrics.h>
 
@@ -185,13 +186,17 @@ QString slash(QString text) {
     return text;
 }
 
+static const QChar escapedNewLine = (QChar)(0xdc00 + (unsigned char)'\n');
+static const QChar escapedTab = (QChar)(0xdc00 + (unsigned char)'\t');
+
 void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     _bg = getColor("chr.statusbarBg");
     auto *painter = event->painter();
 
     QString search;
     int cutColums = terminal()->textMetrics().splitByColumns(_searchText, 25).codeUnits;
-    search = _searchText.left(cutColums) +": "+ QString::number(_searchCount);
+    search = _searchText.left(cutColums).replace(u'\n', escapedNewLine).replace(u'\t', escapedTab)
+            + ": "+ QString::number(_searchCount);
 
     QString text;
     text += slash(viewLanguage());
@@ -212,6 +217,8 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     painter->clear({0, 0, 0}, _bg);
     painter->writeWithColors(terminal()->width() - text.size() -2, 0, text.toUtf8(), {0, 0, 0}, _bg);
     if(_searchVisible && _searchText != "") {
-        painter->writeWithColors(0, 0, search.toUtf8(), {0, 0, 0}, {0xff,0xdd,00});
+        Tui::ZTextLayout searchLayout(terminal()->textMetrics(), search);
+        searchLayout.doLayout(25);
+        searchLayout.draw(*painter, {0, 0}, Tui::ZTextStyle({0, 0, 0}, {0xff,0xdd,00}));
     }
 }
