@@ -22,6 +22,7 @@ private:
     void emitAllConditions();
     void emitLiveSearch();
     QString translateSearch(const QString &in);
+    QString translateReplace(const QString &in);
     QString applyEscapeSequences(const QString &text);
 
 signals:

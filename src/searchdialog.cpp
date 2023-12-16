@@ -178,14 +178,16 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
     if (_replaceBtn) {
         QObject::connect(_replaceBtn, &Tui::ZButton::clicked, [this] {
             emitAllConditions();
-            Q_EMIT searchReplace(translateSearch(_searchText->text()), _replaceText->text(), _forwardRadio->checked());
+            Q_EMIT searchReplace(translateSearch(_searchText->text()),
+                                 translateReplace(_replaceText->text()), _forwardRadio->checked());
         });
     }
 
     if (_replaceAllBtn) {
         QObject::connect(_replaceAllBtn, &Tui::ZButton::clicked, [=] {
             emitAllConditions();
-            Q_EMIT searchReplaceAll(translateSearch(_searchText->text()), _replaceText->text());
+            Q_EMIT searchReplaceAll(translateSearch(_searchText->text()),
+                                    translateReplace(_replaceText->text()));
         });
     }
 
@@ -283,6 +285,15 @@ QString SearchDialog::translateSearch(const QString &in) {
     }
 
     return text;
+}
+
+QString SearchDialog::translateReplace(const QString &in) {
+    QString result = in;
+    if (_escapeSequenceRadio->checked() || _regexMatchRadio->checked()) {
+        result = applyEscapeSequences(_replaceText->text());
+    }
+
+    return result;
 }
 
 QString SearchDialog::applyEscapeSequences(const QString &text) {

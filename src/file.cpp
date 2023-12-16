@@ -1040,26 +1040,7 @@ void File::setReplaceSelected() {
 
         QString text;
 
-        bool esc = false;
-        for (QChar ch: _replaceText) {
-            if (esc) {
-                switch (ch.unicode()) {
-                    case 'n':
-                        text += "\n";
-                        break;
-                    case 't':
-                        text += "\t";
-                        break;
-                }
-                esc = false;
-            } else {
-                if (ch == '\\') {
-                    esc = true;
-                } else {
-                    text += ch;
-                }
-            }
-        }
+        text = _replaceText;
 
         Tui::ZDocumentCursor cursor = textCursor();
         auto undoGroup = document()->startUndoGroup(&cursor);
