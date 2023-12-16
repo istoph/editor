@@ -73,18 +73,18 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
             _caseMatchBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>M</m>atch case sensitive", gbox1);
             nbox->addWidget(_caseMatchBox);
 
-            _plainTextRadio = new Tui::ZRadioButton(Tui::withMarkup, "Plain <m>t</m>ext", gbox1);
-            _plainTextRadio->setChecked(true);
-            nbox->addWidget(_plainTextRadio);
+            _escapeSequenceRadio = new Tui::ZRadioButton(Tui::withMarkup, "<m>T</m>ext with escapes", gbox1);
+            _escapeSequenceRadio->setChecked(true);
+            nbox->addWidget(_escapeSequenceRadio);
 
-            _wordMatchRadio = new Tui::ZRadioButton(Tui::withMarkup, "Match <m>e</m>ntire word only", gbox1);
+            _wordMatchRadio = new Tui::ZRadioButton(Tui::withMarkup, "Match entire wor<m>d</m> only", gbox1);
             nbox->addWidget(_wordMatchRadio);
 
             _regexMatchRadio = new Tui::ZRadioButton(Tui::withMarkup, "Re<m>g</m>ular expression", gbox1);
             nbox->addWidget(_regexMatchRadio);
 
-            _escapeSequenceRadio = new Tui::ZRadioButton(Tui::withMarkup, "escape sequence", gbox1);
-            nbox->addWidget(_escapeSequenceRadio);
+            _plainTextRadio = new Tui::ZRadioButton(Tui::withMarkup, "Pla<m>i</m>n text", gbox1);
+            nbox->addWidget(_plainTextRadio);
 
             hbox->addWidget(gbox1);
         }
