@@ -13,7 +13,7 @@
 
 
 SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(parent) {
-    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
+    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::ResizeOption | Tui::ZWindow::AutomaticOption);
     setDefaultPlacement(Qt::AlignBottom | Qt::AlignHCenter, {0, -2});
     _replace = replace;
     setVisible(false);
@@ -113,6 +113,8 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
             hbox->addWidget(gbox2);
         }
 
+        hbox->addStretch();
+
         vbox->add(hbox);
     }
 
@@ -146,8 +148,12 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
 
     if(_replace) {
         setGeometry({ 0, 0, 55, 14});
+        setMinimumSize(48, 14);
+        setMaximumSize(Tui::tuiMaxSize, 14);
     } else {
         setGeometry({ 0, 0, 55, 12});
+        setMinimumSize(48, 12);
+        setMaximumSize(Tui::tuiMaxSize, 12);
     }
 
     QObject::connect(_searchText, &Tui::ZInputBox::textChanged, this, [this] (const QString& newText) {
