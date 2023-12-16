@@ -729,6 +729,10 @@ void File::selectLines(int startY, int endY) {
 }
 
 void File::clearAdvancedSelection() {
+    if (_currentSearchMatch) {
+        _currentSearchMatch.reset();
+    }
+
     if (_blockSelect) {
         disableBlockSelection();
     }
@@ -1006,7 +1010,11 @@ bool File::searchVisible() {
 }
 
 void File::setReplaceText(QString replaceText) {
-   _replaceText = replaceText;
+    _replaceText = replaceText;
+}
+
+bool File::isSearchMatchSelected() {
+    return _currentSearchMatch.has_value();
 }
 
 void File::setRegex(bool reg) {
@@ -1033,6 +1041,10 @@ void File::setFollowStandardInput(bool follow) {
 }
 
 void File::setReplaceSelected() {
+    if (!_currentSearchMatch) {
+        return;
+    }
+
     if (hasBlockSelection() || hasMultiInsert() || ZTextEdit::hasSelection()) {
         if (_blockSelect) {
             disableBlockSelection();
@@ -1040,7 +1052,32 @@ void File::setReplaceSelected() {
 
         QString text;
 
-        text = _replaceText;
+        if (_searchRegex) {
+            bool esc = false;
+            for (QChar ch: _replaceText) {
+                if (esc) {
+                    if (ch >= '1' && ch <= '9') {
+                        const int captureNumber = (ch.unicode() - '0');
+                        if (std::holds_alternative<Tui::ZDocumentFindAsyncResult>(*_currentSearchMatch)) {
+                            text += std::get<Tui::ZDocumentFindAsyncResult>(*_currentSearchMatch).regexCapture(captureNumber);
+                        } else if (std::holds_alternative<Tui::ZDocumentFindResult>(*_currentSearchMatch)) {
+                            text += std::get<Tui::ZDocumentFindResult>(*_currentSearchMatch).regexCapture(captureNumber);
+                        }
+                    } else if (ch == '\\') {
+                        text += '\\';
+                    }
+                    esc = false;
+                } else {
+                    if (ch == '\\') {
+                        esc = true;
+                    } else {
+                        text += ch;
+                    }
+                }
+            }
+        } else {
+            text = _replaceText;
+        }
 
         Tui::ZDocumentCursor cursor = textCursor();
         auto undoGroup = document()->startUndoGroup(&cursor);
@@ -1092,6 +1129,8 @@ void File::runSearch(bool direction) {
                         setSelection(res.anchor(), res.cursor());
                     }
 
+                    _currentSearchMatch.emplace(res);
+
                     updateCommands();
 
                     const auto [currentCodeUnit, currentLine] = cursorPosition();
@@ -1137,16 +1176,22 @@ int File::replaceAll(QString searchText, QString replaceText) {
     cursor.setPosition({0, 0});
     while (true) {
         Tui::ZDocumentCursor found = cursor;
+        auto match = _currentSearchMatch;
         if (_searchRegex) {
-            found = document()->findSync(QRegularExpression(_searchText), cursor, flags);
+            Tui::ZDocumentFindResult details = document()->findSyncWithDetails(QRegularExpression(_searchText),
+                                                                               cursor, flags);
+            match = details;
+            found = details.cursor();
         } else {
             found = document()->findSync(_searchText, cursor, flags);
+            match = std::monostate();
         }
         if (!found.hasSelection()) {  // has no match?
             break;
         }
 
         setSelection(found.anchor(), found.position());
+        _currentSearchMatch = match;
 
         setReplaceSelected();
         cursor = textCursor();

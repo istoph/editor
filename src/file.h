@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <variant>
 
 #include <QJsonObject>
 #include <QPair>
@@ -106,6 +107,7 @@ public:
     void setSearchVisible(bool visible);
     bool searchVisible();
     void setReplaceText(QString replaceText);
+    bool isSearchMatchSelected();
     void setReplaceSelected();
     void setHighlightBracket(bool hb);
     bool highlightBracket();
@@ -219,6 +221,7 @@ private:
     QString _searchText;
     Qt::CaseSensitivity _searchCaseSensitivity = Qt::CaseSensitivity::CaseSensitive;
     QString _replaceText;
+    std::optional<std::variant<std::monostate, Tui::ZDocumentFindAsyncResult, Tui::ZDocumentFindResult>> _currentSearchMatch;
     bool _searchWrap = true;
     bool _searchRegex = false;
     bool _searchDirectionForward = true;

@@ -23,7 +23,7 @@ private:
     void emitLiveSearch();
     QString translateSearch(const QString &in);
     QString translateReplace(const QString &in);
-    QString applyEscapeSequences(const QString &text);
+    QString applyEscapeSequences(const QString &text, bool forRegexReplacementText);
 
 signals:
     void searchCaseSensitiveChanged(bool value);

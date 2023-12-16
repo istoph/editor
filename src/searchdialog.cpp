@@ -279,7 +279,7 @@ void SearchDialog::emitLiveSearch() {
 QString SearchDialog::translateSearch(const QString &in) {
     QString text = in;
     if (_escapeSequenceRadio->checked()) {
-        text = applyEscapeSequences(text);
+        text = applyEscapeSequences(text, false);
     } else if (_wordMatchRadio->checked()) {
         text = "\\b" + QRegularExpression::escape(text) + "\\b";
     }
@@ -290,13 +290,16 @@ QString SearchDialog::translateSearch(const QString &in) {
 QString SearchDialog::translateReplace(const QString &in) {
     QString result = in;
     if (_escapeSequenceRadio->checked() || _regexMatchRadio->checked()) {
-        result = applyEscapeSequences(_replaceText->text());
+        result = applyEscapeSequences(_replaceText->text(), _regexMatchRadio->checked());
+    } else if (_wordMatchRadio->checked()) {
+        // whole word match is internally a regex replace, but we want to disable escape sequences in this mode.
+        result.replace("\\", "\\\\");
     }
 
     return result;
 }
 
-QString SearchDialog::applyEscapeSequences(const QString &text) {
+QString SearchDialog::applyEscapeSequences(const QString &text, bool forRegexReplacementText) {
     QString result;
     result.reserve(text.size());
 
@@ -305,6 +308,14 @@ QString SearchDialog::applyEscapeSequences(const QString &text) {
         return (digitChar >= '0' && digitChar <= '9')
                 || (digitChar >= 'a' && digitChar <= 'f')
                 || (digitChar >= 'A' && digitChar <= 'F');
+    };
+
+    auto insertChar = [&](int codepoint) {
+        if (forRegexReplacementText && codepoint == '\\') {
+            result += "\\\\";
+        } else {
+            result += QChar(codepoint);
+        }
     };
 
     for (int i = 0; i < text.size(); i++) {
@@ -325,29 +336,29 @@ QString SearchDialog::applyEscapeSequences(const QString &text) {
                         value = digitChar.unicode() - '0';
                         if (i + 3 >= text.size()) {
                             i += 2;
-                            result += QChar(value);
+                            insertChar(value);
                         } else {
                             digitChar = text[i + 3];
                             if (digitChar >= '0' && digitChar <= '7') {
                                 value = value * 8 + (digitChar.unicode() - '0');
                                 if (i + 4 >= text.size()) {
                                     i += 3;
-                                    result += QChar(value);
+                                    insertChar(value);
                                 } else {
                                     digitChar = text[i + 4];
                                     if (digitChar >= '0' && digitChar <= '7') {
                                         value = value * 8 + (digitChar.unicode() - '0');
 
                                         i += 4;
-                                        result += QChar(value);
+                                        insertChar(value);
                                     } else {
                                         i += 3;
-                                        result += QChar(value);
+                                        insertChar(value);
                                     }
                                 }
                             } else {
                                 i += 2;
-                                result += QChar(value);
+                                insertChar(value);
                             }
                         }
                     } else {
@@ -360,15 +371,19 @@ QString SearchDialog::applyEscapeSequences(const QString &text) {
                 // hex
                 const int value = text.midRef(i + 2, 2).toInt(nullptr, 16);
                 i += 3;
-                result += QChar(value);
+                insertChar(value);
             } else if (nextChar == 'u' && i + 5 < text.size()
                        && isHexDigit(i + 2) && isHexDigit(i + 3) && isHexDigit(i + 4) && isHexDigit(i + 5)) {
                 // unicode
                 const int value = text.midRef(i + 2, 4).toInt(nullptr, 16);
                 i += 5;
-                result += QChar(value);
+                insertChar(value);
             } else if (nextChar == '\\') {
-                result += '\\';
+                if (forRegexReplacementText) {
+                    result += '\\';
+                } else {
+                    result += "\\\\";
+                }
                 i += 1;
             } else if (nextChar == 'a') {
                 result += QChar(0x07);
@@ -390,6 +405,9 @@ QString SearchDialog::applyEscapeSequences(const QString &text) {
                 i += 1;
             } else if (nextChar == 'v') {
                 result += QChar(0x0b);
+                i += 1;
+            } else if (forRegexReplacementText && nextChar >= '1' && nextChar <= '9') {
+                result += text.midRef(i, 2);
                 i += 1;
             } else {
                 result += nextChar;
