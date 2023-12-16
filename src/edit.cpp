@@ -618,6 +618,7 @@ void Editor::setupSearchDialogs() {
     QObject::connect(_replaceDialog, &SearchDialog::searchDirectionChanged, this, searchForwardChanged);
     QObject::connect(_replaceDialog, &SearchDialog::liveSearch, this, liveSearch);
     QObject::connect(_replaceDialog, &SearchDialog::searchFindNext, this, searchNext);
+    QObject::connect(_replaceDialog, &SearchDialog::searchRegexChanged, this, regex);
     QObject::connect(_replaceDialog, &SearchDialog::searchReplace, this, [this] (QString text, QString replacement, bool forward) {
         if (_file) {
             _file->setSearchText(text);
