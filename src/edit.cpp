@@ -305,25 +305,7 @@ void Editor::setupUi() {
         }
     );
 
-    for (int i = 0; i < 24; i++) {
-        auto code = [this, windowNumber = i] {
-            if (windowNumber < _allWindows.size()) {
-                auto *win = _allWindows[windowNumber];
-                raiseOnActivate(win);
-                auto *widget = win->placeFocus();
-                if (widget) {
-                    widget->setFocus();
-                }
-            }
-        };
-
-        QObject::connect(new Tui::ZCommandNotifier(QStringLiteral("SwitchToWindow%0").arg(QString::number(i + 1)), this),
-                         &Tui::ZCommandNotifier::activated, code);
-        if (i < 9) {
-            QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forMnemonic(QString::number(i + 1)), this, Qt::ApplicationShortcut),
-                         &Tui::ZShortcut::activated, this, code);
-        }
-    }
+    ensureWindowCommands(24);
 
     QObject::connect(new Tui::ZCommandNotifier("About", this), &Tui::ZCommandNotifier::activated,
         [this] {
@@ -432,6 +414,7 @@ FileWindow *Editor::createFileWindow() {
     _mux.connect(win, file, &File::syntaxHighlightingLanguageChanged, _statusBar, &StatusBar::language, QString());
 
     _allWindows.append(win);
+    ensureWindowCommands(_allWindows.size());
 
     QObject::connect(win, &FileWindow::backingFileChanged, this, [this, win] (QString filename) {
         QMutableMapIterator<QString, FileWindow*> iter(_nameToWindow);
@@ -636,6 +619,33 @@ void Editor::setupSearchDialogs() {
             _file->replaceAll(text, replacement);
         }
     });
+}
+
+void Editor::ensureWindowCommands(int count) {
+    if (count <= _windowCommandsCreated) {
+        return;
+    }
+
+    for (int i = _windowCommandsCreated; i < count; i++) {
+        auto code = [this, windowNumber = i] {
+            if (windowNumber < _allWindows.size()) {
+                auto *win = _allWindows[windowNumber];
+                raiseOnActivate(win);
+                auto *widget = win->placeFocus();
+                if (widget) {
+                    widget->setFocus();
+                }
+            }
+        };
+
+        QObject::connect(new Tui::ZCommandNotifier(QStringLiteral("SwitchToWindow%0").arg(QString::number(i + 1)), this),
+                         &Tui::ZCommandNotifier::activated, code);
+        if (i < 9) {
+            QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forMnemonic(QString::number(i + 1)), this, Qt::ApplicationShortcut),
+                         &Tui::ZShortcut::activated, this, code);
+        }
+    }
+    _windowCommandsCreated = count;
 }
 
 void Editor::searchDialog() {

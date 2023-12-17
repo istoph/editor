@@ -77,6 +77,7 @@ protected:
 private:
     void setupUi();
     void setupSearchDialogs();
+    void ensureWindowCommands(int count);
     FileWindow *createFileWindow();
     QVector<Tui::ZMenuItem> createWindowMenu();
     void quit();
@@ -108,6 +109,7 @@ private:
     Tui::ZWindow *pendingKeySequence = nullptr;
     QTimer pendingKeySequenceTimer;
     std::vector<std::function<void()>> startActions;
+    int _windowCommandsCreated = 0;
 };
 
 #endif // EDIT_H
