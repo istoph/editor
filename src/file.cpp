@@ -28,6 +28,10 @@
 
 #include "searchcount.h"
 
+// User Data values for ZFormatRange ranges.
+#define FR_UD_SELECTION 1
+#define FR_UD_LIVE_SEARCH 2
+#define FR_UD_SYNTAX 3
 
 File::File(Tui::ZTextMetrics textMetrics, Tui::ZWidget *parent)
     : ZTextEdit(textMetrics, parent)
@@ -231,7 +235,7 @@ void HighlightExporter::applyFormat(int offset, int length, const KSyntaxHighlig
     Tui::ZColor fg = format.hasTextColor(theme()) ? convert(format.textColor(theme())) : defFg;
     Tui::ZColor bg = format.hasBackgroundColor(theme()) ? convert(format.backgroundColor(theme())) : defBg;
     Tui::ZTextStyle style(fg, bg, attr);
-    highlights.append(Tui::ZFormatRange(offset, length, style, style));
+    highlights.append(Tui::ZFormatRange(offset, length, style, style, FR_UD_SYNTAX));
 }
 #endif
 
@@ -1227,11 +1231,15 @@ Tui::ZTextOption File::textOption() const {
         if (!useTabChar()) {
             option.setTabColor([] (int pos, int size, int hidden, const Tui::ZTextStyle &base, const Tui::ZTextStyle &formating, const Tui::ZFormatRange* range) -> Tui::ZTextStyle {
                 (void)formating;
-                if (range) {
+                (void)size;
+                if (range && range->userData() == FR_UD_SELECTION) {
                     if (pos == hidden) {
                         return { range->format().foregroundColor(), {0xff, 0x80, 0xff} };
                     }
                     return { range->format().foregroundColor(), {0xff, 0xb0, 0xff} };
+                }
+                if (range && range->userData() == FR_UD_LIVE_SEARCH) {
+                    return {Tui::Colors::darkGray, {0xff,0xdd,0}, Tui::ZTextAttribute::Bold};
                 }
                 if (pos == hidden) {
                     return { base.foregroundColor(), {base.backgroundColor().red() + 0x60,
@@ -1246,11 +1254,15 @@ Tui::ZTextOption File::textOption() const {
         } else {
             option.setTabColor([] (int pos, int size, int hidden, const Tui::ZTextStyle &base, const Tui::ZTextStyle &formating, const Tui::ZFormatRange* range) -> Tui::ZTextStyle {
                 (void)formating;
-                if (range) {
+                (void)size;
+                if (range && range->userData() == FR_UD_SELECTION) {
                     if (pos == hidden) {
                         return { range->format().foregroundColor(), {0x80, 0xff, 0xff} };
                     }
                     return { range->format().foregroundColor(), {0xb0, 0xff, 0xff} };
+                }
+                if (range && range->userData() == FR_UD_LIVE_SEARCH) {
+                    return {Tui::Colors::darkGray, {0xff,0xdd,0}, Tui::ZTextAttribute::Bold};
                 }
                 if (pos == hidden) {
                     return { base.foregroundColor(), {base.backgroundColor().red(),
@@ -1454,13 +1466,19 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                     while (i.hasNext()) {
                         QRegularExpressionMatch match = i.next();
                         if(match.capturedLength() > 0) {
-                            highlights.append(Tui::ZFormatRange{match.capturedStart(), match.capturedLength(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZTextAttribute::Bold}, selectedFormatingChar});
+                            highlights.append(Tui::ZFormatRange{match.capturedStart(), match.capturedLength(),
+                                                                {Tui::Colors::darkGray, {0xff, 0xdd, 0}, Tui::ZTextAttribute::Bold},
+                                                                selectedFormatingChar,
+                                                                FR_UD_LIVE_SEARCH});
                         }
                     }
                 }
             } else {
                 while ((found = document()->line(line).indexOf(_searchText, found + 1, _searchCaseSensitivity)) != -1) {
-                    highlights.append(Tui::ZFormatRange{found, _searchText.size(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZTextAttribute::Bold}, selectedFormatingChar});
+                    highlights.append(Tui::ZFormatRange{found, _searchText.size(),
+                                                        {Tui::Colors::darkGray, {0xff, 0xdd, 0}, Tui::ZTextAttribute::Bold},
+                                                        selectedFormatingChar,
+                                                        FR_UD_LIVE_SEARCH});
                 }
             }
         }
@@ -1480,26 +1498,34 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 Tui::ZTextLineRef tlrSel = laySel.lineAt(0);
 
                 if (firstSelectBlockColumn == lastSelectBlockColumn) {
-                    highlights.append(Tui::ZFormatRange{tlrSel.xToCursor(firstSelectBlockColumn), 1, blockSelected, blockSelectedFormatingChar});
+                    highlights.append(Tui::ZFormatRange{tlrSel.xToCursor(firstSelectBlockColumn), 1,
+                                                        blockSelected, blockSelectedFormatingChar, FR_UD_SELECTION});
                 } else {
                     const int selFirstCodeUnitInLine = tlrSel.xToCursor(firstSelectBlockColumn);
                     const int selLastCodeUnitInLine = tlrSel.xToCursor(lastSelectBlockColumn);
-                    highlights.append(Tui::ZFormatRange{selFirstCodeUnitInLine, selLastCodeUnitInLine - selFirstCodeUnitInLine, selected, selectedFormatingChar});
+                    highlights.append(Tui::ZFormatRange{selFirstCodeUnitInLine, selLastCodeUnitInLine - selFirstCodeUnitInLine,
+                                                        selected, selectedFormatingChar, FR_UD_SELECTION});
                 }
             }
         } else {
             if (line > startSelectCursor.line && line < endSelectCursor.line) {
                 // whole line
-                highlights.append(Tui::ZFormatRange{0, document()->lineCodeUnits(line), selected, selectedFormatingChar});
+                highlights.append(Tui::ZFormatRange{0, document()->lineCodeUnits(line),
+                                                    selected, selectedFormatingChar, FR_UD_SELECTION});
             } else if (line > startSelectCursor.line && line == endSelectCursor.line) {
                 // selection ends on this line
-                highlights.append(Tui::ZFormatRange{0, endSelectCursor.codeUnit, selected, selectedFormatingChar});
+                highlights.append(Tui::ZFormatRange{0, endSelectCursor.codeUnit,
+                                                    selected, selectedFormatingChar, FR_UD_SELECTION});
             } else if (line == startSelectCursor.line && line < endSelectCursor.line) {
                 // selection starts on this line
-                highlights.append(Tui::ZFormatRange{startSelectCursor.codeUnit, document()->lineCodeUnits(line) - startSelectCursor.codeUnit, selected, selectedFormatingChar});
+                highlights.append(Tui::ZFormatRange{startSelectCursor.codeUnit,
+                                                    document()->lineCodeUnits(line) - startSelectCursor.codeUnit,
+                                                    selected, selectedFormatingChar, FR_UD_SELECTION});
             } else if (line == startSelectCursor.line && line == endSelectCursor.line) {
                 // selection is contained in this line
-                highlights.append(Tui::ZFormatRange{startSelectCursor.codeUnit, endSelectCursor.codeUnit - startSelectCursor.codeUnit, selected, selectedFormatingChar});
+                highlights.append(Tui::ZFormatRange{startSelectCursor.codeUnit,
+                                                    endSelectCursor.codeUnit - startSelectCursor.codeUnit,
+                                                    selected, selectedFormatingChar, FR_UD_SELECTION});
             }
         }
         if (_rightMarginHint && lay.maximumWidth() > _rightMarginHint) {
