@@ -42,13 +42,6 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
 
     QObject::connect(_file, &File::modifiedChanged, this,
             [this] {
-                if (_file->isModified()) {
-                    if (!_file->isNewFile()) {
-                        _cmdReload->setEnabled(true);
-                    }
-                } else {
-                    _cmdReload->setEnabled(false);
-                }
                 updateTitle();
             }
     );
@@ -144,7 +137,6 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
     _watcher = new QFileSystemWatcher();
     QObject::connect(_watcher, &QFileSystemWatcher::fileChanged, this, [=]{
         fileChangedExternally(true);
-        _cmdReload->setEnabled(true);
     });
 
     _file->newText("");
@@ -191,6 +183,7 @@ void FileWindow::saveFile(QString filename, std::optional<bool> crlfMode) {
     }
     watcherAdd();
 
+    _cmdReload->setEnabled(true);
 }
 
 WrapDialog *FileWindow::wrapDialog() {
@@ -242,6 +235,8 @@ void FileWindow::openFile(QString filename) {
     backingFileChanged(_file->getFilename());
     fileChangedExternally(false);
     watcherAdd();
+
+    _cmdReload->setEnabled(true);
 }
 
 void FileWindow::reload() {
