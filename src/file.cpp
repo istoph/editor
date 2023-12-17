@@ -250,6 +250,8 @@ void File::setSyntaxHighlightingTheme(QString themeName) {
         document()->setLineUserData(line, nullptr);
     }
     updateSyntaxHighlighting(true);
+#else
+    (void)themeName;
 #endif
 }
 
@@ -259,6 +261,8 @@ void File::setSyntaxHighlightingLanguage(QString language) {
     syntaxHighlightDefinition();
     // rehighlight
     updateSyntaxHighlighting(true);
+#else
+    (void)language;
 #endif
 }
 
@@ -279,6 +283,8 @@ void File::setSyntaxHighlightingActive(bool active) {
         updateSyntaxHighlighting(true);
     }
     update();
+#else
+    (void)active;
 #endif
 }
 
