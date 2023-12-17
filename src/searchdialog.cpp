@@ -250,6 +250,7 @@ void SearchDialog::setSearchText(QString text) {
             if (_escapeSequenceRadio->checked()) {
                 text.replace('\n', "\\n");
                 text.replace('\t', "\\t");
+                text.replace('\\', "\\\\");
             }
             _searchText->setText(text);
             _searchText->textChanged(text);
@@ -276,13 +277,119 @@ void SearchDialog::emitLiveSearch() {
 QString SearchDialog::translateSearch(const QString &in) {
     QString text = in;
     if (_escapeSequenceRadio->checked()) {
-        text.replace("\\n","\n");
-        text.replace("\\t","\t");
+        text = applyEscapeSequences(text);
     } else if (_wordMatchRadio->checked()) {
         text = "\\b" + QRegularExpression::escape(text) + "\\b";
     }
 
     return text;
+}
+
+QString SearchDialog::applyEscapeSequences(const QString &text) {
+    QString result;
+    result.reserve(text.size());
+
+    auto isHexDigit = [&](int index) {
+        QChar digitChar = text[index];
+        return (digitChar >= '0' && digitChar <= '9')
+                || (digitChar >= 'a' && digitChar <= 'f')
+                || (digitChar >= 'A' && digitChar <= 'F');
+    };
+
+    for (int i = 0; i < text.size(); i++) {
+        const QChar startChar = text[i];
+
+        if (startChar == '\\' && i + 1 < text.size()) {
+            const QChar nextChar = text[i + 1];
+            if (nextChar == '0') {
+                // octal escape sequence
+                int value = 0;
+
+                if (i + 2 >= text.size()) {
+                    i += 1;
+                    result += QChar(0);
+                } else {
+                    QChar digitChar = text[i + 2];
+                    if (digitChar >= '0' && digitChar <= '3') {
+                        value = digitChar.unicode() - '0';
+                        if (i + 3 >= text.size()) {
+                            i += 2;
+                            result += QChar(value);
+                        } else {
+                            digitChar = text[i + 3];
+                            if (digitChar >= '0' && digitChar <= '7') {
+                                value = value * 8 + (digitChar.unicode() - '0');
+                                if (i + 4 >= text.size()) {
+                                    i += 3;
+                                    result += QChar(value);
+                                } else {
+                                    digitChar = text[i + 4];
+                                    if (digitChar >= '0' && digitChar <= '7') {
+                                        value = value * 8 + (digitChar.unicode() - '0');
+
+                                        i += 4;
+                                        result += QChar(value);
+                                    } else {
+                                        i += 3;
+                                        result += QChar(value);
+                                    }
+                                }
+                            } else {
+                                i += 2;
+                                result += QChar(value);
+                            }
+                        }
+                    } else {
+                        i += 1;
+                        result += QChar(0);
+                    }
+                }
+            } else if (nextChar == 'x' && i + 3 < text.size()
+                       && isHexDigit(i + 2) && isHexDigit(i + 3)) {
+                // hex
+                const int value = text.midRef(i + 2, 2).toInt(nullptr, 16);
+                i += 3;
+                result += QChar(value);
+            } else if (nextChar == 'u' && i + 5 < text.size()
+                       && isHexDigit(i + 2) && isHexDigit(i + 3) && isHexDigit(i + 4) && isHexDigit(i + 5)) {
+                // unicode
+                const int value = text.midRef(i + 2, 4).toInt(nullptr, 16);
+                i += 5;
+                result += QChar(value);
+            } else if (nextChar == '\\') {
+                result += '\\';
+                i += 1;
+            } else if (nextChar == 'a') {
+                result += QChar(0x07);
+                i += 1;
+            } else if (nextChar == 'b') {
+                result += QChar(0x08);
+                i += 1;
+            } else if (nextChar == 'f') {
+                result += QChar(0x0C);
+                i += 1;
+            } else if (nextChar == 'n') {
+                result += '\n';
+                i += 1;
+            } else if (nextChar == 'r') {
+                result += '\r';
+                i += 1;
+            } else if (nextChar == 't') {
+                result += '\t';
+                i += 1;
+            } else if (nextChar == 'v') {
+                result += QChar(0x0b);
+                i += 1;
+            } else {
+                result += nextChar;
+                i += 1;
+            }
+        } else {
+            result += startChar;
+        }
+
+    }
+    return result;
 }
 
 void SearchDialog::open() {
