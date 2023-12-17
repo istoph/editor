@@ -1415,14 +1415,16 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
             int found = -1;
             if(_searchRegex) {
                 QRegularExpression rx(_searchText);
-                if (_searchCaseSensitivity == Qt::CaseInsensitive) {
-                    rx.setPatternOptions(QRegularExpression::PatternOption::CaseInsensitiveOption);
-                }
-                QRegularExpressionMatchIterator i = rx.globalMatch(document()->line(line));
-                while (i.hasNext()) {
-                    QRegularExpressionMatch match = i.next();
-                    if(match.capturedLength() > 0) {
-                        highlights.append(Tui::ZFormatRange{match.capturedStart(), match.capturedLength(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZTextAttribute::Bold}, selectedFormatingChar});
+                if (rx.isValid()) {
+                    if (_searchCaseSensitivity == Qt::CaseInsensitive) {
+                        rx.setPatternOptions(QRegularExpression::PatternOption::CaseInsensitiveOption);
+                    }
+                    QRegularExpressionMatchIterator i = rx.globalMatch(document()->line(line));
+                    while (i.hasNext()) {
+                        QRegularExpressionMatch match = i.next();
+                        if(match.capturedLength() > 0) {
+                            highlights.append(Tui::ZFormatRange{match.capturedStart(), match.capturedLength(), {Tui::Colors::darkGray,{0xff,0xdd,0},Tui::ZTextAttribute::Bold}, selectedFormatingChar});
+                        }
                     }
                 }
             } else {
