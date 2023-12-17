@@ -41,6 +41,9 @@ public slots:
     void syntaxHighlightingEnabled(bool enable);
     void language(QString language);
 
+public:
+    static void notifyQtLog();
+
 protected:
     void paintEvent(Tui::ZPaintEvent *event);
 
@@ -64,6 +67,8 @@ private:
     QString _language = "None";
     bool _syntaxHighlightingEnabled = false;
     Tui::ZColor _bg;
+
+    static bool _qtMessage;
 };
 
 #endif // STATUSBAR_H

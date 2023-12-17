@@ -10,6 +10,8 @@
 #include <Tui/ZTerminal.h>
 #include <Tui/ZTextMetrics.h>
 
+bool StatusBar::_qtMessage = false;
+
 StatusBar::StatusBar(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setMaximumSize(Tui::tuiMaxSize, 1);
     setSizePolicyH(Tui::SizePolicy::Expanding);
@@ -173,6 +175,10 @@ void StatusBar::language(QString language) {
     update();
 }
 
+void StatusBar::notifyQtLog() {
+    _qtMessage = true;
+}
+
 void StatusBar::syntaxHighlightingEnabled(bool enable) {
     _syntaxHighlightingEnabled = enable;
     update();
@@ -215,7 +221,11 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     text += slash(viewCursorPosition());
 
     painter->clear({0, 0, 0}, _bg);
-    painter->writeWithColors(terminal()->width() - text.size() -2, 0, text.toUtf8(), {0, 0, 0}, _bg);
+    painter->writeWithColors(terminal()->width() - text.size() - 2, 0, text.toUtf8(), {0, 0, 0}, _bg);
+    if (_qtMessage) {
+        painter->writeWithAttributes(terminal()->width() - 2, 0, "!!", _bg, {0xff, 0, 0},
+                                     Tui::ZTextAttribute::Bold | Tui::ZTextAttribute::Blink);
+    }
     if(_searchVisible && _searchText != "") {
         Tui::ZTextLayout searchLayout(terminal()->textMetrics(), search);
         searchLayout.doLayout(25);

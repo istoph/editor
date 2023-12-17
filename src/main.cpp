@@ -190,6 +190,12 @@ int main(int argc, char **argv) {
     }
     qDebug("%i chr starting", (int)QCoreApplication::applicationPid());
 
+    static QtMessageHandler oldHandler = nullptr;
+    oldHandler = qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+            oldHandler(type, context, msg);
+            StatusBar::notifyQtLog();
+    });
+
     // OPEN FILE
 
     std::vector<std::function<void()>> actions;
