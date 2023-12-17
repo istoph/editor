@@ -47,7 +47,13 @@ TEST_CASE("file") {
 
     DocumentTestHelper t;
     Tui::ZDocument &doc = t.getDoc(f);
-    Tui::ZDocumentCursor cursor{&doc, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line)); lay.doLayout(65000); return lay; }};
+    Tui::ZDocumentCursor cursor{&doc, [&terminal,&doc](int line, bool wrappingAllowed) {
+            (void)wrappingAllowed;
+            Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line));
+            lay.doLayout(65000);
+            return lay;
+        }
+    };
 
     //OHNE TEXT
     CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{0,0});
@@ -168,7 +174,13 @@ TEST_CASE("file-getseter") {
     DocumentTestHelper t;
 
     Tui::ZDocument &doc = t.getDoc(f);
-    Tui::ZDocumentCursor cursor{&doc, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line)); lay.doLayout(65000); return lay; }};
+    Tui::ZDocumentCursor cursor{&doc, [&terminal,&doc](int line, bool wrappingAllowed) {
+            (void)wrappingAllowed;
+            Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line));
+            lay.doLayout(65000);
+            return lay;
+        }
+    };
 
     CHECK(f->getFilename() == "");
     CHECK(f->tabStopDistance() == 8); //default?
@@ -306,7 +318,13 @@ TEST_CASE("actions") {
     DocumentTestHelper t;
 
     Tui::ZDocument &doc = t.getDoc(f);
-    Tui::ZDocumentCursor cursor{&doc, [&terminal,&doc](int line, bool wrappingAllowed) { Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line)); lay.doLayout(65000); return lay; }};
+    Tui::ZDocumentCursor cursor{&doc, [&terminal,&doc](int line, bool wrappingAllowed) {
+            (void)wrappingAllowed;
+            Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line));
+            lay.doLayout(65000);
+            return lay;
+        }
+    };
 
     f->setFocus();
     f->setGeometry({0, 0, 80, 24});

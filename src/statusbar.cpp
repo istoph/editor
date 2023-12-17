@@ -23,6 +23,7 @@ QSize StatusBar::sizeHint() const {
 }
 
 void StatusBar::cursorPosition(int x, int utf16CodeUnit, int utf8CodeUnit, int line) {
+    (void)utf16CodeUnit;
     _cursorPositionX = x;
     _utf8PositionX = utf8CodeUnit;
     _cursorPositionY = line;

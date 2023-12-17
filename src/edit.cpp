@@ -386,6 +386,7 @@ void Editor::terminalChanged() {
         pendingKeySequenceTimer.start();
     });
     pending.setPendingSequenceFinished([this] (bool matched) {
+        (void)matched;
         pendingKeySequenceTimer.stop();
         if (pendingKeySequence) {
             pendingKeySequence->deleteLater();
