@@ -985,15 +985,21 @@ void File::setSearchText(QString searchText) {
         setSearchVisible(true);
     }
 
-    SearchCountSignalForwarder *searchCountSignalForwarder = new SearchCountSignalForwarder();
-    QObject::connect(searchCountSignalForwarder, &SearchCountSignalForwarder::searchCount, this, &File::searchCountChanged);
+    if (_searchRegex || _searchText.contains('\n')) {
+        // SearchCount currently does not support regular expression and does not support multi line matches,
+        // just disable the search count display in these cases for now.
+        searchCountChanged(-1);
+    } else {
+        SearchCountSignalForwarder *searchCountSignalForwarder = new SearchCountSignalForwarder();
+        QObject::connect(searchCountSignalForwarder, &SearchCountSignalForwarder::searchCount, this, &File::searchCountChanged);
 
-    QtConcurrent::run([searchCountSignalForwarder](Tui::ZDocumentSnapshot snap, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
-        SearchCount sc;
-        QObject::connect(&sc, &SearchCount::searchCount, searchCountSignalForwarder, &SearchCountSignalForwarder::searchCount);
-        sc.run(snap, searchText, caseSensitivity, gen, searchGen);
-        searchCountSignalForwarder->deleteLater();
-    }, document()->snapshot(), _searchText, _searchCaseSensitivity, gen, searchGeneration);
+        QtConcurrent::run([searchCountSignalForwarder](Tui::ZDocumentSnapshot snap, QString searchText, Qt::CaseSensitivity caseSensitivity, int gen, std::shared_ptr<std::atomic<int>> searchGen) {
+            SearchCount sc;
+            QObject::connect(&sc, &SearchCount::searchCount, searchCountSignalForwarder, &SearchCountSignalForwarder::searchCount);
+            sc.run(snap, searchText, caseSensitivity, gen, searchGen);
+            searchCountSignalForwarder->deleteLater();
+        }, document()->snapshot(), _searchText, _searchCaseSensitivity, gen, searchGeneration);
+    }
 }
 
 void File::setSearchCaseSensitivity(Qt::CaseSensitivity searchCaseSensitivity) {

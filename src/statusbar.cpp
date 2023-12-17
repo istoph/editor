@@ -226,7 +226,7 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
         painter->writeWithAttributes(terminal()->width() - 2, 0, "!!", _bg, {0xff, 0, 0},
                                      Tui::ZTextAttribute::Bold | Tui::ZTextAttribute::Blink);
     }
-    if(_searchVisible && _searchText != "") {
+    if(_searchVisible && _searchText != "" && _searchCount != -1) {
         Tui::ZTextLayout searchLayout(terminal()->textMetrics(), search);
         searchLayout.doLayout(25);
         searchLayout.draw(*painter, {0, 0}, Tui::ZTextStyle({0, 0, 0}, {0xff,0xdd,00}));
