@@ -851,7 +851,8 @@ void Editor::commandLineExecute(QString cmd) {
     } else if (cmd == "shell") {
         auto term = terminal();
         term->pauseOperation();
-        system(qgetenv("SHELL"));
+        // ignoring result because this is a interactive shell
+        (void)!system(qgetenv("SHELL"));
         term->unpauseOperation();
     }
 }
