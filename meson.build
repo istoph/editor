@@ -12,7 +12,7 @@ add_project_arguments('-Werror=return-type', '-Werror=implicit-function-declarat
 
 add_project_arguments('-std=gnu++17', language : 'cpp')
 add_project_arguments('-Wall', '-Wextra', language: 'cpp')
-add_project_arguments('-Werror=return-type', '-Werror=implicit-function-declaration', language: 'cpp')
+add_project_arguments('-Werror=return-type', language: 'cpp')
 
 
 qt5 = import('qt5')
