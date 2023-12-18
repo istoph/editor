@@ -62,6 +62,8 @@ void DlgFileModel::setDirectory(const QDir &dir) {
     if (_dir == dir) {
         return;
     }
+    _watcher.removePath(_dir.absolutePath());
     _dir = dir;
+    _watcher.addPath(_dir.absolutePath());
     update();
 }
