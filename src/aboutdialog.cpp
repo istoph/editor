@@ -28,7 +28,7 @@ AboutDialog::AboutDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     vbox->addWidget(authorLabel);
 
     Tui::ZLabel *licenseLabel = new Tui::ZLabel(this);
-    licenseLabel->setText("License: BSL-1.0");
+    licenseLabel->setText("License: Boost Software License - Version 1.0");
     vbox->addWidget(licenseLabel);
 
 #ifdef SYNTAX_HIGHLIGHTING
