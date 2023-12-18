@@ -10,8 +10,8 @@
 
 ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool saveable) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
-    QString title, nosave, save, mainLable;
-    if(type == Close) {
+    QString title, nosave, save, mainLabel;
+    if (type == Close) {
         title = "Close";
         nosave = "Discard";
         if (saveable) {
@@ -19,39 +19,55 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
         } else {
             save = "Save as";
         }
-        mainLable = "Save: " + filename;
+        mainLabel = "Save changes to \"" + filename + "\"?";
+    } else if (type == CloseUnnamed) {
+        title = "Close";
+        nosave = "Discard";
+        save = "Save as";
+        mainLabel = "Save changes before closing?";
     } else if (type == Reload) {
         title = "Reload";
         nosave = "Discard and Reload";
-        save = "Reload";
-        saveable = false;
-        mainLable = title + ": " + filename;
+        // `save` is not used in this mode
+        save = "";
+        mainLabel = "Discard changes to \"" + filename + "\"?";
+    } else if (type == QuitUnnamed) {
+        title = "Exit";
+        nosave = "Quit";
+        save = "Save as and Quit";
+        mainLabel = "Save changes before closing?";
     } else {
         title = "Exit";
         nosave = "Quit";
-        save = "Save and Quit";
-        mainLable = "Unsaved: " + filename;
+        if (saveable) {
+            save = "Save and Quit";
+        } else {
+            save = "Save as and Quit";
+        }
+        mainLabel = "Save changes to \"" + filename + "\"?";
     }
 
     //Dialog Box
     setWindowTitle(title);
-    setContentsMargins({ 1, 1, 1, 1});
+    setContentsMargins({1, 1, 1, 1});
 
     Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     setLayout(vbox);
     vbox->setSpacing(1);
 
-    //Lable
+    //Label
     Tui::ZLabel *l1 = new Tui::ZLabel(this);
-    l1->setText(mainLable);
+    l1->setText(mainLabel);
     vbox->addWidget(l1);
     vbox->addStretch();
 
     Tui::ZHBoxLayout* hbox = new Tui::ZHBoxLayout();
 
+    hbox->addStretch();
+
     //Cancel
     Tui::ZButton *bCancel = new Tui::ZButton(this);
-    if(!saveable) {
+    if (type == Reload) {
         bCancel->setDefault(true);
         bCancel->setFocus();
     }
@@ -65,19 +81,17 @@ ConfirmSave::ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool
     hbox->setSpacing(1);
 
     //Save
-    Tui::ZButton *bSave = new Tui::ZButton(this);
-    bSave->setText(save);
-    if(saveable) {
+    if (type != Reload) {
+        Tui::ZButton *bSave = new Tui::ZButton(this);
+        bSave->setText(save);
         bSave->setDefault(true);
         bSave->setFocus();
-    }
-    if (type != Reload) {
         hbox->addWidget(bSave);
+        QObject::connect(bSave, &Tui::ZButton::clicked, this, &ConfirmSave::saveSelected);
     }
+
     vbox->add(hbox);
 
     QObject::connect(bCancel, &Tui::ZButton::clicked, this, &ConfirmSave::rejected);
-    QObject::connect(bDiscard, &Tui::ZButton::clicked, this, &ConfirmSave::exitSelected);
-    QObject::connect(bSave, &Tui::ZButton::clicked, this, &ConfirmSave::saveSelected);
-
+    QObject::connect(bDiscard, &Tui::ZButton::clicked, this, &ConfirmSave::discardSelected);
 }

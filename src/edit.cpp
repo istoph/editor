@@ -746,14 +746,16 @@ void Editor::quitImpl(int i) {
     auto *file = win->getFileWidget();
     file->writeAttributes();
     if(file->isModified()) {
-        ConfirmSave *quitDialog = new ConfirmSave(this, file->getFilename(), ConfirmSave::Quit, file->getWritable());
+        ConfirmSave *quitDialog = new ConfirmSave(this, file->getFilename(),
+                                                  file->isNewFile() ? ConfirmSave::QuitUnnamed : ConfirmSave::Quit,
+                                                  file->getWritable());
 
-        QObject::connect(quitDialog, &ConfirmSave::exitSelected, [=]{
+        QObject::connect(quitDialog, &ConfirmSave::discardSelected, [=] {
             quitDialog->deleteLater();
             handleNext();
         });
 
-        QObject::connect(quitDialog, &ConfirmSave::saveSelected, [=]{
+        QObject::connect(quitDialog, &ConfirmSave::saveSelected, [=] {
             quitDialog->deleteLater();
             SaveDialog *q = win->saveOrSaveas();
             if (q) {
@@ -763,7 +765,7 @@ void Editor::quitImpl(int i) {
             }
         });
 
-        QObject::connect(quitDialog, &ConfirmSave::rejected, [=]{
+        QObject::connect(quitDialog, &ConfirmSave::rejected, [=] {
             quitDialog->deleteLater();
         });
     } else {

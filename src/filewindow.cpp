@@ -68,14 +68,14 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
     _cmdReload->setEnabled(false);
     QObject::connect(_cmdReload, &Tui::ZCommandNotifier::activated,
          this, [this] {
-                if(_file->isModified()) {
+                if (_file->isModified()) {
                     ConfirmSave *confirmDialog = new ConfirmSave(this->parentWidget(), _file->getFilename(), ConfirmSave::Reload, false);
-                    QObject::connect(confirmDialog, &ConfirmSave::exitSelected, [=]{
+                    QObject::connect(confirmDialog, &ConfirmSave::discardSelected, [this,confirmDialog] {
                         confirmDialog->deleteLater();
                         FileWindow::reload();
                     });
 
-                    QObject::connect(confirmDialog, &ConfirmSave::rejected, [=]{
+                    QObject::connect(confirmDialog, &ConfirmSave::rejected, [confirmDialog] {
                         confirmDialog->deleteLater();
                     });
                 } else {
@@ -334,15 +334,17 @@ void FileWindow::updateTitle() {
 
 void FileWindow::closeRequested() {
     _file->writeAttributes();
-    if(_file->isModified()) {
-        ConfirmSave *closeDialog = new ConfirmSave(this->parentWidget(), _file->getFilename(), ConfirmSave::Close, _file->getWritable());
+    if (_file->isModified()) {
+        ConfirmSave *closeDialog = new ConfirmSave(parentWidget(), _file->getFilename(),
+                                                   _file->isNewFile() ? ConfirmSave::CloseUnnamed : ConfirmSave::Close,
+                                                   _file->getWritable());
 
-        QObject::connect(closeDialog, &ConfirmSave::exitSelected, this, [this, closeDialog] {
+        QObject::connect(closeDialog, &ConfirmSave::discardSelected, this, [this, closeDialog] {
             closeDialog->deleteLater();
             deleteLater();
         });
 
-        QObject::connect(closeDialog, &ConfirmSave::saveSelected, this, [this, closeDialog]{
+        QObject::connect(closeDialog, &ConfirmSave::saveSelected, this, [this, closeDialog] {
             closeDialog->deleteLater();
             SaveDialog *q = saveOrSaveas();
             if (q) {

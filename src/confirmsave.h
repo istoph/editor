@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSL-1.0
 
-#ifndef QUITDIALOG_H
-#define QUITDIALOG_H
+#ifndef CONFIRMSAVE_H
+#define CONFIRMSAVE_H
 
 #include <Tui/ZDialog.h>
 
@@ -9,14 +9,14 @@
 class ConfirmSave : public Tui::ZDialog
 {
 public:
-    enum Type { Reload, Close, Quit };
+    enum Type { Reload, Close, CloseUnnamed, Quit, QuitUnnamed };
     Q_OBJECT
 public:
     explicit ConfirmSave(Tui::ZWidget *parent, QString filename, Type type, bool saveable);
 
 signals:
     void saveSelected();
-    void exitSelected();
+    void discardSelected();
 };
 
-#endif // QUITDIALOG_H
+#endif // CONFIRMSAVE_H
