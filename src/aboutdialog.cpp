@@ -33,7 +33,7 @@ AboutDialog::AboutDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
 
 #ifdef SYNTAX_HIGHLIGHTING
     Tui::ZLabel *moduleLabel = new Tui::ZLabel(this);
-    moduleLabel->setText("Module: SyntaxHighlighting");
+    moduleLabel->setText("Enabled Features: SyntaxHighlighting");
     vbox->addWidget(moduleLabel);
 #endif
 
