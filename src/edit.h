@@ -55,7 +55,7 @@ public:
     FileWindow* openFile(QString fileName);
     void openFileDialog(QString path = "");
     void newFile(QString filename = "");
-    void openFileMenue();
+    void openFileMenu();
 
     void gotoLineInCurrentFile(QString lineInfo);
     void followInCurrentFile(bool follow=true);

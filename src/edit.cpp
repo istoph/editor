@@ -107,12 +107,12 @@ void Editor::setupUi() {
 
     //Open
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("o"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
-        this, [&] {
-            openFileMenue();
+        this, [this] {
+            openFileMenu();
     });
     QObject::connect(new Tui::ZCommandNotifier("Open", this), &Tui::ZCommandNotifier::activated,
-        [&] {
-            openFileMenue();
+        this, [this] {
+            openFileMenu();
         }
     );
 
@@ -692,7 +692,7 @@ void Editor::newFile(QString filename) {
     win->getFileWidget()->setFocus();
 }
 
-void Editor::openFileMenue() {
+void Editor::openFileMenu() {
     if (_file) {
         openFileDialog(_file->getFilename());
     } else {
