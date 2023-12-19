@@ -104,8 +104,8 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
 }
 
 void TabDialog::updateSettings(bool useTabs, int indentSize, bool eatSpaceBeforeTabs) {
-    _tabRadioButton->setChecked(!useTabs);
-    _blankRadioButton->setChecked(useTabs);
+    _tabRadioButton->setChecked(useTabs);
+    _blankRadioButton->setChecked(!useTabs);
     _tabsizeInputBox->setText(QString::number(indentSize));
     if(eatSpaceBeforeTabs) {
         _eatSpaceBoforeTabBox->setCheckState(Qt::CheckState::Checked);

@@ -177,7 +177,7 @@ void Editor::setupUi() {
             } else {
                 _tabDialog = new TabDialog(this);
                 if (_file) {
-                    _tabDialog->updateSettings(!_file->useTabChar(), _file->tabStopDistance(), _file->eatSpaceBeforeTabs());
+                    _tabDialog->updateSettings(_file->useTabChar(), _file->tabStopDistance(), _file->eatSpaceBeforeTabs());
                 }
                 QObject::connect(_tabDialog, &TabDialog::convert, this, [this] (bool useTabs, int indentSize) {
                     if (_file) {
@@ -357,7 +357,7 @@ void Editor::terminalChanged() {
                 _file = _win->getFileWidget();
                 enableFileCommands(true);
                 if (_tabDialog) {
-                    _tabDialog->updateSettings(!_file->useTabChar(), _file->tabStopDistance(), _file->eatSpaceBeforeTabs());
+                    _tabDialog->updateSettings(_file->useTabChar(), _file->tabStopDistance(), _file->eatSpaceBeforeTabs());
                 }
                 if (_syntaxHighlightDialog) {
                     _syntaxHighlightDialog->updateSettings(_file->syntaxHighlightingActive(), _file->syntaxHighlightingLanguage());
