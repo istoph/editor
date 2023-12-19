@@ -393,7 +393,7 @@ void Editor::terminalChanged() {
     });
     setupSearchDialogs();
 
-    for (auto &action: startActions) {
+    for (auto &action: _startActions) {
         action();
     }
 }
@@ -719,7 +719,7 @@ void Editor::watchPipe() {
 }
 
 void Editor::setStartActions(std::vector<std::function<void ()>> actions) {
-    startActions = actions;
+    _startActions = actions;
 }
 
 FileWindow* Editor::openFile(QString fileName) {
