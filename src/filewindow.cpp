@@ -112,7 +112,7 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
 
 
     // File follow and pipe
-    _cmdInputPipe = new Tui::ZCommandNotifier("InputPipe", this, Qt::WindowShortcut);
+    _cmdInputPipe = new Tui::ZCommandNotifier("StopInputPipe", this, Qt::WindowShortcut);
     _cmdInputPipe->setEnabled(false);
     QObject::connect(_cmdInputPipe, &Tui::ZCommandNotifier::activated,
          [&] {

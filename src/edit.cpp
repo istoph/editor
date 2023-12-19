@@ -81,7 +81,7 @@ void Editor::setupUi() {
                                  { "<m>F</m>ormatting", "", "Formatting", {}},
                                  { "<m>W</m>rap long lines", "", "Wrap", {}},
                                  { "Following (standard input)", "", "Following", {}},
-                                 { "Stop Input Pipe", "", "InputPipe", {}},
+                                 { "Stop Input Pipe", "", "StopInputPipe", {}},
                                  { "<m>H</m>ighlight Brackets", "", "Brackets", {}},
                                  { "<m>S</m>yntax Highlighting", "", "SyntaxHighlighting", {}},
                                  { "<m>T</m>heme", "", "Theme", {}}
