@@ -211,17 +211,18 @@ void Editor::setupUi() {
             if (_file) {
                 _formattingDialog->updateSettings(_file->formattingCharacters(), _file->colorTabs(), _file->colorTrailingSpaces());
             } else {
-                _formattingDialog->updateSettings(initialFileSettings.formattingCharacters, initialFileSettings.colorTabs, initialFileSettings.colorSpaceEnd);
+                _formattingDialog->updateSettings(_initialFileSettings.formattingCharacters, _initialFileSettings.colorTabs, _initialFileSettings.colorSpaceEnd);
             }
-            QObject::connect(_formattingDialog, &FormattingDialog::settingsChanged, this, [this] (bool formattingCharacters, bool colorTabs, bool colorSpaceEnd) {
+            QObject::connect(_formattingDialog, &FormattingDialog::settingsChanged, this,
+                         [this] (bool formattingCharacters, bool colorTabs, bool colorSpaceEnd) {
                              if (_file) {
                                  _file->setFormattingCharacters(formattingCharacters);
                                  _file->setColorTabs(colorTabs);
                                  _file->setColorTrailingSpaces(colorSpaceEnd);
                              } else {
-                                 initialFileSettings.formattingCharacters = formattingCharacters;
-                                 initialFileSettings.colorTabs = colorTabs;
-                                 initialFileSettings.colorSpaceEnd = colorSpaceEnd;
+                                 _initialFileSettings.formattingCharacters = formattingCharacters;
+                                 _initialFileSettings.colorTabs = colorTabs;
+                                 _initialFileSettings.colorSpaceEnd = colorSpaceEnd;
                              }
                          });
         }
@@ -473,22 +474,22 @@ FileWindow *Editor::createFileWindow() {
         file->setRightMarginHint(_file->rightMarginHint());
         file->setHighlightBracket(_file->highlightBracket());
         file->setAttributesFile(_file->attributesFile());
-        file->setSyntaxHighlightingTheme(initialFileSettings.syntaxHighlightingTheme);
+        file->setSyntaxHighlightingTheme(_initialFileSettings.syntaxHighlightingTheme);
         file->setSyntaxHighlightingActive(_file->syntaxHighlightingActive());
     } else {
-        file->setTabStopDistance(initialFileSettings.tabSize);
-        file->setShowLineNumbers(initialFileSettings.showLineNumber);
-        file->setUseTabChar(initialFileSettings.tabOption);
-        file->setEatSpaceBeforeTabs(initialFileSettings.eatSpaceBeforeTabs);
-        file->setFormattingCharacters(initialFileSettings.formattingCharacters);
-        file->setColorTabs(initialFileSettings.colorTabs);
-        file->setColorTrailingSpaces(initialFileSettings.colorSpaceEnd);
-        win->setWrap(initialFileSettings.wrap);
-        file->setRightMarginHint(initialFileSettings.rightMarginHint);
-        file->setHighlightBracket(initialFileSettings.highlightBracket);
-        file->setAttributesFile(initialFileSettings.attributesFile);
-        file->setSyntaxHighlightingTheme(initialFileSettings.syntaxHighlightingTheme);
-        file->setSyntaxHighlightingActive(!initialFileSettings.disableSyntaxHighlighting);
+        file->setTabStopDistance(_initialFileSettings.tabSize);
+        file->setShowLineNumbers(_initialFileSettings.showLineNumber);
+        file->setUseTabChar(_initialFileSettings.tabOption);
+        file->setEatSpaceBeforeTabs(_initialFileSettings.eatSpaceBeforeTabs);
+        file->setFormattingCharacters(_initialFileSettings.formattingCharacters);
+        file->setColorTabs(_initialFileSettings.colorTabs);
+        file->setColorTrailingSpaces(_initialFileSettings.colorSpaceEnd);
+        win->setWrap(_initialFileSettings.wrap);
+        file->setRightMarginHint(_initialFileSettings.rightMarginHint);
+        file->setHighlightBracket(_initialFileSettings.highlightBracket);
+        file->setAttributesFile(_initialFileSettings.attributesFile);
+        file->setSyntaxHighlightingTheme(_initialFileSettings.syntaxHighlightingTheme);
+        file->setSyntaxHighlightingActive(!_initialFileSettings.disableSyntaxHighlighting);
     }
 
     return win;
@@ -818,9 +819,9 @@ void Editor::setTheme(Theme theme) {
                                  {"chr.editBg", {0x0, 0x0, 0x0}},
                              });
         setPalette(tmpPalette);
-        if (initialFileSettings.syntaxHighlightingTheme == "chr-blackbg"
-                || initialFileSettings.syntaxHighlightingTheme == "chr-bluebg") {
-            initialFileSettings.syntaxHighlightingTheme = "chr-blackbg";
+        if (_initialFileSettings.syntaxHighlightingTheme == "chr-blackbg"
+                || _initialFileSettings.syntaxHighlightingTheme == "chr-bluebg") {
+            _initialFileSettings.syntaxHighlightingTheme = "chr-blackbg";
         }
     } else if (theme == Theme::classic) {
         Tui::ZPalette tmpPalette = Tui::ZPalette::classic();
@@ -838,18 +839,18 @@ void Editor::setTheme(Theme theme) {
                                  {"root.bg", {0, 0, 0xaa}}
                              });
         setPalette(tmpPalette);
-        if (initialFileSettings.syntaxHighlightingTheme == "chr-blackbg"
-                || initialFileSettings.syntaxHighlightingTheme == "chr-bluebg") {
-            initialFileSettings.syntaxHighlightingTheme = "chr-bluebg";
+        if (_initialFileSettings.syntaxHighlightingTheme == "chr-blackbg"
+                || _initialFileSettings.syntaxHighlightingTheme == "chr-bluebg") {
+            _initialFileSettings.syntaxHighlightingTheme = "chr-bluebg";
         }
     }
     for (auto window: _allWindows) {
-        window->getFileWidget()->setSyntaxHighlightingTheme(initialFileSettings.syntaxHighlightingTheme);
+        window->getFileWidget()->setSyntaxHighlightingTheme(_initialFileSettings.syntaxHighlightingTheme);
     }
 }
 
 void Editor::setInitialFileSettings(const Settings &initial) {
-    initialFileSettings = initial;
+    _initialFileSettings = initial;
 }
 
 void Editor::showCommandLine() {

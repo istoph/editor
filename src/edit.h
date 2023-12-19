@@ -104,7 +104,7 @@ private:
     StatusBar *_statusBar = nullptr;
     CommandLineWidget *_commandLineWidget = nullptr;
     Theme _theme = Theme::classic;
-    Settings initialFileSettings;
+    Settings _initialFileSettings;
 
     Tui::ZCommandNotifier *_cmdTab = nullptr;
     Tui::ZWindow *_optionTab = nullptr;
