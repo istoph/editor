@@ -677,7 +677,7 @@ void Editor::searchDialog() {
 }
 
 void Editor::replaceDialog() {
-    if (_file) {
+    if (_replaceDialog) {
         _replaceDialog->open();
        _replaceDialog->setSearchText(_file->selectedText());
     }
