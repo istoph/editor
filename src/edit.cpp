@@ -583,8 +583,6 @@ void Editor::setupSearchDialogs() {
     };
 
     _searchDialog = new SearchDialog(this);
-    QObject::connect(new Tui::ZCommandNotifier("search", this), &Tui::ZCommandNotifier::activated,
-                     _searchDialog, &SearchDialog::open);
     QObject::connect(_searchDialog, &SearchDialog::searchCanceled, this, searchCancled);
     QObject::connect(_searchDialog, &SearchDialog::searchCaseSensitiveChanged, this, searchCaseSensitiveChanged);
     QObject::connect(_searchDialog, &SearchDialog::searchWrapChanged, this, searchWrapChanged);
@@ -594,8 +592,6 @@ void Editor::setupSearchDialogs() {
     QObject::connect(_searchDialog, &SearchDialog::searchRegexChanged, this, regex);
 
     _replaceDialog = new SearchDialog(this, true);
-    QObject::connect(new Tui::ZCommandNotifier("replace", this), &Tui::ZCommandNotifier::activated,
-                     _replaceDialog, &SearchDialog::open);
     QObject::connect(_replaceDialog, &SearchDialog::searchCanceled, this, searchCancled);
     QObject::connect(_replaceDialog, &SearchDialog::searchCaseSensitiveChanged, this, searchCaseSensitiveChanged);
     QObject::connect(_replaceDialog, &SearchDialog::searchWrapChanged, this, searchWrapChanged);
