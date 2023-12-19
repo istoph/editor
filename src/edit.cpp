@@ -369,27 +369,27 @@ void Editor::terminalChanged() {
 
     Tui::ZPendingKeySequenceCallbacks pending;
     pending.setPendingSequenceStarted([this] {
-        pendingKeySequenceTimer.setInterval(2000);
-        pendingKeySequenceTimer.setSingleShot(true);
-        pendingKeySequenceTimer.start();
+        _pendingKeySequenceTimer.setInterval(2000);
+        _pendingKeySequenceTimer.setSingleShot(true);
+        _pendingKeySequenceTimer.start();
     });
     pending.setPendingSequenceFinished([this] (bool matched) {
         (void)matched;
-        pendingKeySequenceTimer.stop();
-        if (pendingKeySequence) {
-            pendingKeySequence->deleteLater();
-            pendingKeySequence = nullptr;
+        _pendingKeySequenceTimer.stop();
+        if (_pendingKeySequence) {
+            _pendingKeySequence->deleteLater();
+            _pendingKeySequence = nullptr;
         }
     });
     terminal()->registerPendingKeySequenceCallbacks(pending);
 
-    QObject::connect(&pendingKeySequenceTimer, &QTimer::timeout, this, [this] {
-        pendingKeySequence = new Tui::ZWindow(this);
+    QObject::connect(&_pendingKeySequenceTimer, &QTimer::timeout, this, [this] {
+        _pendingKeySequence = new Tui::ZWindow(this);
         auto *layout = new Tui::ZWindowLayout();
-        pendingKeySequence->setLayout(layout);
-        layout->setCentralWidget(new Tui::ZTextLine("Incomplete key sequence. Press 2nd key.", pendingKeySequence));
-        pendingKeySequence->setGeometry({{0,0}, pendingKeySequence->sizeHint()});
-        pendingKeySequence->setDefaultPlacement(Qt::AlignCenter);
+        _pendingKeySequence->setLayout(layout);
+        layout->setCentralWidget(new Tui::ZTextLine("Incomplete key sequence. Press 2nd key.", _pendingKeySequence));
+        _pendingKeySequence->setGeometry({{0,0}, _pendingKeySequence->sizeHint()});
+        _pendingKeySequence->setDefaultPlacement(Qt::AlignCenter);
     });
     setupSearchDialogs();
 

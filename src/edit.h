@@ -120,8 +120,8 @@ private:
     Tui::ZCommandNotifier *_cmdTileHorz = nullptr;
     Tui::ZCommandNotifier *_cmdTileFull = nullptr;
     int _tab = 8;
-    Tui::ZWindow *pendingKeySequence = nullptr;
-    QTimer pendingKeySequenceTimer;
+    Tui::ZWindow *_pendingKeySequence = nullptr;
+    QTimer _pendingKeySequenceTimer;
     std::vector<std::function<void()>> startActions;
     int _windowCommandsCreated = 0;
 };
