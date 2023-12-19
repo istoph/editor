@@ -856,14 +856,12 @@ void Editor::setInitialFileSettings(const Settings &initial) {
 void Editor::showCommandLine() {
     _statusBar->setVisible(false);
     _commandLineWidget->setVisible(true);
-    // Force relayout, this should not be needed
     _commandLineWidget->grabKeyboard();
 }
 
 void Editor::commandLineDismissed() {
     _statusBar->setVisible(true);
     _commandLineWidget->setVisible(false);
-    // Force relayout, this should not be needed
 }
 
 void Editor::commandLineExecute(QString cmd) {
