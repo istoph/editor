@@ -126,18 +126,18 @@ void Editor::setupUi() {
     //Search
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("f"), this, Qt::ApplicationShortcut),
                      &Tui::ZShortcut::activated, this, &Editor::searchDialog);
-    QObject::connect(new Tui::ZCommandNotifier("Search", this), &Tui::ZCommandNotifier::activated,
-                     this, &Editor::searchDialog);
+    _cmdSearch = new Tui::ZCommandNotifier("Search", this);
+    QObject::connect(_cmdSearch, &Tui::ZCommandNotifier::activated, this, &Editor::searchDialog);
 
     //Replace
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("r"), this, Qt::ApplicationShortcut),
                      &Tui::ZShortcut::activated, this, &Editor::replaceDialog);
-    QObject::connect(new Tui::ZCommandNotifier("Replace", this), &Tui::ZCommandNotifier::activated,
-                     this, &Editor::replaceDialog);
+    _cmdReplace = new Tui::ZCommandNotifier("Replace", this);
+    QObject::connect(_cmdReplace, &Tui::ZCommandNotifier::activated, this, &Editor::replaceDialog);
 
     //InsertCharacter
-    QObject::connect(new Tui::ZCommandNotifier("InsertCharacter", this), &Tui::ZCommandNotifier::activated,
-         [this] {
+    _cmdInsertCharacter = new Tui::ZCommandNotifier("InsertCharacter", this);
+    QObject::connect(_cmdInsertCharacter, &Tui::ZCommandNotifier::activated, this, [this] {
             QObject::connect(new InsertCharacter(this), &InsertCharacter::characterSelected, this, [this] (QString str) {
                 if (_file) {
                     _file->insertText(str);
@@ -156,18 +156,20 @@ void Editor::setupUi() {
     };
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("g"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
         this, gotoLine);
-    QObject::connect(new Tui::ZCommandNotifier("Gotoline", this), &Tui::ZCommandNotifier::activated, this, gotoLine);
+    _cmdGotoLine = new Tui::ZCommandNotifier("Gotoline", this);
+    QObject::connect(_cmdGotoLine, &Tui::ZCommandNotifier::activated, this, gotoLine);
 
-    //Sorrt Seleced Lines
-    QObject::connect(new Tui::ZCommandNotifier("SortSelectedLines", this), &Tui::ZCommandNotifier::activated, this, [this] {
+    //Sort Seleced Lines
+    _cmdSortSelectedLines = new Tui::ZCommandNotifier("SortSelectedLines", this);
+    QObject::connect(_cmdSortSelectedLines, &Tui::ZCommandNotifier::activated, this, [this] {
         if (_file) {
             _file->sortSelecedLines();
         }
     });
 
     //Options
-    QObject::connect(new Tui::ZCommandNotifier("Tab", this), &Tui::ZCommandNotifier::activated,
-        [&] {
+    _cmdTab = new Tui::ZCommandNotifier("Tab", this);
+    QObject::connect(_cmdTab, &Tui::ZCommandNotifier::activated, this, [this] {
             if (_tabDialog) {
                 _tabDialog->raise();
                 _tabDialog->setVisible(true);
@@ -195,16 +197,16 @@ void Editor::setupUi() {
         }
     );
 
-    QObject::connect(new Tui::ZCommandNotifier("LineNumber", this), &Tui::ZCommandNotifier::activated,
-        [&] {
+    _cmdLineNumbers = new Tui::ZCommandNotifier("LineNumber", this);
+    QObject::connect(_cmdLineNumbers, &Tui::ZCommandNotifier::activated, [this] {
             if (_file) {
                 _file->toggleShowLineNumbers();
             }
         }
     );
 
-    QObject::connect(new Tui::ZCommandNotifier("Formatting", this), &Tui::ZCommandNotifier::activated,
-         [&] {
+    _cmdFormatting = new Tui::ZCommandNotifier("Formatting", this);
+    QObject::connect(_cmdFormatting, &Tui::ZCommandNotifier::activated, this, [this] {
             FormattingDialog *_formattingDialog = new FormattingDialog(this);
             if (_file) {
                 _formattingDialog->updateSettings(_file->formattingCharacters(), _file->colorTabs(), _file->colorTrailingSpaces());
@@ -225,8 +227,8 @@ void Editor::setupUi() {
         }
     );
 
-    QObject::connect(new Tui::ZCommandNotifier("Brackets", this), &Tui::ZCommandNotifier::activated,
-         [&] {
+    _cmdBrackets = new Tui::ZCommandNotifier("Brackets", this);
+    QObject::connect(_cmdBrackets, &Tui::ZCommandNotifier::activated, this, [this] {
             if (_file) {
                 _file->setHighlightBracket(!_file->highlightBracket());
             }
@@ -234,8 +236,8 @@ void Editor::setupUi() {
     );
 
 #ifdef SYNTAX_HIGHLIGHTING
-    QObject::connect(new Tui::ZCommandNotifier("SyntaxHighlighting", this), &Tui::ZCommandNotifier::activated,
-         [&] {
+    _cmdSyntaxHighlight = new Tui::ZCommandNotifier("SyntaxHighlighting", this);
+    QObject::connect(_cmdSyntaxHighlight, &Tui::ZCommandNotifier::activated, this, [this] {
             if (_syntaxHighlightDialog) {
                 _syntaxHighlightDialog->raise();
                 _syntaxHighlightDialog->setVisible(true);
@@ -275,8 +277,8 @@ void Editor::setupUi() {
         }
     );
 
-    QObject::connect(new Tui::ZCommandNotifier("TileVert", this), &Tui::ZCommandNotifier::activated,
-        [this] {
+    _cmdTileVert = new Tui::ZCommandNotifier("TileVert", this);
+    QObject::connect(_cmdTileVert, &Tui::ZCommandNotifier::activated, this, [this] {
             _mdiLayout->setMode(MdiLayout::LayoutMode::TileV);
         }
     );
@@ -287,8 +289,8 @@ void Editor::setupUi() {
         }
     );
 
-    QObject::connect(new Tui::ZCommandNotifier("TileHorz", this), &Tui::ZCommandNotifier::activated,
-        [this] {
+    _cmdTileHorz = new Tui::ZCommandNotifier("TileHorz", this);
+    QObject::connect(_cmdTileHorz, &Tui::ZCommandNotifier::activated, this, [this] {
             _mdiLayout->setMode(MdiLayout::LayoutMode::TileH);
         }
     );
@@ -299,13 +301,15 @@ void Editor::setupUi() {
         }
     );
 
-    QObject::connect(new Tui::ZCommandNotifier("TileFull", this), &Tui::ZCommandNotifier::activated,
-        [this] {
+    _cmdTileFull = new Tui::ZCommandNotifier("TileFull", this);
+    QObject::connect(_cmdTileFull, &Tui::ZCommandNotifier::activated, this, [this] {
             _mdiLayout->setMode(MdiLayout::LayoutMode::Base);
         }
     );
 
     ensureWindowCommands(24);
+
+    enableFileCommands(false);
 
     QObject::connect(new Tui::ZCommandNotifier("About", this), &Tui::ZCommandNotifier::activated,
         [this] {
@@ -350,6 +354,7 @@ void Editor::terminalChanged() {
             _win = qobject_cast<FileWindow*>(w);
             if (_file != _win->getFileWidget()) {
                 _file = _win->getFileWidget();
+                enableFileCommands(true);
                 if (_tabDialog) {
                     _tabDialog->updateSettings(!_file->useTabChar(), _file->tabStopDistance(), _file->eatSpaceBeforeTabs());
                 }
@@ -451,6 +456,9 @@ FileWindow *Editor::createFileWindow() {
             _file = nullptr;
         }
         _allWindows.removeAll(win);
+        if (_allWindows.size() == 0) {
+            enableFileCommands(false);
+        }
     });
 
     if (_win) {
@@ -642,6 +650,22 @@ void Editor::ensureWindowCommands(int count) {
         }
     }
     _windowCommandsCreated = count;
+}
+
+void Editor::enableFileCommands(bool enable) {
+    _cmdInsertCharacter->setEnabled(enable);
+    _cmdGotoLine->setEnabled(enable);
+    _cmdSortSelectedLines->setEnabled(enable);
+    _cmdTab->setEnabled(enable);
+    _cmdLineNumbers->setEnabled(enable);
+    //_cmdFormatting->setEnabled(enable);
+    _cmdBrackets->setEnabled(enable);
+    _cmdSyntaxHighlight->setEnabled(enable);
+    _cmdTileVert->setEnabled(enable);
+    _cmdTileHorz->setEnabled(enable);
+    _cmdTileFull->setEnabled(enable);
+    _cmdSearch->setEnabled(enable);
+    _cmdReplace->setEnabled(enable);
 }
 
 void Editor::searchDialog() {
