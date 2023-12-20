@@ -1413,8 +1413,8 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     const Tui::ZTextStyle formatingChar{Tui::Colors::darkGray, bg};
     const Tui::ZTextStyle formatingCharInMargin{Tui::Colors::darkGray, marginMarkBg};
     const Tui::ZTextStyle selected{Tui::Colors::darkGray,fg,Tui::ZTextAttribute::Bold};
-    const Tui::ZTextStyle blockSelected{fg,Tui::Colors::lightGray,Tui::ZTextAttribute::Blink | Tui::ZTextAttribute::Italic};
-    const Tui::ZTextStyle blockSelectedFormatingChar{Tui::Colors::darkGray, Tui::Colors::lightGray, Tui::ZTextAttribute::Blink};
+    const Tui::ZTextStyle multiInsertChar{fg, Tui::Colors::lightGray, Tui::ZTextAttribute::Blink | Tui::ZTextAttribute::Italic};
+    const Tui::ZTextStyle multiInsertFormatingChar{Tui::Colors::darkGray, Tui::Colors::lightGray, Tui::ZTextAttribute::Blink};
     const Tui::ZTextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
 
     const auto [cursorCodeUnit, cursorLineReal] = cursor.position();
@@ -1505,7 +1505,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 
                 if (firstSelectBlockColumn == lastSelectBlockColumn) {
                     highlights.append(Tui::ZFormatRange{tlrSel.xToCursor(firstSelectBlockColumn), 1,
-                                                        blockSelected, blockSelectedFormatingChar, FR_UD_SELECTION});
+                                                        multiInsertChar, multiInsertFormatingChar, FR_UD_SELECTION});
                 } else {
                     const int selFirstCodeUnitInLine = tlrSel.xToCursor(firstSelectBlockColumn);
                     const int selLastCodeUnitInLine = tlrSel.xToCursor(lastSelectBlockColumn);
@@ -1567,7 +1567,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 if (lay.lineCount() == 1 && lastLine.width() + 1 < lastSelectBlockHighlightColumn) {
                     Tui::ZTextStyle markStyle = selected;
                     if (firstSelectBlockColumn == lastSelectBlockColumn) {
-                        markStyle = blockSelected;
+                        markStyle = multiInsertChar;
                     }
                     const int firstColumnAfterLineBreakMarker = std::max(lastLine.width() + 1, firstSelectBlockColumn);
                     painter->clearRect(-scrollPositionColumns + firstColumnAfterLineBreakMarker + lineNumberBorderWidth(),
@@ -1583,14 +1583,14 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
             if (formattingCharacters()) {
                 Tui::ZTextStyle markStyle = selectedFormatingChar;
                 if (multiIns) {
-                    markStyle = blockSelected;
+                    markStyle = multiInsertChar;
                 }
                 painter->writeWithAttributes(-scrollPositionColumns + lastLine.width() + lineNumberBorderWidth(), y + lastLine.y(), QStringLiteral("¶"),
                                          markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
             } else {
                 Tui::ZTextStyle markStyle = selected;
                 if (multiIns) {
-                    markStyle = blockSelected;
+                    markStyle = multiInsertChar;
                 }
                 painter->clearRect(-scrollPositionColumns + lastLine.width() + lineNumberBorderWidth(), y + lastLine.y(), 1, 1, markStyle.foregroundColor(), markStyle.backgroundColor());
             }
