@@ -62,6 +62,9 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     vbox->addStretch();
 
     Tui::ZHBoxLayout *hbox5 = new Tui::ZHBoxLayout();
+
+    hbox5->addStretch();
+
     Tui::ZButton *cancelButton = new Tui::ZButton(this);
     cancelButton->setText("Cancel");
     hbox5->addWidget(cancelButton);
