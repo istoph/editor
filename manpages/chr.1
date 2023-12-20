@@ -9,7 +9,7 @@ Usage: chr [options] [[+line[,char]] file …] [/directory]
 chr
 
 Options:
-  -h, --help                          Displays this help.
+  -h, --help                          Displays help on commandline options.
   -v, --version                       Displays version information.
   -l, --linenumber                    The line numbers are displayed
   -a, --append <file>                 Only with read from standard input, then
@@ -17,7 +17,7 @@ Options:
   -f, --follow                        Only with read from standard input, then
                                       follow the input stream
   -b                                  Open bigger file then 1MB
-  -w                                  Wrap log lines
+  -w <WordWrap|WrapAnywhere|NoWrap>   Wrap log lines
   --attributesfile <config>           Safe file for attributes, default
                                       ~/.cache/chr.json
   -c, --config <config>               Load customized config file. The default
@@ -202,7 +202,7 @@ With "Color Tabs" tabs are colorized. The tab border is made darker.
 In the configuration file: ~/.config/chr the behavior can be influenced with the option "formatting_characters=true", "color_tabs=true", "color_space_end=true".
 
 .SH Wrap long lines
-Lines that are drawn beyond the editor border are cut or wrapped here. It can be wrapped at the word boundary or hard at the end of the line. This behavior can be influenced by the option "wrap_lines=true" in the ~/.config/chr file.
+Lines that are drawn beyond the editor border are cut or wrapped here. It can be wrapped at the word boundary or hard at the end of the line. This behavior can be influenced by the option "wrap_lines=WordWrap" or "wrap_lines=WrapAnywhere" in the ~/.config/chr file.
 
 In addition, the option "Display Right Margin at Column" can be used to specify a numerical value above which the background color is darkened. This value can also be set with the configuration option: "right_margin_hint=80" in ~/.config/chr.
 

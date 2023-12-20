@@ -66,7 +66,8 @@ int main(int argc, char **argv) {
 
     // wrap log lines
     QCommandLineOption wraplines("w",
-                    QCoreApplication::translate("main", "Wrap log lines"));
+                    QCoreApplication::translate("main", "Wrap log lines (NoWrap Default)"),
+                    QCoreApplication::translate("main", "WordWrap|WrapAnywhere|NoWrap"));
     parser.addOption(wraplines);
 
     // safe attributes
@@ -178,9 +179,15 @@ int main(int argc, char **argv) {
     }
     settings.attributesFile = attributesfile;
 
-    bool wl = qsettings->value("wrap_lines", "false").toBool();
-    if (wl || parser.isSet(wraplines)) {
+    QString wl = parser.value(wraplines).toLower();
+    if (wl == "") {
+        wl = qsettings->value("wrap_lines", "false").toString().toLower();
+    }
+
+    if (wl == QString("WordWrap").toLower() || wl == "true") {
         settings.wrap = Tui::ZTextOption::WordWrap;
+    } else if (wl == QString("WrapAnywhere").toLower()) {
+        settings.wrap = Tui::ZTextOption::WrapAnywhere;
     } else {
         settings.wrap = Tui::ZTextOption::NoWrap;
     }

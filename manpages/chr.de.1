@@ -9,7 +9,7 @@ Usage: chr [options] [[+line[,char]] file …] [/directory]
 chr
 
 Options:
-  -h, --help                          Displays this help.
+  -h, --help                          Displays help on commandline options.
   -v, --version                       Displays version information.
   -l, --linenumber                    The line numbers are displayed
   -a, --append <file>                 Only with read from standard input, then
@@ -17,7 +17,7 @@ Options:
   -f, --follow                        Only with read from standard input, then
                                       follow the input stream
   -b                                  Open bigger file then 1MB
-  -w                                  Wrap log lines
+  -w <WordWrap|WrapAnywhere|NoWrap>   Wrap log lines
   --attributesfile <config>           Safe file for attributes, default
                                       ~/.cache/chr.json
   -c, --config <config>               Load customized config file. The default
@@ -201,7 +201,7 @@ Mit "Color Spacs at end of line" werden Leerzeichen, in denen sich nicht der Cur
 In der Konfigurationsdatei: ~/.config/chr kann mit der Option "formatting_characters=true", "color_tabs=true", "color_space_end=true" das Verhalten beeinflusst werden.
 
 .SH Wrap long lines
-Hier werden Zeilen, die über den Editorrand hinaus gezeichnet werden, abgeschnitten oder umgebrochen. Es kann an der Wortgrenze oder am Zeilenende hart umgebrochen werden. Diese Verhalten kann über die Option "wrap_lines=true" in der ~/.config/chr Datei beeinflusst werden.
+Hier werden Zeilen, die über den Editorrand hinaus gezeichnet werden, abgeschnitten oder umgebrochen. Es kann an der Wortgrenze oder am Zeilenende hart umgebrochen werden. Diese Verhalten kann über die Option "wrap_lines=WordWrap" oder "wrap_lines=WrapAnywhere" in der ~/.config/chr Datei beeinflusst werden.
 
 Zudem kann mit der Option: "Display Right Margin at Column" ein numerischer Wert angegeben werden, ab dem die Hintergrundfarbe dunkel gefärbt wird. Dieser Wert lest sich auch mit der Konfigurationsoption: "right_margin_hint=80" in der ~/.config/chr einstellen.
 
