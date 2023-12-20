@@ -55,9 +55,9 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     vbox->addStretch();
 
     Tui::ZHBoxLayout *hbox4 = new Tui::ZHBoxLayout();
-    _eatSpaceBoforeTabBox = new Tui::ZCheckBox(this);
-    hbox4->addWidget(_eatSpaceBoforeTabBox);
-    _eatSpaceBoforeTabBox->setMarkup("eat space <m>b</m>efore tab");
+    _eatSpaceBeforeTabBox = new Tui::ZCheckBox(this);
+    _eatSpaceBeforeTabBox->setMarkup("eat space <m>b</m>efore tab");
+    hbox4->addWidget(_eatSpaceBeforeTabBox);
     vbox->add(hbox4);
     vbox->addStretch();
 
@@ -82,7 +82,7 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
 
     QObject::connect(saveButton, &Tui::ZButton::clicked, [this] {
         bool eat;
-        if (_eatSpaceBoforeTabBox->checkState() == Qt::CheckState::Checked) {
+        if (_eatSpaceBeforeTabBox->checkState() == Qt::CheckState::Checked) {
             eat = true;
         } else {
             eat = false;
@@ -111,8 +111,8 @@ void TabDialog::updateSettings(bool useTabs, int indentSize, bool eatSpaceBefore
     _blankRadioButton->setChecked(!useTabs);
     _tabsizeInputBox->setText(QString::number(indentSize));
     if(eatSpaceBeforeTabs) {
-        _eatSpaceBoforeTabBox->setCheckState(Qt::CheckState::Checked);
+        _eatSpaceBeforeTabBox->setCheckState(Qt::CheckState::Checked);
     } else {
-        _eatSpaceBoforeTabBox->setCheckState(Qt::CheckState::Unchecked);
+        _eatSpaceBeforeTabBox->setCheckState(Qt::CheckState::Unchecked);
     }
 }

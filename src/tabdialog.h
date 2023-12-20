@@ -24,7 +24,7 @@ signals:
 private:
     Tui::ZRadioButton *_tabRadioButton = nullptr;
     Tui::ZRadioButton *_blankRadioButton = nullptr;
-    Tui::ZCheckBox *_eatSpaceBoforeTabBox = nullptr;
+    Tui::ZCheckBox *_eatSpaceBeforeTabBox = nullptr;
     Tui::ZInputBox *_tabsizeInputBox = nullptr;
 };
 
