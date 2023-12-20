@@ -1056,7 +1056,7 @@ void File::setFollowStandardInput(bool follow) {
     _followMode = follow;
 }
 
-void File::setReplaceSelected() {
+void File::replaceSelected() {
     if (!_currentSearchMatch) {
         return;
     }
@@ -1209,7 +1209,7 @@ int File::replaceAll(QString searchText, QString replaceText) {
         setSelection(found.anchor(), found.position());
         _currentSearchMatch = match;
 
-        setReplaceSelected();
+        replaceSelected();
         cursor = textCursor();
         counter++;
     }

@@ -613,7 +613,7 @@ void Editor::setupSearchDialogs() {
             if (_file->isSearchMatchSelected()) {
                 _file->setSearchText(text);
                 _file->setReplaceText(replacement);
-                _file->setReplaceSelected();
+                _file->replaceSelected();
                 _file->setSearchDirection(forward);
             }
             _file->runSearch(false);

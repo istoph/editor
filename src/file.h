@@ -108,7 +108,7 @@ public:
     bool searchVisible();
     void setReplaceText(QString replaceText);
     bool isSearchMatchSelected();
-    void setReplaceSelected();
+    void replaceSelected();
     void setHighlightBracket(bool hb);
     bool highlightBracket();
     bool writeAttributes();
