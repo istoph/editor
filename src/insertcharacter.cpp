@@ -34,7 +34,7 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
 
     Tui::ZHBoxLayout *hbox2 = new Tui::ZHBoxLayout();
     Tui::ZLabel *intLabel = new Tui::ZLabel(this);
-    intLabel->setText("Int:     ");
+    intLabel->setText("Decimal: ");
     hbox2->addWidget(intLabel);
 
     Tui::ZInputBox *intInputBox = new Tui::ZInputBox(this);
