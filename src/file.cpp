@@ -1385,7 +1385,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         option.setFlags(optionCursorAtEndOfLine.flags() | Tui::ZTextOption::ShowTabsAndSpacesWithColors);
         option.setTrailingWhitespaceColor([] (const Tui::ZTextStyle &base, const Tui::ZTextStyle &formating, const Tui::ZFormatRange* range) -> Tui::ZTextStyle {
             (void)formating;
-            if (range) {
+            if (range && range->userData() == FR_UD_SELECTION) {
                 return { range->format().foregroundColor(), {0xff, 0x80, 0x80} };
             }
             return { base.foregroundColor(), {0x80, 0, 0} };
