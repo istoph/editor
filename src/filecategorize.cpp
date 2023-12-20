@@ -14,31 +14,31 @@ FileCategory fileCategorize(QString input, int maxrecursion) {
     }
 
     //DIR
-    QFileInfo datei(input);
-    if(datei.isDir()) {
+    QFileInfo fileInfo(input);
+    if (fileInfo.isDir()) {
         return FileCategory::dir;
     }
 
-    if (datei.isSymLink()) {
+    if (fileInfo.isSymLink()) {
         if (maxrecursion > 10) {
             return FileCategory::invalid_error;
         }
-        return fileCategorize(datei.symLinkTarget(), ++maxrecursion);
+        return fileCategorize(fileInfo.symLinkTarget(), ++maxrecursion);
     }
 
     //FILE
-    if (datei.exists() && datei.isFile()) {
-        if (datei.isReadable())
+    if (fileInfo.exists() && fileInfo.isFile()) {
+        if (fileInfo.isReadable())
             return FileCategory::open_file;
         else {
             return FileCategory::invalid_file_not_readable;
         }
-    } else if (datei.exists()) {
+    } else if (fileInfo.exists()) {
         return FileCategory::invalid_filetype;
     }
 
-    if (datei.absoluteDir().exists()) {
-        QFileInfo dir(datei.absoluteDir().absolutePath());
+    if (fileInfo.absoluteDir().exists()) {
+        QFileInfo dir(fileInfo.absoluteDir().absolutePath());
         if(dir.isWritable()) {
             return FileCategory::new_file;
         } else {
