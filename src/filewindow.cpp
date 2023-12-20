@@ -88,23 +88,23 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
     });
 
     //Edit
-    QObject::connect(new Tui::ZCommandNotifier("Selectall", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("Selectall", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated, this,
          [this] {
             _file->selectAll();
         }
     );
 
-    QObject::connect(new Tui::ZCommandNotifier("Cutline", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("Cutline", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated, this,
          [this] {
             _file->cutline();
         }
     );
-    QObject::connect(new Tui::ZCommandNotifier("DeleteLine", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("DeleteLine", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated, this,
          [this] {
             _file->deleteLine();
         }
     );
-    QObject::connect(new Tui::ZCommandNotifier("SelectMode", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("SelectMode", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated, this,
          [this] {
             _file->toggleSelectMode();
         }
@@ -114,28 +114,28 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
     // File follow and pipe
     _cmdInputPipe = new Tui::ZCommandNotifier("StopInputPipe", this, Qt::WindowShortcut);
     _cmdInputPipe->setEnabled(false);
-    QObject::connect(_cmdInputPipe, &Tui::ZCommandNotifier::activated,
-         [&] {
+    QObject::connect(_cmdInputPipe, &Tui::ZCommandNotifier::activated, this,
+         [this] {
             closePipe();
         }
     );
 
     _cmdFollow = new Tui::ZCommandNotifier("Following", this, Qt::WindowShortcut);
     _cmdFollow->setEnabled(false);
-    QObject::connect(_cmdFollow, &Tui::ZCommandNotifier::activated,
-         [&] {
+    QObject::connect(_cmdFollow, &Tui::ZCommandNotifier::activated, this,
+         [this] {
             setFollow(!getFollow());
         }
     );
 
-    QObject::connect(this, &FileWindow::readFromStandadInput, this, [=](bool enable){
+    QObject::connect(this, &FileWindow::readFromStandadInput, this, [this](bool enable) {
         _cmdInputPipe->setEnabled(enable);
         _cmdFollow->setEnabled(enable);
     });
 
 
     _watcher = new QFileSystemWatcher();
-    QObject::connect(_watcher, &QFileSystemWatcher::fileChanged, this, [=]{
+    QObject::connect(_watcher, &QFileSystemWatcher::fileChanged, this, [this] {
         fileChangedExternally(true);
     });
 

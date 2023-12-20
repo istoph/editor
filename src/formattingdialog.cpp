@@ -53,7 +53,7 @@ FormattingDialog::FormattingDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) 
     hbox5->addWidget(saveButton);
     vbox->add(hbox5);
 
-    QObject::connect(saveButton, &Tui::ZButton::clicked, [this] {
+    QObject::connect(saveButton, &Tui::ZButton::clicked, this, [this] {
         Q_EMIT settingsChanged(_formattingCharacters->checkState() == Qt::CheckState::Checked,
                                _colorTabs->checkState() == Qt::CheckState::Checked,
                                _colorSpaceEnd->checkState() == Qt::CheckState::Checked);

@@ -96,12 +96,12 @@ void Editor::setupUi() {
 
     //New
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("n"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
-            this, [&] {
-                Editor::newFile();
+            this, [this] {
+                newFile();
     });
     QObject::connect(new Tui::ZCommandNotifier("New", this), &Tui::ZCommandNotifier::activated,
-            [&] {
-                Editor::newFile();
+            this, [this] {
+                newFile();
     });
 
     //Open
@@ -258,20 +258,20 @@ void Editor::setupUi() {
     );
 #endif
 
-    QObject::connect(new Tui::ZCommandNotifier("Theme", this), &Tui::ZCommandNotifier::activated,
-         [&] {
+    QObject::connect(new Tui::ZCommandNotifier("Theme", this), &Tui::ZCommandNotifier::activated, this,
+         [this] {
             new ThemeDialog(this);
         }
     );
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forMnemonic("x"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
                      this, &Editor::showCommandLine);
 
-    QObject::connect(new Tui::ZCommandNotifier("NextWindow", this), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("NextWindow", this), &Tui::ZCommandNotifier::activated, this,
         [this] {
             activateNextWindow();
         }
     );
-    QObject::connect(new Tui::ZCommandNotifier("PreviousWindow", this), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("PreviousWindow", this), &Tui::ZCommandNotifier::activated, this,
         [this] {
             activatePreviousWindow();
         }
@@ -284,7 +284,7 @@ void Editor::setupUi() {
     );
 
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, "v", {}), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
-        [this] {
+        this, [this] {
             _mdiLayout->setMode(MdiLayout::LayoutMode::TileV);
         }
     );
@@ -296,7 +296,7 @@ void Editor::setupUi() {
     );
 
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, "h", {}), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
-        [this] {
+        this, [this] {
             _mdiLayout->setMode(MdiLayout::LayoutMode::TileH);
         }
     );
@@ -311,7 +311,7 @@ void Editor::setupUi() {
 
     enableFileCommands(false);
 
-    QObject::connect(new Tui::ZCommandNotifier("About", this), &Tui::ZCommandNotifier::activated,
+    QObject::connect(new Tui::ZCommandNotifier("About", this), &Tui::ZCommandNotifier::activated, this,
         [this] {
             new AboutDialog(this);
         }
@@ -644,7 +644,7 @@ void Editor::ensureWindowCommands(int count) {
         };
 
         QObject::connect(new Tui::ZCommandNotifier(QStringLiteral("SwitchToWindow%0").arg(QString::number(i + 1)), this),
-                         &Tui::ZCommandNotifier::activated, code);
+                         &Tui::ZCommandNotifier::activated, this, code);
         if (i < 9) {
             QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forMnemonic(QString::number(i + 1)), this, Qt::ApplicationShortcut),
                          &Tui::ZShortcut::activated, this, code);
@@ -771,12 +771,12 @@ void Editor::quitImpl(int i) {
                                                   file->isNewFile() ? ConfirmSave::QuitUnnamed : ConfirmSave::Quit,
                                                   file->getWritable());
 
-        QObject::connect(quitDialog, &ConfirmSave::discardSelected, [=] {
+        QObject::connect(quitDialog, &ConfirmSave::discardSelected, this, [quitDialog,handleNext] {
             quitDialog->deleteLater();
             handleNext();
         });
 
-        QObject::connect(quitDialog, &ConfirmSave::saveSelected, [=] {
+        QObject::connect(quitDialog, &ConfirmSave::saveSelected, this, [this, quitDialog,handleNext,win] {
             quitDialog->deleteLater();
             SaveDialog *q = win->saveOrSaveas();
             if (q) {
@@ -786,7 +786,7 @@ void Editor::quitImpl(int i) {
             }
         });
 
-        QObject::connect(quitDialog, &ConfirmSave::rejected, [=] {
+        QObject::connect(quitDialog, &ConfirmSave::rejected, this, [quitDialog] {
             quitDialog->deleteLater();
         });
     } else {

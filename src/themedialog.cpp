@@ -44,11 +44,11 @@ ThemeDialog::ThemeDialog(Editor *edit) : Tui::ZDialog(edit) {
     wl->setCentral(vbox);
     setGeometry({ 6, 5, 30, 8});
 
-    QObject::connect(_cancelButton, &Tui::ZButton::clicked, [=]{
+    QObject::connect(_cancelButton, &Tui::ZButton::clicked, [this] {
         close();
     });
 
-    QObject::connect(_lv, &Tui::ZListView::enterPressed, [=]{
+    QObject::connect(_lv, &Tui::ZListView::enterPressed, [this,edit] {
         if(_lv->currentItem() == "Dark") {
             edit->setTheme(Editor::Theme::dark);
         } else {
@@ -57,7 +57,7 @@ ThemeDialog::ThemeDialog(Editor *edit) : Tui::ZDialog(edit) {
         close();
     });
 
-    QObject::connect(_okButton, &Tui::ZButton::clicked, [=]{
+    QObject::connect(_okButton, &Tui::ZButton::clicked, [this,edit] {
         if(_lv->currentItem() == "Dark") {
             edit->setTheme(Editor::Theme::dark);
         } else {

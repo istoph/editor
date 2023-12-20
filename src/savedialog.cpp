@@ -68,12 +68,12 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     _noteText->setGeometry({2, 9, 45, 1});
     _noteText->setPalette(p);
 
-    QObject::connect(_folder, &Tui::ZListView::enterPressed, [this](int selected){
+    QObject::connect(_folder, &Tui::ZListView::enterPressed, this, [this](int selected) {
         (void)selected;
         userInput(_folder->currentItem());
     });
     QObject::connect(_filenameText, &Tui::ZInputBox::textChanged, this, &SaveDialog::filenameChanged);
-    QObject::connect(_hiddenCheckBox, &Tui::ZCheckBox::stateChanged, this, [&] {
+    QObject::connect(_hiddenCheckBox, &Tui::ZCheckBox::stateChanged, this, [this] {
         _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
     });
     QObject::connect(_cancelButton, &Tui::ZButton::clicked, this, &SaveDialog::rejected);

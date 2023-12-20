@@ -46,19 +46,19 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Tui::ZDialog(parent
     _okButton->setDefault(true);
 
 
-    QObject::connect(_folder->selectionModel(), &QItemSelectionModel::selectionChanged, [this] {
+    QObject::connect(_folder->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this] {
         filenameChanged(_folder->currentItem());
     });
-    QObject::connect(_folder, &Tui::ZListView::enterPressed, [this](int selected){
+    QObject::connect(_folder, &Tui::ZListView::enterPressed, this, [this](int selected) {
         (void)selected;
         if (_okButton->isEnabled()) {
             userInput(_folder->currentItem());
         }
     });
-    QObject::connect(_hiddenCheckBox, &Tui::ZCheckBox::stateChanged, this, [&]{
+    QObject::connect(_hiddenCheckBox, &Tui::ZCheckBox::stateChanged, this, [this] {
         _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
     });
-    QObject::connect(_okButton, &Tui::ZButton::clicked, [this] {
+    QObject::connect(_okButton, &Tui::ZButton::clicked, this, [this] {
         userInput(_folder->currentItem());
     });
     QObject::connect(_cancelButton, &Tui::ZButton::clicked, this, &OpenDialog::rejected);

@@ -170,13 +170,13 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         }
     });
 
-    QObject::connect(_findNextBtn, &Tui::ZButton::clicked, [this] {
+    QObject::connect(_findNextBtn, &Tui::ZButton::clicked, this, [this] {
         emitAllConditions();
         Q_EMIT searchFindNext(translateSearch(_searchText->text()), _forwardRadio->checked());
     });
 
     if (_replaceBtn) {
-        QObject::connect(_replaceBtn, &Tui::ZButton::clicked, [this] {
+        QObject::connect(_replaceBtn, &Tui::ZButton::clicked, this, [this] {
             emitAllConditions();
             Q_EMIT searchReplace(translateSearch(_searchText->text()),
                                  translateReplace(_replaceText->text()), _forwardRadio->checked());
@@ -184,23 +184,23 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
     }
 
     if (_replaceAllBtn) {
-        QObject::connect(_replaceAllBtn, &Tui::ZButton::clicked, [=] {
+        QObject::connect(_replaceAllBtn, &Tui::ZButton::clicked, this, [this] {
             emitAllConditions();
             Q_EMIT searchReplaceAll(translateSearch(_searchText->text()),
                                     translateReplace(_replaceText->text()));
         });
     }
 
-    QObject::connect(_cancelBtn, &Tui::ZButton::clicked, [=] {
+    QObject::connect(_cancelBtn, &Tui::ZButton::clicked, this, [this] {
         Q_EMIT searchCanceled();
         setVisible(false);
     });
 
-    QObject::connect(_caseMatchBox, &Tui::ZCheckBox::stateChanged, [=] {
+    QObject::connect(_caseMatchBox, &Tui::ZCheckBox::stateChanged, this, [this] {
         emitAllConditions();
     });
 
-    QObject::connect(_escapeSequenceRadio, &Tui::ZRadioButton::toggled, [=] {
+    QObject::connect(_escapeSequenceRadio, &Tui::ZRadioButton::toggled, this, [this] {
         if (!_escapeSequenceRadio->checked()) {
             return;
         }
@@ -209,7 +209,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
             emitLiveSearch();
         }
     });
-    QObject::connect(_wordMatchRadio, &Tui::ZRadioButton::toggled, [=] {
+    QObject::connect(_wordMatchRadio, &Tui::ZRadioButton::toggled, this, [this] {
         if (!_wordMatchRadio->checked()) {
             return;
         }
@@ -218,7 +218,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
             emitLiveSearch();
         }
     });
-    QObject::connect(_regexMatchRadio, &Tui::ZRadioButton::toggled, [=] {
+    QObject::connect(_regexMatchRadio, &Tui::ZRadioButton::toggled, this, [this] {
         if (!_regexMatchRadio->checked()) {
             return;
         }
@@ -227,7 +227,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
             emitLiveSearch();
         }
     });
-    QObject::connect(_plainTextRadio, &Tui::ZRadioButton::toggled, [=] {
+    QObject::connect(_plainTextRadio, &Tui::ZRadioButton::toggled, this, [this] {
         if (!_plainTextRadio->checked()) {
             return;
         }
@@ -237,10 +237,10 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         }
     });
 
-    QObject::connect(_wrapBox, &Tui::ZCheckBox::stateChanged, [=] {
+    QObject::connect(_wrapBox, &Tui::ZCheckBox::stateChanged, this, [this] {
         emitAllConditions();
     });
-    QObject::connect(_forwardRadio, &Tui::ZRadioButton::toggled, [=] {
+    QObject::connect(_forwardRadio, &Tui::ZRadioButton::toggled, this, [this] {
         emitAllConditions();
     });
 }

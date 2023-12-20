@@ -61,11 +61,11 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
    hbox5->addWidget(saveButton);
    vbox->add(hbox5);
 
-   QObject::connect(cancelButton, &Tui::ZButton::clicked, [this] {
+    QObject::connect(cancelButton, &Tui::ZButton::clicked, this, [this] {
        deleteLater();
    });
 
-   QObject::connect(saveButton, &Tui::ZButton::clicked, [this, file] {
+    QObject::connect(saveButton, &Tui::ZButton::clicked, this, [this, file] {
        if(_noWrapRadioButton->checked()) {
            file->setWordWrapMode(Tui::ZTextOption::NoWrap);
        } else if (_wordWrapRadioButton->checked()) {

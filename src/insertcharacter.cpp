@@ -69,8 +69,8 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
 
     vbox->add(hbox4);
 
-    QObject::connect(hexInputBox, &Tui::ZInputBox::textChanged, [=]{
-        if(hexInputBox->focus()) {
+    QObject::connect(hexInputBox, &Tui::ZInputBox::textChanged, this, [this,hexInputBox,preview,intInputBox,cancelBtn,insertButton] {
+        if (hexInputBox->focus()) {
             _codepoint = hexInputBox->text().toInt(&_check, 16);
             if (_check && _codepoint >= 0 && _codepoint <= 0x10FFFF) {
                 preview->setText(" Preview: " + intToChar(_codepoint));
@@ -87,8 +87,8 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
         }
     });
 
-    QObject::connect(intInputBox, &Tui::ZInputBox::textChanged, [=]{
-        if(intInputBox->focus()) {
+    QObject::connect(intInputBox, &Tui::ZInputBox::textChanged, this, [this,hexInputBox,preview,intInputBox,cancelBtn,insertButton] {
+        if (intInputBox->focus()) {
             _codepoint = intInputBox->text().toInt(&_check, 10);
             if (_check && _codepoint >= 0 && _codepoint <= 0x10FFFF) {
                 preview->setText(" Preview: " + intToChar(_codepoint));

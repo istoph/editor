@@ -43,35 +43,35 @@ void MdiLayout::addWindow(Tui::ZWidget *w) {
 
     QObject::connect(new Tui::ZShortcut(
                          Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, Qt::Key_Up, Qt::ControlModifier), w, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-        [this, w] {
+        this, [this, w] {
             setInteractiveUp(w);
         }
     );
 
     QObject::connect(new Tui::ZShortcut(
                          Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, Qt::Key_Down, Qt::ControlModifier), w, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-        [this, w] {
+        this, [this, w] {
             setInteractiveDown(w);
         }
     );
 
     QObject::connect(new Tui::ZShortcut(
                          Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, Qt::Key_Left, Qt::ControlModifier), w, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-        [this, w] {
+        this, [this, w] {
             setInteractiveLeft(w);
         }
     );
 
     QObject::connect(new Tui::ZShortcut(
                          Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, Qt::Key_Right, Qt::ControlModifier), w, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-        [this, w] {
+        this, [this, w] {
             setInteractiveRight(w);
         }
     );
 
     QObject::connect(new Tui::ZShortcut(
                          Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, Qt::Key_Up, {}), w, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-        [this, w] {
+        this, [this, w] {
             if (_mode == LayoutMode::TileV) {
                 auto *prev = prevWindow(w);
                 if (prev) {
@@ -84,7 +84,7 @@ void MdiLayout::addWindow(Tui::ZWidget *w) {
 
     QObject::connect(new Tui::ZShortcut(
                          Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, Qt::Key_Down, {}), w, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-        [this, w] {
+        this, [this, w] {
             if (_mode == LayoutMode::TileV) {
                 auto *next = nextWindow(w);
                 if (next) {
@@ -97,7 +97,7 @@ void MdiLayout::addWindow(Tui::ZWidget *w) {
 
     QObject::connect(new Tui::ZShortcut(
                          Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, Qt::Key_Left, {}), w, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-        [this, w] {
+        this, [this, w] {
             if (_mode == LayoutMode::TileH) {
                 auto *prev = prevWindow(w);
                 if (prev) {
@@ -110,7 +110,7 @@ void MdiLayout::addWindow(Tui::ZWidget *w) {
 
     QObject::connect(new Tui::ZShortcut(
                          Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, Qt::Key_Right, {}), w, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-        [this, w] {
+        this, [this, w] {
             if (_mode == LayoutMode::TileH) {
                 auto *next = nextWindow(w);
                 if (next) {
@@ -123,7 +123,7 @@ void MdiLayout::addWindow(Tui::ZWidget *w) {
 
     QObject::connect(new Tui::ZShortcut(
                          Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, Qt::Key_Up, Qt::ControlModifier | Qt::ShiftModifier), w, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-        [this, w] {
+        this, [this, w] {
             if (_mode == LayoutMode::TileV) {
                 swapPrevWindow(w);
             }
@@ -132,7 +132,7 @@ void MdiLayout::addWindow(Tui::ZWidget *w) {
 
     QObject::connect(new Tui::ZShortcut(
                          Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, Qt::Key_Down, Qt::ControlModifier | Qt::ShiftModifier), w, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-        [this, w] {
+        this, [this, w] {
             if (_mode == LayoutMode::TileV) {
                 swapNextWindow(w);
             }
@@ -141,7 +141,7 @@ void MdiLayout::addWindow(Tui::ZWidget *w) {
 
     QObject::connect(new Tui::ZShortcut(
                          Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, Qt::Key_Left, Qt::ControlModifier | Qt::ShiftModifier), w, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-        [this, w] {
+        this, [this, w] {
             if (_mode == LayoutMode::TileH) {
                 swapPrevWindow(w);
             }
@@ -150,7 +150,7 @@ void MdiLayout::addWindow(Tui::ZWidget *w) {
 
     QObject::connect(new Tui::ZShortcut(
                          Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, Qt::Key_Right, Qt::ControlModifier | Qt::ShiftModifier), w, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-        [this, w] {
+        this, [this, w] {
             if (_mode == LayoutMode::TileH) {
                 swapNextWindow(w);
             }

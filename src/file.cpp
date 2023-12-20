@@ -47,7 +47,7 @@ File::File(Tui::ZTextMetrics textMetrics, Tui::ZWidget *parent)
     QObject::connect(_cmdSearchNext, &Tui::ZCommandNotifier::activated, this, [this]{runSearch(false);});
     _cmdSearchNext->setEnabled(false);
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, Qt::NoModifier), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-          [this] {
+          this, [this] {
             runSearch(false);
           });
 
@@ -55,7 +55,7 @@ File::File(Tui::ZTextMetrics textMetrics, Tui::ZWidget *parent)
     QObject::connect(_cmdSearchPrevious, &Tui::ZCommandNotifier::activated, this, [this]{runSearch(true);});
     _cmdSearchPrevious->setEnabled(false);
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, Qt::ShiftModifier), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-          [this] {
+          this, [this] {
             runSearch(true);
           });
 
