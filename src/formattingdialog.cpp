@@ -35,7 +35,7 @@ FormattingDialog::FormattingDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) 
 
     Tui::ZHBoxLayout *hbox3 = new Tui::ZHBoxLayout();
     _colorSpaceEnd = new Tui::ZCheckBox(this);
-    _colorSpaceEnd->setMarkup("Color <m>S</m>pacs at end of line");
+    _colorSpaceEnd->setMarkup("Color <m>S</m>paces at end of line");
     hbox3->addWidget(_colorSpaceEnd);
     vbox->add(hbox3);
     vbox->addStretch();

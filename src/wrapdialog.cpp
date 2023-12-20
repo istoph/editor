@@ -26,7 +26,7 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     vbox->addWidget(_noWrapRadioButton);
 
     _wordWrapRadioButton = new Tui::ZRadioButton(this);
-    _wordWrapRadioButton->setMarkup("<m>W</m>ord Wrap");
+    _wordWrapRadioButton->setMarkup("Wo<m>r</m>d Wrap");
     if(file->wordWrapMode() == Tui::ZTextOption::WordWrap) {
         _wordWrapRadioButton->setChecked(true);
     }
@@ -52,6 +52,9 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     _noWrapRadioButton->setFocus();
 
     Tui::ZHBoxLayout *hbox5 = new Tui::ZHBoxLayout();
+
+    hbox5->addStretch();
+
     Tui::ZButton *cancelButton = new Tui::ZButton(this);
     cancelButton->setText("Cancel");
     hbox5->addWidget(cancelButton);
