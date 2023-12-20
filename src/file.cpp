@@ -659,6 +659,7 @@ bool File::formattingCharacters() const {
 }
 void File::setFormattingCharacters(bool formattingCharacters) {
     _formattingCharacters = formattingCharacters;
+    update();
 }
 
 void File::setRightMarginHint(int hint) {
@@ -667,6 +668,7 @@ void File::setRightMarginHint(int hint) {
     } else {
         _rightMarginHint = hint;
     }
+    update();
 }
 
 int File::rightMarginHint() const {
@@ -678,6 +680,7 @@ bool File::colorTabs() const {
 }
 void File::setColorTabs(bool colorTabs) {
     _colorTabs = colorTabs;
+    update();
 }
 
 bool File::colorTrailingSpaces() {
@@ -685,6 +688,7 @@ bool File::colorTrailingSpaces() {
 }
 void File::setColorTrailingSpaces(bool colorSpaceEnd) {
     _colorTrailingSpaces = colorSpaceEnd;
+    update();
 }
 
 void File::setEatSpaceBeforeTabs(bool eat) {
@@ -1014,11 +1018,13 @@ void File::setSearchText(QString searchText) {
 
 void File::setSearchCaseSensitivity(Qt::CaseSensitivity searchCaseSensitivity) {
     _searchCaseSensitivity = searchCaseSensitivity;
+    update();
 }
 
 void File::setSearchVisible(bool visible) {
     _searchVisible = visible;
     searchVisibleChanged(visible);
+    update();
 }
 
 bool File::searchVisible() {
@@ -1038,6 +1044,7 @@ void File::setRegex(bool reg) {
 }
 void File::setSearchWrap(bool wrap) {
     _searchWrap = wrap;
+    update();
 }
 
 bool File::searchWrap() {
