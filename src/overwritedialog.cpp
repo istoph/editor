@@ -8,7 +8,7 @@
 
 
 OverwriteDialog::OverwriteDialog(Tui::ZWidget *parent, QString fileName) : Tui::ZDialog(parent) {
-    setOptions(Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
+    setOptions(Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption | Tui::ZWindow::DeleteOnClose);
     setContentsMargins({1, 1, 2, 1});
     setWindowTitle("Overwrite?");
 
