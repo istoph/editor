@@ -7,8 +7,7 @@
 #include <Tui/ZHBoxLayout.h>
 #include <Tui/ZVBoxLayout.h>
 
-#include "version_git.h"
-#include "version.h"
+#include <QCoreApplication>
 
 AboutDialog::AboutDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
@@ -21,14 +20,7 @@ AboutDialog::AboutDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     vbox->setSpacing(1);
 
     Tui::ZLabel *nameLabel = new Tui::ZLabel(this);
-
-    if (QString(VERSION_NUMBER) != "git" && QString(GIT_VERSION_ID) != "000000") {
-        nameLabel->setText("Version: "+ QString(VERSION_NUMBER) + " Git-Version: " + QString(GIT_VERSION_ID));
-    } else if (QString(VERSION_NUMBER) != "git") {
-        nameLabel->setText("Version: "+ QString(VERSION_NUMBER));
-    } else {
-        nameLabel->setText("Git-Version: "+ QString(GIT_VERSION_ID));
-    }
+    nameLabel->setText(QCoreApplication::applicationVersion());
     vbox->addWidget(nameLabel);
 
     Tui::ZLabel *authorLabel = new Tui::ZLabel(this);

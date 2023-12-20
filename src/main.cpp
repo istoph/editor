@@ -14,7 +14,9 @@
 #include "edit.h"
 #include "filecategorize.h"
 #include "filelistparser.h"
+
 #include "version_git.h"
+#include "version.h"
 
 int main(int argc, char **argv) {
 
@@ -24,7 +26,16 @@ int main(int argc, char **argv) {
 
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName("chr");
-    const QString version = "%VERSION% "+ QString(GIT_VERSION_ID);
+
+    QString version;
+    if (QString(VERSION_NUMBER) != "git" && QString(GIT_VERSION_ID) != "000000") {
+        version = "Version: "+ QString(VERSION_NUMBER) + " Git-Hash: " + QString(GIT_VERSION_ID);
+    } else if (QString(VERSION_NUMBER) != "git") {
+        version = "Version: "+ QString(VERSION_NUMBER);
+    } else {
+        version = "Git-Hash: "+ QString(GIT_VERSION_ID);
+    }
+
     QCoreApplication::setApplicationVersion(version);
 
     QCommandLineParser parser;
