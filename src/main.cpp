@@ -240,20 +240,21 @@ int main(int argc, char **argv) {
                 actions.push_back([root] { root->watchPipe(); });
 
             } else if (filecategory == FileCategory::dir || filecategory == FileCategory::invalid_file_not_readable) {
-                QFileInfo datei(fle.fileName);
-                QString tmp = datei.absoluteFilePath();
+                QFileInfo fileInfo(fle.fileName);
+                QString tmp = fileInfo.absoluteFilePath();
                 actions.push_back([root, tmp] { root->openFileDialog(tmp); });
             } else if (filecategory == FileCategory::new_file) {
-                QFileInfo datei(fle.fileName);
-                actions.push_back([root, name=datei.absoluteFilePath()] { root->newFile(name); });
+                QFileInfo fileInfo(fle.fileName);
+                actions.push_back([root, name=fileInfo.absoluteFilePath()] { root->newFile(name); });
             } else if (filecategory == FileCategory::open_file) {
-                QFileInfo datei(fle.fileName);
+                QFileInfo fileInfo(fle.fileName);
                 int maxMB = 100;
-                if (datei.size()/1024/1024 >= maxMB && !parser.isSet(bigOption) && !bigfile) {
-                    out << "The file is bigger then " << maxMB << "MB (" << datei.size()/1024/1024 << "MB). Please start with -b for big files.\n";
+                if (fileInfo.size() / 1024 / 1024 >= maxMB && !parser.isSet(bigOption) && !bigfile) {
+                    out << "The file is bigger then " << maxMB << "MB (" << fileInfo.size() / 1024 / 1024
+                        << "MB). Please start with -b for big files.\n";
                     return 0;
                 }
-                actions.push_back([root, name=datei.absoluteFilePath(), pos=fle.pos] {
+                actions.push_back([root, name=fileInfo.absoluteFilePath(), pos=fle.pos] {
                     FileWindow* win = root->openFile(name);
                     if (pos != "") {
                         win->getFileWidget()->gotoLine(pos);
