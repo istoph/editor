@@ -57,7 +57,7 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     hbox5->addWidget(cancelButton);
 
     Tui::ZButton *saveButton = new Tui::ZButton(this);
-    saveButton->setText("Save");
+    saveButton->setText("Ok");
     saveButton->setDefault(true);
     hbox5->addWidget(saveButton);
     vbox->add(hbox5);
