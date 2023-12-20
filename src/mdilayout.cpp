@@ -199,6 +199,11 @@ void MdiLayout::setGeometry(QRect r) {
         if (fit.size() == 0) {
             return;
         }
+
+        if (sum == 0) {
+            return;
+        }
+
         if (_mode == LayoutMode::TileV) {
             double factor = r.height() / sum;
             double y = r.top();
@@ -389,7 +394,7 @@ void MdiLayout::increaseWeight(Tui::ZWidget *w, int extend) {
     for (Item &item: _items) {
         sum += item.weight;
     }
-    double adjust = sum / extend;
+    double adjust = sum / (extend ? extend : 1);
 
     Item *prevItem = nullptr;
     for (Item &item: _items) {
@@ -410,7 +415,7 @@ void MdiLayout::decreaseWeight(Tui::ZWidget *w, int extend) {
     for (Item &item: _items) {
         sum += item.weight;
     }
-    double adjust = sum / extend;
+    double adjust = sum / (extend ? extend : 1);
 
     Item *prevItem = nullptr;
     for (Item &item: _items) {
