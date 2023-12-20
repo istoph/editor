@@ -31,7 +31,7 @@ static QStringList getAvailableLanguages () {
 SyntaxHighlightDialog::SyntaxHighlightDialog(Tui::ZWidget *root) : Tui::ZDialog(root) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
                | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption | Tui::ZWindow::ResizeOption);
-    setWindowTitle("Syntax Highlight");
+    setWindowTitle("Syntax Highlighting");
     setContentsMargins({1, 1, 1, 1});
 
     Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
