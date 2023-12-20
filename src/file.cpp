@@ -1057,15 +1057,11 @@ void File::setFollowStandardInput(bool follow) {
 }
 
 void File::replaceSelected() {
-    if (!_currentSearchMatch) {
+    if (!_currentSearchMatch || hasBlockSelection() || hasMultiInsert()) {
         return;
     }
 
-    if (hasBlockSelection() || hasMultiInsert() || ZTextEdit::hasSelection()) {
-        if (_blockSelect) {
-            disableBlockSelection();
-        }
-
+    if (ZTextEdit::hasSelection()) {
         QString text;
 
         if (_searchRegex) {
