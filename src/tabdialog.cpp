@@ -49,7 +49,6 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
 
     Tui::ZButton *convertButton = new Tui::ZButton(this);
     convertButton->setText("Convert");
-    convertButton->setDefault(true);
     hbox3->addWidget(convertButton);
     vbox->add(hbox3);
     vbox->addStretch();
