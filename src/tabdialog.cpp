@@ -11,7 +11,7 @@
 TabDialog::TabDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setFocus();
-    setWindowTitle("Formatting Tab");
+    setWindowTitle("Tab settings");
     setContentsMargins({ 1, 1, 1, 1});
 
     Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
@@ -24,7 +24,7 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     hbox1->addWidget(_tabRadioButton);
 
     _blankRadioButton = new Tui::ZRadioButton(this);
-    _blankRadioButton->setMarkup("<m>B</m>lank");
+    _blankRadioButton->setMarkup("<m>S</m>paces");
     hbox1->addWidget(_blankRadioButton);
 
     vbox->add(hbox1);
@@ -32,7 +32,7 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
 
     Tui::ZHBoxLayout *hbox2 = new Tui::ZHBoxLayout();
     Tui::ZLabel *tabstopLable = new Tui::ZLabel(this);
-    tabstopLable->setText("Tab Stops: ");
+    tabstopLable->setText("Tab Width: ");
     hbox2->addWidget(tabstopLable);
 
     _tabsizeInputBox = new Tui::ZInputBox(this);
@@ -56,8 +56,8 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
 
     Tui::ZHBoxLayout *hbox4 = new Tui::ZHBoxLayout();
     _eatSpaceBoforeTabBox = new Tui::ZCheckBox(this);
-    _eatSpaceBoforeTabBox->setMarkup("<m>e</m>at space before tab");
     hbox4->addWidget(_eatSpaceBoforeTabBox);
+    _eatSpaceBoforeTabBox->setMarkup("eat space <m>b</m>efore tab");
     vbox->add(hbox4);
     vbox->addStretch();
 
