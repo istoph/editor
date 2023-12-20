@@ -235,7 +235,7 @@ void HighlightExporter::applyFormat(int offset, int length, const KSyntaxHighlig
     Tui::ZColor fg = format.hasTextColor(theme()) ? convert(format.textColor(theme())) : defFg;
     Tui::ZColor bg = format.hasBackgroundColor(theme()) ? convert(format.backgroundColor(theme())) : defBg;
     Tui::ZTextStyle style(fg, bg, attr);
-    highlights.append(Tui::ZFormatRange(offset, length, style, style, FR_UD_SYNTAX));
+    highlights.append(Tui::ZFormatRange(offset, length, style, {Tui::Colors::darkGray, bg}, FR_UD_SYNTAX));
 }
 #endif
 
