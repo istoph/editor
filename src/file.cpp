@@ -1147,9 +1147,7 @@ void File::runSearch(bool direction) {
 
                     const auto [currentCodeUnit, currentLine] = cursorPosition();
 
-                    if (currentLine - 1 > 0) {
-                        setScrollPosition(scrollPositionColumn(), currentLine - 1, 0);
-                    }
+                    setScrollPosition(scrollPositionColumn(), std::max(0, currentLine - 1), 0);
                     adjustScrollPosition();
                 }
             }
