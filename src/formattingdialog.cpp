@@ -8,7 +8,8 @@
 
 
 FormattingDialog::FormattingDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
-    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
+    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption
+               | Tui::ZWindow::DeleteOnClose);
     setFocus();
     setWindowTitle("Formatting");
     setContentsMargins({ 1, 1, 1, 1});
