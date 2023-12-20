@@ -52,7 +52,7 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
         }
     }
 
-    if (currentPosition == 0) {
+    if (currentPosition == 0 || maxPosition <= 0) {
         trackBarPosition = 0;
     } else if (currentPosition == maxPosition) {
         trackBarPosition = trackBarSize - thumbHeight;
