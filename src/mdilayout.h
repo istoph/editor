@@ -76,6 +76,7 @@ private:
     QPointer<Tui::ZWidget> interactiveSizeSelected;
     Qt::Edge interactiveSizeEdge = Qt::BottomEdge;
     int height = 1;
+    int width = 1;
     SizerOverlay overlay;
 };
 

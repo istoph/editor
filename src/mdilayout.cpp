@@ -167,6 +167,7 @@ void MdiLayout::setMode(MdiLayout::LayoutMode mode) {
 
 void MdiLayout::setGeometry(QRect r) {
     height = r.height();
+    width = r.width();
     if (_mode == LayoutMode::Base) {
         for (const Item &item: _items) {
             auto *const childWidget = item.item;
@@ -362,20 +363,20 @@ void MdiLayout::interactiveHandler(QEvent *event) {
                 }
             } else if (interactiveSizeEdge == Qt::LeftEdge) {
                 if (keyEvent->key() == Qt::Key_Left) {
-                    increaseWeight(interactiveSizeSelected, height);
+                    increaseWeight(interactiveSizeSelected, width);
                 } else if (keyEvent->key() == Qt::Key_Right) {
-                    decreaseWeight(interactiveSizeSelected, height);
+                    decreaseWeight(interactiveSizeSelected, width);
                 }
             } else if (interactiveSizeEdge == Qt::RightEdge) {
                 if (keyEvent->key() == Qt::Key_Left) {
                     auto w = nextWindow(interactiveSizeSelected);
                     if (w) {
-                        increaseWeight(w, height);
+                        increaseWeight(w, width);
                     }
                 } else if (keyEvent->key() == Qt::Key_Right) {
                     auto w = nextWindow(interactiveSizeSelected);
                     if (w) {
-                        decreaseWeight(w, height);
+                        decreaseWeight(w, width);
                     }
                 }
             }
