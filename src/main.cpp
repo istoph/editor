@@ -4,6 +4,7 @@
 #include <QCoreApplication>
 #include <QLoggingCategory>
 #include <QSettings>
+#include <QStandardPaths>
 
 #include <PosixSignalManager.h>
 
@@ -72,7 +73,7 @@ int main(int argc, char **argv) {
 
     // safe attributes
     QCommandLineOption attributesfileOption("attributesfile",
-                    QCoreApplication::translate("main", "Safe file for attributes, default ~/.cache/chr.json"),
+                    QCoreApplication::translate("main", "Safe file for attributes, default ~/.cache/chr/chr.json"),
                     QCoreApplication::translate("main", "config"));
     parser.addOption(attributesfileOption);
 
@@ -117,8 +118,9 @@ int main(int argc, char **argv) {
     if (parser.isSet(configOption)) {
         configDir = parser.value(configOption);
     } else {
-        //default config
-        configDir = QDir::homePath() + "/.config/chr";
+        // default config
+        QString userConfigPath = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+        configDir = userConfigPath + "/chr";
     }
 
     QString attributesfile = "";
@@ -169,7 +171,9 @@ int main(int argc, char **argv) {
     }
 #endif
 
-    QString attributesfileDefault = qsettings->value("attributesfile", QDir::homePath() + "/.cache/chr.json").toString();
+    // default cache file
+    const QString userConfigPath = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    QString attributesfileDefault = qsettings->value("attributesfile", userConfigPath + "/chr.json").toString();
     if (attributesfile.isEmpty()) {
         attributesfile = attributesfileDefault;
         QDir dir(QFileInfo(attributesfile).absolutePath());
