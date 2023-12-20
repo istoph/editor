@@ -24,5 +24,6 @@ void StateMux::removeInput(void *id) {
         for (auto connection: input.connections) {
             QObject::disconnect(connection);
         }
+        _inputs.erase(id);
     }
 }

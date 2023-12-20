@@ -443,6 +443,7 @@ FileWindow *Editor::createFileWindow() {
     });
 
     QObject::connect(win, &QObject::destroyed, this, [this, win] {
+        _mux.removeInput(win);
         // remove from _nameToWindow map
         QMutableMapIterator<QString, FileWindow*> iter(_nameToWindow);
         while (iter.hasNext()) {
