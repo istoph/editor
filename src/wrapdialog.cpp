@@ -9,7 +9,8 @@
 
 
 WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) {
-    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::ResizeOption | Tui::ZWindow::AutomaticOption);
+    setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::ResizeOption
+               | Tui::ZWindow::AutomaticOption | Tui::ZWindow::DeleteOnClose);
     setWindowTitle("Wrap long lines");
     setContentsMargins({1, 1, 1, 1});
 
