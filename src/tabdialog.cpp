@@ -12,7 +12,7 @@ TabDialog::TabDialog(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setFocus();
     setWindowTitle("Tab settings");
-    setContentsMargins({ 1, 1, 1, 1});
+    setContentsMargins({1, 1, 1, 1});
 
     Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     setLayout(vbox);

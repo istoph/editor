@@ -46,7 +46,7 @@ GotoLine::GotoLine(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     vbox->add(hbox2);
 
     QObject::connect(buttonCancel, &Tui::ZButton::clicked, this, &GotoLine::rejected);
-    QObject::connect(buttonOK, &Tui::ZButton::clicked, this, [this, inputboxGoto]{
+    QObject::connect(buttonOK, &Tui::ZButton::clicked, this, [this, inputboxGoto] {
         lineSelected(inputboxGoto->text());
         this->deleteLater();
     });

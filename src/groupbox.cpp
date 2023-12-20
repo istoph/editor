@@ -37,7 +37,7 @@ QString GroupBox::markup() const {
 void GroupBox::setMarkup(QString m) {
     styledText.setMarkup(m);
     if (styledText.mnemonic().size()) {
-        for(Tui::ZShortcut *s : findChildren<Tui::ZShortcut*>("", Qt::FindDirectChildrenOnly)) {
+        for (Tui::ZShortcut *s : findChildren<Tui::ZShortcut*>("", Qt::FindDirectChildrenOnly)) {
             delete s;
         }
         Tui::ZShortcut *s = new Tui::ZShortcut(Tui::ZKeySequence::forMnemonic(styledText.mnemonic()), this);
@@ -89,7 +89,7 @@ void GroupBox::paintEvent(Tui::ZPaintEvent *event) {
         shortcut = {getColor("control.shortcut.fg"), getColor("control.shortcut.bg")};
     }
     styledText.setMnemonicStyle(baseStyle, shortcut);
-    styledText.write(painter, 1, 0, geometry().width()-1);
+    styledText.write(painter, 1, 0, geometry().width() - 1);
 }
 
 void GroupBox::keyEvent(Tui::ZKeyEvent *event) {

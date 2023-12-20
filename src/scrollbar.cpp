@@ -12,6 +12,7 @@
 ScrollBar::ScrollBar(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     QObject::connect(&_autoHide, &QTimer::timeout, this, &ScrollBar::autoHideExpired);
 }
+
 void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
 
     auto *painter = event->painter();
@@ -30,11 +31,11 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
     int maxPosition;
 
     if (geometry().width() == 1) {
-        trackBarSize = this->geometry().height()-2;
+        trackBarSize = this->geometry().height() - 2;
         currentPosition = _scrollPositionY;
         maxPosition = _positionMaxY;
     } else {
-        trackBarSize = this->geometry().width()-2;
+        trackBarSize = this->geometry().width() - 2;
         currentPosition = _scrollPositionX;
         maxPosition = _positionMaxX;
     }
@@ -57,7 +58,7 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
     } else if (currentPosition == maxPosition) {
         trackBarPosition = trackBarSize - thumbHeight;
     } else {
-        trackBarPosition = 1 + ((double)(trackBarSize -1) - thumbHeight) * ((double)currentPosition / (maxPosition));
+        trackBarPosition = 1 + ((double)(trackBarSize - 1) - thumbHeight) * ((double)currentPosition / (maxPosition));
     }
 
     if (geometry().width() == 1) {
@@ -65,8 +66,8 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
             painter->clear(fg, bg);
         } else {
             for (int i = 0; i < geometry().height(); i++) {
-                painter->setBackground(0,i,trackBgColor);
-                painter->setForeground(0,i,fg);
+                painter->setBackground(0, i, trackBgColor);
+                painter->setForeground(0, i, fg);
             }
         }
         int y = 1 + trackBarPosition;
@@ -75,10 +76,10 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
             if (!_transparent) {
                 painter->writeWithColors(0, y, "▓", controlfg, controlbg);
             } else {
-                painter->setBackground(0,y,thumbBgColor);
-                painter->setForeground(0,y,fgbehindText);
+                painter->setBackground(0, y, thumbBgColor);
+                painter->setForeground(0, y, fgbehindText);
             }
-            y+=1;
+            y += 1;
         }
         painter->writeWithColors(0, trackBarSize + 1, "↓", controlfg, controlbg);
     } else {
@@ -86,8 +87,8 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
             painter->clear(fg, bg);
         } else {
             for (int i = 0; i < geometry().width(); i++) {
-                painter->setBackground(i,0,trackBgColor);
-                painter->setForeground(i,0,fgbehindText);
+                painter->setBackground(i, 0, trackBgColor);
+                painter->setForeground(i, 0, fgbehindText);
             }
         }
         int x = 1 + trackBarPosition;
@@ -96,10 +97,10 @@ void ScrollBar::paintEvent(Tui::ZPaintEvent *event) {
             if (!_transparent) {
                 painter->writeWithColors(x, 0, "▓", controlfg, controlbg);
             } else {
-                painter->setBackground(x,0,thumbBgColor);
-                painter->setForeground(x,0,fgbehindText);
+                painter->setBackground(x, 0, thumbBgColor);
+                painter->setForeground(x, 0, fgbehindText);
             }
-            x+=1;
+            x += 1;
         }
         painter->writeWithColors(trackBarSize + 1, 0, "→", controlfg, controlbg);
     }
@@ -117,8 +118,7 @@ void ScrollBar::setTransparent(bool transparent) {
     _transparent = transparent;
 }
 
-void ScrollBar::scrollPosition(int x, int y)
-{
+void ScrollBar::scrollPosition(int x, int y) {
     if (_autoHideEnabled && _scrollPositionY != y) {
         setVisible(true);
         _autoHide.start();
@@ -127,8 +127,7 @@ void ScrollBar::scrollPosition(int x, int y)
     _scrollPositionY = y;
 }
 
-void ScrollBar::positonMax(int x, int y)
-{
+void ScrollBar::positonMax(int x, int y) {
     _positionMaxX = x;
     _positionMaxY = y;
 }

@@ -14,10 +14,10 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
                | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setWindowTitle("Save as...");
-    setContentsMargins({ 1, 1, 2, 1});
+    setContentsMargins({1, 1, 2, 1});
 
     _currentPath = new Tui::ZLabel(this);
-    _currentPath->setGeometry({2,2,45,1});
+    _currentPath->setGeometry({2, 2, 45, 1});
 
     if (!file->isNewFile()) {
         QFileInfo fileInfo(file->getFilename());
@@ -26,12 +26,12 @@ SaveDialog::SaveDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     _model = std::make_unique<DlgFileModel>(_dir);
 
     _folder = new Tui::ZListView(this);
-    _folder->setGeometry({3,3,44,6});
+    _folder->setGeometry({3, 3, 44, 6});
     _folder->setFocus();
     _folder->setModel(_model.get());
 
     _filenameText = new Tui::ZInputBox(this);
-    _filenameText->setGeometry({3,10,44,1});
+    _filenameText->setGeometry({3, 10, 44, 1});
 
     if (!file->isNewFile()) {
         QFileInfo fileInfo(file->getFilename());

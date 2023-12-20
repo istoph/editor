@@ -11,9 +11,9 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Tui::ZDialog(parent
     setDefaultPlacement(Qt::AlignCenter);
     setGeometry({0, 0, 50, 15});
     setWindowTitle("Open File");
-    setContentsMargins({ 1, 1, 2, 1});
+    setContentsMargins({1, 1, 2, 1});
 
-    if(path.size()) {
+    if (path.size()) {
         QFileInfo fi(path);
         if (fi.isDir() && path.right(1) != "/") {
             fi.setFile(path + "/");
@@ -23,7 +23,7 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Tui::ZDialog(parent
     _dir.makeAbsolute();
 
     _curentPath = new Tui::ZLabel(this);
-    _curentPath->setGeometry({2,2,45,1});
+    _curentPath->setGeometry({2, 2, 45, 1});
 
     _hiddenCheckBox = new Tui::ZCheckBox(Tui::withMarkup, "<m>h</m>idden", this);
     _hiddenCheckBox->setGeometry({3, 12, 13, 1});
@@ -32,7 +32,7 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Tui::ZDialog(parent
     _model->setDisplayHidden(_hiddenCheckBox->checkState() == Qt::CheckState::Checked);
 
     _folder = new Tui::ZListView(this);
-    _folder->setGeometry({3,3,44,8});
+    _folder->setGeometry({3, 3, 44, 8});
     _folder->setFocus();
     _folder->setModel(_model.get());
 
@@ -68,7 +68,7 @@ OpenDialog::OpenDialog(Tui::ZWidget *parent, QString path) : Tui::ZDialog(parent
 
 void OpenDialog::filenameChanged(QString filename) {
     QFileInfo datei(_dir.path() + "/" + filename);
-    _okButton->setEnabled( datei.isReadable() );
+    _okButton->setEnabled(datei.isReadable());
 }
 
 void OpenDialog::refreshFolder() {

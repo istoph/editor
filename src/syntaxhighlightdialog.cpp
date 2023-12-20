@@ -55,7 +55,7 @@ SyntaxHighlightDialog::SyntaxHighlightDialog(Tui::ZWidget *root) : Tui::ZDialog(
     labelLanguage->setBuddy(_lvLanguage);
     vbox1->addWidget(labelLanguage);
 
-    _lvLanguage->setMinimumSize({30,11});
+    _lvLanguage->setMinimumSize({30, 11});
     _availableLanguages = getAvailableLanguages();
     _availableLanguages.sort();
     _lvLanguage->setItems(_availableLanguages);
@@ -73,17 +73,17 @@ SyntaxHighlightDialog::SyntaxHighlightDialog(Tui::ZWidget *root) : Tui::ZDialog(
 
     vbox->add(hbox4);
 
-    QObject::connect(_checkBoxOnOff, &Tui::ZCheckBox::stateChanged, this, [this]{
+    QObject::connect(_checkBoxOnOff, &Tui::ZCheckBox::stateChanged, this, [this] {
         _enabled = (_checkBoxOnOff->checkState() == Tui::Checked);
         _lvLanguage->setEnabled(_enabled);
         settingsChanged(_enabled, _lang);
     });
-    QObject::connect(_lvLanguage, &Tui::ZListView::enterPressed, this, [this]{
+    QObject::connect(_lvLanguage, &Tui::ZListView::enterPressed, this, [this] {
         _lang = _lvLanguage->currentItem();
         settingsChanged(_enabled, _lang);
     });
 
-    QObject::connect(buttonClose, &Tui::ZButton::clicked, this, [this]{
+    QObject::connect(buttonClose, &Tui::ZButton::clicked, this, [this] {
         deleteLater();
     });
 }

@@ -57,7 +57,7 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
                     this, &FileWindow::saveOrSaveas);
 
     //Save As
-    //shortcut dose not work in vte, konsole, ...
+    //shortcut does not work in vte, konsole, ...
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("S", Qt::ControlModifier | Qt::ShiftModifier), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
             this, &FileWindow::saveFileDialog);
     QObject::connect(new Tui::ZCommandNotifier("SaveAs", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
@@ -69,10 +69,11 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
     QObject::connect(_cmdReload, &Tui::ZCommandNotifier::activated,
          this, [this] {
                 if (_file->isModified()) {
-                    ConfirmSave *confirmDialog = new ConfirmSave(this->parentWidget(), _file->getFilename(), ConfirmSave::Reload, false);
+                    ConfirmSave *confirmDialog = new ConfirmSave(this->parentWidget(), _file->getFilename(),
+                                                                 ConfirmSave::Reload, false);
                     QObject::connect(confirmDialog, &ConfirmSave::discardSelected, [this,confirmDialog] {
                         confirmDialog->deleteLater();
-                        FileWindow::reload();
+                        reload();
                     });
 
                     QObject::connect(confirmDialog, &ConfirmSave::rejected, [confirmDialog] {
@@ -83,7 +84,8 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
                 }
     });
 
-    QObject::connect(new Tui::ZCommandNotifier("Close", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated, this, [this]{
+    QObject::connect(new Tui::ZCommandNotifier("Close", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated, this,
+                     [this] {
         closeRequested();
     });
 
@@ -149,7 +151,7 @@ File *FileWindow::getFileWidget() {
 
 void FileWindow::setWrap(Tui::ZTextOption::WrapMode wrap) {
     _file->setWordWrapMode(wrap);
-    if(wrap == Tui::ZTextOption::NoWrap) {
+    if (wrap == Tui::ZTextOption::NoWrap) {
         _scrollbarHorizontal->setVisible(true);
         _winLayout->setRightBorderBottomAdjust(-1);
     } else if (wrap == Tui::ZTextOption::WordWrap) {
@@ -176,7 +178,7 @@ void FileWindow::saveFile(QString filename, std::optional<bool> crlfMode) {
         Alert *e = new Alert(parentWidget());
         e->setWindowTitle("Error");
         e->setMarkup("file could not be saved");
-        e->setGeometry({15,5,50,5});
+        e->setGeometry({15, 5, 50, 5});
         e->setDefaultPlacement(Qt::AlignCenter);
         e->setVisible(true);
         e->setFocus();
@@ -227,7 +229,7 @@ void FileWindow::openFile(QString filename) {
         Alert *e = new Alert(parentWidget());
         e->setWindowTitle("Error");
         e->setMarkup("Error while reading file.");
-        e->setGeometry({15,5,50,5});
+        e->setGeometry({15, 5, 50, 5});
         e->setDefaultPlacement(Qt::AlignCenter);
         e->setVisible(true);
         e->setFocus();
@@ -248,7 +250,7 @@ void FileWindow::reload() {
         Alert *e = new Alert(parentWidget());
         e->setWindowTitle("Error");
         e->setMarkup("Error while reading file.");
-        e->setGeometry({15,5,50,5});
+        e->setGeometry({15, 5, 50, 5});
         e->setDefaultPlacement(Qt::AlignCenter);
         e->setVisible(true);
         e->setFocus();
@@ -366,19 +368,19 @@ void FileWindow::closeRequested() {
 
 void FileWindow::watcherAdd() {
     QFileInfo filenameInfo(_file->getFilename());
-    if(filenameInfo.exists()) {
+    if (filenameInfo.exists()) {
         _watcher->addPath(_file->getFilename());
     }
 }
 void FileWindow::watcherRemove() {
-    if(_watcher->files().count() > 0) {
+    if (_watcher->files().count() > 0) {
         _watcher->removePaths(_watcher->files());
     }
 }
 
 
 void FileWindow::closePipe() {
-    if(_pipeSocketNotifier != nullptr && _pipeSocketNotifier->isEnabled()) {
+    if (_pipeSocketNotifier != nullptr && _pipeSocketNotifier->isEnabled()) {
         _pipeSocketNotifier->setEnabled(false);
         _pipeSocketNotifier->deleteLater();
         _pipeSocketNotifier = nullptr;
@@ -419,7 +421,7 @@ void FileWindow::inputPipeReadable(int socket) {
         _file->modifiedChanged(true);
     }
 
-    if(_pipeSocketNotifier == nullptr) {
+    if (_pipeSocketNotifier == nullptr) {
         readFromStandadInput(false);
     } else {
         readFromStandadInput(true);

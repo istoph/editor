@@ -15,7 +15,7 @@ ThemeDialog::ThemeDialog(Editor *edit) : Tui::ZDialog(edit) {
     Tui::ZWindowLayout *wl = new Tui::ZWindowLayout();
     this->setWindowTitle("Theme Color");
     setLayout(wl);
-    setContentsMargins({ 1, 1, 1, 1});
+    setContentsMargins({1, 1, 1, 1});
 
     Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     {
@@ -42,7 +42,7 @@ ThemeDialog::ThemeDialog(Editor *edit) : Tui::ZDialog(edit) {
         vbox->add(hbox);
     }
     wl->setCentral(vbox);
-    setGeometry({ 6, 5, 30, 8});
+    setGeometry({6, 5, 30, 8});
 
     QObject::connect(_cancelButton, &Tui::ZButton::clicked, [this] {
         close();

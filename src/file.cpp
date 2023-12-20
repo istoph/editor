@@ -44,7 +44,7 @@ File::File(Tui::ZTextMetrics textMetrics, Tui::ZWidget *parent)
     registerCommandNotifiers(Qt::WindowShortcut);
 
     _cmdSearchNext = new Tui::ZCommandNotifier("Search Next", this, Qt::WindowShortcut);
-    QObject::connect(_cmdSearchNext, &Tui::ZCommandNotifier::activated, this, [this]{runSearch(false);});
+    QObject::connect(_cmdSearchNext, &Tui::ZCommandNotifier::activated, this, [this] {runSearch(false);});
     _cmdSearchNext->setEnabled(false);
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, Qt::NoModifier), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
           this, [this] {
@@ -52,7 +52,7 @@ File::File(Tui::ZTextMetrics textMetrics, Tui::ZWidget *parent)
           });
 
     _cmdSearchPrevious = new Tui::ZCommandNotifier("Search Previous", this, Qt::WindowShortcut);
-    QObject::connect(_cmdSearchPrevious, &Tui::ZCommandNotifier::activated, this, [this]{runSearch(true);});
+    QObject::connect(_cmdSearchPrevious, &Tui::ZCommandNotifier::activated, this, [this] {runSearch(true);});
     _cmdSearchPrevious->setEnabled(false);
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, Qt::ShiftModifier), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
           this, [this] {
@@ -208,7 +208,8 @@ void File::ingestSyntaxHighlightingUpdates(Updates updates) {
     }
 }
 
-std::tuple<KSyntaxHighlighting::State, QVector<Tui::ZFormatRange>> HighlightExporter::highlightLineWrap(const QString &text, const KSyntaxHighlighting::State &state) {
+std::tuple<KSyntaxHighlighting::State, QVector<Tui::ZFormatRange>> HighlightExporter::highlightLineWrap(const QString &text,
+                                                                                                        const KSyntaxHighlighting::State &state) {
     std::lock_guard lock{mutex};
     highlights.clear();
     auto newState = highlightLine(text, state);
@@ -296,11 +297,11 @@ File::~File() {
 }
 
 bool File::readAttributes() {
-    if(_attributesFile.isEmpty()) {
+    if (_attributesFile.isEmpty()) {
         return false;
     }
     QFile fileRead(_attributesFile);
-    if(!fileRead.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    if (!fileRead.open(QIODevice::ReadOnly | QIODevice::Text)) {
         //qDebug() << "File open error";
         return false;
     }
@@ -325,7 +326,7 @@ Tui::ZDocumentCursor::Position File::getAttributes() {
 
 bool File::writeAttributes() {
     QFileInfo filenameInfo(getFilename());
-    if(!filenameInfo.exists() || _attributesFile.isEmpty()) {
+    if (!filenameInfo.exists() || _attributesFile.isEmpty()) {
         return false;
     }
     readAttributes();
@@ -347,15 +348,15 @@ bool File::writeAttributes() {
     //Save
     QDir d = QFileInfo(_attributesFile).absoluteDir();
     QString absolute=d.absolutePath();
-    if(!QDir(absolute).exists()) {
-        if(QDir().mkdir(absolute)) {
+    if (!QDir(absolute).exists()) {
+        if (QDir().mkdir(absolute)) {
             qWarning("%s%s", "can not create directory: ", absolute.toUtf8().data());
             return false;
         }
     }
 
     QSaveFile file(_attributesFile);
-    if(!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         qWarning("%s%s", "can not save attributes file: ", _attributesFile.toUtf8().data());
         return false;
     }
@@ -366,7 +367,7 @@ bool File::writeAttributes() {
 
 void File::setAttributesFile(QString attributesFile) {
     //TODO is creatable
-    if(attributesFile.isEmpty() || attributesFile.isNull()) {
+    if (attributesFile.isEmpty() || attributesFile.isNull()) {
         _attributesFile = "";
     } else {
         QFileInfo i(attributesFile);
@@ -398,7 +399,7 @@ int File::convertTabsToSpaces() {
 
     for (int line = 0, found = -1; line < document()->lineCount(); line++) {
         found = document()->line(line).lastIndexOf("\t");
-        if(found != -1) {
+        if (found != -1) {
             Tui::ZTextLayout lay = textLayoutForLine(option, line);
             while (found != -1) {
                 int columnStart = lay.lineAt(0).cursorToX(found, Tui::ZTextLayout::Leading);
@@ -433,7 +434,7 @@ bool File::isSaveAs() {
 
 bool File::setFilename(QString filename) {
     QFileInfo filenameInfo(filename);
-    if(filenameInfo.isSymLink()) {
+    if (filenameInfo.isSymLink()) {
         return setFilename(filenameInfo.symLinkTarget());
     }
     document()->setFilename(filenameInfo.absoluteFilePath());
@@ -444,7 +445,7 @@ QString File::getFilename() {
     return document()->filename();
 }
 
-bool File::newText(QString filename = "") {
+bool File::newText(QString filename) {
     initText();
     if (filename == "") {
         document()->setFilename("NEWFILE");
@@ -502,19 +503,19 @@ void File::checkWritable() {
 
 bool File::getWritable() {
     QFileInfo file(getFilename());
-    if(file.isWritable()) {
+    if (file.isWritable()) {
         return true;
     }
-    if(file.isSymLink()) {
+    if (file.isSymLink()) {
         QFileInfo path(file.symLinkTarget());
-        if(!file.exists() && path.isWritable()) {
+        if (!file.exists() && path.isWritable()) {
             return true;
         }
         return false;
     }
 
     QFileInfo path(file.path());
-    if(!file.exists() && path.isWritable()) {
+    if (!file.exists() && path.isWritable()) {
         return true;
     }
     return false;
@@ -733,7 +734,7 @@ QPair<int,int> File::getSelectedLines() {
 
 void File::selectLines(int startY, int endY) {
     clearSelection();
-    if(startY > endY) {
+    if (startY > endY) {
         setSelection({document()->lineCodeUnits(startY), startY},
                      {0, endY});
     } else {
@@ -798,7 +799,7 @@ bool File::removeSelectedText() {
         return false;
     }
 
-    if(_blockSelect) {
+    if (_blockSelect) {
         if (hasBlockSelection()) {
             blockSelectRemoveSelectedAndConvertToMultiInsert();
         }
@@ -988,7 +989,7 @@ void File::setSearchText(QString searchText) {
     _searchText = searchText;
     searchTextChanged(_searchText);
 
-    if(searchText == "") {
+    if (searchText == "") {
         _cmdSearchNext->setEnabled(false);
         _cmdSearchPrevious->setEnabled(false);
         setSearchVisible(false);
@@ -1246,7 +1247,7 @@ Tui::ZTextOption File::textOption() const {
                     return { range->format().foregroundColor(), {0xff, 0xb0, 0xff} };
                 }
                 if (range && range->userData() == FR_UD_LIVE_SEARCH) {
-                    return {Tui::Colors::darkGray, {0xff,0xdd,0}, Tui::ZTextAttribute::Bold};
+                    return {Tui::Colors::darkGray, {0xff, 0xdd, 0}, Tui::ZTextAttribute::Bold};
                 }
                 if (pos == hidden) {
                     return { base.foregroundColor(), {base.backgroundColor().red() + 0x60,
@@ -1269,7 +1270,7 @@ Tui::ZTextOption File::textOption() const {
                     return { range->format().foregroundColor(), {0xb0, 0xff, 0xff} };
                 }
                 if (range && range->userData() == FR_UD_LIVE_SEARCH) {
-                    return {Tui::Colors::darkGray, {0xff,0xdd,0}, Tui::ZTextAttribute::Bold};
+                    return {Tui::Colors::darkGray, {0xff, 0xdd, 0}, Tui::ZTextAttribute::Bold};
                 }
                 if (pos == hidden) {
                     return { base.foregroundColor(), {base.backgroundColor().red(),
@@ -1296,17 +1297,17 @@ bool File::highlightBracketFind() {
         const auto [cursorCodeUnit, cursorLine] = cursorPosition();
 
         if (cursorCodeUnit < document()->lineCodeUnits(cursorLine)) {
-            for(int i=0; i<openBracket.size(); i++) {
+            for (int i = 0; i < openBracket.size(); i++) {
                 if (document()->line(cursorLine)[cursorCodeUnit] == openBracket[i]) {
                     int y = 0;
                     int counter = 0;
                     int startX = cursorCodeUnit + 1;
                     for (int line = cursorLine; y++ < rect().height() && line < document()->lineCount(); line++) {
-                        for(; startX < document()->lineCodeUnits(line); startX++) {
+                        for (; startX < document()->lineCodeUnits(line); startX++) {
                             if (document()->line(line)[startX] == openBracket[i]) {
                                 counter++;
                             } else if (document()->line(line)[startX] == closeBracket[i]) {
-                                if(counter>0) {
+                                if (counter > 0) {
                                     counter--;
                                 } else {
                                     _bracketPosition.line = line;
@@ -1315,7 +1316,7 @@ bool File::highlightBracketFind() {
                                 }
                             }
                         }
-                        startX=0;
+                        startX = 0;
                     }
                 }
 
@@ -1323,11 +1324,11 @@ bool File::highlightBracketFind() {
                     int counter = 0;
                     int startX = cursorCodeUnit - 1;
                     for (int line = cursorLine; line >= 0;) {
-                        for(; startX >= 0; startX--) {
+                        for (; startX >= 0; startX--) {
                             if (document()->line(line)[startX] == closeBracket[i]) {
                                 counter++;
                             } else if (document()->line(line)[startX] == openBracket[i]) {
-                                if(counter>0) {
+                                if (counter > 0) {
                                     counter--;
                                 } else {
                                     _bracketPosition.line = line;
@@ -1413,7 +1414,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     const Tui::ZTextStyle baseInMargin{fg, marginMarkBg};
     const Tui::ZTextStyle formatingChar{Tui::Colors::darkGray, bg};
     const Tui::ZTextStyle formatingCharInMargin{Tui::Colors::darkGray, marginMarkBg};
-    const Tui::ZTextStyle selected{Tui::Colors::darkGray,fg,Tui::ZTextAttribute::Bold};
+    const Tui::ZTextStyle selected{Tui::Colors::darkGray, fg, Tui::ZTextAttribute::Bold};
     const Tui::ZTextStyle multiInsertChar{fg, Tui::Colors::lightGray, Tui::ZTextAttribute::Blink | Tui::ZTextAttribute::Italic};
     const Tui::ZTextStyle multiInsertFormatingChar{Tui::Colors::darkGray, Tui::Colors::lightGray, Tui::ZTextAttribute::Blink};
     const Tui::ZTextStyle selectedFormatingChar{Tui::Colors::darkGray, fg};
@@ -1461,9 +1462,9 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
 #endif
 
         // search matches
-        if(searchVisible() && _searchText != "") {
+        if (searchVisible() && _searchText != "") {
             int found = -1;
-            if(_searchRegex) {
+            if (_searchRegex) {
                 QRegularExpression rx(_searchText);
                 if (rx.isValid()) {
                     if (_searchCaseSensitivity == Qt::CaseInsensitive) {
@@ -1472,7 +1473,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                     QRegularExpressionMatchIterator i = rx.globalMatch(document()->line(line));
                     while (i.hasNext()) {
                         QRegularExpressionMatch match = i.next();
-                        if(match.capturedLength() > 0) {
+                        if (match.capturedLength() > 0) {
                             highlights.append(Tui::ZFormatRange{match.capturedStart(), match.capturedLength(),
                                                                 {Tui::Colors::darkGray, {0xff, 0xdd, 0}, Tui::ZTextAttribute::Bold},
                                                                 selectedFormatingChar,
@@ -1613,18 +1614,23 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         // linenumber
         if (showLineNumbers()) {
             for (int i = lay.lineCount() - 1; i > 0; i--) {
-                painter->writeWithColors(0, y + i, QString(" ").repeated(lineNumberBorderWidth()), getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
+                painter->writeWithColors(0, y + i, QString(" ").repeated(lineNumberBorderWidth()),
+                                         getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
             }
-            strlinenumber = QString::number(line + 1) + QString(" ").repeated(lineNumberBorderWidth() - QString::number(line + 1).size());
+            strlinenumber = QString::number(line + 1)
+                    + QString(" ").repeated(lineNumberBorderWidth() - QString::number(line + 1).size());
             int lineNumberY = y;
             if (y < 0) {
                 strlinenumber.replace(' ', '^');
                 lineNumberY = 0;
             }
             if (line == cursorLine) {
-                painter->writeWithAttributes(0, lineNumberY, strlinenumber, getColor("chr.linenumberFg"), getColor("chr.linenumberBg"), Tui::ZTextAttribute::Bold);
+                painter->writeWithAttributes(0, lineNumberY, strlinenumber,
+                                             getColor("chr.linenumberFg"), getColor("chr.linenumberBg"),
+                                             Tui::ZTextAttribute::Bold);
             } else {
-                painter->writeWithColors(0, lineNumberY, strlinenumber, getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
+                painter->writeWithColors(0, lineNumberY, strlinenumber,
+                                         getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
             }
         }
         y += lay.lineCount();
@@ -1633,18 +1639,21 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         if (formattingCharacters() && y < rect().height() && scrollPositionColumns == 0) {
             const Tui::ZTextStyle &markStyle = (_rightMarginHint && tmpLastLineWidth > _rightMarginHint) ? formatingCharInMargin : formatingChar;
 
-            painter->writeWithAttributes(-scrollPositionColumns + tmpLastLineWidth + lineNumberBorderWidth(), y-1, "♦", markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
+            painter->writeWithAttributes(-scrollPositionColumns + tmpLastLineWidth + lineNumberBorderWidth(), y - 1, "♦",
+                                         markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
         }
-        painter->writeWithAttributes(0 + lineNumberBorderWidth(), y, "\\ No newline at end of file", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+        painter->writeWithAttributes(0 + lineNumberBorderWidth(), y, "\\ No newline at end of file",
+                                     formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
     } else {
         if (formattingCharacters() && y < rect().height() && scrollPositionColumns == 0) {
-            painter->writeWithAttributes(0 + lineNumberBorderWidth(), y, "♦", formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
+            painter->writeWithAttributes(0 + lineNumberBorderWidth(), y, "♦",
+                                         formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
         }
     }
 }
 
 int File::pageNavigationLineCount() const {
-    if(wordWrapMode()) {
+    if (wordWrapMode()) {
         return std::max(1, geometry().height() - 2);
     }
     return std::max(1, geometry().height() - 1);
@@ -1662,7 +1671,7 @@ void File::appendLine(const QString &line) {
         cur.moveToEndOfDocument();
         cur.insertText("\n" + line);
     }
-    if(_followMode) {
+    if (_followMode) {
         Tui::ZDocumentCursor cursor = textCursor();
         cursor.setPosition({cursor.position().codeUnit, document()->lineCount() - 1});
         setTextCursor(cursor);
@@ -1779,7 +1788,7 @@ bool File::followStandardInput() {
 
 void File::pasteEvent(Tui::ZPasteEvent *event) {
     QString text = event->text();
-    if(_formattingCharacters) {
+    if (_formattingCharacters) {
         text.replace(QString("·"), QString(" "));
         text.replace(QString("→"), QString(" "));
         text.replace(QString("¶"), QString(""));
@@ -1795,7 +1804,7 @@ void File::pasteEvent(Tui::ZPasteEvent *event) {
 void File::focusInEvent(Tui::ZFocusEvent *event) {
     Q_UNUSED(event);
     updateCommands();
-    if(_searchText == "") {
+    if (_searchText == "") {
         _cmdSearchNext->setEnabled(false);
         _cmdSearchPrevious->setEnabled(false);
     } else {
@@ -1819,7 +1828,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     const bool isAltShift = event->modifiers() == (Qt::AltModifier | Qt::ShiftModifier);
     const bool isAltCtrlShift = event->modifiers() == (Qt::AltModifier | Qt::ControlModifier | Qt::ShiftModifier);
 
-    if(event->key() == Qt::Key_Space && event->modifiers() == 0) {
+    if (event->key() == Qt::Key_Space && event->modifiers() == 0) {
         text = " ";
     }
 
@@ -2060,7 +2069,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
             if (_blockSelectEndColumn == 0) {
                 int codeUnitInLine = 0;
                 for (; codeUnitInLine <= document()->lineCodeUnits(_blockSelectEndLine->line()) - 1; codeUnitInLine++) {
-                    if(document()->line(_blockSelectEndLine->line())[codeUnitInLine] != ' ' && document()->line(_blockSelectEndLine->line())[codeUnitInLine] != '\t') {
+                    if (document()->line(_blockSelectEndLine->line())[codeUnitInLine] != ' ' && document()->line(_blockSelectEndLine->line())[codeUnitInLine] != '\t') {
                         break;
                     }
                 }
@@ -2383,7 +2392,7 @@ std::tuple<int, int, int> File::cursorPositionOrBlockSelectionEnd() {
 
 void File::adjustScrollPosition() {
     // diff to base class: uses cursorPositionOrBlockSelectionEnd(…)
-    if(geometry().width() <= 0 && geometry().height() <= 0) {
+    if (geometry().width() <= 0 && geometry().height() <= 0) {
         return;
     }
 

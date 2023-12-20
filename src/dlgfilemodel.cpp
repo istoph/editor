@@ -21,7 +21,7 @@ void DlgFileModel::update() {
 
     QVector<Row> newData;
 
-    if(_dir.path() != "/") {
+    if (_dir.path() != "/") {
         Row row;
         row.key = "";
         QMap<int, QVariant> column;
@@ -37,9 +37,9 @@ void DlgFileModel::update() {
         row.key = fileInfo.absoluteFilePath();
         QMap<int, QVariant> column;
 
-        if(fileInfo.fileName() != "." && fileInfo.fileName() != "..") {
-            if( fileInfo.isDir()) {
-                column[Qt::DisplayRole] = fileInfo.fileName()+"/";
+        if (fileInfo.fileName() != "." && fileInfo.fileName() != "..") {
+            if (fileInfo.isDir()) {
+                column[Qt::DisplayRole] = fileInfo.fileName() + "/";
             } else {
                 column[Qt::DisplayRole] = fileInfo.fileName();
             }

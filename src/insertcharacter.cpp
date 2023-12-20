@@ -14,7 +14,7 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::DeleteOnClose
                | Tui::ZWindow::MoveOption | Tui::ZWindow::AutomaticOption);
     setWindowTitle("Insert Character");
-    setContentsMargins({ 1, 1, 1, 1});
+    setContentsMargins({1, 1, 1, 1});
 
     Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     setLayout(vbox);
@@ -107,8 +107,8 @@ InsertCharacter::InsertCharacter(Tui::ZWidget *parent) : Tui::ZDialog(parent) {
 
 
     QObject::connect(cancelBtn, &Tui::ZButton::clicked, this, &InsertCharacter::rejected);
-    QObject::connect(insertButton, &Tui::ZButton::clicked, [this]{
-        if(_check) {
+    QObject::connect(insertButton, &Tui::ZButton::clicked, [this] {
+        if (_check) {
             Q_EMIT characterSelected(intToChar(_codepoint));
         }
         deleteLater();
@@ -120,9 +120,9 @@ void InsertCharacter::rejected() {
 }
 
 QString InsertCharacter::intToChar(int i) {
-    if(i < 0 || i > 0x10FFFF) {
+    if (i < 0 || i > 0x10FFFF) {
         return "";
-    } else if(i <= 0xFFFF) {
+    } else if (i <= 0xFFFF) {
         return QString(1, QChar(i));
     } else if (i <= 0x10FFFF){
         return (QString(1, QChar::highSurrogate(i)) + QString(1, QChar::lowSurrogate(i)));

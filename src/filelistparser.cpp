@@ -7,7 +7,7 @@ QVector<FileListEntry> parseFileList(QStringList args)
 {
     QVector<FileListEntry> res;
     QString pos = "";
-    while(!args.empty()) {
+    while (!args.empty()) {
         if (args.first().startsWith("+")) {
             if (pos != "") {
                 return {};
@@ -16,7 +16,7 @@ QVector<FileListEntry> parseFileList(QStringList args)
             args.removeFirst();
             continue;
         }
-        res.append({args.first(),pos});
+        res.append({args.first(), pos});
         pos = "";
         args.removeFirst();
     }

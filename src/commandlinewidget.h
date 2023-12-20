@@ -31,4 +31,4 @@ private:
     Tui::ZInputBox cmdEntry;
 };
 
-#endif
+#endif // COMMANDLINEWIDGET_H

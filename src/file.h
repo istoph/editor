@@ -209,7 +209,6 @@ private:
 #endif
 
 private:
-
     // block selection
     bool _blockSelect = false;
     std::optional<Tui::ZDocumentLineMarker> _blockSelectStartLine;

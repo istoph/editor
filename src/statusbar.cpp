@@ -29,13 +29,14 @@ void StatusBar::cursorPosition(int x, int utf16CodeUnit, int utf8CodeUnit, int l
     _cursorPositionY = line;
     update();
 }
+
 QString StatusBar::viewCursorPosition() {
     QString text;
-    text += QString::number(_cursorPositionY +1) + ":" + QString::number(_utf8PositionX +1);
+    text += QString::number(_cursorPositionY + 1) + ":" + QString::number(_utf8PositionX + 1);
     if (_utf8PositionX != _cursorPositionX) {
-        text += "-" + QString::number(_cursorPositionX +1);
+        text += "-" + QString::number(_cursorPositionX + 1);
     }
-    text += " | " + QString::number(_scrollPositionY +1)  + ":" + QString::number(_scrollPositionX +1);
+    text += " | " + QString::number(_scrollPositionY + 1)  + ":" + QString::number(_scrollPositionX + 1);
     return text;
 }
 
@@ -49,9 +50,10 @@ void StatusBar::setModified(bool mf) {
     _modifiedFile = mf;
     update();
 }
+
 QString StatusBar::viewModifiedFile() {
     QString text;
-    if(_modifiedFile) {
+    if (_modifiedFile) {
         text += "🖫";
     }
     return text;
@@ -69,7 +71,7 @@ void StatusBar::followStandardInput(bool follow) {
 
 QString StatusBar::viewStandardInput() {
     QString text;
-    if(_stdin) {
+    if (_stdin) {
         text += "STDIN";
         if (_follow) {
             text += " FOLLOW";
@@ -85,11 +87,11 @@ void StatusBar::setWritable(bool rw) {
 
 QString StatusBar::viewReadWrite() {
     QString text;
-    if(_readwrite) {
+    if (_readwrite) {
         text += "RW";
     } else {
         text += "RO";
-        _bg = {0xff,0,0};
+        _bg = {0xff, 0, 0};
     }
     return text;
 }
@@ -128,7 +130,7 @@ void StatusBar::modifiedSelectMode(bool event) {
 }
 QString StatusBar::viewSelectMode() {
     QString text;
-    if(_selectMode) {
+    if (_selectMode) {
         text += "SELECT MODE (F4)";
     }
     return text;
@@ -138,11 +140,12 @@ void StatusBar::fileHasBeenChangedExternally(bool fileChanged) {
     _fileChanged = fileChanged;
     update();
 }
+
 QString StatusBar::viewFileChanged() {
     QString text;
-    if(_fileChanged) {
+    if (_fileChanged) {
         text += "FILE CHANGED";
-        _bg = {0xFF,0xDD,0};
+        _bg = {0xFF, 0xDD, 0};
     }
     return text;
 }
@@ -188,7 +191,7 @@ void StatusBar::syntaxHighlightingEnabled(bool enable) {
 
 QString slash(QString text) {
     if (text != "") {
-        return " | "+ text;
+        return " | " + text;
     }
     return text;
 }
@@ -211,7 +214,7 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     text += slash(viewSelectMode());
     text += slash(viewModifiedFile());
 
-    if(_stdin) {
+    if (_stdin) {
         text += slash(viewStandardInput());
     } else {
         text += slash(viewReadWrite());
@@ -227,7 +230,7 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
         painter->writeWithAttributes(terminal()->width() - 2, 0, "!!", _bg, {0xff, 0, 0},
                                      Tui::ZTextAttribute::Bold | Tui::ZTextAttribute::Blink);
     }
-    if(_searchVisible && _searchText != "" && _searchCount != -1) {
+    if (_searchVisible && _searchText != "" && _searchCount != -1) {
         Tui::ZTextLayout searchLayout(terminal()->textMetrics(), search);
         searchLayout.doLayout(25);
         searchLayout.draw(*painter, {0, 0}, Tui::ZTextStyle({0, 0, 0}, {0xff,0xdd,00}));

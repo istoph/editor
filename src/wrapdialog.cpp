@@ -11,7 +11,7 @@
 WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) {
     setOptions(Tui::ZWindow::CloseOption | Tui::ZWindow::MoveOption | Tui::ZWindow::ResizeOption | Tui::ZWindow::AutomaticOption);
     setWindowTitle("Wrap long lines");
-    setContentsMargins({ 1, 1, 1, 1});
+    setContentsMargins({1, 1, 1, 1});
 
     Tui::ZVBoxLayout *vbox = new Tui::ZVBoxLayout();
     setLayout(vbox);
@@ -19,7 +19,7 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
 
     _noWrapRadioButton = new Tui::ZRadioButton(this);
     _noWrapRadioButton->setMarkup("<m>N</m>o Wrap");
-    if(file->wordWrapMode() == Tui::ZTextOption::NoWrap) {
+    if (file->wordWrapMode() == Tui::ZTextOption::NoWrap) {
         _noWrapRadioButton->setChecked(true);
     }
     vbox->addWidget(_noWrapRadioButton);
@@ -36,37 +36,37 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
     if(file->wordWrapMode() == Tui::ZTextOption::WrapAnywhere) {
         _wrapAnywhereRadioButton->setChecked(true);
     }
-   vbox->addWidget(_wrapAnywhereRadioButton);
+    vbox->addWidget(_wrapAnywhereRadioButton);
 
-   Tui::ZHBoxLayout *hintLayout = new Tui::ZHBoxLayout();
-   Tui::ZLabel *hintLabel = new Tui::ZLabel(Tui::withMarkup,  "Display Right <m>M</m>argin at Column: ", this);
-   hintLayout->addWidget(hintLabel);
-   _rightMarginHintInput = new Tui::ZInputBox(QString::number(file->rightMarginHint()), this);
-   _rightMarginHintInput->setMaximumSize(6, 1);
-   hintLabel->setBuddy(_rightMarginHintInput);
-   hintLayout->addWidget(_rightMarginHintInput);
+    Tui::ZHBoxLayout *hintLayout = new Tui::ZHBoxLayout();
+    Tui::ZLabel *hintLabel = new Tui::ZLabel(Tui::withMarkup,  "Display Right <m>M</m>argin at Column: ", this);
+    hintLayout->addWidget(hintLabel);
+    _rightMarginHintInput = new Tui::ZInputBox(QString::number(file->rightMarginHint()), this);
+    _rightMarginHintInput->setMaximumSize(6, 1);
+    hintLabel->setBuddy(_rightMarginHintInput);
+    hintLayout->addWidget(_rightMarginHintInput);
 
-   vbox->add(hintLayout);
+    vbox->add(hintLayout);
 
-   _noWrapRadioButton->setFocus();
+    _noWrapRadioButton->setFocus();
 
-   Tui::ZHBoxLayout *hbox5 = new Tui::ZHBoxLayout();
-   Tui::ZButton *cancelButton = new Tui::ZButton(this);
-   cancelButton->setText("Cancel");
-   hbox5->addWidget(cancelButton);
+    Tui::ZHBoxLayout *hbox5 = new Tui::ZHBoxLayout();
+    Tui::ZButton *cancelButton = new Tui::ZButton(this);
+    cancelButton->setText("Cancel");
+    hbox5->addWidget(cancelButton);
 
-   Tui::ZButton *saveButton = new Tui::ZButton(this);
-   saveButton->setText("Save");
-   saveButton->setDefault(true);
-   hbox5->addWidget(saveButton);
-   vbox->add(hbox5);
+    Tui::ZButton *saveButton = new Tui::ZButton(this);
+    saveButton->setText("Save");
+    saveButton->setDefault(true);
+    hbox5->addWidget(saveButton);
+    vbox->add(hbox5);
 
     QObject::connect(cancelButton, &Tui::ZButton::clicked, this, [this] {
        deleteLater();
-   });
+    });
 
     QObject::connect(saveButton, &Tui::ZButton::clicked, this, [this, file] {
-       if(_noWrapRadioButton->checked()) {
+       if (_noWrapRadioButton->checked()) {
            file->setWordWrapMode(Tui::ZTextOption::NoWrap);
        } else if (_wordWrapRadioButton->checked()) {
            file->setWordWrapMode(Tui::ZTextOption::WordWrap);
@@ -81,6 +81,6 @@ WrapDialog::WrapDialog(Tui::ZWidget *parent, File *file) : Tui::ZDialog(parent) 
        }
 
        deleteLater();
-   });
+    });
 
 }

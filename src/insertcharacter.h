@@ -19,7 +19,7 @@ signals:
 private:
     QString intToChar(int i);
     int _codepoint = 0;
-    bool _check;
+    bool _check = false;
 };
 
 #endif // INSERTCHARACTER_H

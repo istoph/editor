@@ -535,7 +535,7 @@ void Editor::setupSearchDialogs() {
 
     auto searchCaseSensitiveChanged = [this](bool value) {
         if (_file) {
-            if(value) {
+            if (value) {
                 _file->setSearchCaseSensitivity(Qt::CaseSensitive);
             } else {
                 _file->setSearchCaseSensitivity(Qt::CaseInsensitive);
@@ -766,7 +766,7 @@ void Editor::quitImpl(int i) {
     auto *win = _allWindows[i];
     auto *file = win->getFileWidget();
     file->writeAttributes();
-    if(file->isModified()) {
+    if (file->isModified()) {
         ConfirmSave *quitDialog = new ConfirmSave(this, file->getFilename(),
                                                   file->isNewFile() ? ConfirmSave::QuitUnnamed : ConfirmSave::Quit,
                                                   file->getWritable());

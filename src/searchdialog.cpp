@@ -19,12 +19,12 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
     setDefaultPlacement(Qt::AlignBottom | Qt::AlignHCenter, {0, -2});
     _replace = replace;
     setVisible(false);
-    setContentsMargins({ 1, 1, 2, 1});
+    setContentsMargins({1, 1, 2, 1});
 
     Tui::ZWindowLayout *wl = new Tui::ZWindowLayout();
     setLayout(wl);
 
-    if(_replace) {
+    if (_replace) {
         setWindowTitle("Replace");
     } else {
         setWindowTitle("Search");
@@ -129,7 +129,7 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
         _findNextBtn->setDefault(true);
         hbox->addWidget(_findNextBtn);
 
-        if(_replace) {
+        if (_replace) {
             _replaceBtn = new Tui::ZButton(Tui::withMarkup, "<m>R</m>eplace", this);
 
             _replaceAllBtn = new Tui::ZButton(Tui::withMarkup, "<m>A</m>ll", this);
@@ -146,12 +146,12 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
 
     wl->setCentral(vbox);
 
-    if(_replace) {
-        setGeometry({ 0, 0, 55, 14});
+    if (_replace) {
+        setGeometry({0, 0, 55, 14});
         setMinimumSize(48, 14);
         setMaximumSize(Tui::tuiMaxSize, 14);
     } else {
-        setGeometry({ 0, 0, 55, 12});
+        setGeometry({0, 0, 55, 12});
         setMinimumSize(48, 12);
         setMaximumSize(Tui::tuiMaxSize, 12);
     }

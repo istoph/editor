@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
         configDir = parser.value(configOption);
     } else {
         //default config
-        configDir = QDir::homePath() +"/.config/chr";
+        configDir = QDir::homePath() + "/.config/chr";
     }
 
     QString attributesfile = "";

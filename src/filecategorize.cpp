@@ -9,7 +9,7 @@
 FileCategory fileCategorize(QString input, int maxrecursion) {
 
     //STDIN
-    if(input == "-") {
+    if (input == "-") {
         return FileCategory::stdin_file;
     }
 
@@ -39,7 +39,7 @@ FileCategory fileCategorize(QString input, int maxrecursion) {
 
     if (fileInfo.absoluteDir().exists()) {
         QFileInfo dir(fileInfo.absoluteDir().absolutePath());
-        if(dir.isWritable()) {
+        if (dir.isWritable()) {
             return FileCategory::new_file;
         } else {
             return FileCategory::invalid_dir_not_writable;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSL-1.0
 
-#ifndef THEME_H
-#define THEME_H
+#ifndef THEMEDIALOG_H
+#define THEMEDIALOG_H
 
 #include <Tui/ZButton.h>
 #include <Tui/ZDialog.h>
@@ -26,4 +26,4 @@ private:
     Tui::ZButton *_okButton = nullptr;
 };
 
-#endif // THEME_H
+#endif // THEMEDIALOG_H

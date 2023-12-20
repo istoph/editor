@@ -21,7 +21,7 @@ signals:
 private:
     Tui::ZCheckBox *_checkBoxOnOff = nullptr;
     Tui::ZListView *_lvLanguage = nullptr;
-    bool _enabled;
+    bool _enabled = false;
     QString _lang;
     QStringList _availableLanguages;
 };
