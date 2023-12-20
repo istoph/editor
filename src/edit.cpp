@@ -56,7 +56,6 @@ void Editor::setupUi() {
                             { "<m>C</m>opy", "Ctrl-C", "Copy", {}},
                             { "<m>P</m>aste", "Ctrl-V", "Paste", {}},
                             { "Select <m>a</m>ll", "Ctrl-A", "Selectall", {}},
-                            { "Cut Line", "Ctrl-K", "Cutline", {}},
                             { "<m>D</m>elete Line", "Ctrl-D", "DeleteLine", {}},
                             { "Select Mode", "F4", "SelectMode", {}},
                             {},

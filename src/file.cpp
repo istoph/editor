@@ -2279,11 +2279,6 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
         }
         setSelectMode(savedSelectMode);
         adjustScrollPosition();
-    } else if (event->text() == "k" && event->modifiers() == Qt::ControlModifier) {
-        disableDetachedScrolling();
-        // Ctrl + k -> cut and copy line
-        setSelectMode(false);
-        cutline();
     } else if (event->text() == "d" && event->modifiers() == Qt::ControlModifier) {
         disableDetachedScrolling();
         // Ctrl + d -> delete single line
