@@ -83,7 +83,7 @@ void StatusBar::setWritable(bool rw) {
     update();
 }
 
-QString StatusBar::viewReadWriete() {
+QString StatusBar::viewReadWrite() {
     QString text;
     if(_readwrite) {
         text += "RW";
@@ -214,7 +214,7 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     if(_stdin) {
         text += slash(viewStandardInput());
     } else {
-        text += slash(viewReadWriete());
+        text += slash(viewReadWrite());
     }
 
     text += slash(viewOverwrite());

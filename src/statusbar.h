@@ -16,7 +16,7 @@ public:
     QString viewMode();
     QString viewModifiedFile();
     QString viewOverwrite();
-    QString viewReadWriete();
+    QString viewReadWrite();
     QString viewSelectMode();
     QString viewStandardInput();
     QString viewLanguage();
