@@ -52,16 +52,20 @@ int main(int argc, char **argv) {
                     QCoreApplication::translate("main", "The line numbers are displayed"));
     parser.addOption(lineNumberOption);
 
+    /* Currently broken
     // append mode
     QCommandLineOption append({"a", "append"},
                     QCoreApplication::translate("main", "Only with read from standard input, then append to a file"),
                     QCoreApplication::translate("main", "file"));
     parser.addOption(append);
+    */
 
+    /* maybe no longer needed and clashes with cursor position based automatic toggling of follow mode
     // follow mode
     QCommandLineOption follow({"f", "follow"},
                     QCoreApplication::translate("main", "Only with read from standard input, then follow the input stream"));
     parser.addOption(follow);
+    */
 
     // big file
     QCommandLineOption bigOption({"b", "big-file"},
@@ -256,14 +260,16 @@ int main(int argc, char **argv) {
         for (FileListEntry fle: fles) {
             FileCategory filecategory = fileCategorize(fle.fileName);
             if (filecategory == FileCategory::stdin_file) {
+                /*
                 if (parser.isSet(append) &&
                         (fileCategorize(parser.value(append)) == FileCategory::new_file ||
                          fileCategorize(parser.value(append)) == FileCategory::open_file )
                         ) {
                     actions.push_back([root, name=parser.value(append)] { root->openFile(name); });
                 } else {
+                */
                     actions.push_back([root] { root->newFile(""); });
-                }
+                //}
                 actions.push_back([root] { root->watchPipe(); });
 
             } else if (filecategory == FileCategory::dir || filecategory == FileCategory::invalid_file_not_readable) {
@@ -303,9 +309,11 @@ int main(int argc, char **argv) {
         }
     }
 
+    /*
     if (parser.isSet(follow)) {
         actions.push_back([root] { root->followInCurrentFile(); });
     }
+    */
 
     root->setStartActions(actions);
 

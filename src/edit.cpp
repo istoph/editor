@@ -79,7 +79,7 @@ void Editor::setupUi() {
                                  { "<m>L</m>ine Number", "", "LineNumber", {}},
                                  { "<m>F</m>ormatting", "", "Formatting", {}},
                                  { "<m>W</m>rap long lines", "", "Wrap", {}},
-                                 { "Following (standard input)", "", "Following", {}},
+    //                             { "Following (standard input)", "", "Following", {}},
                                  { "Stop Input Pipe", "", "StopInputPipe", {}},
                                  { "<m>H</m>ighlight Brackets", "", "Brackets", {}},
                                  { "<m>S</m>yntax Highlighting", "", "SyntaxHighlighting", {}},
@@ -405,7 +405,7 @@ FileWindow *Editor::createFileWindow() {
     _mux.connect(win, file, &File::scrollPositionChanged, _statusBar, &StatusBar::scrollPosition, 0, 0);
     _mux.connect(win, file, &File::modifiedChanged, _statusBar, &StatusBar::setModified, false);
     _mux.connect(win, win, &FileWindow::readFromStandadInput, _statusBar, &StatusBar::readFromStandardInput, false);
-    _mux.connect(win, win, &FileWindow::followStandadInput, _statusBar, &StatusBar::followStandardInput, false);
+    //_mux.connect(win, win, &FileWindow::followStandadInput, _statusBar, &StatusBar::followStandardInput, false);
     _mux.connect(win, file, &File::followStandardInputChanged, _statusBar, &StatusBar::followStandardInput, false);
     _mux.connect(win, file, &File::writableChanged, _statusBar, &StatusBar::setWritable, true);
     _mux.connect(win, file->document(), &Tui::ZDocument::crLfModeChanged, _statusBar, &StatusBar::crlfMode, false);
