@@ -462,6 +462,8 @@ bool File::stdinText() {
     document()->setFilename("STDIN");
     _stdin = true;
     initText();
+    setFollowStandardInput(true);
+    followStandardInputChanged(true);
     modifiedChanged(true);
     setSaveAs(true);
     return true;
