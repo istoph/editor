@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
     parser.addVersionOption();
 
     // line number
-    QCommandLineOption lineNumberOption({"l", "linenumber"},
+    QCommandLineOption lineNumberOption({"l", "line-number"},
                     QCoreApplication::translate("main", "The line numbers are displayed"));
     parser.addOption(lineNumberOption);
 
@@ -64,12 +64,12 @@ int main(int argc, char **argv) {
     parser.addOption(follow);
 
     // big file
-    QCommandLineOption bigOption("b",
+    QCommandLineOption bigOption({"b", "big-file"},
                     QCoreApplication::translate("main", "Open bigger file then 100MB"));
     parser.addOption(bigOption);
 
     // wrap log lines
-    QCommandLineOption wraplines("w",
+    QCommandLineOption wraplines({"w", "wrap-lines"},
                     QCoreApplication::translate("main", "Wrap log lines (NoWrap Default)"),
                     QCoreApplication::translate("main", "WordWrap|WrapAnywhere|NoWrap"));
     parser.addOption(wraplines);
