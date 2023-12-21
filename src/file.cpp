@@ -1222,6 +1222,8 @@ int File::replaceAll(QString searchText, QString replaceText) {
     }
 
     adjustScrollPosition();
+    // Update search count
+    setSearchText(searchText);
     return counter;
 }
 

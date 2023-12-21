@@ -611,11 +611,11 @@ void Editor::setupSearchDialogs() {
     QObject::connect(_replaceDialog, &SearchDialog::searchReplace, this, [this] (QString text, QString replacement, bool forward) {
         if (_file) {
             if (_file->isSearchMatchSelected()) {
-                _file->setSearchText(text);
                 _file->setReplaceText(replacement);
                 _file->replaceSelected();
-                _file->setSearchDirection(forward);
             }
+            _file->setSearchDirection(forward);
+            _file->setSearchText(text);
             _file->runSearch(false);
         }
     });
