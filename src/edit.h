@@ -27,7 +27,7 @@ public:
     bool colorSpaceEnd = false;
     bool colorTabs = false;
     Tui::ZTextOption::WrapMode wrap = Tui::ZTextOption::NoWrap;
-    bool highlightBracket = false;
+    bool highlightBracket = true;
     bool showLineNumber = false;
     QString attributesFile;
     int rightMarginHint = 0;

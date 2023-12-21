@@ -228,7 +228,7 @@ int main(int argc, char **argv) {
 
     settings.rightMarginHint = qsettings->value("right_margin_hint", "0").toInt();
 
-    bool hb = qsettings->value("highlight_bracket", "false").toBool();
+    bool hb = qsettings->value("highlight_bracket", "true").toBool();
     settings.highlightBracket = hb;
 
     root->setInitialFileSettings(settings);
