@@ -52,16 +52,16 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
 
     //Save
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("s"), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-            this, &FileWindow::saveOrSaveas);
+            this, [this] { saveOrSaveas(); });
     QObject::connect(new Tui::ZCommandNotifier("Save", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
-                    this, &FileWindow::saveOrSaveas);
+                    this, [this] { saveOrSaveas(); } );
 
     //Save As
     //shortcut does not work in vte, konsole, ...
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("S", Qt::ControlModifier | Qt::ShiftModifier), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
-            this, &FileWindow::saveFileDialog);
+            this, [this] { saveFileDialog(); });
     QObject::connect(new Tui::ZCommandNotifier("SaveAs", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated,
-                     this, &FileWindow::saveFileDialog);
+                     this, [this] { saveFileDialog(); });
 
     //Reload
     _cmdReload = new Tui::ZCommandNotifier("Reload", this, Qt::WindowShortcut);
@@ -163,14 +163,15 @@ void FileWindow::setWrap(Tui::ZTextOption::WrapMode wrap) {
     }
 }
 
-void FileWindow::saveFile(QString filename, std::optional<bool> crlfMode) {
+bool FileWindow::saveFile(QString filename, std::optional<bool> crlfMode) {
     _file->setFilename(filename);
     backingFileChanged(_file->getFilename());
     watcherRemove();
     if (crlfMode.has_value()) {
         _file->document()->setCrLfMode(*crlfMode);
     }
-    if (_file->saveText()) {
+    const bool ok = _file->saveText();
+    if (ok) {
         //windowTitle(filename);
         update();
         fileChangedExternally(false);
@@ -186,6 +187,7 @@ void FileWindow::saveFile(QString filename, std::optional<bool> crlfMode) {
     watcherAdd();
 
     _cmdReload->setEnabled(true);
+    return ok;
 }
 
 WrapDialog *FileWindow::wrapDialog() {
@@ -193,18 +195,26 @@ WrapDialog *FileWindow::wrapDialog() {
     return wrapDialog;
 }
 
-SaveDialog *FileWindow::saveFileDialog() {
+SaveDialog *FileWindow::saveFileDialog(std::function<void(bool)> callback) {
     SaveDialog *saveDialog = new SaveDialog(parentWidget(), _file);
-    QObject::connect(saveDialog, &SaveDialog::fileSelected, this, &FileWindow::saveFile);
+    QObject::connect(saveDialog, &SaveDialog::fileSelected, this, [this,callback](const QString &filename, bool crlfMode) {
+        const bool ok = saveFile(filename, crlfMode);
+        if (callback) {
+            callback(ok);
+        }
+    });
     return saveDialog;
 }
 
-SaveDialog *FileWindow::saveOrSaveas() {
+SaveDialog *FileWindow::saveOrSaveas(std::function<void(bool)> callback) {
     if (_file->isSaveAs()) {
-        SaveDialog *q = saveFileDialog();
+        SaveDialog *q = saveFileDialog(callback);
         return q;
     } else {
-        saveFile(_file->getFilename(), std::nullopt);
+        const bool ok = saveFile(_file->getFilename(), std::nullopt);
+        if (callback) {
+            callback(ok);
+        }
         return nullptr;
     }
 }
@@ -348,14 +358,11 @@ void FileWindow::closeRequested() {
 
         QObject::connect(closeDialog, &ConfirmSave::saveSelected, this, [this, closeDialog] {
             closeDialog->deleteLater();
-            SaveDialog *q = saveOrSaveas();
-            if (q) {
-                QObject::connect(q, &SaveDialog::fileSelected, this, [this] {
+            saveOrSaveas([this](bool ok) {
+                if (ok) {
                     closeSkipCheck({"unsaved"});
-                });
-            } else {
-                closeSkipCheck({"unsaved"});
-            }
+                }
+            });
         });
 
         QObject::connect(closeDialog, &ConfirmSave::rejected, [=]{

@@ -3,6 +3,8 @@
 #ifndef FILEWINDOW_H
 #define FILEWINDOW_H
 
+#include <functional>
+
 #include <QSocketNotifier>
 
 #include <Tui/ZWindow.h>
@@ -22,7 +24,7 @@ public:
 public:
     File *getFileWidget();
     void setWrap(Tui::ZTextOption::WrapMode wrap);
-    void saveFile(QString filename, std::optional<bool> crlfMode);
+    bool saveFile(QString filename, std::optional<bool> crlfMode);
     void newFile(QString filename);
     void openFile(QString filename);
 
@@ -31,7 +33,7 @@ public:
     void setFollow(bool follow);
     bool getFollow();
 
-    SaveDialog *saveOrSaveas();
+    SaveDialog *saveOrSaveas(std::function<void(bool)> callback = {});
 
 signals:
     void readFromStandadInput(bool activ);
@@ -48,7 +50,7 @@ private:
     void updateBorders();
     void updateTitle();
     void closeRequested();
-    SaveDialog *saveFileDialog();
+    SaveDialog *saveFileDialog(std::function<void(bool)> callback = {});
     WrapDialog *wrapDialog();
     void reload();
 

@@ -778,12 +778,11 @@ void Editor::quitImpl(int i) {
 
         QObject::connect(quitDialog, &ConfirmSave::saveSelected, this, [this, quitDialog,handleNext,win] {
             quitDialog->deleteLater();
-            SaveDialog *q = win->saveOrSaveas();
-            if (q) {
-                QObject::connect(q, &SaveDialog::fileSelected, this, handleNext);
-            } else {
-                handleNext();
-            }
+            win->saveOrSaveas([handleNext](bool ok) {
+                if (ok) {
+                    handleNext();
+                }
+            });
         });
 
         QObject::connect(quitDialog, &ConfirmSave::rejected, this, [quitDialog] {
