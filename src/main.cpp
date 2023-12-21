@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: BSL-1.0
 
+#include <unistd.h>
+#include <sys/types.h>
+
 #include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QLoggingCategory>
@@ -184,11 +187,29 @@ int main(int argc, char **argv) {
     const QString userConfigPath = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
     QString attributesfileDefault = qsettings->value("attributesfile", userConfigPath + "/chr.json").toString();
     if (attributesfile.isEmpty()) {
-        attributesfile = attributesfileDefault;
-        QDir dir(QFileInfo(attributesfile).absolutePath());
-        if (!dir.exists() && !dir.mkpath(".")) {
-            qDebug() << "Error can't create dir:" << dir.absolutePath();
+        QDir dir(QFileInfo(attributesfileDefault).absolutePath());
+
+        // Users often use editors with su or other ways that might leave us with a mismatch between
+        // paths in environment variables and the actual user id the program runs under.
+        // Refuse to default attributesfile if the directory user does not match the current user.
+
+        auto requiredUid = geteuid();
+
+        QFileInfo fi(dir.absolutePath());
+        while (!fi.exists()) {
+            fi = QFileInfo(fi.path());
         }
+
+        if (fi.ownerId() != requiredUid) {
+            qDebug() << "File history disabled due to directory owner mismatch:" << fi.absoluteFilePath();
+        } else {
+            if (!dir.exists() && !dir.mkpath(".")) {
+                    qDebug() << "Error can't create dir:" << dir.absolutePath();
+            } else {
+                attributesfile = attributesfileDefault;
+            }
+        }
+
     }
     settings.attributesFile = attributesfile;
 
