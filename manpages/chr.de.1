@@ -1,75 +1,91 @@
 .\" SPDX-License-Identifier: BSL-1.0
 .\" Manpage für chr
-.\" Machen Sie Pull Requests auf: https://github.com/istoph/editor oder erstellen Sie ein Issue für Fehlerkorrekturen.
-.TH man 1 "28 Nov 2018" "1.0" "chr man page"
+.\" Mach Pull Requests auf: https://github.com/istoph/editor oder erstelle ein Issue für Fehlerkorrekturen.
+.TH man 1 "21 Dec 2023" "1.0" "chr man page"
 .SH NAME
-chr \- chr ist ein konsolenbasierter Editor
+chr \- chr ist ein terminal-basierter Editor
 .SH SYNOPSIS
 Usage: chr [options] [[+line[,char]] file …] [/directory]
 chr
 
 Options:
-  -h, --help                          Displays help on commandline options.
-  -v, --version                       Displays version information.
-  -l, --linenumber                    The line numbers are displayed
-  -a, --append <file>                 Only with read from standard input, then
-                                      append to a file
-  -f, --follow                        Only with read from standard input, then
-                                      follow the input stream
-  -b                                  Open bigger file then 1MB
-  -w <WordWrap|WrapAnywhere|NoWrap>   Wrap log lines
-  --attributesfile <config>           Safe file for attributes, default
-                                      ~/.cache/chr.json
-  -c, --config <config>               Load customized config file. The default
-                                      if it exist is ~/.config/chr
-  --syntax-highlighting-theme <name>  Name of syntax-highlighting-theme, you
-                                      can list installed themes with:
-                                      kate-syntax-highlighter --list-themes
-  --disable-syntax                    disable syntax highlighting
+  -h, --help                                       Displays help on commandline
+                                                   options.
+  --help-all                                       Displays help including Qt
+                                                   specific options.
+  -v, --version                                    Displays version
+                                                   information.
+  -l, --line-number                                The line numbers are
+                                                   displayed
+  -b, --big-file                                   Open bigger file then 100MB
+  -w, --wrap-lines <WordWrap|WrapAnywhere|NoWrap>  Wrap log lines (NoWrap
+                                                   Default)
+  --attributesfile <config>                        Safe file for attributes,
+                                                   default ~/.cache/chr/chr.json
+  -c, --config <config>                            Load customized config file.
+                                                   The default if it exist is
+                                                   ~/.config/chr
+  --syntax-highlighting-theme <name>               Name of
+                                                   syntax-highlighting-theme,
+                                                   you can list installed themes
+                                                   with: kate-syntax-highlighter
+                                                   --list-themes
+  --disable-syntax                                 disable syntax highlighting
 
 Arguments:
-  [[+line[,char]] file …]             Optional is the line number, several
-                                      files can be opened in multiple windows.
-  [/directory]                        Or a directory can be specified to search
-                                      in the open dialog.
+  [[+line[,char]] file …]                          Optional is the line number,
+                                                   several files can be opened
+                                                   in multiple windows.
+  [/directory]                                     Or a directory can be
+                                                   specified to search in the
+                                                   open dialog.
+.SH DESCRIPTION
+chr ist ein terminal-basierter Texteditor.
 
-.SH FILES
-~/.config/chr
-  Your personal chr initializations.
+Die Tastenkombinationen ähneln denen der Standard-Editoren in Gnome, KDE und anderen Desktopumgebungen. Dies soll die wechselnde Verwendung von GUI und Terminal Editoren erleichtern.
 
-~/.cache/chr.json
-  History über die geänderten Dateien. Hierin werden Positionen von Cursor gespeichert.
+Das Erscheinungsbild und Verhalten ist eine Kombination aus modernen GUI-Editoren und PC-Textmodus-Editoren der späten 90er Jahre (z. B. Turbo Vision oder edit.com), angepasst an terminalbasierte Arbeitsabläufe.
+
+.SH Schnellstart
+
+Die wichtigen Operationen sind im Menü aufrufbar. Das Menü kann mit \fBF10\fP oder mit Alt zusammen mit dem hervorgehobenen Buchstaben des Menüpunktes geöffnet werden (z. B. \fBAlt + f\fP).
+
+In Dialogen wird mit \fBTab\fP zwischen den Elementen navigiert und \fBF6\fP navigiert zwischen Fenster/Dialogen.
+
+Text kann in den meisten Terminals mit Shift + Pfeiltaste markiert werden. Zum Kopieren wird \fBCtrl + c\fP verwendet. Einfügen mit \fBCtrl + v\fP.
+
+Änderungen können mit \fBCtrl + s\fP gespeichert werden und der Editor mit \fBCtrl + q\fP verlassen werden.
 
 .SH SHORT CUTS
-Shift + Coursor
-  Markiert den Text
+Shift + Cursor
+  Markiert Text
 
 Ctrl + a
   Markiert den gesamten Text
 
-Ctrl + c, Ctrl + Insert
-  Kopiert den markierten Text
+Ctrl + c / Ctrl + Insert
+  Kopiert den markierten Text in den Zwischenablage
 
 Ctrl + d
   Löscht die aktuelle Zeile
 
 Ctrl + e, hoch/runter/links/rechts
-  Wechselt das aktive Fenster. Mit den Pfeil Tastern gibt man den Ort des nächsten aktiven Fensters an.
+  Wechselt das aktive Fenster. Mit den Pfeiltasten gibt man die Richtung des nächsten aktiven Fensters an
 
-Ctrl + e + Ctrl + hoch/runter/links/rechts
-  Fenstergröße verändern.
+Ctrl + e, Ctrl + hoch/runter/links/rechts
+  Fenstergröße verändern
 
 Ctrl + f
-  Öffnet den "Suchen"-Dialog
+  Öffnet den Search-Dialog für die Suche
 
-Ctrl + h, Shift + Backspace
-  Löscht ein Wort
+Ctrl + Backspace
+  Löscht ein Wort (links vom Cursor)
 
 Ctrl + r
-  Öffnet den "Ersetzen"-Dialog
+  Öffnet den Replace-Dialog zum Suchen und Ersetzen
 
 Ctrl + n
-  Erstellt eine neue Datei
+  Erstellt ein neues Fenster mit einem leeren Textdokument
 
 Ctrl + q
   Programm verlassen
@@ -77,23 +93,23 @@ Ctrl + q
 Ctrl + s
   Speichern oder Speichern unter...
 
-Ctrl + v, Shift + Insert
-  Einfügen an Cursorposition
+Ctrl + v / Shift + Insert
+  Fügt den Inhalt der Zwischenablage an der Cursorposition ein
 
-Ctrl + x, Shift + Delete
-  Ausschneiden des markierten Texts
+Ctrl + x / Shift + Delete
+  Schneidet den markierten Text aus und verschiebt ihn in die Zwischenablage
 
 Ctrl + y
-  Stellt eine rückgängig gemachte Aktion wieder her.
+  Stellt eine rückgängig gemachte Aktion wieder her
 
 Ctrl + z
-  Macht eine Aktion rückgängig.
+  Macht eine Aktion rückgängig
 
 Ctrl + Shift + up
-  Verschiebt eine Zeile nach oben
+  Verschiebt die aktuelle Auswahl oder Zeile nach oben
 
 Ctrl + Shift + down
-  Verschiebt eine Zeile nach unten
+  Verschiebt die aktuelle Auswahl oder Zeile nach unten
 
 Ctrl + Left
   Springt ein Wort nach links
@@ -101,7 +117,7 @@ Ctrl + Left
 Ctrl + Shift + Left
   Markiert ein Wort nach links
 
-Ctrl + Rechts
+Ctrl + Right
   Springt ein Wort nach rechts
 
 Ctrl + Shift Right
@@ -111,153 +127,184 @@ Alt + -
   Öffnet das Fenster-Menü
 
 Alt + Shift + hoch/runter/links/rechts
-  Markiert den Text in Blöcken. Das Einfügen der Zwischenablage dupliziert den Text je Zeile. Wird eine gleich große Anzahl an Zeilen markiert wie eingefügt werden soll, werden nur diese eingefügt.
+  Markiert den Text in Blöcken. Das Einfügen der Zwischenablage dupliziert den Text je Zeile. Stimmt beim Einfügen die Anzahl von Zeilen in der Zwischenablage mit der Anzahl der markierten Zeilen überein, werden die Zeilen aus der Zwischenablage auf die markierten Zeilen verteilt.
 
 Alt + Shift + S
-  Markierte Zeilen werden alphabetisch sortiert.
+  Markierte Zeilen werden alphabetisch (lexikografisch nach Codepoint) sortiert
 
 Alt + x
-  Öffnet eine versteckte Kommandozeile. Für weitere Hilfe "help" eintippen.
+  Öffnet eine Kommandozeile. Für weitere Hilfe "help" eintippen
 
-Tab, Shift + Tab
-  Rückt einen markierten Block um einen Tabulator ein oder entfernt diesen.
+Tab / Shift + Tab
+  Rückt einen markierten Block um einen Tabulator ein oder entfernt diesen
 
-F3, Shift + F3
+F3 / Shift + F3
   Springt zum nächsten oder vorherigen Suchwort
 
 F4
-  Wechselt den Markierungsmodus, um das Markieren in Konsolen mit unterdrückter Umschalttaste zu unterstützen
+  Wechselt den Markierungsmodus, um das Markieren in Terminals, in denen Markierung mit Shift + Pfeiltasten nicht funktioniert, zu ermöglichen
 
-F6, Shift + F6
-  Wechselt das aktive Fenster, mit Shift in umgekehrter Reihenfolge.
+F6 / Shift + F6
+  Wechselt das aktive Fenster, mit Shift in umgekehrter Reihenfolge
 
 Esc
-  Schließt ein aktives Fenster, ein Menü oder beendet eine Aktion.
+  Schließt einen aktiven Dialog, ein Menü oder beendet eine Aktion
 
 .SH Menu
-.SH New
-Prüft, ob die aktuell offene Datei gespeichert werden muss und zeigt eine leere Datei an.
+.SH File
+.SS New
+Erstellt ein neues Fenster mit einem leeren Textdokument.
 
-.SH Open
+.SS Open
 Öffnet einen Dateidialog, um eine zu öffnende Datei auszuwählen.
 
-.SH Save or Save as...
-Speichert den aktuellen Stand der Datei. Sollte der Speicherpfad noch nicht angegeben sein, wird der "Save as..." Dialog geöffnet. Hier kann über ein Dateidialog ein Speicherort ausgewählt werden.
+.SS Save
+Speichert den aktuellen Stand der Datei. Sollte der Speicherpfad noch nicht angegeben sein, wird "Save as..." ausgeführt.
 
-.SH Reload
+.SS Save as...
+Öffnet einen Dateidialog, um einen Speicherort aktuellen Stand des Textdokuments auszuwählen und speichert den aktuellen Stand.
+
+.SS Reload
 Lädt die aktuelle Datei neu. Dabei werden alle Änderungen verworfen.
 
-.SH Close
+.SS Close
 Schließt das aktive Fenster.
 
-.SH Quit
-Beendet den Editor. Sollte noch eine ungespeicherte Datei geöffnet sein, wird zuvor der Speichern-Dialog aufgerufen.
+.SS Quit
+Beendet den Editor. Sollte noch ein ungespeichertes Textdokument geöffnet sein, wird zuvor der Speichern-Dialog aufgerufen.
 
-.SH Cut, Copy, Paste, Select all
-Mit den Pfeiltasten und dem gleichzeitigen gedrückt halten der Umschalttaste kann Text markiert werden. Der gesamte Text kann mit (Select all) markiert werden.
-Dieser markierte Text kann dann mittels (Copy) kopiert oder mit (Cut) ausgeschnitten werden. Mit (Paste) kann dieser Text an der aktuellen Cursorposition wieder eingefügt werden. Das mehrfache Kopieren von Text führt zum Verlust der Zeichenablage (copy buffer).
+.SH Edit
+.SS Cut, Copy, Paste, Select all
+Mit den Pfeiltasten und dem gleichzeitigen gedrückt halten der Shifttaste kann Text markiert werden. Der gesamte Text kann mit \fBSelect all\fP markiert werden.
+Dieser markierte Text kann dann mittels \fBCopy\fP kopiert oder mit \fBCut\fP ausgeschnitten werden. Mit \fBPaste\fP kann dieser Text an der aktuellen Cursorposition wieder eingefügt werden. Befindet sich vor dem Kopieren (oder Ausscheiden) Text in der Zwischenablage, so wird dieser ersetzt.
 
-Es ist je nach Terminal zwischen den 3 Copy Buffern zu unterscheiden. 1. Dem in den Editor integrierten Copy Buffer. 2. Dem Maus Copy Buffer 3. Dem Desktop Copy Buffer.
+Diese Funktionen verwenden eine interne Zwischenablage, die unterschiedlichen Inhalt enthält als die ggf. im Terminal als Copy und Paste Befehle verwendete Zwischenablage, da der Editor die System-Zwischenablage nicht zugreifen kann.
 
-.SH Undo und Redo
-Mit Undo oder STRG + z können Eingaben wieder rückgängig gemacht werden. Mit Redo oder STRG + y können rückgängig gemachte Änderungen wiederhergestellt werden.
+.SS Delete Line
+Die gesamte Zeile wird gelöscht.
 
-.SH Search
-Mit Search oder STRG + f wird der Suchen-Dialog geöffnet. Unter "Find" gibt man ein Suchwort ein. Über die Optionen kann man die Suche verfeinern. Im Hintergrund wird dann eine Livesuche durchgeführt. Mit F3 wird das nächste bzw. mit Umschalt + F3 das vorherige gefundene Element markiert.
+.SS Select Mode
+Wechselt den Markierungsmodus, um das Markieren in Terminals, in denen Markierung mit Shift + Pfeiltasten nicht funktioniert, zu ermöglichen.
 
-.SH Search Next
-Mit F3 wird das nächste Suchergebnis markiert.
+.SS Undo, Redo
+Mit \fBUndo\fP oder Ctrl + z können Eingaben rückgängig gemacht werden. Mit \fBRedo\fP oder Ctrl + y können rückgängig gemachte Änderungen wiederhergestellt werden.
 
-.SH Search Previous
-Mit Shift + F3 wird das vorherige Suchergebnis markiert.
+.SS Search
+Mit Search oder Ctrl + f wird der Suchen-Dialog geöffnet. Unter "Find" gibt man ein Suchwort ein. Über die Optionen kann man die Suche verfeinern. Ist Livesuche aktiviert, so wird während der Eingabe des Suchbegriffs automatisch das erste passende Ergebnis ausgewählt. Ist das Textdokument aktiv, kann mit F3 zur nächste bzw. mit Shift + F3 zur vorherigen Fundstelle gesprungen werden.
 
-.SH Cut Line
-Die gesamte Zeile wird ausgeschnitten.
+.SS Search Next
+Springt zur nächsten Fundstelle des aktuellen Suchbegriffs.
 
-.SH Replace
-Mit Replace oder STRG + r wird der "Ersetzen"-Dialog geöffnet. Im Feld "Find" wird das Suchwort angegeben. Im Feld "Replace" wird das Wort angegeben, das eingefügt werden soll. Mit: "Next" wird das nächste Suchwort gesucht. Mit: "Replace" wird das Suchwort ersetzt. Mit: "All" werden alle Suchergebnisse ersetzt.
+.SS Search Previous
+Springt zur vorherigen Fundstelle des aktuellen Suchbegriffs.
 
-.SH Goto
+.SS Replace
+Mit Replace oder Ctrl + r wird der "Ersetzen"-Dialog geöffnet. Im Feld "Find" wird das Suchwort angegeben. Im Feld "Replace" wird das Wort angegeben, das eingefügt werden soll. Mit "Next" wird die nächste Fundstelle gesucht. Mit "Replace" wird das Suchwort ersetzt. Mit "All" werden alle Fundstellen ersetzt.
+
+.SS Insert Character...
+Öffnet einen Dialog, in dem ein Zeichencode (Unicode codepoint) eines einzufügenden Sonderzeichens eingegeben werden kann.
+
+.SS Goto
 Öffnet einen Dialog, um zu einer Zeile zu springen.
 
-.SH Sort Selcted Lines
-Sortiert markierte Zeilen in alphabetischer Reihenfolge.
+.SS Sort Selected Lines
+Markierte Zeilen werden alphabetisch (lexikografisch nach Codepoint) sortiert.
 
-.SH Tab
-Öffnet den Tab-Dialog. Hier können die Einstellungen für die Einrückung vorgenommen werden. Es kann zwischen Tab (\\t) und Leerzeichen gewählt werden. Zudem kann die Anzahl der Leerzeichen festgelegt werden. Die Standardeinstellungen können auch in der ~/.config/chr Datei vorgenommen werden. Hier kann: "tabsize=8" oder "tab=false" für Leerzeichen angegeben werden.
+.SH Options
+.SS Tab settings
+Öffnet den Tab-Settings-Dialog. Hier können die Einstellungen für die Einrückung vorgenommen werden. Es kann zwischen Tab (\\t) und Leerzeichen gewählt werden.
+Zudem kann die Breite der Einrückungen festgelegt werden. Die Standardeinstellungen können auch in der ~/.config/chr Datei vorgenommen werden. Hier kann: "tab_size=8" oder "tab=false" für Leerzeichen angegeben werden.
 
-.SH Line Number
-Schaltet die Darstellung der Zeilennummern auf der rechten Seite des Editors ein. Die Standardeinstellungen können auch in der ~/.config/chr Datei vorgenommen werden. Hier kann: "linenumber=true" angegeben werden.
+.SS Line Number
+Schaltet die Darstellung der Zeilennummern auf der linken Seite des Editors ein. Die Standardeinstellungen können auch in der ~/.config/chr Datei vorgenommen werden. Hier kann: "line_number=true" angegeben werden.
 
-.SH Formatting
-Im Formatting-Dialog können "Formatting Characters", "Color Tabs" und "Color Spacs at end of line"  ein und ausgestalltet werden.
+.SS Formatting
+Im Formatting-Dialog können "Formatting Characters", "Color Tabs" und "Color Spacs at end of line"  ein und ausgestaltet werden.
 
-"Formatting characters" kennzeichnen Leerzeichen mit einem Punkt: "·", Zeilenenden (\n) durch ein "¶" und das Ende der Datei mit: "♦". Alternativ kann diese Anzeige auch ausgeschaltet werden.
+"Formatting characters" kennzeichnen Leerzeichen mit einem Punkt: "·", Zeilenenden (\\n) durch ein "¶" und das Ende der Datei mit: "♦".
 
 Mit "Color Tabs" werden Tabs farblich hervorgehoben. Hierbei wird die Tabgrenze dunkler dargestellt.
 
-Mit "Color Spacs at end of line" werden Leerzeichen, in denen sich nicht der Cursor befindet, am Ende der Zeile rot markiert.
+Mit "Color Spacs at end of line" werden Leerzeichen am Ende der Zeile rot markiert.
 
-In der Konfigurationsdatei: ~/.config/chr kann mit der Option "formatting_characters=true", "color_tabs=true", "color_space_end=true" das Verhalten beeinflusst werden.
+In der Konfigurationsdatei: ~/.config/chr kann mit der Option "formatting_characters=true", "color_tabs=true", "color_space_end=true" das Verhalten eingestellt werden.
 
-.SH Wrap long lines
-Hier werden Zeilen, die über den Editorrand hinaus gezeichnet werden, abgeschnitten oder umgebrochen. Es kann an der Wortgrenze oder am Zeilenende hart umgebrochen werden. Diese Verhalten kann über die Option "wrap_lines=WordWrap" oder "wrap_lines=WrapAnywhere" in der ~/.config/chr Datei beeinflusst werden.
+.SS Wrap long lines
+Hier kann eingestellt werden, ob Zeilen, die breiter als das Fenster sind, abgeschnitten oder umgebrochen dargestellt werden. Es kann an der Wortgrenze oder am Zeilenende hart umgebrochen werden. Diese Verhalten kann über die Option "wrap_lines=WordWrap" oder "wrap_lines=WrapAnywhere" in der ~/.config/chr Datei beeinflusst werden.
 
 Zudem kann mit der Option: "Display Right Margin at Column" ein numerischer Wert angegeben werden, ab dem die Hintergrundfarbe dunkel gefärbt wird. Dieser Wert lest sich auch mit der Konfigurationsoption: "right_margin_hint=80" in der ~/.config/chr einstellen.
 
-.SH Following standard input
-Wenn an den Editor mittels Standard-Eingabe Daten übergeben werden, kann mit dem Following-Mode immer an das aktuelle Ende der Datei gesprungen werden.
+.SS Stop Input Pipe
+Einlesen von einer pipe wird unterbrochen. Der Standard-Eingabedatei-Deskriptor wird geschlossen.
 
-.SH Stop Input Pipe
-Der Standard-Eingabedatei-Deskriptor wird geschlossen.
+.SS Highlight Brackets
+Wenn aktiv und der Cursor auf einer Klammer steht, wird die Klammer an der Cursorposition und die zugehörige andere Klammer hervorgehoben. Mit der Option "highlight_bracket=false" kann dieses Verhalten in der ~/.config/chr eingestellt werden. Unterstützte Klammertypen sind: \fB[{(<>)}]\fP.
 
-.SH Highlight Brackets
-Es kann jeweils die folgende öffnende und schließende Klammer hervorgehoben werden, wenn der Cursor darüber fährt. Mit der Option "highlight_bracket=true" kann dieses Verhalten in der ~/.config/chr beeinflusst werden.
-  [{(<>)}]
+.SS Syntax Highlighting
+Wenn der Editor mit dem Feature "SyntaxHighlighting" compiliert wurden, steht das Syntax Highlighting generell zur Verfügung. Die Sprache wird beim Öffnen einer Datei automatisch erkannt und in der Statusbar angezeigt. Bei Bedarf kann diese aber auch über das Syntax Highlighting Dialog ein uns aus bzw. angepasst werden. In diesem Dialog kann das Syntax Highlighting auch deaktiviert werden.
 
-.SH Syntax Highlighting
-Wenn zur Compilezeit die Option: "-Dsyntax_highlighting=true" gesetzt wurde, steht das Syntax Highlighting generell zur Verfügung. Die Sprache wird beim Öffnen einer Datei automatisch erkannt und in der Statusbar angezeigt. Bei Bedarf kann diese aber auch über das Syntax Highlighting Dialog ein uns aus bzw. angepasst werden.
+Über die command line kann "--syntax-highlighting-theme" kann der Theme angepasst werden. Der Editor bringt bereits die Themes "chr-bluebg" und "chr-blackbg" mit. Bei Bedarf kann ein Theme aus der Liste, die mit "kate-syntax-highlighter --list-themes" anzeigbar ist, benutzt werden. Mit der Option "syntax_highlighting_theme=chr-bluebg" kann der Theme in der ~/.config/chr eingestellt werden.
 
-Über die command line kann "--syntax-highlighting-theme" kann der theme angepasst werden. Der Editor bringt bereits die themes "chr-blugbg" und "chr-blackbg" mit. Bei Bedarf kann ein theme der von "kate-syntax-highlighter --list-themes" mitgebracht wird, benutzt werden.
+Über die command line kann mittels "--disable-syntax" das Syntax Highlighting beim Starten des Editors ausgeschaltet werden. Mit der Option "disable_syntax=true" kann der Theme in der ~/.config/chr eingestellt werden.
 
-Über die command line kann mittels "--disable-syntax=true" das Syntax Highlighting beim Starten des Editors ausgeschaltet werden.
-
-.SH Theam
-Es öffnet den Theam-Dialog zum auswählen eines Theme. Es steht der "Classic" (Blau) oder der "Dark" (schwarz weiß) Theme zur Verfügung. Mit der Option "theme=classic" oder "theme=dark", kann dies in der ~/.config/chr eingestellt werden.
+.SS Theme
+Es öffnet den Theme-Dialog zum auswählen eines Theme. Es steht der "Classic" (Blau) oder der "Dark" (schwarz weiß) Theme zur Verfügung. Mit der Option "theme=classic" oder "theme=dark", kann dies in der ~/.config/chr eingestellt werden.
 
 .SH Window
-
-.SH Next / Previous
+.SS Next, Previous
 Wechselt das aktive Fenster, mit Shift in umgekehrter Reihenfolge. (Siehe F6)
 
-.SH Tile Vertically / Horizontally / Fullscreen
-Zeigt mehre Fenster in den Positionen vertikal / horizontal / Vollbild an.
+.SS Tile Vertically, Horizontally, Fullscreen
+Wählt aus, wie mehrere offene Textdokumente angezeigt werden.
 
-.SH CUSOM CONFIG
-Hier werden Punkte aufgeführt, die ausschließlich in der ~/.config/chr beeinflusst werden können.
+Vertikal und Horizontal teilen den verfügbaren Platz automatisch auf die Dokumentenfenster auf. Wird Fullscreen gewählt, ist jeweils nur ein Dokumentenfenster gleichzeitig sichtbar. (Siehe F6)
 
-.SH Theme
-Mit der Option "theme" kann der default hintergrund eingestellt werden. Zur auswahl stehen derzeit "classic" und "dark".
+.SH Konfigurationsdatei
+Der Editor lädt (falls vorhanden) eine Konfigurationsdatei aus \fB~/.config/chr\fP.
+(Wenn die Environmentvariable \fB$XDG_CONFIG_HOME\fP gesetzt ist, dann aus \fB$XDG_CONFIG_HOME/chr\fP)
+
+Zusätzlich zu den oben dokumentieren Optionen sind folgende Optionen verfügbar:
+
+.SS eat_space_before_tabs
+
+Diese Option ist nur aktiv, wenn \fBtab=false\fP gesetzt ist.
+
+Ist diese Option aktiv und wird die Tab-Taste gedrückt, während der Cursor in der Einrückung am Anfang einer Zeile steht, so wird die Einrückung auf die nächste Tabposition erweitert.
+
+.SS attributes_file
+
+Gibt den Pfad der Datei an, in der die Cursor- und Scrollposition in der Vergangenheit geöffneter Dateien gespeichert wird.
 
 .SH Default config
-Es gibt eine Default Config (~/.config/chr) in der folgenden Optionen gesetzt werden können.
-  color_space_end=true
-  color_tabs=true
-  formatting_characters=true
-  tab=false
-  tabsize=8
-  theme=classic
-  wrap_lines=true
-  right_margin_hint=80
-  syntax_highlighter_themes="chr-bluebg"
+Es gibt eine default Config (~/.config/chr) in der folgenden Optionen gesetzt werden können.
+.EX
+  attributes_file="/home/user/.cache/chr/chr.json"
+  color_space_end=false
+  color_tabs=false
   disable_syntax=false
+  eat_space_before_tabs=true
+  formatting_characters=false
+  highlight_bracket=true
+  line_number=false
+  logfile=""
+  right_margin_hint=0
+  syntax_highlighting_theme="chr-bluebg"
+  tab=false
+  tab_size=4
+  theme="classic"
+  wrap_lines="NoWrap"
+.EE
 
+.SH FILES
+~/.config/chr
+  Your personal chr initializations.
 
-.SH DESCRIPTION
-Der chr Konsoleneditor ist angelehnt an den in Turbo Pascal geschriebenen Editor Tubo Vison aus dem Jahr 1997. Die Tastenkombinationen sollen denen von Gedit ähneln, um den Umstieg von Desktop- zu Konsoleneditor zu vereinfachen.
+~/.cache/chr/chr.json
+  History über die geänderten Dateien. Hierin werden Positionen von Cursor gespeichert.
 
 .SH BUGS
-Alle Fehler in dieser Software können über den Bugtracker auf https://github.com/istoph/editor verwaltet werden.
+Fehler in dieser Software können über den Bugtracker auf https://github.com/istoph/editor
+ gemeldet werden.
 
 .SH AUTHOR
 Christoph Hüffelmann <chr@istoph.de>
