@@ -2024,9 +2024,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _blockSelectEndLine->setLine(_blockSelectEndLine->line() + 1);
             }
         } else {
-            if (_blockSelect) {
-                disableBlockSelection();
-            }
+            clearAdvancedSelection();
 
             const bool extendSelection = event->modifiers() & Qt::ShiftModifier || selectMode();
             Tui::ZDocumentCursor cursor = textCursor();
@@ -2047,9 +2045,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _blockSelectEndLine->setLine(_blockSelectEndLine->line() - 1);
             }
         } else {
-            if (_blockSelect) {
-                disableBlockSelection();
-            }
+            clearAdvancedSelection();
 
             const bool extendSelection = event->modifiers() & Qt::ShiftModifier || selectMode();
             Tui::ZDocumentCursor cursor = textCursor();
@@ -2082,9 +2078,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _blockSelectEndColumn = 0;
             }
         } else {
-            if (_blockSelect) {
-                disableBlockSelection();
-            }
+            clearAdvancedSelection();
 
             const bool extendSelection = event->modifiers() == Qt::ShiftModifier || selectMode();
 
@@ -2111,9 +2105,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
 
             _blockSelectEndColumn = tlr.cursorToX(document()->lineCodeUnits(_blockSelectEndLine->line()), Tui::ZTextLayout::Leading);
         } else {
-            if (_blockSelect) {
-                disableBlockSelection();
-            }
+            clearAdvancedSelection();
 
             Tui::ZDocumentCursor cursor = textCursor();
             if (event->modifiers() == Qt::ShiftModifier || selectMode()) {
@@ -2136,9 +2128,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _blockSelectEndLine->setLine(document()->lineCount() - 1);
             }
         } else {
-            if (_blockSelect) {
-                disableBlockSelection();
-            }
+            clearAdvancedSelection();
 
             Tui::ZDocumentCursor cursor = textCursor();
             // Shift+PageUp/Down does not work with xterm's default settings.
@@ -2160,9 +2150,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
                 _blockSelectEndLine->setLine(0);
             }
         } else {
-            if (_blockSelect) {
-                disableBlockSelection();
-            }
+            clearAdvancedSelection();
 
             Tui::ZDocumentCursor cursor = textCursor();
             // Shift+PageUp/Down does not work with xterm's default settings.
@@ -2358,9 +2346,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
         disableDetachedScrolling();
         setSearchVisible(false);
-        if (_blockSelect) {
-            disableBlockSelection();
-        }
+        clearAdvancedSelection();
         adjustScrollPosition();
     } else if (event->key() == Qt::Key_Insert && event->modifiers() == 0) {
         disableDetachedScrolling();
