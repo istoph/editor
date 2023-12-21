@@ -131,6 +131,15 @@ int main(int argc, char **argv) {
 
     // default settings
     QSettings * qsettings = new QSettings(configDir, QSettings::IniFormat);
+
+    QString logfile = qsettings->value("logfile", "").toString();
+    if (logfile.isEmpty()) {
+        QLoggingCategory::defaultCategory()->setEnabled(QtDebugMsg, false);
+        Tui::ZSimpleStringLogger::install();
+    } else {
+        Tui::ZSimpleFileLogger::install(logfile);
+    }
+
     int tabsize = qsettings->value("tabsize", "4").toInt();
     Settings settings;
     settings.tabSize = tabsize;
@@ -203,13 +212,6 @@ int main(int argc, char **argv) {
 
     root->setInitialFileSettings(settings);
 
-    QString logfile = qsettings->value("logfile", "").toString();
-    if (logfile.isEmpty()) {
-        QLoggingCategory::defaultCategory()->setEnabled(QtDebugMsg, false);
-        Tui::ZSimpleStringLogger::install();
-    } else {
-        Tui::ZSimpleFileLogger::install(logfile);
-    }
     qDebug("%i chr starting", (int)QCoreApplication::applicationPid());
 
     static QtMessageHandler oldHandler = nullptr;
