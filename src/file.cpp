@@ -319,7 +319,10 @@ Tui::ZDocumentCursor::Position File::getAttributes() {
     }
     if (readAttributes()) {
         QJsonObject data = _attributeObject.value(getFilename()).toObject();
-        return {data.value("cursorPositionX").toInt(), data.value("cursorPositionY").toInt()};
+        if (data.contains("cursorPositionX") && data.contains("cursorPositionY")) {
+            return {data.value("cursorPositionX").toInt(), data.value("cursorPositionY").toInt()};
+        }
+        return {data.value("curOff").toInt(), data.value("curLine").toInt()};
     }
     return {0, 0};
 }
@@ -334,12 +337,11 @@ bool File::writeAttributes() {
     const auto [cursorCodeUnit, cursorLine] = cursorPosition();
 
     QJsonObject data;
-    // TODO rename json field names
-    data.insert("cursorPositionX", cursorCodeUnit);
-    data.insert("cursorPositionY", cursorLine);
-    // TODO fine scroll position?
-    data.insert("scrollPositionX", scrollPositionColumn());
-    data.insert("scrollPositionY", scrollPositionLine());
+    data.insert("curOff", cursorCodeUnit);
+    data.insert("curLine", cursorLine);
+    data.insert("sCol", scrollPositionColumn());
+    data.insert("sLine", scrollPositionLine());
+    data.insert("sFine", scrollPositionFineLine());
     _attributeObject.insert(filenameInfo.absoluteFilePath(), data);
 
     QJsonDocument jsonDoc;
@@ -558,9 +560,9 @@ bool File::openText(QString filename) {
         // TODO refactor this
         if (!_attributeObject.isEmpty() && _attributeObject.contains(getFilename())) {
             QJsonObject data = _attributeObject.value(getFilename()).toObject();
-            setScrollPosition(data.value("scrollPositionX").toInt(),
-                              data.value("scrollPositionY").toInt(),
-                              0);
+            setScrollPosition(data.value("sCol").toInt(),
+                              data.value("sLine").toInt(),
+                              data.value("sFine").toInt());
         }
         adjustScrollPosition();
 
