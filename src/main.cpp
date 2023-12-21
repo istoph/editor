@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
     // default settings
     QSettings * qsettings = new QSettings(configDir, QSettings::IniFormat);
 
-    QString logfile = qsettings->value("logfile", "").toString();
+    QString logfile = qsettings->value("log_file", "").toString();
     if (logfile.isEmpty()) {
         QLoggingCategory::defaultCategory()->setEnabled(QtDebugMsg, false);
         Tui::ZSimpleStringLogger::install();
@@ -143,14 +143,14 @@ int main(int argc, char **argv) {
         Tui::ZSimpleFileLogger::install(logfile);
     }
 
-    int tabsize = qsettings->value("tabsize", "4").toInt();
+    int tabsize = qsettings->value("tab_size", "4").toInt();
     Settings settings;
     settings.tabSize = tabsize;
 
     bool tab = qsettings->value("tab", "false").toBool();
     settings.tabOption = tab;
 
-    bool eatSpaceBeforeTabs = qsettings->value("eatSpaceBeforeTabs", "true").toBool();
+    bool eatSpaceBeforeTabs = qsettings->value("eat_space_before_tabs", "true").toBool();
     settings.eatSpaceBeforeTabs = eatSpaceBeforeTabs;
 
     bool ln = qsettings->value("line_number", "0").toBool() || qsettings->value("linenumber", "0").toBool();
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
     settings.colorTabs = qsettings->value("color_tabs", "0").toBool();
     settings.colorSpaceEnd = qsettings->value("color_space_end", "0").toBool();
 
-    bool bigfile = qsettings->value("bigfile", "false").toBool();
+    bool bigfile = qsettings->value("big_file", "false").toBool();
 
     QString defaultSyntaxHighlightingTheme;
     QString theme = qsettings->value("theme", "classic").toString();
@@ -185,7 +185,7 @@ int main(int argc, char **argv) {
 
     // default cache file
     const QString userConfigPath = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
-    QString attributesfileDefault = qsettings->value("attributesfile", userConfigPath + "/chr.json").toString();
+    QString attributesfileDefault = qsettings->value("attributes_file", userConfigPath + "/chr.json").toString();
     if (attributesfile.isEmpty()) {
         QDir dir(QFileInfo(attributesfileDefault).absolutePath());
 
