@@ -18,7 +18,7 @@ add_project_arguments('-Werror=return-type', language: 'cpp')
 qt5 = import('qt5')
 qt5_dep = dependency('qt5', modules: ['Core', 'Concurrent'])
 
-tuiwidgets_dep = dependency('TuiWidgets')
+tuiwidgets_dep = dependency('TuiWidgets', version: '>= 0.2.1')
 posixsignalmanager_dep = dependency('PosixSignalManager')
 
 if get_option('syntax_highlighting')
