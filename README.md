@@ -1,27 +1,41 @@
 [![License](https://img.shields.io/badge/License-Boost_1.0-lightblue.svg)](/COPYING)
 
-Console based text editor with special attention to ease of use like gedit. It has been written from scratch using [Tui Widget](https://tuiwidgets.namepad.de/)
+A terminal based text editor.
+
+Keyboard shortcuts are similar to the default editors in Gnome, KDE and other
+desktop environments. This is to ease workflows alternating between GUIs
+and terminal.
+
+The look and feel is a blend of modern GUI editors and late 90s PC text mode
+editors (e.g. Turbo Vision based or edit.com) adapted to fit into terminal
+based workflows.
+
+It has been written from scratch using [Tui Widget](https://tuiwidgets.namepad.de/)
 
 ![Screenshots](https://blog.chr.istoph.de/wp-content/uploads/chr.edit_20230920.png)
 
 ## Contribute
 
-The project is always open for contributions and welcomes merge requests. Take a look at our [issue tracker](https://github.com/istoph/editor/issues) for open issues.
+This project is always open for contributions and welcomes merge requests.
+Take a look at our [issue tracker](https://github.com/istoph/editor/issues)
+for open issues.
 
 ### Technologies / Dependencies
 
-Dependencies in Debian Sid:
+Dependencies in Debian trixie:
 ```
 build-essential meson ninja-build pkg-config qt5-qmake qttools5-dev-tools qtbase5-dev libtermpaint-dev libtuiwidgets-dev libposixsignalmanager-dev
 ```
 
-For third-party syntex highlighting you need the compile option: `-Dsyntax_highlighting=true` and the following dependencies:
+For third-party syntex highlighting you need the compile
+option: `-Dsyntax_highlighting=true` and the following additional dependencies:
 ```
 libkf5syntaxhighlighting-dev libkf5syntaxhighlighting-tools cmake
 ```
 
 
-See also [Tui Widgets](https://tuiwidgets.namepad.de/) and [Termpaint](https://termpaint.namepad.de/)
+See also [Tui Widgets](https://tuiwidgets.namepad.de/)
+and [Termpaint](https://termpaint.namepad.de/)
 
 ```
 git clone https://github.com/istoph/editor
@@ -33,334 +47,410 @@ meson install -C _build
 
 ## Doku
 ```
+man(1)                           chr man page                           man(1)
+
 NAME
-       chr - chr is a console based editor
+       chr - chr is a terminal based editor
 
 SYNOPSIS
-       Usage: chr [options] [[+line[,char]] file …] [/directory]
+       Usage: chr [options] [[+line[,char]] file …] [/directory] chr
 
        Options:
-         -h, --help                          Displays this help.
-         -v, --version                       Displays version information.
-         -l, --linenumber                    The line numbers are displayed
-         -a,  --append <file>                 Only with read from standard in‐
-       put, then
-                                             append to a file
-         -f, --follow                        Only with read from standard  in‐
-       put, then
-                                             follow the input stream
-         -b                                  Open bigger file then 1MB
-         -w                                  Wrap log lines
-         --attributesfile <config>           Safe file for attributes, default
-                                             ~/.cache/chr.json
-         -c,  --config <config>               Load customized config file. The
-       default
-                                             if it exist is ~/.config/chr
-         --syntax-highlighting-theme  <name>   Name  of   syntax-highlighting-
-       theme, you
-                                             can list installed themes with:
-                                             kate-syntax-highlighter   --list-
-       themes
-         --disable-syntax                    disable syntax highlighting
+         ‐h,  ‐‐help                                        Displays  help  on
+       commandline
+                                                          options.
+         ‐‐help‐all                                        Displays  help  in‐
+       cluding Qt
+                                                          specific options.
+         ‐v, ‐‐version                                    Displays version
+                                                          information.
+         ‐l, ‐‐line‐number                                The line numbers are
+                                                          displayed
+         ‐b,  ‐‐big‐file                                    Open  bigger  file
+       then 100MB
+         ‐w,  ‐‐wrap‐lines  <WordWrap|WrapAnywhere|NoWrap>   Wrap  log   lines
+       (NoWrap
+                                                          Default)
+         ‐‐attributesfile  <config>                         Safe  file for at‐
+       tributes,
+                                                          default
+       ~/.cache/chr/chr.json
+         ‐c, ‐‐config <config>                            Load customized con‐
+       fig file.
+                                                          The  default  if  it
+       exist is
+                                                          ~/.config/chr
+         ‐‐syntax‐highlighting‐theme <name>               Name of
+                                                          syntax‐highlighting‐
+       theme,
+                                                          you   can  list  in‐
+       stalled themes
+                                                          with:   kate‐syntax‐
+       highlighter
+                                                          ‐‐list‐themes
+         ‐‐disable‐syntax                                 disable syntax high‐
+       lighting
 
        Arguments:
-         [[+line[,char]] file …]             Optional is the line number, sev‐
-       eral
-                                             files  can  be opened in multiple
-       windows.
-         [/directory]                        Or a directory can  be  specified
-       to search
-                                             in the open dialog.
+         [[+line[,char]] file …]                          Optional is the line
+       number,
+                                                          several files can be
+       opened
+                                                          in multiple windows.
+         [/directory]                                      Or  a directory can
+       be
+                                                          specified to  search
+       in the
+                                                          open dialog.
 
-FILES
-       ~/.config/chr
-         Your personal chr initializations.
+DESCRIPTION
+       Chr is a terminal based text editor.
 
-       ~/.cache/chr.json
-         History  about  the changed files. This is where cursor positions are
-       stored.
+       Keyboard shortcuts are similar to the default editors in Gnome, KDE and
+       other  desktop  environments. This is to ease workflows alternating be‐
+       tween GUIs and terminal.
+
+       The look and feel is a blend of modern GUI editors and late 90s PC text
+       mode editors (e.g. Turbo Vision based or edit.com) adapted to fit  into
+       terminal based workflows.
+
+Quick Start
+       The  important operations can be invoked from the menu. The menu can be
+       opened with F10 or with Alt together with the highlighted letter of the
+       menu item (e.g. Alt + f).
+
+       In dialogs Tab is used to navigate between the elements. Use F6 to nav‐
+       igate between windows/dialogs.
+
+       Text can be marked in most terminals with Shift + arrow key. Ctrl  +  c
+       is used for copying. Paste with Ctrl + v.
+
+       Changes  can  be  saved with Ctrl + s and the editor can be exited with
+       Ctrl + q.
 
 SHORT CUTS
-       Shift + Coursor
-         select text
+       Shift + Cursor
+         Selects text
 
        Ctrl + a
-         selected all text in file
+         Selects all text in the document
 
-       Ctrl + c or Ctrl + Insert
-         copy the selected text
+       Ctrl + c / Ctrl + Insert
+         Copies the selected text into the clipboard
 
        Ctrl + d
          Deletes the current line
 
        Ctrl + e, up/down/left/right
-         Switches the active window. Use the arrow keys to specify  the  loca‐
-       tion of the next active window.
+         Switches the active window. Use the arrow keys to specify the  direc‐
+       tion for the next active window.
 
        Ctrl + e, Ctrl + up/down/left/right
-         Change window size.
+         Change window size
 
        Ctrl + f
-         open search dialog
+         Open the search dialog
 
-       Shift + Backspace
-         delete a word (left from cursor position)
+       Ctrl + Backspace
+         Delete a word (left from cursor position)
 
        Ctrl + r
-         open the replace dialog
+         Open the replace dialog
 
        Ctrl + n
-         creates a new file
+         Creates a window with an empty document
 
        Ctrl + q
-         quits the editor
+         Quits the editor
 
        Ctrl + s
-         save (or save as for new documents)
+         Save (or save as for new documents)
 
-       Ctrl + v or Shift + Insert
-         inset at courser position
+       Ctrl + v / Shift + Insert
+         Inserts the contents of the clipboard at the current cursor position.
 
-       Ctrl + x or Shift + Delete
-         cut out the selected text
+       Ctrl + x / Shift + Delete
+         Cuts out the selected text and moves it to the clipboard
 
        Ctrl + y
-         Undoes an action that has been undone.
+         Redos an action that has been undone
 
        Ctrl + z
-         Undoes an action.
+         Undoes an action
 
        Ctrl + Shift + up
-         move lines up
+         Moves the current selection or line upwards
 
        Ctrl + Shift + down
-         move lines down
+         Moves the current selection or line down
 
        Ctrl + Left
-         jump a word to the left
+         Jump a word to the left
 
        Ctrl + Shift + Left
-         selected a word to the left
+         Selects a word to the left
 
        Ctrl + Right
-         jump a word to the right
+         Jump a word to the right
 
        Ctrl + Shift Right
-         selected a word to the right
+         Selects a word to the right
 
-       Alt + -
-         Open the window menu.
+       Alt + ‐
+         Open the window menu
 
        Alt + Shift + up/down/left/right
          Marks the text in blocks. Inserting the clipboard duplicates the text
-       per line. If an equal number of lines is marked as to be inserted, only
-       these will be inserted.
+       per  line. If an equal number of lines is marked as to be inserted, the
+       lines from the clipboard will be distributed across the selected lines.
 
        Alt + Shift + S
-         Sort selected lines
+         Sort the selected lines (lexicographical by code‐point)
 
        Alt + x
-         Opens a hidden command line. Type "help" for help.
+         Opens a command line. Type "help" for help.
 
-       Tab or Shift + tab
-         Indent or remove a selected block from a tab.
+       Tab / Shift + Tab
+         Indents a selected block by a tab stop or remove one level of  inden‐
+       tion
 
-       F3 or Shift + F3
-         Find the next or previously seach element.
+       F3 / Shift + F3
+         Find the next or previously search element
 
        F4
-         Toggle  the  selection mode to support the selection in consoles with
-       suppressed shift key.
+         Toggles the selection mode to allow selecting text in terminals where
+       marking with Shift + arrow keys does not work
 
-       F6, Shift + F6
-         change active window, with Shift in reverse order.
+       F6 / Shift + F6
+         Change active window, with Shift in reverse order
 
        ESC
-         Closes an active dialog, menu or action.
+         Closes an active dialog menu or action.
 
 MENU
-New
+File
+   New
        Opens a new an empty unnamed document.
 
-Open
+   Open
        Opens a file dialog to select a file to be opened.
 
-Save or Save as...
+   Save
        Saves the current status of the file. If the save path is not yet spec‐
-       ified,  the  "Save  as ..." dialog is opened. A storage location can be
-       selected here via a file dialog.
+       ified, the "Save as ..." dialog is opened.
 
-Reload
+   Save as...
+       A  storage location to save the file to can be selected here via a file
+       dialog.
+
+   Reload
        Reloads the current file. All changes are discarded.
 
-Close
+   Close
        Closes the active window.
 
-Quit
+   Quit
        Closes the editor. If there is a file open that has not yet been saved,
        the Save dialog will be opened first.
 
-Cut, Copy, Paste, Select all
-       Text can be marked using the arrow keys and holding down the Shift key.
-       The entire text can be marked with (Select all).  This marked text  can
-       then  be copied using (Copy) or cut using (Cut). With (Paste) this text
-       can be pasted at the current cursor position. The multiple  copying  of
-       text leads to the loss of the character storage (Copy Buffers).
+Edit
+   Cut, Copy, Paste, Select all
+       Text can be selected using the arrow keys while holding down the  Shift
+       key.  The  entire  text can be selected with Select all.  This selected
+       text can then be copied using Copy or cut using Cut. With  Paste,  this
+       text  can be inserted again at the current cursor position. If there is
+       text in the clipboard before copying (or cutting), it will be replaced.
 
-       Depending on the terminal, a distinction is made between the three copy
-       buffers. 1. the copy buffers internal in the editor. 2. the mouse  copy
-       buffer 3. the desktop copy buffer.
+       These functions use an internal clipboard that contains different  con‐
+       tent  than  the  clipboard  used in the terminal as copy and paste com‐
+       mands, as the editor cannot access the system clipboard.
 
-Undo und Redo
-       With Undo or CTRL + z, entries can be undone. With Redo or CTRL + y the
+   Delete Line
+       Deletes the entire line.
+
+   Select Mode
+       Toggles the selection mode to allow selecting text in  terminals  where
+       marking with Shift + arrow keys does not work.
+
+   Undo, Redo
+       With  Undo  or CTRL + z, edits can be undone. With Redo or CTRL + y the
        undo can be undone again.
 
-Search und Replace
-       With Search or CTRL + f the Search dialog is opened. Under  "Find"  you
-       enter  a  search word. You can use the options to shorten the search. A
-       live search will then be performed in the background. With F3 the  next
-       element found is marked, with Shift + F3 the previous one.
+   Search
+       Use Search or Ctrl + f to open the search dialog. Enter a  search  term
+       in  the  "Find"  field. You can refine the search using the options. If
+       live search is activated, the first matching  result  is  automatically
+       selected  while  the search term is being entered. If the text document
+       is active, you can press F3 to jump to the next result or Shift + F3 to
+       jump to the previous result.
 
-Search Next
-       With F3, the next search word is highlighted.
+   Search Next
+       Jump to the next match for the current search term.
 
-Search Previous
-       Like Shift + F3, the previous search word is marked.
+   Search Previous
+       Jump to the previous match for the current search term.
 
-Cut Line
-       The entire line is cut out.
+   Replace
+       With Replace or CTRL + r the Replace dialog is opened. Enter  a  search
+       term  in  the  "Find"  field. In the field "Replace" the word to be in‐
+       serted is specified. "Next" jumps to the next  match  for  the  current
+       search  term.  With "Replace" the current match is replaced. With "All"
+       all occurrences of the search term are replaced at once.
 
-Replace
-       With  Replace or CTRL + r the Replace dialog is opened. The search word
-       is entered in the "Find" field. In the field "Replace" the word  to  be
-       inserted  is  specified.  With "Next" the next search word is searched.
-       With "Replace" the search word is replaced. With "All" all  occurrences
-       are replaced at once.
+   Insert Character...
+       Opens a dialog in which a character code (Unicode codepoint) of a  spe‐
+       cial character to be inserted can be entered.
 
-Goto
+   Goto
        To jump to a line, open a Goto Line dialog under "Goto".
 
-Sort Selcted Lines
-       Sorts selected lines in alphabetical order.
+   Sort Selected Lines
+       Sort the selected lines (lexicographical by code‐point).
 
-Tab
-       Opens  the Dialog tab. Here the settings for a tab can be made. You can
-       choose between tab (\t) and space. You can also set the number of  spa‐
-       ces.  The  default  settings can also be set in the ~/.config/chr file.
-       Here you can specify: "tabsize=8" or "tab=false" for spaces.
+Options
+   Tab settings
+       Opens the Tab settings dialog. Here the settings for a tab can be made.
+       You  can  choose between tab (\t) and space. You can also set the width
+       of the indention. The default settings can also be set in  the  ~/.con‐
+       fig/chr  file.  Here  you  can  specify: "tabsize=8" or "tab=false" for
+       spaces.
 
-Line Number
-       Shows the line number display on the right side of the editor. The  de‐
-       fault settings can also be made in the ~/.config/chr file. Here you can
-       specify: "linenumber=true".
+   Line Number
+       Shows the line number on the left side of the editor. The default  set‐
+       tings can also be made in the ~/.config/chr file. Here you can specify:
+       "line_number=true".
 
-Formatting
-       In the Formatting dialog, "Formatting  Characters",  "Color  Tabs"  and
+   Formatting
+       In  the  Formatting  dialog,  "Formatting Characters", "Color Tabs" and
        "Color Spacs at end of line" can be switched on and off.
 
-       The "Formatting characters" marks spaces with a dot: "·" end of line (0
-       with a "¶" and the end of the file with: "♦". Alternatively, this  dis‐
-       play can be turned off.
+       The "Formatting characters" marks spaces with a dot: "·"  end  of  line
+       (\n) with a "¶" and the end of the file with: "♦".
 
        With "Color Tabs" tabs are colorized. The tab border is made darker.
 
-       "Color  Spaces  at  end of line" is used to mark the end of the line in
-       red, if the cursor is not located there.
+       "Color  Spaces at end of line" is used to spaces mark at the end of the
+       line in red.
 
        In the configuration file: ~/.config/chr the behavior can be influenced
-       with   the   option   "formatting_characters=true",  "color_tabs=true",
+       with  the   option   "formatting_characters=true",   "color_tabs=true",
        "color_space_end=true".
 
-Wrap long lines
-       Lines that are drawn beyond the editor border are cut or wrapped  here.
-       It  can be wrapped at the word boundary or hard at the end of the line.
-       This behaviour can be influenced by the option "wrap_lines=true" in the
-       ~/.config/chr file.
+   Wrap long lines
+       Selects  if  lines that are wider than the window are displayed clipped
+       or wrapped.. It can be wrapped at the word boundary or hard at the  end
+       of   the   line.   This  behavior  can  be  influenced  by  the  option
+       "wrap_lines=WordWrap" or "wrap_lines=WrapAnywhere" in the ~/.config/chr
+       file.
 
        In addition, the option "Display Right Margin at Column" can be used to
        specify a numerical value above which the background color is darkened.
-       This  value  can also be set with the configuration option: "right_mar‐
+       This value can also be set with the configuration  option:  "right_mar‐
        gin_hint=80" in ~/.config/chr.
 
-Following standard input
-       If data is transferred to the editor via standard input, the  following
-       mode can always be used to jump to the current end of the file.
+   Stop Input Pipe
+       Reading  from a pipe is interrupted. The standard input file descriptor
+       is closed.
 
-Stop Input Pipe
-       The standard input file descriptor will be closed.
+   Highlight Brackets
+       If active and the cursor is on a bracket the bracket at the cursor  po‐
+       sition  and  the matching other bracket are highlighted.  The following
+       opening and closing brackets can be highlighted when the  cursor  moves
+       over  them.  With the option "highlight_bracket=true" this behavior can
+       be influenced  in  the  ~/.config/chr.  Supported  bracket  types  are:
+       [{(<>)}].
 
-Syntax Highlighting
-       If  the  option:  "-Dsyntax_highlighting=true" was set at compile time,
+   Syntax Highlighting
+       If  the editor has been compiled with the "SyntaxHighlighting" feature,
        syntax highlighting is generally available. The language  is  automati‐
-       cally  detected when opening a file and displayed in the status bar. If
-       required, this can also be switched on and off or adjusted via the Syn‐
-       tax Highlighting dialog.
+       cally  detected  when a file is opened and displayed in the status bar.
+       If required, it can also be switched on and off  or  adjusted  via  the
+       syntax highlighting dialog. Syntax highlighting can also be deactivated
+       in this dialog.
 
-       With  the  command  line "--syntax-highlighting-theme" the theme can be
-       customized. The editor already brings the themes "chr-blugbg" and "chr-
-       blackbg".  If  needed,  a  theme  brought  by  "kate-syntax-highlighter
-       --list-themes" can be used.
+       The theme can be customized via the command line switch "‐‐syntax‐high‐
+       lighting‐theme".  The  editor  comes  with  the themes "chr‐bluebg" and
+       "chr‐blackbg". If required, a theme from the list that can be displayed
+       with "kate‐syntax‐highlighter ‐‐list‐themes" can be used. With the  op‐
+       tion  "syntax_highlighting_theme=chr‐bluebg"  the  theme  can be set in
+       ~/.config/chr.
 
-       Syntax highlighting can be switched  off  via  the  command  line  with
-       "--disable-syntax=true" when starting the editor.
+       Syntax highlighting can be switched off  via  the  command  line  using
+       "‐‐disable‐syntax"  when  the  editor is started. With the option "dis‐
+       able_syntax=true" the theme can be set in ~/.config/chr.
 
-Highlight Brackets
-       The  following opening and closing brackets can be highlighted when the
-       cursor moves over them. With the option  "highlight_bracket=true"  this
-       behavior can be influenced in the ~/.config/chr.
-         [{(<>)}]
-
-Theme
-       It  opens  the  dialog for selecting a theme. The Classic (blue) or the
-       Dark (black and white) mode is available. With the option  "theme=clas‐
-       sic" or "theme=dark", this can be influenced in the ~/.config/chr.
+   Theme
+       It opens the dialog for selecting a theme. The Classic  (blue)  or  the
+       Dark  (black and white) mode is available. With the option "theme=clas‐
+       sic" or "theme=dark", this can be set in the ~/.config/chr.
 
 Window
-Next / Previous
+   Next, Previous
        Switches the active window, with Shift in reverse order. (See F6)
 
-Tile Vertically / Horizontally / Fullscreen
-       Displays  multiple windows in vertical / horizontal / full screen posi‐
-       tions.
+   Tile Vertically, Horizontally, Fullscreen
+       Selects how multiple open documents are shown.
+
+       Vertical and horizontal distribute the available space across the docu‐
+       ments.  When Fullscreen is selected only one document is shown at once.
+       (See F6)
 
 CUSTOM CONFIG
-       Here are listed points that can  only  be  influenced  in  the  ~/.con‐
-       fig/chr.
+       The editor loads a configuration file  from  ~/.config/chr  (if  avail‐
+       able).  (If the environment variable $XDG_CONFIG_HOME is set, then from
+       $XDG_CONFIG_HOME/chr)
 
-Theme
-       With  the  option "theme" the default background can be set. At the mo‐
-       ment you can choose between "classic" and "dark".
+       In  addition to the options documented above, the following options are
+       available:
+
+   eat_space_before_tabs
+       This option is only active if tab=false is set.
+
+       If this option is active and the Tab key is pressed while the cursor is
+       in the indentation at the beginning of a line, the indentation  is  ex‐
+       tended to the next tab position.
+
+   attributes_file
+       Specifies  the path of the file in which the cursor and scroll position
+       of files opened in the past is saved.
 
 Default config
        There is a default config (~/.config/chr) where the  following  options
        can be set.
-         color_space_end=true
-         color_tabs=true
-         formatting_characters=true
-         tab=false
-         tabsize=8
-         theme=classic
-         wrap_lines=true
-         right_margin_hint=80
-         syntax_highlighter_themes="chr-bluebg"
+         attributes_file="/home/user/.cache/chr/chr.json"
+         color_space_end=false
+         color_tabs=false
          disable_syntax=false
+         eat_space_before_tabs=true
+         formatting_characters=false
+         highlight_bracket=true
+         line_number=false
+         logfile=""
+         right_margin_hint=0
+         syntax_highlighting_theme="chr‐bluebg"
+         tab=false
+         tab_size=4
+         theme="classic"
+         wrap_lines="NoWrap"
 
-DESCRIPTION
-       The  chr  terminal  editor is inspired by the turbo pascal editor using
-       Turbo Vision from the year 1997. For the keyboard shortcut he should be
-       similar gedit, to facilitate the transition from desktop to console ed‐
-       itor.
+FILES
+       ~/.config/chr
+         Your personal chr initializations.
+
+       ~/.cache/chr/chr.json
+         History  about  the changed files. This is where cursor positions are
+       stored.
 
 BUGS
-       All errors in this software  can  be  managed  via  the  bugtracker  on
+       Errors  in  this  software  can  be  reported  via  the  bugtracker  on
        https://github.com/istoph/editor.
 
 AUTHOR
-       Christoph Hüffelmann <chr@istoph.de> Martin Hostettler <textshell@uchu‐
-       ujin.de>
+       Christoph Hüffelmann <chr@istoph.de>
+       Martin Hostettler <textshell@uchu‐ujin.de>
 
-1.0                               28 Nov 2018                           man(1)
+1.0                               21 Dec 2023                           man(1)
 ```
 
 ## License
-This is licensed under the [Boost Software License 1.0](/COPYING)
+This software is licensed under the [Boost Software License 1.0](/COPYING)
