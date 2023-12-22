@@ -9,6 +9,7 @@
 #include "commandlinewidget.h"
 #include "file.h"
 #include "filewindow.h"
+#include "help.h"
 #include "mdilayout.h"
 #include "searchdialog.h"
 #include "statemux.h"
@@ -105,6 +106,7 @@ private:
     CommandLineWidget *_commandLineWidget = nullptr;
     Theme _theme = Theme::classic;
     Settings _initialFileSettings;
+    QPointer<Help> _helpDialog;
 
     Tui::ZCommandNotifier *_cmdTab = nullptr;
     Tui::ZWindow *_optionTab = nullptr;

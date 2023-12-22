@@ -3,9 +3,12 @@
 #ifndef STATUSBAR_H
 #define STATUSBAR_H
 
+#include <QDateTime>
+
 #include <Tui/ZColor.h>
 #include <Tui/ZWidget.h>
 
+class GlobalKeyPressListener;
 
 class StatusBar : public Tui::ZWidget {
     Q_OBJECT
@@ -20,6 +23,7 @@ public:
     QString viewSelectMode();
     QString viewStandardInput();
     QString viewLanguage();
+    void switchToNormalDisplay();
 
 public:
     QSize sizeHint() const override;
@@ -48,6 +52,10 @@ protected:
     void paintEvent(Tui::ZPaintEvent *event);
 
 private:
+    bool _showHelp = true;
+    QDateTime _helpHoldOff = QDateTime::currentDateTimeUtc().addMSecs(100);
+    GlobalKeyPressListener *_keyPressListener = nullptr;
+
     bool _modifiedFile = false;
     int _cursorPositionX = 0;
     int _utf8PositionX = 0;

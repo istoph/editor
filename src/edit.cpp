@@ -88,6 +88,7 @@ void Editor::setupUi() {
                       },
                       {"<m>W</m>indow", this, [this] { return createWindowMenu(); }},
                       { "Hel<m>p</m>", "", {}, {
+                            { "Quickstart", "F1", "Help", {}},
                             { "Terminal diagnostics", "", "TerminalDiagnostics", {}},
                             { "<m>A</m>bout", "", "About", {}}
                         }
@@ -310,6 +311,18 @@ void Editor::setupUi() {
     ensureWindowCommands(24);
 
     enableFileCommands(false);
+
+    auto openHelp = [this] {
+        if (_helpDialog.isNull()) {
+            _helpDialog = new Help(this);
+        } else {
+            _helpDialog->raise();
+            _helpDialog->setVisible(true);
+        }
+    };
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Tui::Key_F1), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
+                     this, openHelp);
+    QObject::connect(new Tui::ZCommandNotifier("Help", this), &Tui::ZCommandNotifier::activated, this, openHelp);
 
     QObject::connect(new Tui::ZCommandNotifier("About", this), &Tui::ZCommandNotifier::activated, this,
         [this] {

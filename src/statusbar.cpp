@@ -4,18 +4,39 @@
 
 #include <QSize>
 
+#include <Tui/ZEvent.h>
 #include <Tui/ZPainter.h>
 #include <Tui/ZSymbol.h>
-#include <Tui/ZTextLayout.h>
 #include <Tui/ZTerminal.h>
+#include <Tui/ZTextLayout.h>
 #include <Tui/ZTextMetrics.h>
 
 bool StatusBar::_qtMessage = false;
+
+class GlobalKeyPressListener : public QObject {
+public:
+    GlobalKeyPressListener(StatusBar *statusbar) : statusbar(statusbar) {
+    }
+
+    StatusBar *statusbar = nullptr;
+
+    bool eventFilter(QObject *watched, QEvent *event) {
+        (void)watched;
+        if (event->type() == Tui::ZEventType::rawSequence()) {
+            statusbar->switchToNormalDisplay();
+        }
+        return false;
+    }
+};
+
 
 StatusBar::StatusBar(Tui::ZWidget *parent) : Tui::ZWidget(parent) {
     setMaximumSize(Tui::tuiMaxSize, 1);
     setSizePolicyH(Tui::SizePolicy::Expanding);
     setSizePolicyV(Tui::SizePolicy::Fixed);
+
+    _keyPressListener = new GlobalKeyPressListener(this);
+    terminal()->installEventFilter(_keyPressListener);
 }
 
 QSize StatusBar::sizeHint() const {
@@ -28,6 +49,7 @@ void StatusBar::cursorPosition(int x, int utf16CodeUnit, int utf8CodeUnit, int l
     _utf8PositionX = utf8CodeUnit;
     _cursorPositionY = line;
     update();
+    switchToNormalDisplay();
 }
 
 QString StatusBar::viewCursorPosition() {
@@ -174,6 +196,16 @@ QString StatusBar::viewLanguage() {
     }
 }
 
+void StatusBar::switchToNormalDisplay() {
+    if (_showHelp) {
+        if (_helpHoldOff < QDateTime::currentDateTimeUtc()) {
+            _showHelp = false;
+            update();
+            _keyPressListener->deleteLater();
+        }
+    }
+}
+
 void StatusBar::language(QString language) {
     _language = language;
     update();
@@ -203,36 +235,45 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     _bg = getColor("chr.statusbarBg");
     auto *painter = event->painter();
 
-    QString search;
-    int cutColums = terminal()->textMetrics().splitByColumns(_searchText, 25).codeUnits;
-    search = _searchText.left(cutColums).replace(u'\n', escapedNewLine).replace(u'\t', escapedTab)
-            + ": "+ QString::number(_searchCount);
+    if (!_showHelp) {
+        QString search;
+        int cutColums = terminal()->textMetrics().splitByColumns(_searchText, 25).codeUnits;
+        search = _searchText.left(cutColums).replace(u'\n', escapedNewLine).replace(u'\t', escapedTab)
+                + ": "+ QString::number(_searchCount);
 
-    QString text;
-    text += slash(viewLanguage());
-    text += slash(viewFileChanged());
-    text += slash(viewSelectMode());
-    text += slash(viewModifiedFile());
+        QString text;
+        text += slash(viewLanguage());
+        text += slash(viewFileChanged());
+        text += slash(viewSelectMode());
+        text += slash(viewModifiedFile());
 
-    if (_stdin) {
-        text += slash(viewStandardInput());
+        if (_stdin) {
+            text += slash(viewStandardInput());
+        } else {
+            text += slash(viewReadWrite());
+        }
+
+        text += slash(viewOverwrite());
+        text += slash(viewMode());
+        text += slash(viewCursorPosition());
+
+        painter->clear({0, 0, 0}, _bg);
+        painter->writeWithColors(terminal()->width() - text.size() - 2, 0, text.toUtf8(), {0, 0, 0}, _bg);
+
+        if (_searchVisible && _searchText != "" && _searchCount != -1) {
+            Tui::ZTextLayout searchLayout(terminal()->textMetrics(), search);
+            searchLayout.doLayout(25);
+            searchLayout.draw(*painter, {0, 0}, Tui::ZTextStyle({0, 0, 0}, {0xff,0xdd,00}));
+        }
     } else {
-        text += slash(viewReadWrite());
+        QString text = "F1: Help, F10/Alt+F: Menu, Ctrl+Q: quit";
+
+        painter->clear({0, 0, 0}, _bg);
+        painter->writeWithColors(0, 0, text.toUtf8(), {0, 0, 0}, _bg);
     }
 
-    text += slash(viewOverwrite());
-    text += slash(viewMode());
-    text += slash(viewCursorPosition());
-
-    painter->clear({0, 0, 0}, _bg);
-    painter->writeWithColors(terminal()->width() - text.size() - 2, 0, text.toUtf8(), {0, 0, 0}, _bg);
     if (_qtMessage) {
         painter->writeWithAttributes(terminal()->width() - 2, 0, "!!", _bg, {0xff, 0, 0},
                                      Tui::ZTextAttribute::Bold | Tui::ZTextAttribute::Blink);
-    }
-    if (_searchVisible && _searchText != "" && _searchCount != -1) {
-        Tui::ZTextLayout searchLayout(terminal()->textMetrics(), search);
-        searchLayout.doLayout(25);
-        searchLayout.draw(*painter, {0, 0}, Tui::ZTextStyle({0, 0, 0}, {0xff,0xdd,00}));
     }
 }
