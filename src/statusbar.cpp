@@ -266,7 +266,7 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
             searchLayout.draw(*painter, {0, 0}, Tui::ZTextStyle({0, 0, 0}, {0xff,0xdd,00}));
         }
     } else {
-        QString text = "F1: Help, F10/Alt+F: Menu, Ctrl+Q: quit";
+        QString text = "F1: Help, F10/Alt+O: Menu, Ctrl+Q: quit";
 
         painter->clear({0, 0, 0}, _bg);
         painter->writeWithColors(0, 0, text.toUtf8(), {0, 0, 0}, _bg);
