@@ -674,7 +674,9 @@ void Editor::enableFileCommands(bool enable) {
     _cmdLineNumbers->setEnabled(enable);
     //_cmdFormatting->setEnabled(enable);
     _cmdBrackets->setEnabled(enable);
+#ifdef SYNTAX_HIGHLIGHTING
     _cmdSyntaxHighlight->setEnabled(enable);
+#endif
     _cmdTileVert->setEnabled(enable);
     _cmdTileHorz->setEnabled(enable);
     _cmdTileFull->setEnabled(enable);
