@@ -235,40 +235,38 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
     _bg = getColor("chr.statusbarBg");
     auto *painter = event->painter();
 
-    if (!_showHelp) {
-        QString search;
-        int cutColums = terminal()->textMetrics().splitByColumns(_searchText, 25).codeUnits;
-        search = _searchText.left(cutColums).replace(u'\n', escapedNewLine).replace(u'\t', escapedTab)
-                + ": "+ QString::number(_searchCount);
+    QString search;
+    int cutColums = terminal()->textMetrics().splitByColumns(_searchText, 25).codeUnits;
+    search = _searchText.left(cutColums).replace(u'\n', escapedNewLine).replace(u'\t', escapedTab)
+            + ": "+ QString::number(_searchCount);
 
-        QString text;
-        text += slash(viewLanguage());
-        text += slash(viewFileChanged());
-        text += slash(viewSelectMode());
-        text += slash(viewModifiedFile());
+    QString text;
+    text += slash(viewLanguage());
+    text += slash(viewFileChanged());
+    text += slash(viewSelectMode());
+    text += slash(viewModifiedFile());
 
-        if (_stdin) {
-            text += slash(viewStandardInput());
-        } else {
-            text += slash(viewReadWrite());
-        }
-
-        text += slash(viewOverwrite());
-        text += slash(viewMode());
-        text += slash(viewCursorPosition());
-
-        painter->clear({0, 0, 0}, _bg);
-        painter->writeWithColors(terminal()->width() - text.size() - 2, 0, text.toUtf8(), {0, 0, 0}, _bg);
-
-        if (_searchVisible && _searchText != "" && _searchCount != -1) {
-            Tui::ZTextLayout searchLayout(terminal()->textMetrics(), search);
-            searchLayout.doLayout(25);
-            searchLayout.draw(*painter, {0, 0}, Tui::ZTextStyle({0, 0, 0}, {0xff,0xdd,00}));
-        }
+    if (_stdin) {
+        text += slash(viewStandardInput());
     } else {
-        QString text = "F1: Help, F10/Alt+O: Menu, Ctrl+Q: quit";
+        text += slash(viewReadWrite());
+    }
 
-        painter->clear({0, 0, 0}, _bg);
+    text += slash(viewOverwrite());
+    text += slash(viewMode());
+    text += slash(viewCursorPosition());
+
+    painter->clear({0, 0, 0}, _bg);
+    painter->writeWithColors(terminal()->width() - text.size() - 2, 0, text.toUtf8(), {0, 0, 0}, _bg);
+
+    if (_searchVisible && _searchText != "" && _searchCount != -1) {
+        Tui::ZTextLayout searchLayout(terminal()->textMetrics(), search);
+        searchLayout.doLayout(25);
+        searchLayout.draw(*painter, {0, 0}, Tui::ZTextStyle({0, 0, 0}, {0xff,0xdd,00}));
+    }
+
+    if (_showHelp) {
+        QString text = "F1: Help, F10/Alt+O: Menu, Ctrl+Q: quit";
         painter->writeWithColors(0, 0, text.toUtf8(), {0, 0, 0}, _bg);
     }
 
