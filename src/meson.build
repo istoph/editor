@@ -46,6 +46,7 @@ editor_sources = [
   'tabdialog.cpp',
   'themedialog.cpp',
   'wrapdialog.cpp',
+  'twconnectserver.cpp',
 ]
 
 #ide:editable-filelist
@@ -76,6 +77,7 @@ editor_headers = [
   'tabdialog.h',
   'themedialog.h',
   'wrapdialog.h',
+  'twconnectserver.h',
 ]
 
 vcs_dep = vcs_tag(command : ['git', 'rev-parse', '--short', 'HEAD'],
@@ -105,6 +107,11 @@ executable('chr', main,
   include_directories: include_directories('.'),
   link_with: editor_lib,
   dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep, syntax_dep])
+
+executable('twconnect', ['twconnect.cpp'],
+#  qt5.preprocess(include_directories: include_directories('.')),
+  include_directories: include_directories('.'),
+  dependencies : [qt5_dep, dependency('termpaint'), dependency('PosixSignalManager')])
 
 executable('tests', tests,
   qt5.preprocess(moc_headers: tests_headers, moc_sources: tests,

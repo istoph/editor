@@ -5,6 +5,7 @@
 #include <signal.h>
 
 #include <QCoreApplication>
+#include <QJsonObject>
 
 #include <Tui/ZCommandNotifier.h>
 #include <Tui/ZImage.h>
@@ -15,6 +16,7 @@
 #include <Tui/ZTextLine.h>
 #include <Tui/ZVBoxLayout.h>
 
+#include "alert.h"
 #include "aboutdialog.h"
 #include "confirmsave.h"
 #include "formattingdialog.h"
@@ -22,6 +24,7 @@
 #include "insertcharacter.h"
 #include "opendialog.h"
 
+#include "twconnectserver.h"
 
 Editor::Editor() {
 }
@@ -899,5 +902,29 @@ void Editor::commandLineExecute(QString cmd) {
         // ignoring result because this is a interactive shell
         (void)!system(qgetenv("SHELL"));
         term->unpauseOperation();
+    } else if (cmd == "share" || cmd.startsWith("share ")) {
+        QString arg = cmd.mid(6);
+        if (arg == "local") {
+            new TwConnectServer(terminal());
+        } else if (arg.startsWith("local:")) {
+            new TwConnectServer(terminal(), arg.mid(6));
+        } else {
+            new TwConnectServerPeersock(terminal(), arg, [this] (const QJsonObject &message) {
+                if (message.value("event") == "code-generated") {
+                    QString outputMessage = "Connection Code is: " + message.value("code").toString();
+
+                    auto alert = new Alert(this);
+                    alert->setWindowTitle("Share");
+                    alert->setMarkup(outputMessage);
+                    alert->setGeometry({15, 5, 50, 5});
+                    alert->setDefaultPlacement(Qt::AlignCenter);
+                    alert->setVisible(true);
+                    alert->setFocus();
+
+                    //auto alert = new Alert(parentWidget());
+                    //alert->setMarkup(outputMessage);
+                }
+            });
+        }
     }
 }
