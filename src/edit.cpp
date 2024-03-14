@@ -698,13 +698,14 @@ void Editor::replaceDialog() {
     }
 }
 
-void Editor::newFile(QString filename) {
+FileWindow *Editor::newFile(QString filename) {
     FileWindow *win = createFileWindow();
     if (filename.size()) {
         win->getFileWidget()->newText(filename);
     }
     _mdiLayout->addWindow(win);
     win->getFileWidget()->setFocus();
+    return win;
 }
 
 void Editor::openFileMenu() {

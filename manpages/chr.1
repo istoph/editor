@@ -1,12 +1,11 @@
 .\" SPDX-License-Identifier: BSL-1.0
 .\" Manpage for chr
 .\" Make pull requests at: https://github.com/istoph/editor or create an issue for error corrections.
-.TH man 1 "21 Dec 2023" "1.0" "chr man page"
+.TH man 1 "20 Mar 2024" "0.1.78" "chr man page"
 .SH NAME
 chr \- chr is a terminal based editor
 .SH SYNOPSIS
-Usage: chr [options] [[+line[,char]] file …] [/directory]
-chr
+Usage: chr [options] [[+line[,char]] file …] [[+/searchword] file …] [/directory]
 
 Options:
   -h, --help                                       Displays help on commandline
@@ -33,9 +32,11 @@ Options:
   --disable-syntax                                 disable syntax highlighting
 
 Arguments:
-  [[+line[,char]] file …]                          Optional is the line number,
-                                                   several files can be opened
-                                                   in multiple windows.
+  [[+line[,char]] file …]                          Optional is the line number
+                                                   and position. Several files
+                                                   can be opened in multiple
+                                                   windows.
+  [[+/searchword] file …]                          A search word can be set.
   [/directory]                                     Or a directory can be
                                                    specified to search in the
                                                    open dialog.

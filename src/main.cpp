@@ -104,10 +104,14 @@ int main(int argc, char **argv) {
 
     // goto line
     parser.addPositionalArgument("[[+line[,char]] file …]",
-                    QCoreApplication::translate("main", "Optional is the line number, several files can be opened in multiple windows."));
+                    QCoreApplication::translate("main", "Optional is the line number and position. Several files can be opened in multiple windows."));
+
+    // search on open file
+    parser.addPositionalArgument("[[+/searchword] file …]",
+                                 QCoreApplication::translate("main", "A search word can be set."));
 
     // open directory
-    parser.addPositionalArgument("[/directory]",
+    parser.addPositionalArgument("[/directory …]",
                     QCoreApplication::translate("main", "Or a directory can be specified to search in the open dialog."));
     parser.process(app);
 
@@ -268,7 +272,17 @@ int main(int argc, char **argv) {
                     actions.push_back([root, name=parser.value(append)] { root->openFile(name); });
                 } else {
                 */
-                    actions.push_back([root] { root->newFile(""); });
+                    actions.push_back([root, pos=fle.pos, search=fle.search] {
+                        // TODO: the search is not yet implemented
+                        FileWindow* win = root->newFile("");
+                        if (search != "") {
+                            win->getFileWidget()->setSearchText(search);
+                            win->getFileWidget()->runSearch(false);
+                        }
+                        if (pos != "") {
+                            win->getFileWidget()->gotoLine(pos);
+                        }
+                    });
                 //}
                 actions.push_back([root] { root->watchPipe(); });
 
@@ -287,8 +301,12 @@ int main(int argc, char **argv) {
                         << "MB). Please start with -b for big files.\n";
                     return 0;
                 }
-                actions.push_back([root, name=fileInfo.absoluteFilePath(), pos=fle.pos] {
+                actions.push_back([root, name=fileInfo.absoluteFilePath(), pos=fle.pos, search=fle.search] {
                     FileWindow* win = root->openFile(name);
+                    if (search != "") {
+                        win->getFileWidget()->setSearchText(search);
+                        win->getFileWidget()->runSearch(false);
+                    }
                     if (pos != "") {
                         win->getFileWidget()->gotoLine(pos);
                     }

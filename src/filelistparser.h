@@ -11,6 +11,7 @@
 struct FileListEntry {
     QString fileName;
     QString pos;
+    QString search;
 };
 
 QVector<FileListEntry> parseFileList(QStringList args);
