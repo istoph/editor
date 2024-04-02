@@ -1267,3 +1267,174 @@ TEST_CASE("actions") {
     }
 }
 
+TEST_CASE("multiline") {
+    Tui::ZTerminal::OffScreen of(80, 24);
+    Tui::ZTerminal terminal(of);
+    Tui::ZRoot root;
+    Tui::ZWindow *w = new Tui::ZWindow(&root);
+    terminal.setMainWidget(&root);
+    w->setGeometry({0, 0, 80, 24});
+
+    File *f = new File(terminal.textMetrics(), w);
+    f->setFocus();
+    f->setGeometry({0, 0, 80, 24});
+
+    DocumentTestHelper t;
+    Tui::ZDocument &doc = t.getDoc(f);
+    Tui::ZDocumentCursor cursor{&doc, [&terminal,&doc](int line, bool wrappingAllowed) {
+            (void)wrappingAllowed;
+            Tui::ZTextLayout lay(terminal.textMetrics(), doc.line(line));
+            lay.doLayout(65000);
+            return lay;
+        }
+    };
+
+    f->insertText("abc\ndef\nghi\njkl");
+    f->setCursorPosition({2,1});
+
+    SECTION("select-up") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Up, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        CHECK(f->hasSelection() == true);
+        CHECK(f->hasBlockSelection() == false);
+        CHECK(f->hasMultiInsert() == true);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,1}); //TODO: position 2,0
+        CHECK(f->anchorPosition() == Tui::ZDocumentCursor::Position{2,1});
+    }
+    SECTION("select-down") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Down, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        CHECK(f->hasSelection() == true);
+        CHECK(f->hasBlockSelection() == false);
+        CHECK(f->hasMultiInsert() == true);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,1}); //TODO: position 2,2
+        CHECK(f->anchorPosition() == Tui::ZDocumentCursor::Position{2,1});
+    }
+    SECTION("select-up-left") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Up, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        CHECK(f->hasSelection() == true);
+        CHECK(f->hasBlockSelection() == false);
+        CHECK(f->hasMultiInsert() == true);
+        //left
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        CHECK(f->hasSelection() == true);
+        CHECK(f->hasBlockSelection() == true);
+        CHECK(f->hasMultiInsert() == false);
+    }
+    SECTION("select-down-rgiht") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Down, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        CHECK(f->hasSelection() == true);
+        CHECK(f->hasBlockSelection() == false);
+        CHECK(f->hasMultiInsert() == true);
+        //right
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Right, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        CHECK(f->hasSelection() == true);
+        CHECK(f->hasBlockSelection() == true);
+        CHECK(f->hasMultiInsert() == false);
+    }
+    SECTION("select-down-rgiht-key") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Down, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Right, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        CHECK(f->hasSelection() == true);
+        CHECK(f->hasBlockSelection() == true);
+        CHECK(f->hasMultiInsert() == false);
+
+        SECTION("add-a") {
+            Tui::ZTest::sendText(&terminal, "A", Qt::KeyboardModifier::NoModifier);
+            CHECK(f->hasSelection() == true);
+            CHECK(f->hasBlockSelection() == false);
+            CHECK(f->hasMultiInsert() == true);
+            CHECK(doc.line(0) == "abc");
+            CHECK(doc.line(1) == "deA");
+            CHECK(doc.line(2) == "ghA");
+            CHECK(doc.line(3) == "jkl");
+        }
+        SECTION("delete") {
+            Tui::ZTest::sendKey(&terminal, Qt::Key_Delete, Qt::KeyboardModifier::NoModifier);
+            CHECK(f->hasSelection() == false);
+            CHECK(f->hasBlockSelection() == false);
+            CHECK(f->hasMultiInsert() == false);
+            CHECK(doc.line(0) == "abc");
+            CHECK(doc.line(1) == "de");
+            CHECK(doc.line(2) == "gh");
+            CHECK(doc.line(3) == "jkl");
+        }
+        SECTION("backspace") {
+            Tui::ZTest::sendKey(&terminal, Qt::Key_Backspace, Qt::KeyboardModifier::NoModifier);
+            CHECK(f->hasSelection() == false);
+            CHECK(f->hasBlockSelection() == false);
+            CHECK(f->hasMultiInsert() == false);
+            CHECK(doc.line(0) == "abc");
+            CHECK(doc.line(1) == "de");
+            CHECK(doc.line(2) == "gh");
+            CHECK(doc.line(3) == "jkl");
+        }
+    }
+    SECTION("select-up-left") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Up, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        CHECK(f->hasSelection() == true);
+        CHECK(f->hasBlockSelection() == false);
+        CHECK(f->hasMultiInsert() == true);
+
+        SECTION("add-a") {
+            Tui::ZTest::sendText(&terminal, "A", Qt::KeyboardModifier::NoModifier);
+            CHECK(f->hasSelection() == true);
+            CHECK(f->hasBlockSelection() == false);
+            CHECK(f->hasMultiInsert() == true);
+            CHECK(doc.line(0) == "abAc");
+            CHECK(doc.line(1) == "deAf");
+            CHECK(doc.line(2) == "ghi");
+            CHECK(doc.line(3) == "jkl");
+        }
+        SECTION("delete") {
+            Tui::ZTest::sendKey(&terminal, Qt::Key_Delete, Qt::KeyboardModifier::NoModifier);
+            CHECK(f->hasSelection() == true);
+            CHECK(f->hasBlockSelection() == false);
+            CHECK(f->hasMultiInsert() == true);
+            CHECK(doc.line(0) == "ab");
+            CHECK(doc.line(1) == "de");
+            CHECK(doc.line(2) == "ghi");
+            CHECK(doc.line(3) == "jkl");
+        }
+        SECTION("backspace") {
+            Tui::ZTest::sendKey(&terminal, Qt::Key_Backspace, Qt::KeyboardModifier::NoModifier);
+            CHECK(f->hasSelection() == true);
+            CHECK(f->hasBlockSelection() == false);
+            CHECK(f->hasMultiInsert() == true);
+            CHECK(doc.line(0) == "ac");
+            CHECK(doc.line(1) == "df");
+            CHECK(doc.line(2) == "ghi");
+            CHECK(doc.line(3) == "jkl");
+        }
+    }
+    SECTION("select-up-down") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Up, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        CHECK(f->hasSelection() == true);
+        CHECK(f->hasBlockSelection() == false);
+        CHECK(f->hasMultiInsert() == true);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Down, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        CHECK(f->hasSelection() == true);
+        CHECK(f->hasBlockSelection() == false);
+        CHECK(f->hasMultiInsert() == true);
+    }
+    SECTION("select-and-esc") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Up, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        CHECK(f->hasSelection() == true);
+        CHECK(f->hasBlockSelection() == false);
+        CHECK(f->hasMultiInsert() == true);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Escape, Qt::KeyboardModifier::NoModifier);
+        CHECK(f->hasSelection() == false);
+        CHECK(f->hasBlockSelection() == false);
+        CHECK(f->hasMultiInsert() == false);
+        CHECK(f->cursorPosition() == Tui::ZDocumentCursor::Position{2,0});
+    }
+    SECTION("select-left-right") {
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Left, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        CHECK(f->hasSelection() == true);
+        CHECK(f->hasBlockSelection() == true);
+        CHECK(f->hasMultiInsert() == false);
+        Tui::ZTest::sendKey(&terminal, Qt::Key_Right, (Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ShiftModifier));
+        CHECK(f->hasSelection() == true);
+        CHECK(f->hasBlockSelection() == false);
+        CHECK(f->hasMultiInsert() == true);
+    }
+}
+
