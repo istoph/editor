@@ -791,7 +791,7 @@ QString File::selectedText() {
     return selectText;
 }
 
-bool File::hasSelection() {
+bool File::hasSelection() const {
     return hasBlockSelection() || hasMultiInsert() || ZTextEdit::hasSelection();
 }
 
@@ -2352,6 +2352,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
         disableDetachedScrolling();
         setSearchVisible(false);
+
         clearAdvancedSelection();
         adjustScrollPosition();
     } else if (event->key() == Qt::Key_Insert && event->modifiers() == 0) {

@@ -98,7 +98,9 @@ public:
     bool colorTrailingSpaces();
     void setColorTrailingSpaces(bool colorTrailingSpaces);
     QString selectedText();
-    bool hasSelection();
+    bool hasSelection() const;
+    bool hasBlockSelection() const;
+    bool hasMultiInsert() const;
     bool removeSelectedText();
     void appendLine(const QString &line);
     void insertText(const QString &str);
@@ -170,8 +172,7 @@ private:
     void adjustScrollPosition() override;
     void emitCursorPostionChanged() override;
 
-    bool hasBlockSelection() const;
-    bool hasMultiInsert() const;
+
 
     Tui::ZTextOption textOption() const override;
 
