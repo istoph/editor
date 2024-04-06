@@ -10,7 +10,12 @@
 #include <Tui/ZColor.h>
 #include <Tui/ZDocument.h>
 
-#include <../third-party/catch.hpp>
+#ifdef CATCH3
+#include <catch2/catch_all.hpp>
+using Catch::Approx;
+#else
+#include <catch2/catch.hpp>
+#endif
 
 #include "filecategorize.h"
 
