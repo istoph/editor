@@ -38,4 +38,7 @@ else
   endif
 endif
 
+install_man('manpages/chr.1')
+install_man('manpages/chr.de.1', locale: 'de')
+
 subdir('src')
