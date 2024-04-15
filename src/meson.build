@@ -106,9 +106,16 @@ executable('chr', main,
   link_with: editor_lib,
   dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep, syntax_dep])
 
+verbose_kwargs = {}
+if meson.version().version_compare('>=0.62')
+    verbose_kwargs += {'verbose': true}
+endif
+
 tests_bin = executable('tests', tests,
   qt5.preprocess(moc_headers: tests_headers, moc_sources: tests,
   include_directories: include_directories('.')),
   link_with: editor_lib,
   dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep, syntax_dep, catch2_dep])
-test('tests', tests_bin, workdir: meson.current_build_dir())
+test('tests', tests_bin,
+  workdir: meson.current_build_dir(),
+  kwargs: verbose_kwargs)
