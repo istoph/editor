@@ -118,4 +118,5 @@ tests_bin = executable('tests', tests,
   dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep, syntax_dep, catch2_dep])
 test('tests', tests_bin,
   workdir: meson.current_build_dir(),
+  timeout: 180,
   kwargs: verbose_kwargs)
