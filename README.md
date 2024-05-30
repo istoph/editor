@@ -27,20 +27,29 @@ Dependencies in Debian trixie:
 build-essential meson ninja-build pkg-config qt5-qmake qttools5-dev-tools qtbase5-dev libtermpaint-dev libtuiwidgets-dev libposixsignalmanager-dev
 ```
 
+Installing dependencies in Fedora:
+```
+sudo dnf install gcc gcc-c++ meson ninja-build pkg-config qt5-qtbase-devel qt5-linguist
+```
+
+Fedora do not have packages for [Tui Widgets](https://tuiwidgets.namepad.de/) and [Termpaint](https://termpaint.namepad.de/) so you have to install them from sources.
+
 For third-party syntex highlighting you need the compile
 option: `-Dsyntax_highlighting=true` and the following additional dependencies:
 ```
 libkf5syntaxhighlighting-dev libkf5syntaxhighlighting-tools cmake
 ```
 
+or in Fedora:
 
-See also [Tui Widgets](https://tuiwidgets.namepad.de/)
-and [Termpaint](https://termpaint.namepad.de/)
+```
+kf5-syntax-highlighting-devel
+```
 
 ```
 git clone https://github.com/istoph/editor
 cd editor
-meson setup _build
+PKG_CONFIG_PATH=$HOME/opt/tuiwidgets-prefix/lib/x86_64-linux-gnu/pkgconfig meson setup _build -Dprefix=$HOME/opt/tuiwidgets-prefix -Dsyntax_highlighting=true
 meson compile -C _build
 meson install -C _build
 ```
