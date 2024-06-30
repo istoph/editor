@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
 
     // big file
     QCommandLineOption bigOption({"b", "big-file"},
-                    QCoreApplication::translate("main", "Open bigger file then 100MB"));
+                    QCoreApplication::translate("main", "Open bigger files than 100MB"));
     parser.addOption(bigOption);
 
     // wrap log lines
