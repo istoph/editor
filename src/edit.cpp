@@ -442,6 +442,7 @@ FileWindow *Editor::createFileWindow() {
     FileWindow *win = new FileWindow(this);
     File *file = win->getFileWidget();
 
+    _mux.connect(win, file, &File::cursorPositionChanged, this, &Editor::updateTerminalHeight);
     _mux.connect(win, file, &File::cursorPositionChanged, _statusBar, &StatusBar::cursorPosition, 0, 0, 0, 0);
     _mux.connect(win, file, &File::scrollPositionChanged, _statusBar, &StatusBar::scrollPosition, 0, 0);
     _mux.connect(win, file, &File::selectCharLines, _statusBar, &StatusBar::setSelectCharLines, 0, 0);
@@ -729,6 +730,24 @@ void Editor::replaceDialog() {
     }
 }
 
+void Editor::setTerminalHeightMode(TerminalMode mode) {
+    terminalMode = mode;
+}
+
+void Editor::updateTerminalHeight() {
+#ifdef HAS_TUIWIDGETS_0_2_2
+    if (terminalMode == TerminalMode::modeAuto) {
+        _mdiLayout->setMode(MdiLayout::LayoutMode::Base);
+        if (_file) {
+            int tmp = _file->visualLineCount() + 4;
+            if(tmp > terminal()->height()) {
+                terminal()->setInlineHeight(tmp);
+            }
+        }
+    }
+#endif
+}
+
 FileWindow *Editor::newFile(QString filename) {
     FileWindow *win = createFileWindow();
     if (filename.size()) {
@@ -921,7 +940,7 @@ void Editor::commandLineExecute(QString cmd) {
             });
         }
     } else if (cmd == "help") {
-        _commandLineWidget->setCmdEntryText("suspend shell");
+        _commandLineWidget->setCmdEntryText("suspend shell fullscreen nofullscreen incsize");
         showCommandLine();
     } else if (cmd == "suspend") {
         ::raise(SIGTSTP);
@@ -932,4 +951,13 @@ void Editor::commandLineExecute(QString cmd) {
         (void)!system(qgetenv("SHELL"));
         term->unpauseOperation();
     }
+#ifdef HAS_TUIWIDGETS_0_2_2
+    else if (cmd == "incsize") {
+        terminal()->setInlineHeight(terminal()->inlineHeight() + 1);
+    } else if (cmd == "fullscreen") {
+        terminal()->setInline(false);
+    } else if (cmd == "nofullscreen") {
+        terminal()->setInline(true);
+    }
+#endif
 }

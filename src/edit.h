@@ -44,6 +44,11 @@ public:
         classic,
         dark
     };
+    enum class TerminalMode {
+        modeFullscreen,
+        modeManual,
+        modeAuto
+    };
 
 public:
     Editor();
@@ -64,9 +69,11 @@ public:
     void watchPipe();
 
     void setStartActions(std::vector<std::function<void()>> actions);
+    void setTerminalHeightMode(TerminalMode mode);
 
 public slots:
     void showCommandLine();
+    void updateTerminalHeight();
 
 private slots:
     void commandLineDismissed();
@@ -132,6 +139,7 @@ private:
     QTimer _pendingKeySequenceTimer;
     std::vector<std::function<void()>> _startActions;
     int _windowCommandsCreated = 0;
+    TerminalMode terminalMode = TerminalMode::modeFullscreen;
 };
 
 #endif // EDIT_H

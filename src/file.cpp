@@ -1842,6 +1842,31 @@ bool File::isNewFile() {
     return false;
 }
 
+int File::visualLineCount() {
+    if (wordWrapMode() == Tui::ZTextOption::WrapMode::NoWrap) {
+        return document()->lineCount();
+    }
+    if (geometry().width() <= 0 || geometry().height() <= 0 || !terminal()) {
+        return document()->lineCount();
+    }
+
+    const int maxLines = 1024;
+    // TODO: This leaves an empty line, but without for some reason the scroll happens before resizing the inline
+    // display.
+    int visualLines = 1;
+
+    Tui::ZTextOption option = textOption();
+    for (int line = 0; line < document()->lineCount(); line++) {
+        Tui::ZTextLayout lineLayout = textLayoutForLine(option, line);
+        visualLines += lineLayout.lineCount();
+        if (visualLines > maxLines) {
+            break;
+        }
+    }
+
+    return visualLines;
+}
+
 void File::keyEvent(Tui::ZKeyEvent *event) {
     auto undoGroup = startUndoGroup();
 

@@ -19,6 +19,10 @@ qt5 = import('qt5')
 qt5_dep = dependency('qt5', modules: ['Core', 'Concurrent'])
 
 tuiwidgets_dep = dependency('TuiWidgets', version: '>= 0.2.1')
+if tuiwidgets_dep.version().version_compare('>= 0.2.2')
+  add_project_arguments('-DHAS_TUIWIDGETS_0_2_2', language: 'cpp')
+endif
+
 posixsignalmanager_dep = dependency('PosixSignalManager')
 
 if get_option('syntax_highlighting')

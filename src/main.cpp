@@ -102,6 +102,14 @@ int main(int argc, char **argv) {
     parser.addOption(disableSyntaxHighlighting);
 #endif
 
+#ifdef HAS_TUIWIDGETS_0_2_2
+    // height (bonsai mode)
+    QCommandLineOption sizeOption({"s", "size"},
+                    QCoreApplication::translate("main", "Size <N> in lines or <auto> for Automatic detection of the size of the lines with which the editor is displayed on the console."),
+                    QCoreApplication::translate("main", "N|auto"));
+    parser.addOption(sizeOption);
+#endif
+
     // goto line
     parser.addPositionalArgument("[[+line[,char]] file …]",
                     QCoreApplication::translate("main", "Optional is the line number and position. Several files can be opened in multiple windows."));
@@ -121,8 +129,30 @@ int main(int argc, char **argv) {
 
     // START EDITOR
     Tui::ZTerminal terminal;
+
     Editor *root = new Editor();
+#ifdef HAS_TUIWIDGETS_0_2_2
+    terminal.setInlineHeight(7);
+    if (parser.isSet(sizeOption)) {
+        bool isInt = false;
+        int size = parser.value(sizeOption).toInt(&isInt);
+        if (parser.value(sizeOption) == "auto") {
+            terminal.setInline(true);
+            root->setTerminalHeightMode(Editor::TerminalMode::modeAuto);
+        } else if (isInt && size > 0) {
+            terminal.setInline(true);
+            terminal.setInlineHeight(size);
+            root->setTerminalHeightMode(Editor::TerminalMode::modeManual);
+        } else {
+            terminal.setInline(true);
+            root->setTerminalHeightMode(Editor::TerminalMode::modeManual);
+        }
+    } else {
+        root->setTerminalHeightMode(Editor::TerminalMode::modeFullscreen);
+    }
+#endif
     terminal.setMainWidget(root);
+
 
     // READ CONFIG FILE AND SET DEFAULT OPTIONS
     QString configDir = "";

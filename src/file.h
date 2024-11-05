@@ -125,6 +125,7 @@ public:
     void setRightMarginHint(int hint);
     int rightMarginHint() const;
     bool isNewFile();
+    int visualLineCount();
     void setSyntaxHighlightingTheme(QString themeName);
     void setSyntaxHighlightingLanguage(QString language);
     QString syntaxHighlightingLanguage();
