@@ -153,6 +153,7 @@ signals:
     void searchCountChanged(int sc);
     void searchTextChanged(QString searchText);
     void searchVisibleChanged(bool visible);
+    void selectCharLines(int selectChar, int selectLines);
     void syntaxHighlightingLanguageChanged(QString language);
     void syntaxHighlightingEnabledChanged(bool enable);
 

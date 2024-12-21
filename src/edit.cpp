@@ -416,6 +416,7 @@ FileWindow *Editor::createFileWindow() {
 
     _mux.connect(win, file, &File::cursorPositionChanged, _statusBar, &StatusBar::cursorPosition, 0, 0, 0, 0);
     _mux.connect(win, file, &File::scrollPositionChanged, _statusBar, &StatusBar::scrollPosition, 0, 0);
+    _mux.connect(win, file, &File::selectCharLines, _statusBar, &StatusBar::setSelectCharLines, 0, 0);
     _mux.connect(win, file, &File::modifiedChanged, _statusBar, &StatusBar::setModified, false);
     _mux.connect(win, win, &FileWindow::readFromStandadInput, _statusBar, &StatusBar::readFromStandardInput, false);
     //_mux.connect(win, win, &FileWindow::followStandadInput, _statusBar, &StatusBar::followStandardInput, false);

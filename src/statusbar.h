@@ -21,6 +21,7 @@ public:
     QString viewOverwrite();
     QString viewReadWrite();
     QString viewSelectMode();
+    QString viewSelectCharsLines();
     QString viewStandardInput();
     QString viewLanguage();
     void switchToNormalDisplay();
@@ -40,6 +41,7 @@ public slots:
     void searchVisible(bool visible);
     void crlfMode(bool msdos);
     void modifiedSelectMode(bool f4);
+    void setSelectCharLines(int selectChar, int selectLines);
     void fileHasBeenChangedExternally(bool fileChanged = true);
     void overwrite(bool overwrite);
     void syntaxHighlightingEnabled(bool enable);
@@ -70,6 +72,8 @@ private:
     bool _searchVisible = false;
     bool _crlfMode = false;
     bool _selectMode = false;
+    int _selectLines = 0;
+    int _selectChars = 0;
     bool _fileChanged = false;
     bool _overwrite = false;
     QString _language = "None";

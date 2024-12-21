@@ -2521,6 +2521,13 @@ void File::adjustScrollPosition() {
     }
     scrollRangeChanged(std::max(0, max - viewWidth), std::max(0, document()->lineCount() - geometry().height()));
 
+    if (hasSelection()) {
+        auto l = getSelectedLines();
+        int lines = 1 + std::max(l.second, l.first) - std::min(l.second, l.first);
+        selectCharLines(selectedText().count(), lines);
+    } else {
+        selectCharLines(0, 0);
+    }
     update();
 }
 

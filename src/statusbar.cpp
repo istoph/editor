@@ -150,12 +150,25 @@ void StatusBar::modifiedSelectMode(bool event) {
     _selectMode = event;
     update();
 }
+
 QString StatusBar::viewSelectMode() {
     QString text;
     if (_selectMode) {
         text += "SELECT MODE (F4)";
     }
     return text;
+}
+
+void StatusBar::setSelectCharLines(int selectChar, int selectLines) {
+    _selectChars = selectChar;
+    _selectLines = selectLines;
+}
+
+QString StatusBar::viewSelectCharsLines() {
+    if (_selectChars > 0 || _selectLines > 0) {
+        return QString::number(_selectChars) +"C "+ QString::number(_selectLines) +"L";
+    }
+    return "";
 }
 
 void StatusBar::fileHasBeenChangedExternally(bool fileChanged) {
@@ -241,6 +254,7 @@ void StatusBar::paintEvent(Tui::ZPaintEvent *event) {
             + ": "+ QString::number(_searchCount);
 
     QString text;
+    text += slash(viewSelectCharsLines());
     text += slash(viewLanguage());
     text += slash(viewFileChanged());
     text += slash(viewSelectMode());
