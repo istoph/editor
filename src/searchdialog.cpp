@@ -243,6 +243,15 @@ SearchDialog::SearchDialog(Tui::ZWidget *parent, bool replace) : Tui::ZDialog(pa
     QObject::connect(_forwardRadio, &Tui::ZRadioButton::toggled, this, [this] {
         emitAllConditions();
     });
+
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, Qt::NoModifier), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
+        this, [this] {
+        Q_EMIT searchFindNext(translateSearch(_searchText->text()), _forwardRadio->checked());
+    });
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forKey(Qt::Key_F3, Qt::ShiftModifier), this, Qt::WindowShortcut), &Tui::ZShortcut::activated,
+        this, [this] {
+        Q_EMIT searchFindNext(translateSearch(_searchText->text()), !_forwardRadio->checked());
+    });
 }
 
 
