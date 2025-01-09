@@ -3,20 +3,6 @@
 main = ['main.cpp']
 
 #ide:editable-filelist
-tests = [
-  'tests/eventrecorder.cpp',
-  'tests/filelistparsertests.cpp',
-  'tests/fileopentests.cpp',
-  'tests/filesavetests.cpp',
-  'tests/filetests.cpp',
-  'tests/tests.cpp',
-]
-
-tests_headers = [
-  'tests/eventrecorder.h',
-]
-
-#ide:editable-filelist
 editor_sources = [
   'aboutdialog.cpp',
   'alert.cpp',
@@ -111,12 +97,6 @@ if meson.version().version_compare('>=0.62')
     verbose_kwargs += {'verbose': true}
 endif
 
-tests_bin = executable('tests', tests,
-  qt5.preprocess(moc_headers: tests_headers, moc_sources: tests,
-  include_directories: include_directories('.')),
-  link_with: editor_lib,
-  dependencies : [qt5_dep, tuiwidgets_dep, posixsignalmanager_dep, syntax_dep, catch2_dep])
-test('tests', tests_bin,
-  workdir: meson.current_build_dir(),
-  timeout: 180,
-  kwargs: verbose_kwargs)
+if get_option('tests')
+  subdir('tests')
+endif

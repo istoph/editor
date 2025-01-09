@@ -33,6 +33,10 @@ option: `-Dsyntax_highlighting=true` and the following additional dependencies:
 libkf5syntaxhighlighting-dev libkf5syntaxhighlighting-tools cmake
 ```
 
+Additional options are:
+* `-Dtests=true` for switching build tests on and off.
+* `-Dsystem-catch2=enable` to use catch as a system library (only use for tests).
+
 
 See also [Tui Widgets](https://tuiwidgets.namepad.de/)
 and [Termpaint](https://termpaint.namepad.de/)

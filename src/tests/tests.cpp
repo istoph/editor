@@ -3,7 +3,7 @@
 #define CATCH_CONFIG_RUNNER
 #include "catchwrapper.h"
 
-#include "file.h"
+#include "../file.h"
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -34,11 +34,11 @@ QByteArray fileChecksum(const QString &fileName,
 }
 
 void readWrite(QString in) {
+    CAPTURE(in);
     Tui::ZTerminal::OffScreen of(80, 24);
     Tui::ZTerminal terminal(of);
 
     QString out = in + "_dub";
-
     File *f = new File(terminal.textMetrics(), nullptr);
     //f->setFilename(in);
     CHECK(f->openText(in));
@@ -159,6 +159,6 @@ TEST_CASE("all chars") {
 
 TEST_CASE("read write") {
 
-    readWrite("chr");
+    readWrite("../chr");
 
 }

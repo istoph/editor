@@ -3,7 +3,7 @@
 #include "catchwrapper.h"
 #include <QStringList>
 
-#include "filelistparser.h"
+#include "../filelistparser.h"
 
 TEST_CASE("parseFileList") {
     SECTION("empty") {

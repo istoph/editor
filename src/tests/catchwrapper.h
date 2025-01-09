@@ -17,7 +17,7 @@ using Catch::Approx;
 #include <catch2/catch.hpp>
 #endif
 
-#include "filecategorize.h"
+#include "../filecategorize.h"
 
 namespace Catch {
     template<>

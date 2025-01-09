@@ -10,7 +10,7 @@
 #include <Tui/ZTextMetrics.h>
 #include <Tui/ZWindow.h>
 
-#include "file.h"
+#include "../file.h"
 #include "eventrecorder.h"
 
 class DocumentTestHelper {
