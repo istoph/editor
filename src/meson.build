@@ -87,6 +87,7 @@ editor_lib = static_library('editor', [editor_sources, syntax_qrc],
 
 executable('chr', main,
   vcs_dep,
+  install_rpath: get_option('rpath'),
   install : true,
   include_directories: include_directories('.'),
   link_with: editor_lib,
