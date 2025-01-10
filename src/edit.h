@@ -121,6 +121,9 @@ private:
     Tui::ZCommandNotifier *_cmdTileVert = nullptr;
     Tui::ZCommandNotifier *_cmdTileHorz = nullptr;
     Tui::ZCommandNotifier *_cmdTileFull = nullptr;
+    Tui::ZCommandNotifier *_cmdNextWindow = nullptr;
+    Tui::ZCommandNotifier *_cmdPreviousWindow = nullptr;
+
     int _tab = 8;
     Tui::ZWindow *_pendingKeySequence = nullptr;
     QTimer _pendingKeySequenceTimer;

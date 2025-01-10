@@ -267,12 +267,14 @@ void Editor::setupUi() {
     QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forMnemonic("x"), this, Qt::ApplicationShortcut), &Tui::ZShortcut::activated,
                      this, &Editor::showCommandLine);
 
-    QObject::connect(new Tui::ZCommandNotifier("NextWindow", this), &Tui::ZCommandNotifier::activated, this,
+    _cmdNextWindow = new Tui::ZCommandNotifier("NextWindow", this);
+    QObject::connect(_cmdNextWindow, &Tui::ZCommandNotifier::activated, this,
         [this] {
             activateNextWindow();
         }
     );
-    QObject::connect(new Tui::ZCommandNotifier("PreviousWindow", this), &Tui::ZCommandNotifier::activated, this,
+    _cmdPreviousWindow = new Tui::ZCommandNotifier("PreviousWindow", this);
+    QObject::connect(_cmdPreviousWindow, &Tui::ZCommandNotifier::activated, this,
         [this] {
             activatePreviousWindow();
         }
@@ -533,7 +535,6 @@ QVector<Tui::ZMenuItem> Editor::createWindowMenu() {
                                          {}});
             }
         }
-
     }
 
     return subitems;
