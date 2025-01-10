@@ -673,7 +673,7 @@ void Editor::enableFileCommands(bool enable) {
     _cmdSortSelectedLines->setEnabled(enable);
     _cmdTab->setEnabled(enable);
     _cmdLineNumbers->setEnabled(enable);
-    //_cmdFormatting->setEnabled(enable);
+    _cmdFormatting->setEnabled(enable);
     _cmdBrackets->setEnabled(enable);
 #ifdef SYNTAX_HIGHLIGHTING
     _cmdSyntaxHighlight->setEnabled(enable);
