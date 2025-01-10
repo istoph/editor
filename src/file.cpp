@@ -630,6 +630,7 @@ void File::copy() {
     } else if (ZTextEdit::hasSelection()) {
         Tui::ZClipboard *clipboard = findFacet<Tui::ZClipboard>();
         clipboard->setContents(ZTextEdit::selectedText());
+        setSelectMode(false);
     }
 }
 
@@ -2352,6 +2353,7 @@ void File::keyEvent(Tui::ZKeyEvent *event) {
     } else if (event->key() == Qt::Key_Escape && event->modifiers() == 0) {
         disableDetachedScrolling();
         setSearchVisible(false);
+        setSelectMode(false);
 
         clearAdvancedSelection();
         adjustScrollPosition();
