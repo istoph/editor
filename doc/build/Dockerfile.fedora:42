@@ -1,0 +1,35 @@
+FROM quay.io/fedora/fedora:42-x86_64
+
+RUN dnf -y upgrade && \
+    dnf -y install devscripts git meson ninja-build pkgconfig qt5-qtbase-devel kf5-syntax-highlighting-devel
+
+# build lib termpaint
+RUN git clone https://github.com/termpaint/termpaint && \
+    cd termpaint && \
+    meson setup _build -Dprefix=$HOME/ && \
+    meson compile -C _build && \
+    meson install -C _build && \
+    cd ..
+
+# build lib tuiwidgets
+RUN git clone https://github.com/tuiwidgets/tuiwidgets && \
+    cd tuiwidgets && \
+    PKG_CONFIG_PATH=$HOME/lib64/pkgconfig meson setup _build -Dprefix=$HOME/ -Drpath=$HOME/lib64 && \
+    meson compile -C _build && \
+    meson install -C _build && \
+    cd ..
+
+# build editor chr
+RUN git clone https://github.com/istoph/editor && \
+    cd editor && \
+    PKG_CONFIG_PATH=$HOME/lib64/pkgconfig meson setup _build -Dsyntax_highlighting=true -Drpath=$HOME/lib64 && \
+    meson compile -C _build && \
+    meson install -C _build && \
+    cd ..
+
+RUN find / | grep chr
+
+# debug info
+RUN chr -v && \
+    chr -h
+

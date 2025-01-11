@@ -49,6 +49,9 @@ meson compile -C _build
 meson install -C _build
 ```
 
+For more details see: [doc](https://github.com/istoph/editor/tree/main/doc/build/README.md)
+
+
 ## Doku
 ```
 man(1)                           chr man page                           man(1)

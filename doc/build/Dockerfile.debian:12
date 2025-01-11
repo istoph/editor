@@ -1,0 +1,33 @@
+FROM debian:bookworm
+
+RUN apt update; apt install -y build-essential git meson ninja-build pkg-config qt5-qmake qttools5-dev-tools qtbase5-dev libkf5syntaxhighlighting-dev libkf5syntaxhighlighting-tools cmake
+
+# build lib termpaint
+RUN git clone https://github.com/termpaint/termpaint && \
+    cd termpaint && \
+    meson setup _build -Dprefix=$HOME/opt/tuiwidgets-prefix && \
+    meson compile -C _build && \
+    meson install -C _build && \
+    cd ..
+
+# build lib tuiwidgets
+RUN git clone https://github.com/tuiwidgets/tuiwidgets && \
+    cd tuiwidgets && \
+    PKG_CONFIG_PATH=$HOME/opt/tuiwidgets-prefix/lib/x86_64-linux-gnu/pkgconfig meson setup _build -Dprefix=$HOME/opt/tuiwidgets-prefix -Drpath=$HOME/opt/tuiwidgets-prefix/lib/x86_64-linux-gnu/ && \
+    meson compile -C _build && \
+    meson install -C _build && \
+    cd ..
+
+# build editor chr
+RUN git clone https://github.com/istoph/editor && \
+    cd editor && \
+    PKG_CONFIG_PATH=$HOME/opt/tuiwidgets-prefix/lib/x86_64-linux-gnu/pkgconfig meson setup _build -Dsyntax_highlighting=true -Drpath=$HOME/opt/tuiwidgets-prefix/lib/x86_64-linux-gnu/ && \
+    meson compile -C _build && \
+    meson install -C _build && \
+    cd ..
+
+# debug info
+RUN chr -v && \
+    chr -h
+
+
