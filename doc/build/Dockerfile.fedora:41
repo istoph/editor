@@ -1,4 +1,4 @@
-FROM quay.io/fedora/fedora:41-x86_64
+FROM quay.io/fedora/fedora:41
 
 RUN dnf -y upgrade && \
     dnf -y install devscripts git meson ninja-build pkgconfig qt5-qtbase-devel kf5-syntax-highlighting-devel
