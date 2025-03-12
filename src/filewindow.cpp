@@ -84,10 +84,23 @@ FileWindow::FileWindow(Tui::ZWidget *parent) : Tui::ZWindow(parent) {
                 }
     });
 
+    //Close
+    //shortcut does not work in vte, konsole, ...
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcut("Q", Qt::ControlModifier | Qt::ShiftModifier), this, Qt::WindowShortcut),
+                     &Tui::ZShortcut::activated, this, [this] {
+            closeRequested();
+        }
+    );
+    QObject::connect(new Tui::ZShortcut(Tui::ZKeySequence::forShortcutSequence("e", Qt::ControlModifier, "q", {}), this, Qt::WindowShortcut),
+                     &Tui::ZShortcut::activated, this, [this] {
+            closeRequested();
+        }
+    );
     QObject::connect(new Tui::ZCommandNotifier("Close", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated, this,
-                     [this] {
-        closeRequested();
-    });
+        [this] {
+            closeRequested();
+        }
+    );
 
     //Edit
     QObject::connect(new Tui::ZCommandNotifier("Selectall", this, Qt::WindowShortcut), &Tui::ZCommandNotifier::activated, this,
