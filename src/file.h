@@ -233,7 +233,6 @@ private:
     bool _stdin = false;
     Position _bracketPosition;
     bool _bracket = false;
-    QJsonObject _attributeObject;
     QString _attributesFile;
     bool _saveAs = true;
     bool _formattingCharacters = true;

@@ -26,6 +26,7 @@
 #include <Tui/ZTerminal.h>
 #include <Tui/ZTextMetrics.h>
 
+#include "attributes.h"
 #include "searchcount.h"
 
 // User Data values for ZFormatRange ranges.
@@ -296,90 +297,7 @@ File::~File() {
     }
 }
 
-bool File::readAttributes() {
-    if (_attributesFile.isEmpty()) {
-        return false;
-    }
-    QFile fileRead(_attributesFile);
-    if (!fileRead.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        //qDebug() << "File open error";
-        return false;
-    }
-    QString val = fileRead.readAll();
-    fileRead.close();
 
-    QJsonDocument jd = QJsonDocument::fromJson(val.toUtf8());
-    _attributeObject = jd.object();
-    return true;
-}
-
-Tui::ZDocumentCursor::Position File::getAttributes() {
-    if (_attributesFile.isEmpty()) {
-        return {0, 0};
-    }
-    if (readAttributes()) {
-        QJsonObject data = _attributeObject.value(getFilename()).toObject();
-        if (data.contains("cursorPositionX") && data.contains("cursorPositionY")) {
-            return {data.value("cursorPositionX").toInt(), data.value("cursorPositionY").toInt()};
-        }
-        return {data.value("curOff").toInt(), data.value("curLine").toInt()};
-    }
-    return {0, 0};
-}
-
-bool File::writeAttributes() {
-    QFileInfo filenameInfo(getFilename());
-    if (!filenameInfo.exists() || _attributesFile.isEmpty()) {
-        return false;
-    }
-    readAttributes();
-
-    const auto [cursorCodeUnit, cursorLine] = cursorPosition();
-
-    QJsonObject data;
-    data.insert("curOff", cursorCodeUnit);
-    data.insert("curLine", cursorLine);
-    data.insert("sCol", scrollPositionColumn());
-    data.insert("sLine", scrollPositionLine());
-    data.insert("sFine", scrollPositionFineLine());
-    _attributeObject.insert(filenameInfo.absoluteFilePath(), data);
-
-    QJsonDocument jsonDoc;
-    jsonDoc.setObject(_attributeObject);
-
-    //Save
-    QDir d = QFileInfo(_attributesFile).absoluteDir();
-    QString absolute=d.absolutePath();
-    if (!QDir(absolute).exists()) {
-        if (QDir().mkdir(absolute)) {
-            qWarning("%s%s", "can not create directory: ", absolute.toUtf8().data());
-            return false;
-        }
-    }
-
-    QSaveFile file(_attributesFile);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qWarning("%s%s", "can not save attributes file: ", _attributesFile.toUtf8().data());
-        return false;
-    }
-    file.write(jsonDoc.toJson());
-    file.commit();
-    return true;
-}
-
-void File::setAttributesFile(QString attributesFile) {
-    //TODO is creatable
-    if (attributesFile.isEmpty() || attributesFile.isNull()) {
-        _attributesFile = "";
-    } else {
-        QFileInfo i(attributesFile);
-        _attributesFile = i.absoluteFilePath();
-    }
-}
-
-QString File::attributesFile() {
-    return _attributesFile;
-}
 
 int File::convertTabsToSpaces() {
     auto undoGroup = startUndoGroup();
@@ -533,13 +451,29 @@ bool File::highlightBracket() {
     return _bracket;
 }
 
+bool File::writeAttributes() {
+    Attributes a{_attributesFile};
+    return a.writeAttributes(getFilename(),
+                             cursorPosition(),
+                             scrollPositionColumn(), scrollPositionLine(), scrollPositionFineLine());
+}
+
+void File::setAttributesFile(QString attributesFile) {
+    _attributesFile = attributesFile;
+}
+
+QString File::attributesFile() {
+    return _attributesFile;
+}
+
 bool File::openText(QString filename) {
     setFilename(filename);
     QFile file(getFilename());
     if (file.open(QIODevice::ReadOnly)) {
         initText();
 
-        Tui::ZDocumentCursor::Position initialPosition = getAttributes();
+        Attributes a{_attributesFile};
+        Tui::ZDocumentCursor::Position initialPosition = a.getAttributesCursorPosition(getFilename());
         const bool ok = readFrom(&file, initialPosition);
         file.close();
 
@@ -557,13 +491,10 @@ bool File::openText(QString filename) {
 
         modifiedChanged(false);
 
-        // TODO refactor this
-        if (!_attributeObject.isEmpty() && _attributeObject.contains(getFilename())) {
-            QJsonObject data = _attributeObject.value(getFilename()).toObject();
-            setScrollPosition(data.value("sCol").toInt(),
-                              data.value("sLine").toInt(),
-                              data.value("sFine").toInt());
-        }
+        setScrollPosition(a.getAttributesScrollCol(getFilename()),
+                          a.getAttributesScrollLine(getFilename()),
+                          a.getAttributesScrollFine(getFilename()));
+
         adjustScrollPosition();
 
 #ifdef SYNTAX_HIGHLIGHTING

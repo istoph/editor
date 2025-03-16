@@ -6,6 +6,7 @@ main = ['main.cpp']
 editor_sources = [
   'aboutdialog.cpp',
   'alert.cpp',
+  'attributes.cpp',
   'commandlinewidget.cpp',
   'confirmsave.cpp',
   'dlgfilemodel.cpp',
@@ -38,6 +39,7 @@ editor_sources = [
 editor_headers = [
   'aboutdialog.h',
   'alert.h',
+  'attributes.h',
   'commandlinewidget.h',
   'confirmsave.h',
   'dlgfilemodel.h',
