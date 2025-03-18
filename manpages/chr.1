@@ -91,6 +91,10 @@ Ctrl + r
 Ctrl + n
   Creates a window with an empty document
 
+Ctrl + m
+  Creates a line marker at the left edge of the line to find lines again.  (Ctrl + , oder Ctrl + .)
+  This key combination does not work with all terminals.
+
 Ctrl + q
   Quits the editor
 
@@ -214,6 +218,9 @@ Opens a dialog in which a character code (Unicode codepoint) of a special charac
 
 .SS Goto
 To jump to a line, open a Goto Line dialog under "Goto".
+
+.SS Marker
+Creates a line marker in the left margin to quickly find lines again when reviewing. Use Ctrl + , or Ctrl + . to jump to the next marker. On quit the list of markers is saved in chr.json, so that it can be restored when the file is opened.
 
 .SS Sort Selected Lines
 Sort the selected lines (lexicographical by code-point).

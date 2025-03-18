@@ -7,6 +7,7 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <QJsonDocument>
+#include <QJsonArray>
 
 Attributes::Attributes() {
     Attributes("");
@@ -79,7 +80,21 @@ int Attributes::getAttributesScrollFine(QString filename) {
     return 0;
 }
 
-bool Attributes::writeAttributes(QString filename, Tui::ZDocumentCursor::Position cursorPosition, int scrollPositionColumn, int scrollPositionLine, int scrollPositionFineLine) {
+QList<int> Attributes::getAttributesLineMarker(QString filename) {
+    QList<int> lineMarker;
+    if (readAttributes()) {
+        if (!_attributeObject.isEmpty() && _attributeObject.contains(filename)) {
+            QJsonObject data = _attributeObject.value(filename).toObject();
+            QJsonArray jsonArray = data["lineMarker"].toArray();
+            for (const QJsonValue &value : jsonArray) {
+                lineMarker.append(value.toInt());
+            }
+        }
+    }
+    return lineMarker;
+}
+
+bool Attributes::writeAttributes(QString filename, Tui::ZDocumentCursor::Position cursorPosition, int scrollPositionColumn, int scrollPositionLine, int scrollPositionFineLine, QList<int> lineMarkers) {
     QFileInfo filenameInfo(filename);
     if (!filenameInfo.exists() || _attributesFile.isEmpty()) {
         return false;
@@ -94,6 +109,12 @@ bool Attributes::writeAttributes(QString filename, Tui::ZDocumentCursor::Positio
     data.insert("sCol", scrollPositionColumn);
     data.insert("sLine", scrollPositionLine);
     data.insert("sFine", scrollPositionFineLine);
+
+    QJsonArray jsonArray;
+    for (int i = 0; i < lineMarkers.size(); i++) {
+        jsonArray.append(lineMarkers.at(i));
+    }
+    data.insert("lineMarker", jsonArray);
 
     _attributeObject.insert(filenameInfo.absoluteFilePath(), data);
 

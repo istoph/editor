@@ -114,6 +114,9 @@ private:
     Tui::ZWindow *_fileGotoLine = nullptr;
     Tui::ZCommandNotifier *_cmdInsertCharacter = nullptr;
     Tui::ZCommandNotifier *_cmdGotoLine = nullptr;
+    Tui::ZCommandNotifier *_cmdLineMarker = nullptr;
+    Tui::ZCommandNotifier *_cmdNextLineMarker = nullptr;
+    Tui::ZCommandNotifier *_cmdPreviousLineMarker = nullptr;
     Tui::ZCommandNotifier *_cmdSortSelectedLines = nullptr;
     Tui::ZCommandNotifier *_cmdLineNumbers = nullptr;
     Tui::ZCommandNotifier *_cmdFormatting = nullptr;

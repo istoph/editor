@@ -92,6 +92,10 @@ Ctrl + r
 Ctrl + n
   Erstellt ein neues Fenster mit einem leeren Textdokument
 
+Ctrl + m
+  Erstellt einen Line Marker am linken Zeilenrand, um Zeilen wiederzufinden. (Ctrl + , oder Ctrl + .)
+  Diese Tastenkombination funktioniert nicht mit allen Terminals.
+
 Ctrl + q
   Programm verlassen
 
@@ -214,6 +218,9 @@ Mit Replace oder Ctrl + r wird der "Ersetzen"-Dialog geöffnet. Im Feld "Find" w
 
 .SS Goto
 Öffnet einen Dialog, um zu einer Zeile zu springen.
+
+.SS Marker
+Erstellt am linken Rand einen Line Marker, um Zeilen bei der Durchsicht schnell wiederzufinden. Mithilfe von Ctrl + , oder Ctrl + . wird an den jeweils nächsten Marker gesprungen. Die Liste von Markern wird beim Beenden in chr.json gespeichert, um sie, beim Öffnen der Datei, wiederherzustellen.
 
 .SS Sort Selected Lines
 Markierte Zeilen werden alphabetisch (lexikografisch nach Codepoint) sortiert.

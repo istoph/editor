@@ -29,6 +29,7 @@
 #include <Tui/ZTextOption.h>
 #include <Tui/ZWidget.h>
 
+#include "markermanager.h"
 
 struct ExtraData : public Tui::ZDocumentLineUserData {
 #ifdef SYNTAX_HIGHLIGHTING
@@ -89,6 +90,9 @@ public:
     void copy() override;
     void paste() override;
     void gotoLine(QString pos);
+    void toggleLineMarker();
+    void gotoNextLineMarker();
+    void gotoPreviousLineMarker();
     void setEatSpaceBeforeTabs(bool eat);
     bool eatSpaceBeforeTabs();
     bool formattingCharacters() const;
@@ -142,6 +146,7 @@ public:
     void sortSelecedLines();
 
     bool event(QEvent *event) override;
+    int allBordersWidth() const override;
     bool followStandardInput();
 
 public slots:
@@ -174,6 +179,9 @@ private:
     void emitCursorPostionChanged() override;
 
 
+    bool hasLineMarker() const;
+    bool hasLineMarker(int line) const;
+    int lineMarkerBorderWidth() const;
 
     Tui::ZTextOption textOption() const override;
 
@@ -239,6 +247,7 @@ private:
     int _rightMarginHint = 0;
     bool _colorTabs = true;
     bool _colorTrailingSpaces = true;
+    std::unique_ptr<MarkerManager> _lineMarker;
 
     Tui::ZCommandNotifier *_cmdSearchNext = nullptr;
     Tui::ZCommandNotifier *_cmdSearchPrevious = nullptr;

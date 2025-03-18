@@ -70,6 +70,12 @@ void Editor::setupUi() {
                             { "Insert C<m>h</m>aracter...", "", "InsertCharacter", {}},
                             {},
                             { "<m>G</m>oto Line", "Ctrl-G", "Gotoline", {}},
+                            { "Set Marker", "Ctrl-M", "addLineMarker", {}},
+                            // { "Marker", "", "", {
+                                //{ "Set Marker", "Ctrl-M", "addLineMarker", {}},
+                                //{ "Goto Next Marker", "Ctrl-,", "nextLineMarker", {}},
+                                //{ "Goto Previous Marker", "Ctrl-.", "previousLineMarker", {}},
+                            // }},
                             {},
                             { "Sort Selcted Lines", "Alt-Shift-S", "SortSelectedLines", {}}
                         }
@@ -158,6 +164,26 @@ void Editor::setupUi() {
         this, gotoLine);
     _cmdGotoLine = new Tui::ZCommandNotifier("Gotoline", this);
     QObject::connect(_cmdGotoLine, &Tui::ZCommandNotifier::activated, this, gotoLine);
+
+    //Marker
+    _cmdLineMarker = new Tui::ZCommandNotifier("addLineMarker", this);
+    QObject::connect(_cmdLineMarker, &Tui::ZCommandNotifier::activated, this, [this] {
+        if (_file) {
+            _file->toggleLineMarker();
+        }
+    });
+    _cmdNextLineMarker = new Tui::ZCommandNotifier("nextLineMarker", this);
+    QObject::connect(_cmdNextLineMarker, &Tui::ZCommandNotifier::activated, this, [this] {
+        if (_file) {
+            _file->gotoNextLineMarker();
+        }
+    });
+    _cmdPreviousLineMarker = new Tui::ZCommandNotifier("previousLineMarker", this);
+    QObject::connect(_cmdPreviousLineMarker, &Tui::ZCommandNotifier::activated, this, [this] {
+        if (_file) {
+            _file->gotoPreviousLineMarker();
+        }
+    });
 
     //Sort Seleced Lines
     _cmdSortSelectedLines = new Tui::ZCommandNotifier("SortSelectedLines", this);
@@ -671,6 +697,9 @@ void Editor::ensureWindowCommands(int count) {
 void Editor::enableFileCommands(bool enable) {
     _cmdInsertCharacter->setEnabled(enable);
     _cmdGotoLine->setEnabled(enable);
+    _cmdLineMarker->setEnabled(enable);
+    _cmdNextLineMarker->setEnabled(enable);
+    _cmdPreviousLineMarker->setEnabled(enable);
     _cmdSortSelectedLines->setEnabled(enable);
     _cmdTab->setEnabled(enable);
     _cmdLineNumbers->setEnabled(enable);
