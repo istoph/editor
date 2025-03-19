@@ -11,6 +11,7 @@ endif
 
 #ide:editable-filelist
 tests = [
+  'attributes.cpp',
   'eventrecorder.cpp',
   'filelistparsertests.cpp',
   'fileopentests.cpp',
