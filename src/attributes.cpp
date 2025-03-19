@@ -121,12 +121,13 @@ bool Attributes::writeAttributes(QString filename, Tui::ZDocumentCursor::Positio
 }
 
 void Attributes::setAttributesFile(QString attributesFile) {
-    //TODO is creatable
-    if (attributesFile.isEmpty() || attributesFile.isNull()) {
-        _attributesFile = "";
+    if (!attributesFile.isEmpty() && !attributesFile.isNull()) {
+        QFileInfo file(attributesFile);
+        if (file.isFile() && file.isWritable()) {
+            _attributesFile = file.absoluteFilePath();
+        }
     } else {
-        QFileInfo i(attributesFile);
-        _attributesFile = i.absoluteFilePath();
+        _attributesFile = "";
     }
 }
 
