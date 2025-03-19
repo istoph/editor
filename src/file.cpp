@@ -1362,11 +1362,12 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
     std::optional<Tui::ZPainter> painterLeftOfMargin;
 
     auto scrollPositionColumns = scrollPositionColumn();
+    const int leftBordersWidth = lineNumberBorderWidth() + lineMarkerBorderWidth();
 
     auto *painter = event->painter();
     if (_rightMarginHint) {
-        painter->clearRect(0, 0, -scrollPositionColumns + lineNumberBorderWidth() + lineMarkerBorderWidth() + _rightMarginHint, rect().height(), fg, bg);
-        painter->clearRect(-scrollPositionColumns + lineNumberBorderWidth() + lineMarkerBorderWidth() + _rightMarginHint, 0, Tui::tuiMaxSize, rect().height(), fg, marginMarkBg);
+        painter->clearRect(0, 0, -scrollPositionColumns + leftBordersWidth + _rightMarginHint, rect().height(), fg, bg);
+        painter->clearRect(-scrollPositionColumns + leftBordersWidth + _rightMarginHint, 0, Tui::tuiMaxSize, rect().height(), fg, marginMarkBg);
 
         // One extra column to account for double wide character at last position
         leftOfMarginBuffer.emplace(terminal(), _rightMarginHint + 1, 1);
@@ -1537,17 +1538,17 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 painterLeftOfMargin.emplace(leftOfMarginBuffer->painter());
             }
 
-            lay.draw(*painter, {-scrollPositionColumns + lineNumberBorderWidth() + lineMarkerBorderWidth(), y}, baseInMargin, &formatingCharInMargin, highlights);
+            lay.draw(*painter, {-scrollPositionColumns + leftBordersWidth, y}, baseInMargin, &formatingCharInMargin, highlights);
             painterLeftOfMargin->clearRect(0, 0, _rightMarginHint + 1, lay.lineCount(), base.foregroundColor(), base.backgroundColor());
             lay.draw(*painterLeftOfMargin, {0, 0}, base, &formatingChar, highlights);
-            painter->drawImageWithTiling(-scrollPositionColumns + lineNumberBorderWidth() + lineMarkerBorderWidth(), y,
+            painter->drawImageWithTiling(-scrollPositionColumns + leftBordersWidth, y,
                                               *leftOfMarginBuffer, 0, 0, _rightMarginHint, lay.lineCount(),
                                               Tui::ZTilingMode::NoTiling, Tui::ZTilingMode::Put);
         } else {
             if (_formattingCharacters) {
-                lay.draw(*painter, {-scrollPositionColumns + lineNumberBorderWidth() + lineMarkerBorderWidth(), y}, base, &formatingChar, highlights);
+                lay.draw(*painter, {-scrollPositionColumns + leftBordersWidth, y}, base, &formatingChar, highlights);
             } else {
-                lay.draw(*painter, {-scrollPositionColumns + lineNumberBorderWidth() + lineMarkerBorderWidth(), y}, base, &base, highlights);
+                lay.draw(*painter, {-scrollPositionColumns + leftBordersWidth, y}, base, &base, highlights);
             }
         }
         Tui::ZTextLineRef lastLine = lay.lineAt(lay.lineCount()-1);
@@ -1566,7 +1567,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                         markStyle = multiInsertChar;
                     }
                     const int firstColumnAfterLineBreakMarker = std::max(lastLine.width() + 1, firstSelectBlockColumn);
-                    painter->clearRect(-scrollPositionColumns + firstColumnAfterLineBreakMarker + lineNumberBorderWidth() + lineMarkerBorderWidth(),
+                    painter->clearRect(-scrollPositionColumns + firstColumnAfterLineBreakMarker + leftBordersWidth,
                                        y + lastLine.y(), std::max(1, lastSelectBlockColumn - firstColumnAfterLineBreakMarker),
                                        1, markStyle.foregroundColor(), markStyle.backgroundColor());
                 }
@@ -1581,27 +1582,27 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                 if (multiIns) {
                     markStyle = multiInsertChar;
                 }
-                painter->writeWithAttributes(-scrollPositionColumns + lastLine.width() + lineNumberBorderWidth() + lineMarkerBorderWidth(), y + lastLine.y(), QStringLiteral("¶"),
+                painter->writeWithAttributes(-scrollPositionColumns + lastLine.width() + leftBordersWidth, y + lastLine.y(), QStringLiteral("¶"),
                                          markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
             } else {
                 Tui::ZTextStyle markStyle = selected;
                 if (multiIns) {
                     markStyle = multiInsertChar;
                 }
-                painter->clearRect(-scrollPositionColumns + lastLine.width() + lineNumberBorderWidth() + lineMarkerBorderWidth(), y + lastLine.y(), 1, 1, markStyle.foregroundColor(), markStyle.backgroundColor());
+                painter->clearRect(-scrollPositionColumns + lastLine.width() + leftBordersWidth, y + lastLine.y(), 1, 1, markStyle.foregroundColor(), markStyle.backgroundColor());
             }
         } else if (formattingCharacters()) {
             const Tui::ZTextStyle &markStyle = (_rightMarginHint && lastLine.width() > _rightMarginHint) ? formatingCharInMargin : formatingChar;
-            painter->writeWithAttributes(-scrollPositionColumns + lastLine.width() + lineNumberBorderWidth() + lineMarkerBorderWidth(), y + lastLine.y(), QStringLiteral("¶"),
+            painter->writeWithAttributes(-scrollPositionColumns + lastLine.width() + leftBordersWidth, y + lastLine.y(), QStringLiteral("¶"),
                                          markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
         }
 
         if (cursorLine == line) {
             if (focus()) {
                 if (_blockSelect) {
-                    painter->setCursor(-scrollPositionColumns + lineNumberBorderWidth() + lineMarkerBorderWidth() + _blockSelectEndColumn, y);
+                    painter->setCursor(-scrollPositionColumns + leftBordersWidth + _blockSelectEndColumn, y);
                 } else {
-                    lay.showCursor(*painter, {-scrollPositionColumns + lineNumberBorderWidth() + lineMarkerBorderWidth(), y}, cursorCodeUnit);
+                    lay.showCursor(*painter, {-scrollPositionColumns + leftBordersWidth, y}, cursorCodeUnit);
                 }
             }
         }
@@ -1609,7 +1610,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         if (showLineNumbers()) {
             // Wrapping
             for (int i = lay.lineCount() - 1; i > 0; i--) {
-                painter->writeWithColors(0, y + i, QString(" ").repeated(lineNumberBorderWidth() + lineMarkerBorderWidth()),
+                painter->writeWithColors(0, y + i, QString(" ").repeated(leftBordersWidth),
                                          getColor("chr.linenumberFg"), getColor("chr.linenumberBg"));
             }
             if (hasLineMarker(line)) {
@@ -1617,7 +1618,7 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
                                 + QString("*") + QString(" ").repeated(lineNumberBorderWidth() - QString::number(line + 1).size());
             } else {
                 strlinenumber = QString::number(line + 1)
-                                + QString(" ").repeated(lineNumberBorderWidth() + lineMarkerBorderWidth() - QString::number(line + 1).size());
+                                + QString(" ").repeated(leftBordersWidth - QString::number(line + 1).size());
             }
             int lineNumberY = y;
             if (y < 0) {
@@ -1659,14 +1660,14 @@ void File::paintEvent(Tui::ZPaintEvent *event) {
         if (formattingCharacters() && y < rect().height() && scrollPositionColumns == 0) {
             const Tui::ZTextStyle &markStyle = (_rightMarginHint && tmpLastLineWidth > _rightMarginHint) ? formatingCharInMargin : formatingChar;
 
-            painter->writeWithAttributes(-scrollPositionColumns + tmpLastLineWidth + lineNumberBorderWidth() + lineMarkerBorderWidth(), y - 1, "♦",
+            painter->writeWithAttributes(-scrollPositionColumns + tmpLastLineWidth + leftBordersWidth, y - 1, "♦",
                                          markStyle.foregroundColor(), markStyle.backgroundColor(), markStyle.attributes());
         }
-        painter->writeWithAttributes(0 + lineNumberBorderWidth() + lineMarkerBorderWidth(), y, "\\ No newline at end of file",
+        painter->writeWithAttributes(0 + leftBordersWidth, y, "\\ No newline at end of file",
                                      formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
     } else {
         if (formattingCharacters() && y < rect().height() && scrollPositionColumns == 0) {
-            painter->writeWithAttributes(0 + lineNumberBorderWidth() + lineMarkerBorderWidth(), y, "♦",
+            painter->writeWithAttributes(0 + leftBordersWidth, y, "♦",
                                          formatingChar.foregroundColor(), formatingChar.backgroundColor(), formatingChar.attributes());
         }
     }
