@@ -2,6 +2,8 @@
 
 #include "attributes.h"
 
+#include <mutex>
+
 #include <QFile>
 #include <QDir>
 #include <QFileInfo>
@@ -41,7 +43,7 @@ bool Attributes::readAttributes() {
 Tui::ZDocumentCursor::Position Attributes::getAttributesCursorPosition(QString filename) {
     if (readAttributes()) {
         QJsonObject data = _attributeObject.value(filename).toObject();
-
+        // Convert from old attributes format, can be removed in the future
         if (data.contains("cursorPositionX") && data.contains("cursorPositionY")) {
             return {data.value("cursorPositionX").toInt(), data.value("cursorPositionY").toInt()};
         }
@@ -123,7 +125,7 @@ bool Attributes::writeAttributes(QString filename, Tui::ZDocumentCursor::Positio
 
     //Save
     QDir d = QFileInfo(_attributesFile).absoluteDir();
-    QString absolute=d.absolutePath();
+    QString absolute = d.absolutePath();
     if (!QDir(absolute).exists()) {
         if (QDir().mkdir(absolute)) {
             qWarning("%s%s", "can not create directory: ", absolute.toUtf8().data());
@@ -144,8 +146,17 @@ bool Attributes::writeAttributes(QString filename, Tui::ZDocumentCursor::Positio
 void Attributes::setAttributesFile(QString attributesFile) {
     if (!attributesFile.isEmpty() && !attributesFile.isNull()) {
         QFileInfo file(attributesFile);
-        if (file.isFile() && file.isWritable()) {
+        QString dirPath = file.path();
+        QFileInfo dirInfo(dirPath);
+
+        if (file.isReadable() || dirInfo.isWritable()) {
             _attributesFile = file.absoluteFilePath();
+        } else {
+            static std::once_flag warningPrinted;
+            std::call_once(warningPrinted, [&] {
+                qWarning("attributesFile '%s' is not readable or writable", attributesFile.toUtf8().data());
+            });
+            _attributesFile = "";
         }
     } else {
         _attributesFile = "";
