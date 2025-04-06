@@ -9,13 +9,13 @@ MarkerManager::MarkerManager() {
 }
 
 void MarkerManager::addMarker(Tui::ZDocument *doc, int line) {
-    markers.emplace_back(doc, line);
+    markers.emplace_back(std::make_unique<Tui::ZDocumentLineMarker>(doc, line));
 }
 
 void MarkerManager::removeMarker(int line) {
     markers.erase(std::remove_if(markers.begin(), markers.end(),
-                                 [line](const Tui::ZDocumentLineMarker& marker) {
-                                     return marker.line() == line;
+                                 [line](const auto& marker) {
+                                     return marker->line() == line;
                                  }),
                   markers.end());
 }
@@ -26,8 +26,8 @@ bool MarkerManager::hasMarker() {
 
 bool MarkerManager::hasMarker(int line) {
     return std::any_of(markers.begin(), markers.end(),
-                       [line](const Tui::ZDocumentLineMarker& marker) {
-                           return marker.line() == line;
+                       [line](const auto& marker) {
+                           return marker->line() == line;
                        });
 }
 
@@ -35,7 +35,7 @@ std::vector<int> MarkerManager::listMarkerIntern() {
     std::vector<int> list;
     list.reserve(markers.size());
     for (const auto& marker : markers) {
-        list.push_back(marker.line());
+        list.push_back(marker->line());
     }
     std::sort(list.begin(), list.end());
     return list;

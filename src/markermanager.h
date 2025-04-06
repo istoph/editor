@@ -24,7 +24,7 @@ public:
 
 private:
     std::vector<int> listMarkerIntern();
-    std::vector<Tui::ZDocumentLineMarker> markers;
+    std::vector<std::unique_ptr<Tui::ZDocumentLineMarker>> markers;
 };
 
 #endif // MARKERMANAGER_H
