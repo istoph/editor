@@ -1,6 +1,6 @@
 ### Install from distro respositorys
 
-# Deiban 13 Trixi
+# Debian 13 Trixie
 ```
 sudo apt install chr
 ```
