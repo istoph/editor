@@ -61,43 +61,52 @@ NAME
 
 SYNOPSIS
        Usage:  chr  [options]  [[+line[,char]] file …] [[+/searchword] file …]
-       [/directory]
+       [/directory …]
 
        Options:
-         ‐h,  ‐‐help                                        Displays  help  on
+         -h,  --help                                        Displays  help  on
        commandline
                                                           options.
-         ‐‐help‐all                                        Displays  help  in‐
+         --help-all                                        Displays  help  in‐
        cluding Qt
                                                           specific options.
-         ‐v, ‐‐version                                    Displays version
+         -v, --version                                    Displays version
                                                           information.
-         ‐l, ‐‐line‐number                                The line numbers are
+         -l, --line-number                                The line numbers are
                                                           displayed
-         ‐b,  ‐‐big‐file                                    Open  bigger  file
-       then 100MB
-         ‐w,   ‐‐wrap‐lines  <WordWrap|WrapAnywhere|NoWrap>   Wrap  log  lines
+         -b, --big-file                                    Open  bigger  files
+       than 100MB
+         -w,   --wrap-lines  <WordWrap|WrapAnywhere|NoWrap>   Wrap  log  lines
        (NoWrap
                                                           Default)
-         ‐‐attributesfile <config>                        Safe  file  for  at‐
+         --attributesfile <config>                        Safe  file  for  at‐
        tributes,
                                                           default
        ~/.cache/chr/chr.json
-         ‐c, ‐‐config <config>                            Load customized con‐
+         -c, --config <config>                            Load customized con‐
        fig file.
                                                           The  default  if  it
        exist is
                                                           ~/.config/chr
-         ‐‐syntax‐highlighting‐theme <name>               Name of
-                                                          syntax‐highlighting‐
+         --syntax-highlighting-theme <name>               Name of
+                                                          syntax-highlighting-
        theme,
                                                           you  can  list   in‐
        stalled themes
-                                                          with:   kate‐syntax‐
+                                                          with:   kate-syntax-
        highlighter
-                                                          ‐‐list‐themes
-         ‐‐disable‐syntax                                 disable syntax high‐
+                                                          --list-themes
+         --disable-syntax                                 disable syntax high‐
        lighting
+         -s, --size <N|auto>                              Size <N> in lines or
+       <auto>
+                                                          for Automatic detec‐
+       tion of
+                                                          the  size   of   the
+       lines with
+                                                          which  the editor is
+       displayed
+                                                          on the console.
 
        Arguments:
          [[+line[,char]] file …]                          Optional is the line
@@ -109,7 +118,7 @@ SYNOPSIS
                                                           windows.
          [[+/searchword] file …]                          A search word can be
        set.
-         [/directory]                                     Or a  directory  can
+         [/directory …]                                   Or a  directory  can
        be
                                                           specified  to search
        in the
@@ -160,6 +169,9 @@ SHORT CUTS
        Ctrl + e, Ctrl + up/down/left/right
          Change window size
 
+       Ctrl + e, q
+         Close an active document
+
        Ctrl + f
          Open the search dialog
 
@@ -172,8 +184,17 @@ SHORT CUTS
        Ctrl + n
          Creates a window with an empty document
 
+       Ctrl + m
+         Creates a line marker at the left edge of  the  line  to  find  lines
+       again.  (Ctrl + , oder Ctrl + .)
+         This key combination does not work with all terminals.
+
        Ctrl + q
          Quits the editor
+
+       Ctrl + Shift + q
+         Close  an  active document (the key combination does not work in vte,
+       see: Ctrl + e, q)
 
        Ctrl + s
          Save (or save as for new documents)
@@ -208,7 +229,7 @@ SHORT CUTS
        Ctrl + Shift Right
          Selects a word to the right
 
-       Alt + ‐
+       Alt + -
          Open the window menu
 
        Alt + Shift + up/down/left/right
@@ -217,7 +238,7 @@ SHORT CUTS
        lines from the clipboard will be distributed across the selected lines.
 
        Alt + Shift + S
-         Sort the selected lines (lexicographical by code‐point)
+         Sort the selected lines (lexicographical by code-point)
 
        Alt + x
          Opens a command line. Type "help" for help.
@@ -316,8 +337,14 @@ Edit
    Goto
        To jump to a line, open a Goto Line dialog under "Goto".
 
+   Marker
+       Creates a line marker in the left margin to quickly  find  lines  again
+       when reviewing. Use Ctrl + , or Ctrl + . to jump to the next marker. On
+       quit  the  list  of markers is saved in chr.json, so that it can be re‐
+       stored when the file is opened.
+
    Sort Selected Lines
-       Sort the selected lines (lexicographical by code‐point).
+       Sort the selected lines (lexicographical by code-point).
 
 Options
    Tab settings
@@ -380,15 +407,15 @@ Options
        syntax highlighting dialog. Syntax highlighting can also be deactivated
        in this dialog.
 
-       The theme can be customized via the command line switch "‐‐syntax‐high‐
-       lighting‐theme". The editor comes  with  the  themes  "chr‐bluebg"  and
-       "chr‐blackbg". If required, a theme from the list that can be displayed
-       with  "kate‐syntax‐highlighter ‐‐list‐themes" can be used. With the op‐
-       tion "syntax_highlighting_theme=chr‐bluebg" the theme  can  be  set  in
+       The theme can be customized via the command line switch "--syntax-high‐
+       lighting-theme". The editor comes  with  the  themes  "chr-bluebg"  and
+       "chr-blackbg". If required, a theme from the list that can be displayed
+       with  "kate-syntax-highlighter --list-themes" can be used. With the op‐
+       tion "syntax_highlighting_theme=chr-bluebg" the theme  can  be  set  in
        ~/.config/chr.
 
        Syntax  highlighting  can  be  switched  off via the command line using
-       "‐‐disable‐syntax" when the editor is started. With  the  option  "dis‐
+       "--disable-syntax" when the editor is started. With  the  option  "dis‐
        able_syntax=true" the theme can be set in ~/.config/chr.
 
    Theme
@@ -439,7 +466,7 @@ Default config
          line_number=false
          logfile=""
          right_margin_hint=0
-         syntax_highlighting_theme="chr‐bluebg"
+         syntax_highlighting_theme="chr-bluebg"
          tab=false
          tab_size=4
          theme="classic"
@@ -461,7 +488,7 @@ AUTHOR
        Christoph Hüffelmann <chr@istoph.de> Martin Hostettler <textshell@uchu‐
        ujin.de>
 
-0.1.78                            20 Mar 2024                           man(1)
+0.1.80                            06 Apr 2025                           man(1)
 ```
 
 ## License

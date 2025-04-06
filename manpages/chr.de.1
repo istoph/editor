@@ -1,11 +1,11 @@
 .\" SPDX-License-Identifier: BSL-1.0
 .\" Manpage für chr
 .\" Mach Pull Requests auf: https://github.com/istoph/editor oder erstelle ein Issue für Fehlerkorrekturen.
-.TH man 1 "20 Mar 2024" "0.1.78" "chr man page"
+.TH man 1 "06 Apr 2025" "0.1.80" "chr man page"
 .SH NAME
 chr \- chr ist ein terminal-basierter Editor
 .SH SYNOPSIS
-Usage: chr [options] [[+line[,char]] file …] [[+/searchword] file …] [/directory]
+Usage: chr [options] [[+line[,char]] file …] [[+/searchword] file …] [/directory …]
 
 Options:
   -h, --help                                       Displays help on commandline
@@ -16,7 +16,7 @@ Options:
                                                    information.
   -l, --line-number                                The line numbers are
                                                    displayed
-  -b, --big-file                                   Open bigger file then 100MB
+  -b, --big-file                                   Open bigger files than 100MB
   -w, --wrap-lines <WordWrap|WrapAnywhere|NoWrap>  Wrap log lines (NoWrap
                                                    Default)
   --attributesfile <config>                        Safe file for attributes,
@@ -30,6 +30,11 @@ Options:
                                                    with: kate-syntax-highlighter
                                                    --list-themes
   --disable-syntax                                 disable syntax highlighting
+  -s, --size <N|auto>                              Size <N> in lines or <auto>
+                                                   for Automatic detection of
+                                                   the size of the lines with
+                                                   which the editor is displayed
+                                                   on the console.
 
 Arguments:
   [[+line[,char]] file …]                          Optional is the line number
@@ -37,7 +42,7 @@ Arguments:
                                                    can be opened in multiple
                                                    windows.
   [[+/searchword] file …]                          A search word can be set.
-  [/directory]                                     Or a directory can be
+  [/directory …]                                   Or a directory can be
                                                    specified to search in the
                                                    open dialog.
 
